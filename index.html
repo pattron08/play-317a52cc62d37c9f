@@ -3,6 +3,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <title>No Hander</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#181a1b">
 <style>
   html,body{margin:0;height:100%;background:#181a1b;color:#e8e6e3;font-family:system-ui,sans-serif}
   #launch{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center;padding:24px}
@@ -20,10 +26,14 @@
   <p>Private preview build. Landscape works best.</p>
   <button id="go">Play fullscreen</button>
   <a class="alt" id="win" href="game.html">Play in this window</a>
+  <p id="tip" style="max-width:420px;font-size:14px"></p>
 </div>
 <button id="fs">Fullscreen</button>
 <div id="stage"><iframe id="frame" allow="fullscreen; autoplay; gamepad" allowfullscreen></iframe></div>
 <script>
+  (function(){var tip=document.getElementById("tip");var ua=navigator.userAgent;var standalone=window.matchMedia("(display-mode: fullscreen), (display-mode: standalone)").matches||navigator.standalone;if(standalone){tip.textContent="";return;}
+    if(/iPhone|iPad|iPod/.test(ua)){tip.textContent="On iPhone/iPad the browser bars can't be hidden in a tab. Tap Share, then Add to Home Screen, and open No Hander from your home screen for true fullscreen.";}
+    else if(/Android/.test(ua)){tip.textContent="For no address bar: tap the browser menu, then Add to Home screen (or Install app), and open it from your home screen.";}})();
   var stage=document.getElementById('stage'), frame=document.getElementById('frame');
   document.getElementById('go').addEventListener('click', function(){
     frame.src='game.html' + location.hash;
