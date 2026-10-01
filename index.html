@@ -16,6 +16,8 @@
   p{margin:0;opacity:.7}
   button,a.alt{font:600 18px system-ui,sans-serif;border:0;border-radius:12px;padding:14px 28px;cursor:pointer}
   button{background:#ff8a2b;color:#2a1200}
+  button.sec{background:none;color:#e8e6e3;border:1px solid rgba(255,255,255,.35);font-size:16px;padding:10px 22px}
+  #steps{display:none;max-width:420px;text-align:left;background:rgba(255,255,255,.07);border-radius:12px;padding:14px 18px;font-size:14px;line-height:1.5}
   a.alt{color:#e8e6e3;opacity:.7;font-size:15px;background:none;text-decoration:underline}
   #stage{position:fixed;inset:0;background:#000;display:none}
   #fs{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:5;background:rgba(0,0,0,.55);color:#fff;font:600 14px system-ui,sans-serif;border:1px solid rgba(255,255,255,.35);border-radius:10px;padding:8px 16px;cursor:pointer;display:none}
@@ -25,7 +27,9 @@
   <h1>No Hander</h1>
   <p>Private preview build. Landscape works best.</p>
   <button id="go">Play fullscreen</button>
+  <button id="inst" class="sec" style="display:none">Install for fullscreen</button>
   <a class="alt" id="win" href="game.html">Play in this window</a>
+  <div id="steps"></div>
   <p id="tip" style="max-width:420px;font-size:14px"></p>
 </div>
 <button id="fs">Fullscreen</button>
@@ -51,4 +55,19 @@
   document.addEventListener('fullscreenchange', function(){
     if(!document.fullscreenElement){ stage.style.display='none'; frame.src='about:blank'; document.getElementById('launch').style.display='flex'; }
   });
+  (function(){
+    var inst=document.getElementById('inst'),steps=document.getElementById('steps'),dp=null;
+    var ua=navigator.userAgent,ios=/iPhone|iPad|iPod/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+    var standalone=window.matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches||navigator.standalone;
+    if(standalone)return;
+    inst.style.display='inline-block';
+    window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();dp=e;});
+    inst.addEventListener('click',function(){
+      if(dp){dp.prompt();dp.userChoice.then(function(){dp=null;});return;}
+      steps.style.display='block';
+      steps.innerHTML=ios
+        ?'<b>iPhone / iPad</b><br>1. Tap the Share button (square with an arrow) in Safari.<br>2. Scroll and tap <b>Add to Home Screen</b>.<br>3. Tap Add, then open <b>No Hander</b> from your home screen. No address bar.'
+        :'<b>Add to your home screen</b><br>1. Open your browser menu (three dots).<br>2. Tap <b>Install app</b> or <b>Add to Home screen</b>.<br>3. Open <b>No Hander</b> from your home screen. No address bar.';
+    });
+  })();
 </script>
