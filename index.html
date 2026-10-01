@@ -12,6 +12,7 @@
   button{background:#ff8a2b;color:#2a1200}
   a.alt{color:#e8e6e3;opacity:.7;font-size:15px;background:none;text-decoration:underline}
   #stage{position:fixed;inset:0;background:#000;display:none}
+  #fs{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:5;background:rgba(0,0,0,.55);color:#fff;font:600 14px system-ui,sans-serif;border:1px solid rgba(255,255,255,.35);border-radius:10px;padding:8px 16px;cursor:pointer;display:none}
   #stage iframe{width:100%;height:100%;border:0;display:block}
 </style>
 <div id="launch">
@@ -20,6 +21,7 @@
   <button id="go">Play fullscreen</button>
   <a class="alt" id="win" href="game.html">Play in this window</a>
 </div>
+<button id="fs">Fullscreen</button>
 <div id="stage"><iframe id="frame" allow="fullscreen; autoplay; gamepad" allowfullscreen></iframe></div>
 <script>
   var stage=document.getElementById('stage'), frame=document.getElementById('frame');
@@ -27,10 +29,15 @@
     frame.src='game.html' + location.hash;
     stage.style.display='block';
     document.getElementById('launch').style.display='none';
-    var r=stage.requestFullscreen||stage.webkitRequestFullscreen;
-    if(r){ try{ var p=r.call(stage); if(p&&p.catch)p.catch(function(){}); }catch(e){} }
+    var r=document.documentElement.requestFullscreen||document.documentElement.webkitRequestFullscreen;
+    if(r){ try{ var p=r.call(document.documentElement); if(p&&p.catch)p.catch(function(){}); }catch(e){} }
     if(screen.orientation&&screen.orientation.lock){ screen.orientation.lock('landscape').catch(function(){}); }
   });
+  function enterFS(){var el=document.documentElement;var r=el.requestFullscreen||el.webkitRequestFullscreen;if(r){try{var p=r.call(el);if(p&&p.catch)p.catch(function(){});}catch(e){}}}
+  var fsBtn=document.getElementById('fs');
+  fsBtn.addEventListener('click',enterFS);
+  document.getElementById('go').addEventListener('click',function(){fsBtn.style.display='block';});
+  document.addEventListener('fullscreenchange',function(){fsBtn.style.display=document.fullscreenElement?'none':(stage.style.display==='block'?'block':'none');});
   document.addEventListener('fullscreenchange', function(){
     if(!document.fullscreenElement){ stage.style.display='none'; frame.src='about:blank'; document.getElementById('launch').style.display='flex'; }
   });
