@@ -208,7 +208,6 @@
   .sw[aria-checked="true"]::after { transform: translateX(24px); background: var(--accInk); }
   .srow input[type=range] { width: 180px; accent-color: var(--acc1); }
   /* the rider customize sheet sits to the right so the rider preview shows on the left; palette rows wrap the swatches under their label */
-  .lrow { flex-wrap: wrap; row-gap: 6px; padding-bottom: 8px; } .lrow > span { width: 100%; padding-top: 8px; }
   .seg.pal { width: 100%; } .seg.pal button { flex: 1 1 0; min-width: 0; padding: 0; min-height: 30px; background: var(--c); }
   .seg.pal button[aria-pressed="true"] { background: var(--c); box-shadow: inset 0 0 0 2px var(--acc1), inset 0 0 0 4px rgba(20,14,10,.85); }
   .seg.pal button + button { border-left: 1px solid rgba(20,14,10,.35); }
@@ -53692,8 +53691,17 @@ export { ACESFilmicToneMapping, AddEquation, AddOperation, AdditiveAnimationBlen
 <script type="module">
 import * as THREE from 'three';
 
-const errBox = (msg) => { const d = document.createElement('div'); d.id = 'err'; d.textContent = msg; document.body.appendChild(d); };
+/* each distinct message shows once and at most 3 boxes ever, so an exception thrown every frame cannot flood the page */
+const errSeen = new Set();
+const errBox = (msg) => { if (errSeen.has(msg) || errSeen.size >= 3) return; errSeen.add(msg); const d = document.createElement('div'); d.id = 'err'; d.textContent = msg; document.body.appendChild(d); };
 window.addEventListener('error', e => errBox('Error: ' + e.message));
+window.addEventListener('unhandledrejection', e => errBox('Error: ' + ((e.reason && e.reason.message) || e.reason)));
+/* small corner notice for graphics trouble; built on demand so the normal page carries nothing extra */
+const gfxNote = (on) => {
+  let n = document.getElementById('gfxNote');
+  if (!n && on) { n = document.createElement('div'); n.id = 'gfxNote'; n.setAttribute('role', 'status'); n.textContent = 'Graphics paused - reload if it does not resume'; n.style.cssText = 'position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:9;background:#401414;color:#ffd9d9;padding:8px 14px;border-radius:8px;font:14px/1.3 system-ui,sans-serif;text-align:center'; document.body.appendChild(n); }
+  if (n) n.hidden = !on;
+};
 /* ?debug in the URL exposes the debug hooks (window.__game and friends, the bot rider, the render switch, camera overrides) */
 const DEBUG = /[?&]debug\b/.test(location.search);
 const noRender = () => DEBUG && !!window.__norender;
@@ -53972,7 +53980,7 @@ function buildCourse(seed, fixK = 0) {
     const th = Z.theta, R = Z.R, NA = Math.round((Math.PI - 2 * th) * R);
     Z.i0 = pts.length;
     /* plain checkpoint at the zone entry when the cadence allows (the last camp is >= 120 samples back) */
-    if (pts.length + 2 - lastCp >= 120) { wiggle(10); const more = anchorAfter(); if (more > 0) wiggle(more); const hu = [pts.length - 8, pts.length + 12]; checkpoints.push({ idx: pts.length + 2, placed: false, hu }); lastCp = pts.length + 2; human.push(hu); Z.entryCamp = pts.length + 2; wiggle(18); }
+    if (pts.length + 2 - lastCp >= 120) { wiggle(10); const more = anchorAfter(); if (more > 0) wiggle(more); const hu = [pts.length - 8, pts.length + 12]; checkpoints.push({ idx: pts.length + 2, hu }); lastCp = pts.length + 2; human.push(hu); Z.entryCamp = pts.length + 2; wiggle(18); }
     /* plan T2 first: its features decide how long T1 has to be (T2 runs back under T1, so T1 must reach at least as far as T2 - 26 m) */
     const t2Start = pts.length + 10 + Z.L1 + NA;
     let campAt = -1, featAt, featLen = 20, tail = 20;
@@ -53996,7 +54004,7 @@ function buildCourse(seed, fixK = 0) {
     Z.t1[1] = pts.length - 1; Z.xH1 = x;
     Z.H1 = hairpin(-1); yawC = th - Math.PI;
     Z.t2 = [pts.length, 0];
-    if (campAt >= 0) { leg(campAt); const hu = [pts.length - 8, pts.length + 12]; checkpoints.push({ idx: pts.length + 2, placed: false, hu, zoneCamp: true }); lastCp = pts.length + 2; human.push(hu); Z.camp = pts.length + 2; leg(featAt - campAt); }
+    if (campAt >= 0) { leg(campAt); const hu = [pts.length - 8, pts.length + 12]; checkpoints.push({ idx: pts.length + 2, hu, zoneCamp: true }); lastCp = pts.length + 2; human.push(hu); Z.camp = pts.length + 2; leg(featAt - campAt); }
     else leg(featAt);
     if (Z.feat === 'ravine') { const have = pts.length - lastCp + LEAD.jumpL; if (have < RUNUP.jumpL) leg(RUNUP.jumpL - have); jump('large', { ravine: true }); Z.ravine = jumps[jumps.length - 1]; }
     else if (Z.feat === 'jump') { const have = pts.length - lastCp + LEAD.jumpM; if (have < RUNUP.jumpM) leg(RUNUP.jumpM - have); jump('medium'); Z.jump = jumps[jumps.length - 1]; }
@@ -54013,7 +54021,7 @@ function buildCourse(seed, fixK = 0) {
       { /* no camp bend: camps are secret, so the trail keeps its own line */
         const settle = RUNUP[lastT] !== undefined ? AFTER_SET + Math.floor(rnd() * 6) : 0; wiggle(Math.max(settle, 10)); }
       const more = anchorAfter(); if (more > 0) wiggle(more);
-      const hu = [pts.length - 8, pts.length + 12]; checkpoints.push({ idx: pts.length + 2, placed: false, hu }); lastCp = pts.length + 2; human.push(hu);
+      const hu = [pts.length - 8, pts.length + 12]; checkpoints.push({ idx: pts.length + 2, hu }); lastCp = pts.length + 2; human.push(hu);
     }
     if (zoneAt.has(c)) { buildZone(zoneAt.get(c)); lastT = 'zone'; continue; } /* a switchback zone takes this chunk's slot */
     if (c === cliffRavineAt) { const have = pts.length - lastCp + LEAD.jumpL; if (have < RUNUP.jumpL) wiggle(RUNUP.jumpL - have); wiggle(4); jump('large', { ravine: true, cliff: true }); wiggle(6); lastT = 'jumpL'; continue; } /* the cliff ravine, a notch in a forced ledge */
@@ -54111,7 +54119,7 @@ function buildCourse(seed, fixK = 0) {
           berms.push(rec); mark(blkB, i - 8, j + 8 + 25); lastEnd = j + 7; quiet.push([i - 8, j + 8]); } }
       i = j + 1; }
     for (let i = 0; i < n; i++) if (bkP[i] > 0 || bkM[i] > 0) { /* 5-sample box smooth, then widen the tread so the wall is part of it (the double berm gets a second, wider step) */
-      let a = 0, b = 0, c = 0; for (let q = -2; q <= 2; q++) { const m = Math.max(0, Math.min(n - 1, i + q)); a += bkP[m]; b += bkM[m]; } bkP[i] = a / 5; bkM[i] = b / 5; }
+      let a = 0, b = 0; for (let q = -2; q <= 2; q++) { const m = Math.max(0, Math.min(n - 1, i + q)); a += bkP[m]; b += bkM[m]; } bkP[i] = a / 5; bkM[i] = b / 5; }
     for (let i = 0; i < n; i++) if (bkP[i] > 0.001 || bkM[i] > 0.001) hwA[i] = ROAD + (bkD[i] ? 0.9 : 0.5) * Math.max(bkP[i], bkM[i]); /* the tread widens 0.5 m under a single berm, 0.9 m under a double */
     for (const H of hairpins) if (H.zone.bank) { /* the wall on the outside of a hairpin arc: the arc's own tread widening stays and the wall's 0.7 m (1.2 m for the double) comes on top */
       const arr = H.dir > 0 ? bkP : bkM, dbl = H.zone.bank === 2 ? 1 : 0, Hh = dbl ? 0.86 : 0.75, /* hairpin wall heights: 0.75 m, 0.86 m for the two-step berm */ a = H.i0, b = H.i1, T = BERM_TAPER;
@@ -54541,7 +54549,17 @@ function makeSurface(course) {
 
 /* ---------- renderer / scene ---------- */
 const canvas = document.getElementById('game');
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+let renderer;
+try { renderer = new THREE.WebGLRenderer({ canvas, antialias: true }); } catch (e) {
+  /* no usable WebGL (blocked, software off, driver blacklist): cover the page with a plain card and park this module instead of throwing */
+  const c = document.createElement('div');
+  c.style.cssText = 'position:fixed;inset:0;z-index:99;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:24px;text-align:center;background:#14181c;color:#e8eef2;font:16px/1.4 system-ui,sans-serif';
+  c.innerHTML = '<b style="font-size:22px">This browser could not start the 3D view</b><span style="opacity:.8;max-width:420px">Try another browser, or turn on hardware acceleration in the browser settings, then reload.</span>';
+  document.body.appendChild(c);
+  await new Promise(() => { });
+}
+canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); gfxNote(true); });
+canvas.addEventListener('webglcontextrestored', () => gfxNote(false));
 const MOBILE = matchMedia('(pointer: coarse)').matches;
 renderer.setPixelRatio(Math.min(MOBILE ? 1.5 : 2, window.devicePixelRatio || 1)); /* applyQuality() re-sets this per level */
 renderer.shadowMap.enabled = false; /* no shadow map: it cost a second render pass (up to ~20 draw calls) and its acne / the rider's shadow landed on the berm walls. Grounding comes
@@ -54712,11 +54730,11 @@ function buildWorld(course, surf) {
       - through the ford the water is lighter, 55 % opaque and lies in the dip (each vertex on the real tread), edges ragged by +-0.25 m.
      Rocks are listed here (bed, bank, ford stones, edge rocks) and drawn as one InstancedMesh once the obstacle helpers exist below. */
   course.falls = []; course.streamRocks = [];
-  { const rr2 = mulberry32(seed + 909 + 17), C_E = new THREE.Color('#cfe6ee'), C_C = new THREE.Color('#3f83a6'), C_FE = new THREE.Color('#c4e0ea'), C_FC = new THREE.Color('#5d9fc0'), FOAM = new THREE.Color('#f4fafc'), POOL = new THREE.Color('#3d7896'), SHEET = new THREE.Color('#eaf5f8'), SHEET2 = new THREE.Color('#c9e4ee'), tc = new THREE.Color();
+  { const rr2 = mulberry32(seed + 909 + 17), C_E = new THREE.Color('#cfe6ee'), C_C = new THREE.Color('#3f83a6'), C_FE = new THREE.Color('#c4e0ea'), C_FC = new THREE.Color('#5d9fc0'), FOAM = new THREE.Color('#f4fafc'), POOL = new THREE.Color('#3d7896'), SHEET = new THREE.Color('#eaf5f8'), tc = new THREE.Color();
     const H = (x, z) => { const sf = surf(x, z); return sf ? sf.h : 0; };
     const Hm = (x, z) => { const gx = (x - X0) / CELL, gz = (z - Z0) / CELL, ix = Math.max(0, Math.min(NX - 2, Math.floor(gx))), iz = Math.max(0, Math.min(NZ - 2, Math.floor(gz))), k = iz * NX + ix; return Math.max(Hg[k], Hg[k + 1], Hg[k + NX], Hg[k + NX + 1]); }; /* the highest of the 4 cells around a point: a ribbon vertex set on this never sinks under the terrain's triangles */
     for (const St of course.streams || []) { if (!St.prof) continue;
-      const P = St.prof, N = P.length, mk2 = () => ({ pos: [], col: [], idx: [], vi: 0 }), main = mk2(), fordG = mk2(), hw0 = St.i !== undefined ? course.pts[St.i].hw : 0, level = St.i !== undefined ? course.pts[St.i].y + 0.06 : 0;
+      const P = St.prof, N = P.length, mk2 = () => ({ pos: [], col: [], idx: [], vi: 0 }), main = mk2(), fordG = mk2(), hw0 = St.i !== undefined ? course.pts[St.i].hw : 0;
       const V = (G, x, y, z, c) => { G.pos.push(x, y, z); G.col.push(c.r, c.g, c.b); return G.vi++; };
       const quad = (G, a, b, c, d) => G.idx.push(a, b, c, b, d, c);
       const tri = (G, a, b, c) => G.idx.push(a, b, c);
@@ -54837,7 +54855,7 @@ function buildWorld(course, surf) {
   const trunkTint = (i, t) => trunkTint2(tr, i, t);
   const obst = new Map(); course.obst = obst;
   const bigRockMat = new THREE.MeshLambertMaterial({ color: '#8d8981', flatShading: true });
-  const nearShortcut = (x, z) => { let m = 99; for (const c of course.checkpoints) if (!c.placed && c.padX !== undefined) m = Math.min(m, Math.hypot(x - c.padX, z - c.padZ) - 5); /* camp pads stay open like a shortcut does */ for (const SC of course.shortcuts) { const ux = SC.bx - SC.ax, uz = SC.bz - SC.az; const t = Math.max(0, Math.min(1, ((x - SC.ax) * ux + (z - SC.az) * uz) / (SC.len * SC.len))); m = Math.min(m, Math.hypot(x - SC.ax - ux * t, z - SC.az - uz * t) - (SC.chute ? 2.0 : 0)); } return m; }; /* a chute keeps a 2 m wider margin (a rider drops onto it fast and half-turned) */
+  const nearShortcut = (x, z) => { let m = 99; for (const c of course.checkpoints) if (c.padX !== undefined) m = Math.min(m, Math.hypot(x - c.padX, z - c.padZ) - 5); /* camp pads stay open like a shortcut does */ for (const SC of course.shortcuts) { const ux = SC.bx - SC.ax, uz = SC.bz - SC.az; const t = Math.max(0, Math.min(1, ((x - SC.ax) * ux + (z - SC.az) * uz) / (SC.len * SC.len))); m = Math.min(m, Math.hypot(x - SC.ax - ux * t, z - SC.az - uz * t) - (SC.chute ? 2.0 : 0)); } return m; }; /* a chute keeps a 2 m wider margin (a rider drops onto it fast and half-turned) */
   const laneDist = (x, z) => { let m = 99; for (const c of course.checkpoints) { if (!c.lane) continue; if (Math.hypot((c.padX ?? c.x) - x, (c.padZ ?? c.z) - z) > 40) continue; for (const [lx, lz] of c.lane) { const d = Math.hypot(lx - x, lz - z); if (d < m) m = d; } } return m; }; /* distance to the nearest camp loop lane */
   const STR = course.stretch; const onOtherTrail = (x, z, i, pad) => { const ix = Math.max(0, Math.min(NX - 1, Math.round((x - X0) / CELL))), iz = Math.max(0, Math.min(NZ - 1, Math.round((z - Z0) / CELL))), k = iz * NX + ix, j = NI[k]; return j >= 0 && !!STR && STR[j] !== STR[i] && DI[k] < pts[j].hw + pad; }; /* a spot placed from sample i must not land on ANOTHER tier's trail (only zones bring trails within 20 m of each other) */
   const gullies = course.jumps.filter(J => J.ravine && !J.cliff).map(J => { const M = pts[(J.gapA + J.gapB) >> 1]; return { x: M.x, z: M.z, fx: M.fx, fz: M.fz, vx: M.vx, vz: M.vz, half: (J.gapB - J.gapA) / 2 + 3, hw: M.hw }; });
@@ -55212,7 +55230,7 @@ function buildWorld(course, surf) {
   { const FLAG = FLAG_PAL, PRI = { camp: 0, bridge: 1, jump: 2, hairpin: 3, fork: 4 };
     const want = [];
     /* [sample, color, secondary]: every feature's first flag is placed before any second flag, so no camp, bridge, jump or fork goes unflagged */
-    for (const cp of course.checkpoints) if (!cp.placed) want.push([cp.idx - 40, 'camp', 0]);
+    for (const cp of course.checkpoints) want.push([cp.idx - 40, 'camp', 0]);
     for (const B of course.bridges) want.push([B.a - 25, 'bridge', 0]);
     for (const J of course.jumps) want.push([J.lip - (J.size === 'large' || J.ravine ? 45 : J.table || J.drop ? 28 : 35), 'jump', 0]);
     for (const F of course.splits) want.push([F.idx - 34, 'fork', 0]);
@@ -55372,7 +55390,7 @@ function buildWorld(course, surf) {
     const stoneFlatG = new THREE.BoxGeometry(1, 1, 1), stakeG = new THREE.CylinderGeometry(1, 1, 1, 5);
     const slabMat = new THREE.MeshLambertMaterial({ color: '#8b9096', flatShading: true }), armorMat = new THREE.MeshLambertMaterial({ color: '#7f858c', flatShading: true }), stakeMat = new THREE.MeshLambertMaterial({ color: '#4f3a2b', flatShading: true });
     for (const J of course.jumps) {
-      const P = pts[J.lip], qy = new THREE.Quaternion().setFromAxisAngle(up, P.yaw);
+      const P = pts[J.lip];
       if (J.gapA !== undefined) { /* lip block: kicker samples lip-2, lip-1, lip, then the real edge */
         const tanT = P.y - pts[J.lip - 1].y, secs = [];
         for (const k of [-2, -1, 0]) { const K = pts[J.lip + k]; secs.push([K.x, K.y + 0.03, K.z, K.hw + 0.05]); }
@@ -55782,8 +55800,8 @@ function addCampMesh(cp) {
      fire, pot and teapot; every rl() draw below happens in a fixed order whatever the variant, so pinning one pick (S.campForce) never shifts another. */
   const LK = (S.campLook || 0) >>> 0, rl = mulberry32(((Math.imul(LK, 2246822519) >>> 0) ^ (cp.idx * 48271 + 313)) >>> 0), pickL = (a) => a[Math.floor(rl() * a.length)], FORCE = S.campForce || {};
   const ci = S.course ? S.course.checkpoints.indexOf(cp) : 0;
-  const variant = cp.placed ? -1 : (FORCE.variant !== undefined && FORCE.variant !== null ? FORCE.variant : campVariantOrder(LK)[ci % 9]); cp.variant = variant; /* 0 cook, 1 sleeper, 2 mechanic, 3 guitarist, 4 stargazer, 5 reader, 6 map planner, 7 tea maker, 8 painter; -1 = a camp you made (fire only) */
-  cp.sfxKind = variant < 0 ? -1 : CAMP_SFX_KIND[variant];
+  const variant = FORCE.variant !== undefined && FORCE.variant !== null ? FORCE.variant : campVariantOrder(LK)[ci % 9]; cp.variant = variant; /* 0 cook, 1 sleeper, 2 mechanic, 3 guitarist, 4 stargazer, 5 reader, 6 map planner, 7 tea maker, 8 painter */
+  cp.sfxKind = CAMP_SFX_KIND[variant];
   const fireR = Math.floor(rl() * 3), potR = rl() < 0.5, teaR = rl() < 0.55; /* always drawn, so a pinned pick shifts nothing */
   const FIRE = FORCE.fire !== undefined && FORCE.fire !== null ? FORCE.fire : fireR, POT = FORCE.pot !== undefined && FORCE.pot !== null ? !!FORCE.pot : potR, TEA = FORCE.tea !== undefined && FORCE.tea !== null ? !!FORCE.tea : teaR; /* fire A teepee / B log cabin / C radial; the dutch oven on its tripod; the teapot on a flat stone */
   cp.look = { variant, fire: FIRE, pot: POT, tea: TEA };
@@ -55829,7 +55847,7 @@ function addCampMesh(cp) {
   const beamP = (ax, ay, az, bx, by, bz, r, col, seg = 5, list = parts, r1) => { const A2 = new THREE.Vector3(ax, ay, az), B2 = new THREE.Vector3(bx, by, bz), m = new THREE.Matrix4().compose(A2.clone().add(B2).multiplyScalar(0.5), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), B2.clone().sub(A2).normalize()), new THREE.Vector3(1, 1, 1)); list.push({ geo: new THREE.CylinderGeometry(r1 ?? r, r, A2.distanceTo(B2), seg), col, m }); }; /* a cylinder from a to b (r1 = the top radius) */
   const logP = (ax, ay, az, bx, by, bz, r, col) => { beamP(ax, ay, az, bx, by, bz, r, col, 7); const d = new THREE.Vector3(bx - ax, by - ay, bz - az).normalize(); for (const [px, py, pz, s] of [[ax, ay, az, -1], [bx, by, bz, 1]]) { const m = new THREE.Matrix4().compose(new THREE.Vector3(px + d.x * s * 0.004, py + d.y * s * 0.004, pz + d.z * s * 0.004), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), d), new THREE.Vector3(1, 1, 1)); parts.push({ geo: new THREE.CylinderGeometry(r * 0.92, r * 0.92, 0.012, 7), col: '#c9a883', m }); } }; /* a log with pale cut ends */
   {
-    const fh = POT ? [0.43, 0.31, 0.45][FIRE] : 1, fy = POT && FIRE === 1 ? 0.6 : 1, _q1 = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _yv = new THREE.Vector3(0, 1, 0), _zv = new THREE.Vector3(0, 0, 1), _xv = new THREE.Vector3(1, 0, 0);
+    const fh = POT ? [0.43, 0.31, 0.45][FIRE] : 1, fy = POT && FIRE === 1 ? 0.6 : 1, _q1 = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _yv = new THREE.Vector3(0, 1, 0), _xv = new THREE.Vector3(1, 0, 0);
     const outer = [], inner = [], low = [];
     /* tongue(list, x, z, halfWidth, height, colBase, colTip, y0, lean, dir, spin, cone): a leaf at (x, y0, z) tilted `lean` rad toward heading `dir`, turned `spin` about its own axis */
     const tongue = (list, x, z, w, h, cb, ct, y0 = 0.1, lean = 0, dir = 0, spin = 0, cone = false) => { _q1.setFromAxisAngle(_yv, dir).multiply(_q2.setFromAxisAngle(_xv, lean)).multiply(new THREE.Quaternion().setFromAxisAngle(_yv, spin)); list.push({ geo: flameGeo(w, h * fh, cb, ct, cone), col: null, m: new THREE.Matrix4().compose(new THREE.Vector3(x, y0 * fy, z), _q1.clone(), new THREE.Vector3(1, 1, 1)) }); };
@@ -55937,7 +55955,6 @@ function addCampMesh(cp) {
   const bikeCols = cp.lane ? ['#8a8f94', '#5a6a7a', '#6d5a4a'] : ['#3a7bd5', '#e0b21a', '#8a4fd0', '#d94f4f', '#2f9e7a', '#f07a2e', '#e6e6e6'];
   if (!cp.lane) bikeAt(new THREE.Matrix4().compose(V.set(2.4, 0, 2.2), Q.setFromEuler(E.set(0, 0.6, 0.28)), Sc.set(1, 1, 1)), bikeCols[Math.floor(rc() * bikeCols.length)]); /* no spare bike at course camps (small, detailed, it fights the rider for attention); at your own camps it leans by the tent, out of the fire circle */
   /* campers (not at your own camps). Sitting figures share one rig on bench 1: local -z (their front) faces the fire. */
-  const pickC = (a) => a[Math.floor(rc() * a.length)];
   /* the campers' cozy wardrobe. Warm, muted earth tones (rust, mustard, moss, oat, spruce, clay) a step below the rider's jersey in
      saturation, so the rider is still the most colorful figure; camps you make keep the bright picks. The wardrobe comes from the LOOK stream
      (rl), and every camper is BLANK-FACED (a smooth round head, no eyes / nose / mouth / cheeks: posture, hat and props do the acting), with hair
@@ -56039,7 +56056,7 @@ function addCampMesh(cp) {
     { const fa = Math.atan2(SA[1], -SA[0]), dx = Math.cos(fa), dz = -Math.sin(fa); solS(SA[0], SA[1], SA[0] + dx * 0.55, SA[1] + dz * 0.55, 0.3, 1.3, 'Hit a camper'); } /* seat to feet, facing the fire */
     if (variant === 0) { /* the cook: leaning in over the fire, turning a hot dog on a stick (the stick is the moving part) */
       figure(F, { ...seated, ch: [0.1, 0.79, 0], hd: [0.16, 1.08, 0], eL: [0.22, 0.53, -0.25], hL: [0.46, 0.54, -0.08], eR: [0.22, 0.53, 0.25], hR: [0.46, 0.54, 0.08] }, [], -0.3); /* the hands hold the stick just over the knees */
-      const sp = pivot(F, 0.46, 0.54, 0), sl = []; const I = new THREE.Matrix4(); /* at the hands */
+      const sp = pivot(F, 0.46, 0.54, 0), sl = []; /* at the hands */
       sl.push({ geo: cyl(0.012, 1.0, 4), col: '#8a6a4a', m: new THREE.Matrix4().compose(V.set(0.5, -0.06, 0), Q.setFromEuler(E.set(0, 0, -Math.PI / 2 - 0.12)), Sc.set(1, 1, 1)) });
       sl.push({ geo: cap(0.035, 0.12), col: '#b3563a', m: new THREE.Matrix4().compose(V.set(0.98, -0.12, 0), Q.setFromEuler(E.set(Math.PI / 2, 0, 0)), Sc.set(1, 1, 1)) });
       animMesh(sp, sl); fx.stick = sp; fx.stickQ = sp.quaternion.clone();
@@ -56166,7 +56183,7 @@ function addCampMesh(cp) {
     solC(px, pz, 0.33, 1.75, 'Hit a camper');
   }
   if (cp.lane) { /* dressing (fewer, larger props): a pack + bedroll in the accent color against the tent's lens side, two low bushes, one stone by the lane on the way in. The tree screen in buildWorld divides camp from trail. */
-    const bushG = new THREE.IcosahedronGeometry(1, 0), cy = Math.cos(cp.yaw || 0), sy = Math.sin(cp.yaw || 0);
+    const bushG = new THREE.IcosahedronGeometry(1, 0);
     const bushes = []; for (const [bx, bz, bs] of [[6.4, 3.6, 0.7], [7.0, -0.9, 0.65]]) { const col = ['#3f7a52', '#47865a', '#3a7050', '#4d8a4f'][Math.floor(rc() * 4)];
       const r1 = rc() * 0.4, r2 = rc() * 6.28, r3 = rc() * 0.4, r4 = 0.9 + rc() * 0.3; bushes.push([bx, bz, bs, col, r1, r2, r3, r4]); } /* placed after the fence (below), clear of the lane and the rails; same rc() draws in the same order */
     poleY = groundAt(poleP[0], poleP[1]); /* across the trail from the lane: nothing to keep clear of */ put(new THREE.CylinderGeometry(0.03, 0.04, poleH, 5), '#8a7a63', poleP[0], poleY + poleH / 2, poleP[1]); solC(poleP[0], poleP[1], 0.06, poleH, 'Hit the flag pole');
@@ -56185,7 +56202,7 @@ function addCampMesh(cp) {
         beamP(tx + 0.1, 0.22, tz, tx + 0.21, 0.33, tz, 0.02, '#3f7f9a', 5, parts, 0.012); put(new THREE.TorusGeometry(0.065, 0.012, 4, 8, Math.PI * 1.2), '#2a2520', tx - 0.14, 0.23, tz, 0, 0, -Math.PI * 0.6); put(new THREE.TorusGeometry(0.1, 0.008, 4, 8, Math.PI), '#2a2520', tx, 0.32, tz, 0, Math.PI / 2, 0); /* spout, side handle, bail */
         put(cyl(0.045, 0.085, 7), '#b5452f', tx - 0.3, 0.145, tz + 0.18); put(new THREE.TorusGeometry(0.028, 0.008, 4, 6, Math.PI), '#b5452f', tx - 0.255, 0.15, tz + 0.18, 0, 0, -Math.PI / 2); /* a mug */
         fx.steam.push([tx + 0.21, 0.36, tz, 0.2]); solC(tx, tz, 0.3, 0.4, 'Hit the teapot'); break; } }
-    { /* a low split-rail fence round the valley side of the pad (the cliff side and the open ends), posts on the real ground, a gap where the loop lane crosses on the trail side; the world-space rails go on cp.fence for fenceClamp() */
+    { /* a low split-rail fence round the valley side of the pad (the cliff side and the open ends), posts on the real ground, a gap where the loop lane crosses on the trail side; the world-space rails go on cp.fence */
       const R = CAMP.fenceR, a0 = Math.asin(1.6 / R), NPOST = 9, posts = []; cp.fence = [];
       /* the arc's two ends would stand 2-4 m from the loop lane where it ramps back to the trail (posts on 9-35 deg). Each end slides in along the
          arc (0.04 rad steps, at most 0.6 rad) until its post footprint is flat (height range <= 0.09 m in a 0.4 m circle, i.e. under ~7 deg) and 1 m clear of the
@@ -56216,7 +56233,7 @@ function addCampMesh(cp) {
       const ay = g + 1.34, by = pg + 1.68, NB = 7, bez = (t) => { const u = 1 - t; return u * u * ay + 2 * u * t * ((ay + by) / 2 - 0.22) + t * t * by; }; /* the rope is the same quadratic sag the pennants hang from, in 8 segments, so the pennants' tops sit on it along the whole line */
       for (let q = 0; q < 8; q++) { const t0 = q / 8, t1 = (q + 1) / 8; limb(new THREE.Matrix4(), lx + (px - lx) * t0, bez(t0), lz + (pz - lz) * t0, lx + (px - lx) * t1, bez(t1), lz + (pz - lz) * t1, 0.008, '#d8d2c4', parts, 4); }
       const fyaw = Math.atan2(-(pz - lz), px - lx), fc = Math.cos(fyaw), fs = Math.sin(fyaw);
-      for (let k = 1; k < NB; k++) { const t = k / NB, u = 1 - t, fx2 = lx + (px - lx) * t, fz2 = lz + (pz - lz) * t, fy = bez(t) + 0.004, col = k % 3 === 0 ? '#e6e0c8' : k % 3 === 1 ? accMain : accMain2;
+      for (let k = 1; k < NB; k++) { const t = k / NB, fx2 = lx + (px - lx) * t, fz2 = lz + (pz - lz) * t, fy = bez(t) + 0.004, col = k % 3 === 0 ? '#e6e0c8' : k % 3 === 1 ? accMain : accMain2;
         flagGrid(flutB, 2, 3, (a, v) => { const xl = (a - 0.5) * 0.22 * (1 - v); return [fx2 + xl * fc, fy - 0.24 * v, fz2 - xl * fs]; }, col, (a, v) => v * 0.07, (a, v) => v * 0.8 * 6.283 + k * 1.3, 0, [fs, 0, fc]); } /* 0.22 x 0.24 pennants, cloth in the camp's flutter mesh */
       for (const [x3, z3] of [[-2.0, -1.1], [-2.35, 0.3], [-2.5, -0.3], [-1.7, 3.1], [2.3, -0.5]]) { /* the third log: first spot clear of the lane and the other props */
         const th = Math.atan2(-x3, -z3), ex = -Math.cos(th) * 0.65, ez = Math.sin(th) * 0.65;
@@ -56368,7 +56385,7 @@ let recolorBike; /* repaints the merged bike meshes from LOOK by color-role rang
   tube(V(0.1, 0.62), V(-0.07, 0.86), 0.032, mat.frame); tube(V(0.1, 0.62), V(-0.0, 0.76), 0.04, mat.dark); /* rear shock: body (in the frame color) + the black spring can */
   tube(V(-0.07, 0.86), V(-0.17, 0.79), 0.018, mat.silver); /* rocker link */
   tube(V(-0.15, 0.98), V(-0.2, 1.08), 0.02, mat.dark); tube(V(-0.15, 0.98), V(-0.165, 1.0), 0.03, mat.silver); /* dropper post + collar */
-  const seat = boxAt(0.27, 0.045, 0.13, -0.22, 1.1, 0, mat.saddle); const seatN = boxAt(0.12, 0.04, 0.08, -0.06, 1.105, 0, mat.saddle, bikeBody, 0.05); const seatR = boxAt(0.1, 0.03, 0.135, -0.3, 1.1, 0, mat.saddleD); /* saddle: body, nose, rear bumper */
+  boxAt(0.27, 0.045, 0.13, -0.22, 1.1, 0, mat.saddle); boxAt(0.12, 0.04, 0.08, -0.06, 1.105, 0, mat.saddle, bikeBody, 0.05); boxAt(0.1, 0.03, 0.135, -0.3, 1.1, 0, mat.saddleD); /* saddle: body, nose, rear bumper */
   { const dd = HB.clone().sub(BB).normalize(), nn = V(-dd.y, dd.x), bm = BB.clone().lerp(HB, 0.55).addScaledVector(nn, 0.08); tube(bm.clone().addScaledVector(dd, -0.1), bm.clone().addScaledVector(dd, 0.1), 0.036, mat.accent, bikeBody, 0.03); tube(bm.clone().addScaledVector(dd, 0.1), bm.clone().addScaledVector(dd, 0.13), 0.02, mat.dark); } /* a bottle in the cage on the down tube */
   /* steering parts: fork crown, stanchions + lowers with an arch, stem, riser bar with grips */
   for (const z of [-0.075, 0.075]) { tube(V(HB.x, HB.y, z), V((HB.x + FA.x) / 2, (HB.y + FA.y) / 2, z), 0.022, mat.accentL, steerYaw); tube(V((HB.x + FA.x) / 2 + 0.02, (HB.y + FA.y) / 2 - 0.04, z), V(FA.x, FA.y, z), 0.032, mat.accent, steerYaw); } /* the whole fork takes the Fork color with the head tube (stanchions in its light shade, lowers / crown / arch in the color) */
@@ -56388,7 +56405,7 @@ let recolorBike; /* repaints the merged bike meshes from LOOK by color-role rang
     const a = new THREE.Mesh(new THREE.BoxGeometry(0.038, CRANK + 0.02, 0.026), mat.silver); a.position.set(0, -CRANK / 2, sd * 0.09); arm.add(a);
     const ped = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.025, 0.1), mat.dark); ped.position.set(0, -CRANK, sd * 0.16); ped.userData.counter = true; arm.add(ped);
   }
-  { const cas = tube(V(RA.x, RA.y, 0.035), V(RA.x, RA.y, 0.085), 0.06, mat.steel, bikeBody, 0.045); /* cassette */
+  { tube(V(RA.x, RA.y, 0.035), V(RA.x, RA.y, 0.085), 0.06, mat.steel, bikeBody, 0.045); /* cassette */
     const top = V(BB.x, BB.y + 0.1, 0.06), bot = V(BB.x, BB.y - 0.09, 0.06), rt = V(RA.x, RA.y + 0.058, 0.06), rb = V(RA.x, RA.y - 0.05, 0.06); tube(top, rt, 0.008, mat.dark); tube(bot, rb, 0.008, mat.dark); /* chain: top and bottom runs */
     tube(V(-0.14, 0.42, 0.05), V(-0.14, 0.34, 0.05), 0.02, mat.dark); } /* derailleur hint */
   /* wheels: chunky low-poly tire with knobs, rim with 3 crossed spokes, hub, disc rotor */
@@ -56683,7 +56700,7 @@ const head = new THREE.Group(); scene.add(head); head.scale.setScalar(1.06);
   recolorHead = function () { const G = headMesh.geometry, R = G.userData.ranges; if (!R) return; const col = G.attributes.color.array; for (const r of R) { const c = r.role(), o3 = r.o * 3, n3 = r.n * 3; for (let k = 0; k < n3; k += 3) { col[o3 + k] = c.r; col[o3 + k + 1] = c.g; col[o3 + k + 2] = c.b; } } G.attributes.color.needsUpdate = true; };
   buildHead();
 }
-const _gq = new THREE.Quaternion(), _gv = new THREE.Vector3(), _gu = new THREE.Vector3(), _gy = new THREE.Quaternion(), _gz = new THREE.Vector3(0, 0, 1);
+const _gy = new THREE.Quaternion(), _gz = new THREE.Vector3(0, 0, 1);
 function placeGear() { /* the rigid kit goes into the rider geometry (placeRigid), same arrays as the capsules */
   for (const g of riderRigid) placeRigid(g, g.fa(), g.fq());
 }
@@ -56898,10 +56915,10 @@ const sfx = (() => {
   let strAM, strFq, strF2, crickG, cicaG, padSend, dly, lpf, frogG = null;
   let muted = false, vol = 0.8, plankAcc = 0, spatT = 0, dS = 99, dF = 99, hF = 0, sPanV = 0, fPanV = 0, cPanV = 0, cBehind = 0;
   let wasAir = false, airStart = 0, musLvl = -1, finT = 0, quality = 1, resumeT = 0, hiddenNow = false, wasFinished = false, duckT = 0, swell = 0, nearCamp = 99, inten = 0.2;
-  let tree = 0.5, alt = 0.5, expo = 0.2, onBr = false, woodNext = 30, owlNext = 12, floorNext = 3, creakNext = 0.5, nbNext = 20, dropNext = 2;
+  let tree = 0.5, alt = 0.5, expo = 0.2, woodNext = 30, owlNext = 12, floorNext = 3, creakNext = 0.5, nbNext = 20, dropNext = 2;
   let natDuck = 1, natDuckT = 0, tok = 10, liveN = 0, peakN = 0, shotsS = 0, shotRate = 0, insT = 0, crOn = true, ciOn = false, courseRef = null, yMin = 0, yMax = 1;
   const bird = { next: 8, left: 0, sp: null, pan: 0, dist: 0.6, gap: 3, ans: 0, busy: 0 };
-  let campBus, campLp, campCp = null, campKind = -1, campR = Math.random, campAud = 0, campK = 0, campLoop = null, campLoopT = 0, campLoopP = 1, campBufs = {}, campN = {}, gtrPat = null;
+  let campBus, campLp, campCp = null, campKind = -1, campR = Math.random, campAud = 0, campK = 0, campLoop = null, campLoopT = 0, campBufs = {}, campN = {}, gtrPat = null;
   const ls0 = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
   const PERSIST_BASE = 37; /* nodes built by init outside the music graph (36 on low quality: no cicadas); + 1 once the fire body loop is baked; + 17 (organic music) or + 20 (MusicClassic) */
   let persist = 0, newNodes = [], fireIn = null, fireLp = null, firePan = null, bodyG = null, bodySrc = null;
@@ -57062,7 +57079,7 @@ const sfx = (() => {
     persist = PERSIST_BASE - (cicaG ? 0 : 2); if (useClassic) { engK = 0; classicOn(); } else { engK = 1; buildNew(); }
     if (!M.nextT || M.nextT < ctx.currentTime) M.nextT = ctx.currentTime + 0.5;
     setInterval(schedule, 250);
-    let armed = false; const arm = () => { if (armed) return; armed = true; const h = () => { armed = false; ctx && ctx.resume && ctx.resume(); for (const ev of ['pointerdown', 'touchend', 'keydown']) removeEventListener(ev, h, true); }; for (const ev of ['pointerdown', 'touchend', 'keydown']) addEventListener(ev, h, true); }; /* one resume handler at a time, however often the state flips */
+    let armed = false; const arm = () => { if (armed) return; armed = true; const h = () => { armed = false; ctx && ctx.resume && ctx.resume(); for (const ev of ['pointerdown', 'touchend', 'click', 'keydown']) removeEventListener(ev, h, true); }; for (const ev of ['pointerdown', 'touchend', 'click', 'keydown']) addEventListener(ev, h, { capture: true, passive: true }); }; /* one resume handler at a time, however often the state flips */
     ctx.onstatechange = () => { if (ctx.state === 'interrupted' || (ctx.state === 'suspended' && !hiddenNow)) arm(); };
   }
   function buildNew() { /* the organic engine's music graph: musBus -> tilt -> warmth (4) -> comp, a post-fader reverb send, 4 pan buses, the echo (4), the title bus (2): 17 nodes */
@@ -57794,7 +57811,7 @@ const sfx = (() => {
     const k = clamp(1 - lerp(nearCamp, Math.min(nearCamp, 4), sceneK) / MIX.campR, 0, 1); campK = k; /* in the camp scene the camper is close */ campAud = k * k * MIX.camp; tgt(campBus.gain, campAud, t, 0.3); tgt(campLp.frequency, lerp(1500, 9000, Math.pow(k, 0.7)), t, 0.3);
     if (nearCamp < 45 && campKind >= 0 && !campBufs[campKind]) bakeCamp(campKind);
     const B = campBufs[campKind], live = k > 0 && B && !pz && !S.crashed && (S.running || sceneOn) && !muted;
-    if (B && B.loop && k > 0 && !campLoop && !muted) { const s = ctx.createBufferSource(); s.buffer = B.loop; s.loop = true; const lr = campKind === 1 ? 1 : campN.rate; s.playbackRate.value = lr; s.connect(campBus); campLoopT = t + 0.05; campLoopP = B.loop.duration / lr; /* the sleeper's breath keeps its 3.93 s rhythm */ s.start(campLoopT); track(1, s); campLoop = s; }
+    if (B && B.loop && k > 0 && !campLoop && !muted) { const s = ctx.createBufferSource(); s.buffer = B.loop; s.loop = true; const lr = campKind === 1 ? 1 : campN.rate; s.playbackRate.value = lr; s.connect(campBus); campLoopT = t + 0.05; /* the sleeper's breath keeps its 3.93 s rhythm */ s.start(campLoopT); track(1, s); campLoop = s; }
     if (campLoop && (k <= 0 || muted)) { try { campLoop.stop(); } catch (e) { } campLoop = null; }
     if (!live) return; const r = campR, N = campN;
     if (campKind === 0) { if ((N.a -= dt) <= 0) { N.a = 2.2 + r() * 5; const rt = N.pitch * (r() < 0.3 ? 0.62 : 1) * (0.94 + r() * 0.12); campShot(B.clink, t + 0.02, rt, 0.5 + 0.5 * r()); if (r() < 0.35) campShot(B.clink, t + 0.16 + r() * 0.1, rt * (1.02 + r() * 0.05), 0.35 + 0.3 * r()); } /* the spoon on the pot, sometimes a double tap, sometimes the pan (lower) */
@@ -57823,7 +57840,7 @@ const sfx = (() => {
     const t = ctx.currentTime, sp = Math.abs(S.speed), on = S.running && !S.paused && !S.finished; pz = !!S.paused && !sceneOn; /* the camp scene / mini games keep their sounds even if the game pauses the ride under them */
     if (ctx.state !== 'running' && !hiddenNow && t >= 0 && (resumeT -= dt) <= 0) { resumeT = 1; try { ctx.resume(); } catch (e) { } }
     tok = Math.min(10, tok + dt * 30); insT += dt; if (insT >= 1) { shotRate = shotsS / insT; shotsS = 0; insT = 0; }
-    const s0 = on && !S.crashed && S.surf ? S.surf(S.pos.x, S.pos.z) : null; const off = s0 && !s0.road;
+    const s0 = on && !S.crashed && S.surf ? S.surf(S.pos.x, S.pos.z) : null;
     const onB = !!(s0 && s0.road && s0.i >= 0 && S.course && S.course.pts[s0.i] && S.course.pts[s0.i].bridge), sn = Math.min(1, sp / VCAP);
     tgt(master.gain, MIX.bike, t, 0.1); tgt(natBus.gain, MIX.nature * (pz ? 0.35 : 1), t, 0.3); tgt(natVerb.gain, MIX.nature * (pz ? 0.35 : 1), t, 0.3); if (tilt) tgt(tilt.gain, MIX.musicTilt, t, 0.1); tgt(verbIn.gain, MIX.verb, t, 0.1);
     /* no bike noise bed. Coasting = silent bike; only a slide scuff (while actually sliding), the chain while pedaling,
@@ -57935,13 +57952,10 @@ function newRun(seed) {
   resetRun();
   $('seedCode').textContent = seedToCode(seed); $('seedCode2').textContent = seedToCode(seed); rememberTheme(S.course.theme);
   { const ST = { flow: 'Flow trail', jumpline: 'Jump line', technical: 'Technical', mixed: 'All-mountain' }; showBanner(S.course.themeName || ST[S.course.style] || 'Mountain', seedToCode(seed) + ' · ' + (ST[S.course.style] || '') + ' · ' + S.course.checkpoints.length + ' camps'); } /* the theme name is the banner title, the style on the line under it */
-  try { history.replaceState(null, '', '#' + seedToCode(seed)); } catch (e) { }
+  try { if (/^https?:$/.test(location.protocol)) history.replaceState(null, '', '#' + seedToCode(seed)); } catch (e) { }
 }
-function placeCampAt(cp, P) { cp.yaw = P.yaw + (P.vs < 0 ? Math.PI : 0); /* course camps have their fire on the valley-side pad (set in buildCourse); camps you make stand beside you on the valley side. On a leg that runs back toward -x the camp frame turns round so its camera side still faces the valley */ if (!cp.lane) { const o = P.hw + 2.2; cp.x = P.x + P.vx * o; cp.z = P.z + P.vz * o; } cp.y = S.surf(cp.x, cp.z)?.h ?? P.y; }
-function disposeCampGroup(grp) { if (campProps && campProps.grp.parent === grp) grp.remove(campProps.grp); disposeSubtree(grp); }
+function placeCampAt(cp, P) { cp.yaw = P.yaw + (P.vs < 0 ? Math.PI : 0); /* course camps have their fire on the valley-side pad (set in buildCourse). On a leg that runs back toward -x the camp frame turns round so its camera side still faces the valley */ if (!cp.lane) { const o = P.hw + 2.2; cp.x = P.x + P.vx * o; cp.z = P.z + P.vz * o; } cp.y = S.surf(cp.x, cp.z)?.h ?? P.y; }
 function resetRun() {
-  for (const cp of S.course.checkpoints.filter(c => c.placed)) { const gone = cp.mesh; world.remove(gone); disposeCampGroup(gone); cp.mesh = null; for (let i = campFx.length - 1; i >= 0; i--) if (campFx[i].grp === gone) campFx.splice(i, 1); for (let i = flames.length - 1; i >= 0; i--) if (flames[i].parent === gone) flames.splice(i, 1); }
-  S.course.checkpoints = S.course.checkpoints.filter(c => !c.placed);
   for (const c of S.course.checkpoints) c.found = false;
   S.cp = S.start; S.t = 0; S.secStart = 0; S.secN = 0; S.score = 0; S.streak = 0; S.bails = 0; S.camps = 2; S.finished = false;
   spawnAt(S.cp);
@@ -58034,12 +58048,14 @@ function rollVis() { const L = S.roll || 0, B = S.bankRoll || 0; if (L * B <= 0)
 /* ---------- input ---------- */
 const $ = id => document.getElementById(id);
 /* one navigator.getGamepads() snapshot per animation frame, shared by the ride input, the menus, the camp lens and the mini games */
-let padsStamp = -1, padsList = [], frameStamp = 0; const NO_PADS = [];
-const getPads = () => { if (frameStamp !== padsStamp) { padsStamp = frameStamp; padsList = navigator.getGamepads ? navigator.getGamepads() : NO_PADS; } return padsList; };
+let padsStamp = -1, padsList = [], frameStamp = 0, padsBlocked = false; const NO_PADS = [];
+/* a cross-origin iframe without allow="gamepad" makes getGamepads() throw; remember it and stop asking */
+const getPads = () => { if (frameStamp !== padsStamp) { padsStamp = frameStamp; if (padsBlocked) padsList = NO_PADS; else { try { padsList = navigator.getGamepads ? navigator.getGamepads() : NO_PADS; } catch (e) { padsBlocked = true; padsList = NO_PADS; } } } return padsList; };
 const keys = new Set();
 const touch = { left: false, right: false, gas: false, brake: false, legs: false, arms: false, jump: false };
 addEventListener('keydown', e => {
   if (e.target && e.target.tagName === 'INPUT') return; /* typing a mountain code never rides the bike */
+  if (e.ctrlKey || e.metaKey || e.altKey) return; /* browser shortcuts (Ctrl/Cmd+R, C, M) are not game keys */
   if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) e.preventDefault();
   const k = e.key.toLowerCase(); keys.add(k);
   if (k === 'h' || k === 'escape') toggleHelp();
@@ -58188,7 +58204,9 @@ const pad = (() => {
   };
   Z.addEventListener('pointerup', e => up(e, false)); Z.addEventListener('pointercancel', e => up(e, true)); Z.addEventListener('lostpointercapture', e => up(e, true));
   Z.addEventListener('contextmenu', e => e.preventDefault());
-  addEventListener('resize', clear); addEventListener('orientationchange', clear);
+  /* browser bars and iframe jitter fire resize constantly; only a real size change (about 50 px) drops the thumbs */
+  let clrW = innerWidth, clrH = innerHeight;
+  addEventListener('resize', () => { if (Math.abs(innerWidth - clrW) > 50 || Math.abs(innerHeight - clrH) > 50) { clrW = innerWidth; clrH = innerHeight; clear(); } }); addEventListener('orientationchange', () => { clrW = innerWidth; clrH = innerHeight; clear(); });
   let lastV = '';
   const visuals = (force) => {
     if (!zonesOn) return;
@@ -58232,7 +58250,7 @@ const coach = (() => {
   const C = { steer: $('cSteer'), pedal: $('cPedal'), air: $('cAir'), ghost: $('ghost') };
   let bits = 0; try { bits = +(localStorage.getItem('holdon.coach') || 0) || 0; } catch (e) { }
   const save = () => { try { localStorage.setItem('holdon.coach', String(bits)); } catch (e) { } };
-  let heldT = 0, stageT = 0, stage = -1, hop0 = -1, steerT = 0, airShown = false;
+  let heldT = 0, stageT = 0, stage = -1, hop0 = -1, steerT = 0;
   const TXT = { 2: '<b>Hold</b> to pedal · let go to brake', 4: '<b>Tap</b> to coast', 8: '<b>Swipe up</b>, let go to hop' };
   const set = (el, on) => { if (el.classList.contains('on') !== on) el.classList.toggle('on', on); };
   const mark = (b) => { if (!(bits & b)) { bits |= b; save(); } stageT = 0; };
@@ -58248,7 +58266,7 @@ const coach = (() => {
       if (Math.abs(zt.steer) > 0.3) steerT += dt; if (steerT > 0.6) mark(1);
       set(C.steer, !(bits & 1)); set(C.ghost, !(bits & 1));
       const air = !S.grounded;
-      if (air && pad.used && pad.armed && !(bits & 16)) { set(C.air, true); airShown = true; if (zt.legs || zt.arms) mark(16); }
+      if (air && pad.used && pad.armed && !(bits & 16)) { set(C.air, true); if (zt.legs || zt.arms) mark(16); }
       else set(C.air, false);
       if (T.held) heldT += dt; if (heldT > 1.2) mark(2);
       const next = [2, 4, 8].find(b => !(bits & b)) || 0;
@@ -58348,10 +58366,6 @@ function bail(reason, manual = false) {
   if (!manual) { sfx.crash(); popup('BAIL!', reason, 'var(--bad)'); const sf = S.surf(S.pos.x, S.pos.z); if (!(sf && sf.road && S.course.pts[sf.i]?.bridge)) { const g = groundCols(sf); if (g[0]) burst2(DUST, S.pos.x, S.pos.y, S.pos.z, 18, S.vel.x * 0.2, 0.5, S.vel.z * 0.2, 4, g[0]); burst2(GRIT, S.pos.x, S.pos.y, S.pos.z, 10, S.vel.x * 0.3, 2, S.vel.z * 0.3, 4.5, g[1]); } S.splatsThisCrash = 0; if (bloodOn) crashFx(rp[1].x, rp[1].y, rp[1].z, S.vel.x, S.vel.z, Math.min(1, Math.hypot(S.vel.x, S.vel.z) / 12)); S.fxT = 0; }
 }
 function retry() { if (S.crashed) { S.crashT = 0; return; } bail('Back to camp', true); } /* always one press away */
-function tryCamp() {
-  /* a made camp sits the rider on the empty log; course camps, their loop trigger and respawn are separate */
-  return;
-}
 
 /* ---------- wheel dirt emitters (visual only; run inside step at 120 Hz) ---------- */
 const _gc = [DC.trail, DC.trailG];
@@ -58438,7 +58452,6 @@ function step(dt, inp) {
   S.t += dt;
   if (S.touch && S.touch.active) inp = touchRide(inp, dt);
   else if (S.tR) { S.tR.tap = S.touch.tap | 0; S.tR.hop = S.touch.hop | 0; } /* keep the counters in step while inactive, so switching schemes never replays old taps */
-  const fx = Math.cos(S.yaw), fz = -Math.sin(S.yaw);
   const armsOn = S.limbs.arms.on, legsOn = S.limbs.legs.on;
   if (S.crashed) {
     S.crashT -= dt; S.vel.y -= G * dt; S.pos.addScaledVector(S.vel, dt); S.spin += S.pitchVel * dt;
@@ -58594,7 +58607,7 @@ function step(dt, inp) {
     }
   }
   if (S.streak > 0 && S.grounded) { S.comboT -= dt; if (S.comboT <= 0) { S.streak = 0; S.comboT = 0; } }
-  for (const cp of S.course.checkpoints) if (!cp.placed && !cp.found && Math.hypot(cp.x - S.pos.x, cp.z - S.pos.z) < 3.6 && (S.cp.idx ?? 0) < cp.idx) { cp.found = true; /* a camp only counts once you ride into it */ S.cp = cp; S.secN++; showBanner('CAMP ' + S.secN + ' · ' + fmtTime(S.t), 'section ' + fmtTime(S.t - S.secStart) + ' · respawn point saved'); sfx.ding(); S.secStart = S.t; }
+  for (const cp of S.course.checkpoints) if (!cp.found && Math.hypot(cp.x - S.pos.x, cp.z - S.pos.z) < 3.6 && (S.cp.idx ?? 0) < cp.idx) { cp.found = true; /* a camp only counts once you ride into it */ S.cp = cp; S.secN++; showBanner('CAMP ' + S.secN + ' · ' + fmtTime(S.t), 'section ' + fmtTime(S.t - S.secStart) + ' · respawn point saved'); sfx.ding(); S.secStart = S.t; }
   if (S.segIdx >= S.course.finishIdx) finishRun();
   visContact(dt);
   updateBikeMatrix();
@@ -58644,14 +58657,6 @@ function railClamp() {
   /* steer the bike back along the deck and scrub a little speed */
   const dy = Math.atan2(Math.sin(P.yaw - S.yaw), Math.cos(P.yaw - S.yaw)); S.yaw += dy * 0.35; S.speed *= 0.985;
   if (!S.railT || S.t - S.railT > 0.3) { S.railT = S.t; S.shake = Math.max(S.shake || 0, 0.12); sfx.land && sfx.land(4); }
-}
-/* the camp fences are solid. Within 0.5 m of a rail (and under its top) the bike is pushed back to 0.5 m, the velocity into
-   the rail is removed with a small bounce, and 10 % of the speed goes - a shove, not a bail, so nobody rides off the cliff behind it. */
-function fenceClamp() {
-  const cps = S.course && S.course.checkpoints; if (!cps) return;
-  for (const cp of cps) { const F = cp.fence; if (!F || Math.hypot(cp.x - S.pos.x, cp.z - S.pos.z) > 14) continue;
-    for (const [ax, az, bx, bz, top] of F) { if (S.pos.y > top) continue; const ux = bx - ax, uz = bz - az, L2 = ux * ux + uz * uz || 1, t = Math.max(0, Math.min(1, ((S.pos.x - ax) * ux + (S.pos.z - az) * uz) / L2)); let nx = S.pos.x - ax - ux * t, nz = S.pos.z - az - uz * t; const d = Math.hypot(nx, nz); if (d > 0.5 || d < 1e-4) continue; nx /= d; nz /= d;
-      const push = 0.5 - d; S.pos.x += nx * push; S.pos.z += nz * push; const vn = S.vel.x * nx + S.vel.z * nz; if (vn < 0) { S.vel.x -= nx * vn * 1.25; S.vel.z -= nz * vn * 1.25; S.vel.x *= 0.9; S.vel.z *= 0.9; S.speed = Math.max(0, (S.vel.x * Math.cos(S.yaw) - S.vel.z * Math.sin(S.yaw))); if (!S.fenceT || S.t - S.fenceT > 0.3) { S.fenceT = S.t; S.shake = Math.max(S.shake || 0, 0.1); sfx.land && sfx.land(3); } } } }
 }
 /* camp props are solid. The bike is five circles along its length (rear tire .. front tire, CC_T / CC_R, world m) tested against every
    footprint on cp.solids (circles, capsules, boxes; see addCampMesh) of the camps within 20 m. Above a prop's top (y0 + h) it is cleared (a hop over a log).
@@ -58716,7 +58721,7 @@ const target = new THREE.Vector3(), pinW = new THREE.Vector3();
    DET_RISK; SEP_W the offset spring (1/s); EXMAX / EXFAR the offset while spinning / extra when far gone (m); DET_LO / DET_HI the detachment band that
    keeps the offset out after the spin stops; FLIP_CATCH_W the grab-back's rotation catch (1/s); TIGHT_PTS bonus for landing a RISKY return */
 const DET_PER_RAD = 1 / (6 * Math.PI), DET_RET = 1.6, DET_BAIL = 0.5, DET_RISK = 0.42, SEP_W = 14, EXMAX = 1.05, EXFAR = 0.8, DET_LO = 0.3, DET_HI = 0.75, FLIP_CATCH_W = 14, TIGHT_PTS = 150, FLIP_CLEAR = 0.55; /* FLIP_CLEAR: m the body rises while inverted */
-const TETHER_MAX = 0.55, TETHER_FLOAT = 1.6, FLIP_ACC = 76, FLIP_DRAG = 2.4, FLIP_PTS = 300; const FLIP_SEP = 2.3, FLIP_SEP_RATE = 10, FLIP_SWING = 0.08; /* spin separation (m, the float's total back-and-up offset while spinning; 2.0-2.4 target), its ease-in rate (1/s) and a small extra swing radius (m) - kept small on purpose: a big swing along the body's own up axis puts the head INTO the bike at the half turn, so the distance comes from the pivot offset, not the orbit */ /* arcade spin. Terminal 30 rad/s; from a standing start a half turn takes ~0.35 s and a full flip ~0.5 s, so a full flip plus the grab-back fits a medium jump (~0.85 s of air) */
+const TETHER_MAX = 0.55, TETHER_FLOAT = 1.6, FLIP_ACC = 76, FLIP_DRAG = 2.4, FLIP_PTS = 300; const FLIP_SEP = 2.3, FLIP_SWING = 0.08; /* spin separation (m, the float's total back-and-up offset while spinning; 2.0-2.4 target) and a small extra swing radius (m) - kept small on purpose: a big swing along the body's own up axis puts the head INTO the bike at the half turn, so the distance comes from the pivot offset, not the orbit */ /* arcade spin. Terminal 30 rad/s; from a standing start a half turn takes ~0.35 s and a full flip ~0.5 s, so a full flip plus the grab-back fits a medium jump (~0.85 s of air) */
 const _tq = new THREE.Quaternion(), _tAx = new THREE.Vector3(), _tPv = new THREE.Vector3(), _tOff = new THREE.Vector3(), _tUp = new THREE.Vector3(), _tFw = new THREE.Vector3(), _hm = new THREE.Matrix4();
 /* trick shapes (bike space, meters). Arms off = a Y (elbows / hands relative to the chest, straight up and flared out); legs off =
    Superman (knees / feet relative to the pelvis, stretched straight back with a slight droop). The pelvis / chest / head shift for the
@@ -58984,7 +58989,7 @@ const CAM_PRESETS = [
   { name: 'Classic', off: new THREE.Vector3(17, 13.5, 15.5), fov: 36, fovKick: 12, lead: [0.55, 0.035, 1.1], lookUp: 0 },
   { name: 'Dev close', off: new THREE.Vector3(2.6, 1.5, 3.8), fov: 40, noLift: true, fovKick: 0, lead: [0, 0, 0], lookUp: 0.75 }, /* not in the cycle; for checking animation */
 ];
-let camPreset = 0; const CAM_OFF = CAM_PRESETS[0].off;
+let camPreset = 0;
 const CAM_K = { la: 32, grow: 0.004, ho: 0.42, aw: 1.5, maxr: 0.56, wc: 2.6, mix: 0.3 };
 const _camF = new THREE.Vector3(), _camW = new THREE.Vector3(), _camO = new THREE.Vector3(), _camL = { x: 0, z: 0, ok: false }; /* per-frame scratch: no allocation in updateCamera */
 const wrapA = (a) => Math.atan2(Math.sin(a), Math.cos(a)); /* Tele bearing band (rad): lookahead samples, band growth per sample, min / max view angle off head-on, yaw-rate cap */
@@ -59183,7 +59188,7 @@ $('pmHints').addEventListener('click', () => { pad.showHints(); toast('Touch hin
 $('btnSettings').addEventListener('click', () => openSettings('title'));
 $('setClose').addEventListener('click', () => setScreen(setBack));
 /* ---- title: live flyover, PLAY / DAILY / ENTER CODE / SETTINGS, first tap unlocks audio ---- */
-{ const unlock = () => { sfx.init(); syncSettings(); removeEventListener('pointerdown', unlock, true); removeEventListener('keydown', unlock, true); }; addEventListener('pointerdown', unlock, true); addEventListener('keydown', unlock, true); }
+{ const UNLOCK_EV = ['pointerdown', 'touchend', 'click', 'keydown']; const unlock = () => { sfx.init(); syncSettings(); for (const ev of UNLOCK_EV) removeEventListener(ev, unlock, true); }; for (const ev of UNLOCK_EV) addEventListener(ev, unlock, { capture: true, passive: true }); } /* iOS only unlocks audio from touchend / click, so listen for all four until the first one lands */
 const dayKey = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
 const dailySeed = () => { let h = 2166136261; for (const c of 'nohander:' + dayKey()) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619) >>> 0; } return h % 60000000; }; /* same mountain for everyone on the same local date */
 /* the tagline (the static HTML + meta description carry the same text for first paint) */
@@ -59377,10 +59382,14 @@ function stepResults() {
 }
 $('endOv').addEventListener('pointerdown', e => { if (endAnim && !endAnim.done && !e.target.closest('button')) endAnim.t0 = -1e9; });
 let toastT = 0; function toast(msg) { const el = $('toast'); el.textContent = msg; el.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('on'), 1800); }
+/* storage blocked (private mode, sandboxed iframe): say so once per session; every save is already guarded, so nothing else changes */
+try { localStorage.getItem('holdon.probe'); } catch (e) { toast('Progress will not be saved in this browser'); clearTimeout(toastT); toastT = setTimeout(() => $('toast').classList.remove('on'), 4500); }
 $('btnShare').addEventListener('click', async () => {
-  const code = seedToCode(S.course.seed), link = location.href.split('#')[0] + '#' + code, text = 'Ride ' + code + ' on No Hander';
-  try { if (navigator.share && document.body.classList.contains('touchy')) { await navigator.share({ title: 'No Hander', text, url: link }); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
-  try { await navigator.clipboard.writeText(link); toast('Link copied: ' + code); } catch (e) { toast('Mountain code ' + code); }
+  const code = seedToCode(S.course.seed), text = 'Ride ' + code + ' on No Hander';
+  /* blob:, about:srcdoc and file: pages have no address anyone can open, so those share the code alone */
+  let link = ''; try { if (/^https?:$/.test(location.protocol)) link = location.href.split('#')[0] + '#' + code; } catch (e) { link = ''; }
+  try { if (navigator.share && document.body.classList.contains('touchy')) { await navigator.share(link ? { title: 'No Hander', text, url: link } : { title: 'No Hander', text }); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
+  try { await navigator.clipboard.writeText(link || code); toast(link ? 'Link copied: ' + code : 'Mountain code copied: ' + code); } catch (e) { toast('Mountain code ' + code); }
 });
 $('btnAgain').addEventListener('click', () => { resetRun(); startRiding(); });
 $('btnNew2').addEventListener('click', () => { newMountain(); startRiding(); });
@@ -59757,7 +59766,6 @@ function campTick(dt) { /* after updateCamera: the seated rider / the walk-in, t
 }
 const _ce = new THREE.Euler(), _cq3 = new THREE.Quaternion();
 /* ---- XP ---- */
-let xpToastT = null;
 function addXp(n, why) { if (!(n > 0)) return 0; n = Math.round(n); const L0 = levelOfXp(PROF.xp); PROF.xp = Math.min(1e7, PROF.xp + n); const L1 = levelOfXp(PROF.xp); saveProfile();
   if (L1 > L0) { toast('Level ' + L1 + ' · +' + (pointsAtLevel(L1) - pointsAtLevel(L0)) + ' skill point' + (pointsAtLevel(L1) - pointsAtLevel(L0) === 1 ? '' : 's')); sfx.cue('win'); } else if (why) toast('+' + n + ' XP · ' + why);
   if (S.camp) campUI.header(); return n; }
@@ -59822,6 +59830,8 @@ const CAMP_ART = (() => {
   };
   return { svg: (id) => (art[id] || art.roast)(++uid) };
 })();
+/* HTML-escape for text put into innerHTML (the help chips and the camp sheets) */
+const esc = (t) => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 /* gamepad glyphs, shared by the camp hints and the mini-game help chips */
 function padGlyph(k, sz = 22) {
   const col = { A: '#6fcf86', B: '#ef6b5f', X: '#5aa0ee', Y: '#efc24a' };
@@ -59839,7 +59849,6 @@ function padGlyph(k, sz = 22) {
 const CampHelp = (() => {
   const el = $('campHelp'), R = 13, CIRC = 2 * Math.PI * R; let chips = [], ext = {}, down = {}, t0 = {}, fl = {}, raf = 0, lastIn = 0, lastT = 0; const kb = {};
   const norm = (c) => { if (typeof c === 'string') { const [g, label, h] = c.split('|'); c = { g, label, btn: g === 'A' ? 0 : g === 'B' ? 1 : g === 'X' ? 2 : g === 'Y' ? 3 : undefined, hold: +h || 0 }; } return { g: c.g || c.glyph || 'A', label: c.label || c.t || '', btn: c.btn ?? (c.b === 'A' ? 0 : c.b === 'B' ? 1 : undefined), hold: +c.hold || 0 }; };
-  const esc = (t) => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
   const set = (list) => { chips = (list || []).map(norm); ext = {}; fl = {}; lastIn = performance.now();
     el.innerHTML = chips.map((c, i) => `<span class="mchip${c.btn === undefined ? ' passive' : ''}" data-i="${i}"><span class="rg">${c.btn !== undefined ? `<svg class="ringsvg" viewBox="0 0 30 30"><circle class="trk" cx="15" cy="15" r="${R}"/><circle class="fil" cx="15" cy="15" r="${R}" stroke-dasharray="${CIRC.toFixed(1)}" stroke-dashoffset="${CIRC.toFixed(1)}"/></svg>` : ''}${padGlyph(c.g, c.btn !== undefined ? 22 : 26)}</span>${esc(c.label)}</span>`).join('');
     el.hidden = !chips.length; if (chips.length && !raf) { lastT = performance.now(); raf = requestAnimationFrame(loop); } };
@@ -59864,7 +59873,6 @@ const CAMP_HELP = { roast: [{ g: 'A', label: 'Hold: lower', btn: 0, hold: 0.9 }]
   stars: [{ g: 'stick', label: 'Move' }, { g: 'A', label: 'Select', btn: 0 }, { g: 'A', label: 'Hold: draw', btn: 0, hold: 0.6 }], skip: [{ g: 'stick', label: 'Slide / angle' }, { g: 'A', label: 'Throw', btn: 0 }] }; /* the host's default chips per game; a game's own CampHelp.set() replaces them */
 const campUI = (() => {
   const body = $('campBody'), host = $('campHost'), pn = $('campPn'), tabs = $('campTabs'), scr = $('campScr'), tabRow = tabs.querySelector('.tabs'), ind = $('campInd'); let draft = null, game = null, gameId = null, gameDone = false, sessionPlays = 0; const repeats = {};
-  const esc = (t) => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
   const CM = () => CampMini;
   const ORDER = ['look', 'skills', 'act', 'leave'];
   const V = { sub: 'home', page: 'col', part: { rider: 0, bike: 0 }, act: 0 }; /* the Bike & Rider sub-view, the color part per sub-menu, the centered activity */
