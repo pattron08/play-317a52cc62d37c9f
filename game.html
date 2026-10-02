@@ -140,16 +140,14 @@
   body.lefty #pad { right: auto; left: var(--pl); }
   body.lefty #padArms { right: auto; left: calc(var(--pl) + var(--pd) + var(--gap)); }
   body.lefty #padLegs { right: auto; left: calc(var(--pl) + var(--pd) + var(--lb) + var(--gap) * 2); }
-  /* swipe-up hop hint: a double chevron just above the pedal circle, pulsing upward; sized from --pd so it follows Control size and mirrors with the pad */
-  #pad .hopcue { position: absolute; left: 50%; bottom: calc(100% + 7px); width: calc(var(--pd) * .30); height: calc(var(--pd) * .17); margin-left: calc(var(--pd) * -.15); overflow: visible; pointer-events: none; transition: opacity .2s var(--ease-out); }
-  #pad .hopcue .c1 { animation: hopUp1 1.4s ease-in-out infinite; }
-  #pad .hopcue .c2 { animation: hopUp2 1.4s ease-in-out .22s infinite; }
-  @keyframes hopUp1 { 0% { transform: translateY(4px); opacity: .36; } 45% { transform: translateY(0); opacity: .6; } 100% { transform: translateY(-3px); opacity: .36; } }
-  @keyframes hopUp2 { 0% { transform: translateY(4px); opacity: .22; } 45% { transform: translateY(0); opacity: .4; } 100% { transform: translateY(-3px); opacity: .22; } }
+  /* swipe-up hop hint: a static double chevron stacked on the pedal circle (the lower one touches the ring, the upper one is fainter); sized from --pd so it follows Control size and mirrors with the pad */
+  #pad .hopcue { position: absolute; left: 50%; bottom: calc(100% + 3.5px); width: calc(var(--pd) * .30); height: calc(var(--pd) * .20); margin-left: calc(var(--pd) * -.15); overflow: visible; pointer-events: none; transition: opacity .2s var(--ease-out), bottom .15s; }
+  #pad.coast .hopcue { bottom: calc(100% + 8.9px - var(--pd) * .01); } /* while coasting the cream ring (outer radius = .49 * (pd + 11px)) is the visible edge of the circle */
+  #pad .hopcue .c1 { opacity: .55; }
+  #pad .hopcue .c2 { opacity: .32; }
   #pad.air .hopcue { opacity: 0; }
   #pad.held .hopcue, #pad.hard .hopcue, #pad.hop .hopcue { opacity: .5; }
   #zones:has(#cPedal.on, #cAir.on) #pad .hopcue { opacity: 0; }
-  @media (prefers-reduced-motion: reduce) { #pad .hopcue .c1, #pad .hopcue .c2 { animation: none; } #pad .hopcue .c1 { opacity: .6; } #pad .hopcue .c2 { opacity: .4; } }
   /* first-run coach pills */
   .coach { position: absolute; font: 600 14px var(--f-ui); letter-spacing: .02em; padding: 7px 14px; border-radius: 99px; background: rgba(20,14,10,.78); border: 1.5px solid var(--acc1); color: var(--cream);
     white-space: nowrap; pointer-events: none; opacity: 0; transform: translateY(6px); transition: opacity .3s var(--ease-out), transform .3s var(--ease-out); }
@@ -539,7 +537,7 @@
   <div class="ring" id="zStick"><div class="knob"></div></div>
   <div class="pb lbtn" id="padLegs">LEGS<small>air only</small></div>
   <div class="pb lbtn" id="padArms">ARMS<small>air only</small></div>
-  <div class="pb" id="pad"><svg class="cring" viewBox="-50 -50 100 100" aria-hidden="true"><circle id="padRing" r="47" pathLength="100" stroke-dasharray="100" stroke-dashoffset="0"/></svg><svg class="crank" viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><circle cx="17" cy="17" r="5"/><path d="M17 12 L11 3 M17 22 L23 31"/><rect x="3" y="0.5" width="10" height="5" rx="2" fill="currentColor" stroke="none"/><rect x="18" y="28.5" width="10" height="5" rx="2" fill="currentColor" stroke="none"/></svg><svg class="hopcue" viewBox="0 0 30 17" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><defs><linearGradient id="hopG" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#f58a34"/><stop offset="1" stop-color="#ffe9c0"/></linearGradient></defs><g class="c1"><path d="M4 8 L15 2 L26 8" stroke="rgba(20,14,10,.95)" stroke-width="7"/><path d="M4 8 L15 2 L26 8" stroke="url(#hopG)" stroke-width="3.4"/></g><g class="c2"><path d="M4 14 L15 8 L26 14" stroke="rgba(20,14,10,.95)" stroke-width="7"/><path d="M4 14 L15 8 L26 14" stroke="url(#hopG)" stroke-width="3.4"/></g></svg><b>PEDAL</b><small id="padSub">hold</small></div>
+  <div class="pb" id="pad"><svg class="cring" viewBox="-50 -50 100 100" aria-hidden="true"><circle id="padRing" r="47" pathLength="100" stroke-dasharray="100" stroke-dashoffset="0"/></svg><svg class="crank" viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><circle cx="17" cy="17" r="5"/><path d="M17 12 L11 3 M17 22 L23 31"/><rect x="3" y="0.5" width="10" height="5" rx="2" fill="currentColor" stroke="none"/><rect x="18" y="28.5" width="10" height="5" rx="2" fill="currentColor" stroke="none"/></svg><svg class="hopcue" viewBox="0 0 30 20" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><defs><linearGradient id="hopG" gradientUnits="userSpaceOnUse" x1="0" y1="20" x2="0" y2="3"><stop offset="0" stop-color="#f58a34"/><stop offset="1" stop-color="#ffe9c0"/></linearGradient></defs><g class="c2"><path d="M4 10.16 L15 4.16 L26 10.16" stroke="rgba(20,14,10,.6)" stroke-width="5"/><path d="M4 10.16 L15 4.16 L26 10.16" stroke="url(#hopG)" stroke-width="3.4"/></g><g class="c1"><path d="M4 18.66 L15 12.66 L26 18.66" stroke="rgba(20,14,10,.6)" stroke-width="5"/><path d="M4 18.66 L15 12.66 L26 18.66" stroke="url(#hopG)" stroke-width="3.4"/></g></svg><b>PEDAL</b><small id="padSub">hold</small></div>
   <div class="coach gro" id="cSteer"><b>Drag</b> left thumb to steer</div>
   <div class="coach gro" id="cPedal"><b>Hold</b> to pedal</div>
   <div class="coach gro" id="cAir"><b>Hold LEGS / ARMS</b> to let go</div>
