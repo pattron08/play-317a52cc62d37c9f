@@ -573,7 +573,7 @@
     <button class="mb sm" id="btnSettings">Settings</button>
   </div>
   <button class="ico" id="mute" role="switch" aria-checked="true" aria-label="Sound"><svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg><svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M17 9l5 6M22 9l-5 6"/></svg></button>
-  <div class="foot"><span id="verTag">v0.30.2</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span></div>
+  <div class="foot"><span id="verTag">v0.30.3</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span></div>
   <button id="btnNew" hidden>New mountain</button>
 </div>
 
@@ -606,7 +606,7 @@
   <div class="srow tOnly"><span>Hand <small>mirror the controls</small></span><div class="seg" data-set="hand"><button data-v="right">Right</button><button data-v="left">Left</button></div></div>
   <div class="srow tOnly"><span>Pedal</span><div class="seg" data-set="pedal"><button data-v="hold">Hold</button><button data-v="latch">Latch</button><button data-v="auto">Auto</button></div></div>
   <div class="srow tOnly"><span>Control size</span><div class="seg" data-set="size"><button data-v="0.85">S</button><button data-v="1">M</button><button data-v="1.25">L</button></div></div>
-  <div class="srow tOnly"><span>Steering sensitivity <small>touch stick only</small></span><div class="seg" data-set="sens"><button data-v="bal">Balanced</button><button data-v="low">Low</button><button data-v="med">Medium</button><button data-v="high">High</button><button data-v="orig">Original</button></div></div>
+  <div class="srow tOnly"><span>Steering sensitivity <small>touch stick only</small></span><div class="seg" data-set="sens"><button data-v="orig">Original</button><button data-v="bal">Balanced</button><button data-v="calm">Calm</button></div></div>
   <div class="srow tOnly"><span>Haptics <small>Android</small></span><button class="sw" id="bHaptic" role="switch" aria-checked="true" aria-label="Haptics"></button></div>
   <div class="srow tOnly"><span>Touch hints</span><button class="mb sm" id="pmHints">Show again</button></div>
   <div class="sgrp">About</div>
@@ -58433,20 +58433,17 @@ const UIO = (() => { let o = {}; try { o = JSON.parse(localStorage.getItem('hold
    The throw is R = ring radius / gain (G60 makes R 60 px on a 393 px tall phone and scales with the ring like the others).
    The anchor starts to follow once the thumb is lead px past R and then takes share of the overshoot (1 = all of it).
    The release rate caps how fast |steer| may drop toward zero or through it (0 = no cap; pushing out is never capped).
-   sens is only stored once the player picks a level (together with sensV: 2), so a missing or unknown value reads as Balanced.
-   A stored 'med' without sensV is the old default that nobody chose on purpose: it reads as no choice (Balanced). */
+   sens is only stored once the player picks a level (together with sensV: 2), so a missing or unknown value (including a level
+   that no longer exists) reads as Balanced. Calm is Balanced with a wider deadzone and a flatter curve: small corrections steer less. */
 const G60 = 56.592 / 60;
-const SENS = { bal: [G60, 1.15, 3, 0.5, 22, 0], orig: [1, 1.35, 6, 1, 10, 0], high: [0.9, 1.45, 6, 1, 10, 0], med: [0.8, 1.55, 6, 1, 10, 0], low: [0.65, 1.7, 6, 1, 10, 0] };
-if (UIO.sensV !== 2 && UIO.sens === 'med') delete UIO.sens;
+const SENS = { orig: [1, 1.35, 6, 1, 10, 0], bal: [G60, 1.15, 3, 0.5, 22, 0], calm: [G60, 1.35, 6, 0.5, 22, 0] };
 const sensKey = () => Object.prototype.hasOwnProperty.call(SENS, UIO.sens) ? UIO.sens : 'bal';
-/* comparison presets for a phone test link (?steer=B and so on): in memory only, nothing is saved; picking a level in Settings ends it */
-const STEER_TEST = { M: ['med'], A: [1, 1.35, 3, 1, 10, 0], B: [G60, 1.15, 3, 1, 10, 0], B2: [G60, 1.15, 4.5, 1, 10, 0], C: [G60, 1.15, 3, 0.5, 22, 0], D: [G60, 1.15, 3, 1, 10, 4.5], BEST: ['bal'] };
-let steerTest = (() => { try { const q = (new URLSearchParams(location.search).get('steer') || '').toUpperCase(); return Object.prototype.hasOwnProperty.call(STEER_TEST, q) ? q : ''; } catch (e) { return ''; } })();
+/* a phone test link (?steer=orig, bal or calm): the level applies in memory only, nothing is saved; picking a level in Settings ends it */
+let steerTest = (() => { try { const q = (new URLSearchParams(location.search).get('steer') || '').toLowerCase(); return Object.prototype.hasOwnProperty.call(SENS, q) ? q : ''; } catch (e) { return ''; } })();
 let steerToastDone = false;
-const steerTestCfg = () => { const t = STEER_TEST[steerTest]; return t.length === 1 ? SENS[t[0]] : t; };
-const sensCfg = () => steerTest ? steerTestCfg() : SENS[sensKey()];
-/* the Settings row value: the stored level, or the level a test preset equals (none for the others) */
-const sensShown = () => steerTest ? (STEER_TEST[steerTest].length === 1 ? STEER_TEST[steerTest][0] : '') : sensKey();
+const sensCfg = () => SENS[steerTest || sensKey()];
+/* the Settings row value: the level a test link selected, else the stored level */
+const sensShown = () => steerTest || sensKey();
 const steerToast = () => { if (!steerTest || steerToastDone) return; steerToastDone = true; const c = sensCfg(); toast('Steering ' + steerTest + ': radius ' + Math.round(56.592 / c[0]) + ', curve ' + c[1] + ', dead ' + c[2] + (c[3] < 1 ? ', soft anchor' : '') + (c[5] ? ', release ' + c[5] + '/s' : '')); };
 const saveUIO = () => { try { localStorage.setItem('holdon.ui', JSON.stringify(UIO)); } catch (e) { } };
 const UI_REF_H = 390, UI_MIN_W = 720, UI_MAX = 6; let UIZ = 1, uiZoomOk = true;
