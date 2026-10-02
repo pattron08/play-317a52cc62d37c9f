@@ -65,6 +65,8 @@
     background: var(--glass); border: 1px solid var(--panel-edge); display: flex; gap: 5px; align-items: center; justify-content: center; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
   #bPause s { display: block; width: 5px; height: 18px; background: var(--cream); border-radius: 2px; }
   body.onTitle #bPause { display: none; }
+  /* the on-screen pause / back buttons are for touch and mouse: while a gamepad or the keyboard is the active input they step aside (the class follows inDev) */
+  body.devKb #bPause, body.devKb .cm-back { visibility: hidden; pointer-events: none; }
   #hTime { position: absolute; left: calc(var(--sl) + 58px); top: calc(var(--st) - 4px); font: italic 800 36px/1 var(--f-disp); letter-spacing: .01em; }
   #hSpd { position: absolute; left: calc(var(--sl) + 60px); top: calc(var(--st) + 34px); font: 500 11px var(--f-ui); opacity: .55; letter-spacing: .06em; }
   #hScore { position: absolute; right: var(--sr); top: calc(var(--st) - 2px); text-align: right; font: italic 800 28px/1 var(--f-disp); opacity: 0; transition: opacity .6s linear; }
@@ -571,7 +573,7 @@
     <button class="mb sm" id="btnSettings">Settings</button>
   </div>
   <button class="ico" id="mute" role="switch" aria-checked="true" aria-label="Sound"><svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg><svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M17 9l5 6M22 9l-5 6"/></svg></button>
-  <div class="foot"><span id="verTag">v0.30.1</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span></div>
+  <div class="foot"><span id="verTag">v0.30.2</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span></div>
   <button id="btnNew" hidden>New mountain</button>
 </div>
 
@@ -604,7 +606,7 @@
   <div class="srow tOnly"><span>Hand <small>mirror the controls</small></span><div class="seg" data-set="hand"><button data-v="right">Right</button><button data-v="left">Left</button></div></div>
   <div class="srow tOnly"><span>Pedal</span><div class="seg" data-set="pedal"><button data-v="hold">Hold</button><button data-v="latch">Latch</button><button data-v="auto">Auto</button></div></div>
   <div class="srow tOnly"><span>Control size</span><div class="seg" data-set="size"><button data-v="0.85">S</button><button data-v="1">M</button><button data-v="1.25">L</button></div></div>
-  <div class="srow tOnly"><span>Steering sensitivity <small>touch stick only</small></span><div class="seg" data-set="sens"><button data-v="low">Low</button><button data-v="med">Medium</button><button data-v="high">High</button><button data-v="orig">Original</button></div></div>
+  <div class="srow tOnly"><span>Steering sensitivity <small>touch stick only</small></span><div class="seg" data-set="sens"><button data-v="bal">Balanced</button><button data-v="low">Low</button><button data-v="med">Medium</button><button data-v="high">High</button><button data-v="orig">Original</button></div></div>
   <div class="srow tOnly"><span>Haptics <small>Android</small></span><button class="sw" id="bHaptic" role="switch" aria-checked="true" aria-label="Haptics"></button></div>
   <div class="srow tOnly"><span>Touch hints</span><button class="mb sm" id="pmHints">Show again</button></div>
   <div class="sgrp">About</div>
@@ -54652,7 +54654,7 @@ function disposeSubtree(root) { const geos = new Set();
 function buildWorld(course, surf) {
   if (world) { scene.remove(world); if (campProps && campProps.grp.parent) campProps.grp.parent.remove(campProps.grp); disposeSubtree(world); }
   while (clouds.children.length) { const c = clouds.children[0]; clouds.remove(c); disposeSubtree(c); }
-  world = new THREE.Group(); scene.add(world);
+  world = new THREE.Group(); scene.add(world); mossSet(course);
   flames.length = 0; campFx.length = 0;
   const { pts, seed, WATER, maxH } = course; const { X0, Z0, NX, NZ, Hg, W, DI, NI, LN } = course.grid;
   const rnd = mulberry32(seed + 404);
@@ -54855,7 +54857,7 @@ function buildWorld(course, surf) {
   course.decor = []; /* every small rock too (not an obstacle), so the clearance audit can see it */
   const mk = (geo, color, n) => { const m = new THREE.InstancedMesh(geo, groundFade(new THREE.MeshLambertMaterial({ color, flatShading: true })), n); m.userData.cull = 'fog'; world.add(m); return m; }; /* chunks fully inside the haze are skipped (cullChunks) */
   /* tree colors live per instance (white material x instanceColor): each tree drifts in hue and lightness so a forest is not one flat green */
-  const pl = mk(pineLow, '#ffffff', MAXT), ph = mk(pineHigh, '#ffffff', MAXT), tr = mk(trunkG, '#ffffff', MAXT * 2), rd = mk(roundG, '#ffffff', MAXT), rk = mk(rockG, '#8d8981', MAXR);
+  const pl = mk(pineLow, '#ffffff', MAXT), ph = mk(pineHigh, '#ffffff', MAXT), tr = mk(trunkG, '#ffffff', MAXT * 2), rd = mk(roundG, '#ffffff', MAXT), rk = mk(rockG, '#8d8981', MAXR); mossy(rk.material, 'gfade');
   /* the small scatter rocks are ankle-high dressing, no obstacles */
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new THREE.Vector3(), p = new THREE.Vector3(), yAx = new THREE.Vector3(0, 1, 0);
   let np = 0, nr = 0, nt = 0, nrk = 0;
@@ -54866,7 +54868,7 @@ function buildWorld(course, surf) {
   const trunkTint2 = (mesh, i, t) => { tintC.setHSL(HSL.trunk[0] + (t - 0.5) * 0.02, HSL.trunk[1], HSL.trunk[2] + (t - 0.5) * 0.10, THREE.SRGBColorSpace); mesh.setColorAt(i, tintC); };
   const trunkTint = (i, t) => trunkTint2(tr, i, t);
   const obst = new Map(); course.obst = obst;
-  const bigRockMat = new THREE.MeshLambertMaterial({ color: '#8d8981', flatShading: true });
+  const bigRockMat = mossy(new THREE.MeshLambertMaterial({ color: '#8d8981', flatShading: true }), '');
   const nearShortcut = (x, z) => { let m = 99; for (const c of course.checkpoints) if (c.padX !== undefined) m = Math.min(m, Math.hypot(x - c.padX, z - c.padZ) - 5); /* camp pads stay open like a shortcut does */ for (const SC of course.shortcuts) { const ux = SC.bx - SC.ax, uz = SC.bz - SC.az; const t = Math.max(0, Math.min(1, ((x - SC.ax) * ux + (z - SC.az) * uz) / (SC.len * SC.len))); m = Math.min(m, Math.hypot(x - SC.ax - ux * t, z - SC.az - uz * t) - (SC.chute ? 2.0 : 0)); } return m; }; /* a chute keeps a 2 m wider margin (a rider drops onto it fast and half-turned) */
   const laneDist = (x, z) => { let m = 99; for (const c of course.checkpoints) { if (!c.lane) continue; if (Math.hypot((c.padX ?? c.x) - x, (c.padZ ?? c.z) - z) > 40) continue; for (const [lx, lz] of c.lane) { const d = Math.hypot(lx - x, lz - z); if (d < m) m = d; } } return m; }; /* distance to the nearest camp loop lane */
   const STR = course.stretch; const onOtherTrail = (x, z, i, pad) => { const ix = Math.max(0, Math.min(NX - 1, Math.round((x - X0) / CELL))), iz = Math.max(0, Math.min(NZ - 1, Math.round((z - Z0) / CELL))), k = iz * NX + ix, j = NI[k]; return j >= 0 && !!STR && STR[j] !== STR[i] && DI[k] < pts[j].hw + pad; }; /* a spot placed from sample i must not land on ANOTHER tier's trail (only zones bring trails within 20 m of each other) */
@@ -54981,7 +54983,7 @@ function buildWorld(course, surf) {
      Bank rocks and the ford's edge rocks from 0.45 m up are obstacles (never within 1 m of the tread, never on a loop lane); bed rocks and
      the flat ford stones are dressing. */
   { const RL = course.streamRocks || []; const keep = RL.filter(R => !(R.kind === 'bank' && (laneDist(R.x, R.z) < 2.0 || (() => { const ix = Math.round((R.x - X0) / CELL), iz = Math.round((R.z - Z0) / CELL); if (ix < 0 || iz < 0 || ix >= NX || iz >= NZ) return true; const k = iz * NX + ix; return NI[k] >= 0 && DI[k] < pts[NI[k]].hw + 1.0; })())));
-    if (keep.length) { const rq = mulberry32(seed + 919); const srk = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 0), groundFade(new THREE.MeshLambertMaterial({ color: '#ffffff', flatShading: true })), keep.length);
+    if (keep.length) { const rq = mulberry32(seed + 919); const srk = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 0), mossy(groundFade(new THREE.MeshLambertMaterial({ color: '#ffffff', flatShading: true })), 'gfade'), keep.length);
       keep.forEach((R, i) => { p.set(R.x, R.y, R.z); q.setFromEuler(new THREE.Euler(rq() * 0.6, rq() * 6.28, rq() * 0.6)); s.set(R.sc * 0.5 * (0.9 + rq() * 0.3), R.sy * 0.5, R.sc * 0.5); m4.compose(p, q, s); srk.setMatrixAt(i, m4); /* sc is the rock's width; the icosahedron has radius 1 */ tintC.set(R.col).offsetHSL(0, 0, (rq() - 0.5) * 0.12); srk.setColorAt(i, tintC);
         if ((R.kind === 'bank' || R.kind === 'edge') && R.sc >= 0.45) { addObst(R.x, R.z, R.sc * 0.4, R.sc * 0.5); obst.get(Math.floor(R.x / 4) + ',' + Math.floor(R.z / 4)).at(-1).rock = true; } });
       srk.instanceMatrix.needsUpdate = true; if (srk.instanceColor) srk.instanceColor.needsUpdate = true; srk.computeBoundingSphere(); world.add(srk); course.streamRockMesh = srk; } }
@@ -55060,7 +55062,7 @@ function buildWorld(course, surf) {
   }
   /* very big boulders scattered over the whole mountain (one instanced draw), collidable; kept off the trail, lines and shortcuts, */
   /* and on the camera side only when low enough not to hide the rider */
-  { const BIG = 85, rb = mulberry32(seed + 808), big = mk(new THREE.DodecahedronGeometry(1, 0), '#ffffff', BIG); let nb = 0;
+  { const BIG = 85, rb = mulberry32(seed + 808), big = mk(new THREE.DodecahedronGeometry(1, 0), '#ffffff', BIG); mossy(big.material, 'gfade'); let nb = 0;
     for (let tries = 0; tries < 4000 && nb < BIG; tries++) {
       const i = 20 + Math.floor(rb() * (pts.length - 40)), P = pts[i]; const up = rb() < 0.68;
       const o = up ? -(P.hw + 3.5 + rb() * 30) : (P.hw + 9 + rb() * 22), x = P.x + P.vx * o, z = P.z + P.vz * o;
@@ -55083,7 +55085,7 @@ function buildWorld(course, surf) {
      the edge is never a clean slope), a rock spine off each hairpin's nose, talus stones at the wall base, and pines rooted on the lower
      tier's uphill apron near the hairpins whose crowns poke above the lip. Stream seed + 1414. */
   if (course.zones && course.zones.length) { const rzz = mulberry32(seed + 1414), ZR = 220, ZP = 90;
-    const zrock = mk(new THREE.DodecahedronGeometry(1, 0), '#ffffff', ZR), zpl = mk(pineLow, '#ffffff', ZP), zph = mk(pineHigh, '#ffffff', ZP), ztr = mk(trunkG, '#ffffff', ZP); let nzr = 0, nzp = 0;
+    const zrock = mk(new THREE.DodecahedronGeometry(1, 0), '#ffffff', ZR), zpl = mk(pineLow, '#ffffff', ZP), zph = mk(pineHigh, '#ffffff', ZP), ztr = mk(trunkG, '#ffffff', ZP); let nzr = 0, nzp = 0; mossy(zrock.material, 'gfade');
     const rockAt2 = (x, z, r, ry, coll, tone, isl = false, i = -1) => { if (nzr >= ZR) return; const sf = surf(x, z); if (!sf || sf.water || sf.road || onLine(x, z) || nearShortcut(x, z) < 2.5 || laneDist(x, z) < 3 || (!isl && inIsland(x, z)) || (i >= 0 && onOtherTrail(x, z, i, 1.6 + r))) return;
       const sx = r * (1 + rzz() * 0.5); if (!jumpOK(x, z, r * 0.95, sx)) return;
       m4.compose(p.set(x, sf.h + ry * 0.3, z), q.setFromEuler(new THREE.Euler(rzz() * 0.5, rzz() * 6.28, rzz() * 0.5)), s.set(sx, ry, r));
@@ -55111,7 +55113,7 @@ function buildWorld(course, surf) {
   }
   /* surprise-moment set dressing. Boulder fields get a scatter of extra rocks on both sides; rocky outcrops get a gray spine of tall
      boulders up the bank. One extra instanced draw, all collidable, all clear of jumps, lanes, lines and shortcuts. */
-  { const XM = 90, rx2 = mulberry32(seed + 606), xm = mk(new THREE.DodecahedronGeometry(1, 0), '#ffffff', XM); let nx2 = 0;
+  { const XM = 90, rx2 = mulberry32(seed + 606), xm = mk(new THREE.DodecahedronGeometry(1, 0), '#ffffff', XM); mossy(xm.material, 'gfade'); let nx2 = 0;
     for (const Mo of course.moments || []) {
       if (Mo.kind === 'boulders') { const nWant = 9 + Math.floor(rx2() * 6);
         for (let t = 0, got = 0; t < nWant * 6 && got < nWant && nx2 < XM; t++) {
@@ -55506,7 +55508,7 @@ function buildWorld(course, surf) {
     const rr = mulberry32(seed + 1820), parts = [], Mx = new THREE.Matrix4(), Qq = new THREE.Quaternion(), Ee = new THREE.Euler(), Vv = new THREE.Vector3(), Ss = new THREE.Vector3(), cols = ['#8b9094', '#767b80', '#9a9a94', '#6d7377'], dg = new THREE.DodecahedronGeometry(1, 0);
     for (const R of course.micros || []) if (R.kind === 'rockGarden') for (let i = R.a + 5; i <= R.b - 5; i += 3 + Math.floor(rr() * 2)) for (const sd of [-1, 1]) { if (rr() < 0.2) continue;
       const P = course.pts[i], o = sd * (P.hw + 0.55 + rr() * 0.9), x = P.x + P.rx * o, z = P.z + P.rz * o, sf = surf(x, z); if (!sf || sf.water || sf.road) continue; const r = 0.26 + rr() * 0.3;
-      Mx.compose(Vv.set(x, sf.h + r * 0.3, z), Qq.setFromEuler(Ee.set(rr() * 0.6, rr() * 6.28, rr() * 0.6)), Ss.set(r, r * 0.7, r * 1.1)); parts.push({ geo: dg, m: Mx.clone(), col: cols[Math.floor(rr() * 4)] }); if (r >= 0.42) addObst(x, z, r * 0.8, r); }
+      Mx.compose(Vv.set(x, sf.h + r * 0.3, z), Qq.setFromEuler(Ee.set(rr() * 0.6, rr() * 6.28, rr() * 0.6)), Ss.set(r, r * 0.7, r * 1.1)); { const A = mossAt(x, z), c = cols[Math.floor(rr() * 4)]; parts.push(A > 0 ? mossPart(dg, c, Mx.clone(), A) : { geo: dg, m: Mx.clone(), col: c }); } if (r >= 0.42) addObst(x, z, r * 0.8, r); }
     if (parts.length) { const m = new THREE.Mesh(mergeParts(parts), campMat); world.add(m); } /* small dressing: no shadow caster (saves a draw call in the shadow pass) */
   }
   /* trail forks: a low island in the middle of the widened trail. Five looks, no trees - 'garden' (a boulder garden round a */
@@ -55521,25 +55523,25 @@ function buildWorld(course, surf) {
     const parts = [], M = new THREE.Matrix4(), Q = new THREE.Quaternion(), E = new THREE.Euler(), V = new THREE.Vector3(), Sc = new THREE.Vector3();
     const GRAY = ['#8d8981', '#84807a', '#969289'], MOSS = ['#6f8a5a', '#66845a', '#7a9460'], FLW = ['#ffe36b', '#ffffff', '#c9a6f0', '#ff9e7a'];
     const at = (f, l) => [P.x + P.fx * f + P.rx * l, P.z + P.fz * f + P.rz * l]; /* along, lateral -> world */
-    const putP = (geo, col, x, y, z, rx, ry, rz, sx, sy, sz) => { M.compose(V.set(x, y, z), Q.setFromEuler(E.set(rx, ry, rz)), Sc.set(sx, sy, sz)); parts.push({ geo, col, m: M.clone() }); };
-    const rock = (f, l, r, flat = 0.75, moss = false, solid = true, sink = 0.35) => { const [x, z] = at(f, l), y = hAt(x, z) + r * sink; const col = moss && r < 1 ? MOSS[Math.floor(rf() * 3)] : GRAY[Math.floor(rf() * 3)]; /* a big boulder (r >= 1) keeps its gray body and only wears the moss cap: a whole 3 m boulder in flat moss green reads as a stray green blob. Same draw count, so the fork's stream is unchanged */
-      putP(bigRock, col, x, y, z, rf() * 0.4, rf() * 6.28, rf() * 0.4, r * (0.9 + rf() * 0.4) / 1.4, r * flat / 1.4, r * (0.9 + rf() * 0.3) / 1.4);
-      if (moss && flat > 0.3) putP(bigRock, MOSS[Math.floor(rf() * 3)], x, y + r * flat * 0.62, z, rf() * 0.3, rf() * 6.28, rf() * 0.3, r * 0.7 / 1.4, r * 0.18 / 1.4, r * 0.62 / 1.4); /* a moss cap */
+    const putP = (geo, col, x, y, z, rx, ry, rz, sx, sy, sz, A = 0) => { M.compose(V.set(x, y, z), Q.setFromEuler(E.set(rx, ry, rz)), Sc.set(sx, sy, sz)); parts.push(A > 0 ? mossPart(geo, col, M.clone(), A) : { geo, col, m: M.clone() }); };
+    const mossK = (x, z, boost) => Math.min(mossU.k.value.x, mossAt(x, z) + mossU.k.value.x * boost); /* the moss field, plus a little extra on the island's own rocks */
+    const rock = (f, l, r, flat = 0.75, moss = false, solid = true, sink = 0.35) => { const [x, z] = at(f, l), y = hAt(x, z) + r * sink; const col = GRAY[Math.floor(rf() * 3)]; /* every body is gray: moss only grows on the up-facing faces (mossPart) */
+      putP(bigRock, col, x, y, z, rf() * 0.4, rf() * 6.28, rf() * 0.4, r * (0.9 + rf() * 0.4) / 1.4, r * flat / 1.4, r * (0.9 + rf() * 0.3) / 1.4, mossK(x, z, moss ? 0.35 : 0.15));
+      if (moss && flat > 0.3) { rf(); rf(); rf(); rf(); } /* the old separate moss cap: its draws stay so the fork's stream is unchanged */
       if (solid) { addObst(x, z, r * 0.95); obst.get(Math.floor(x / 4) + ',' + Math.floor(z / 4)).at(-1).rock = true; } return y; };
     const flowers = (f, l, n, R) => { for (let k = 0; k < n; k++) { const a = rf() * 6.28, rr = R * Math.sqrt(rf()), [x, z] = at(f + Math.cos(a) * rr, l + Math.sin(a) * rr), h = hAt(x, z), st = 0.18 + rf() * 0.16;
       putP(new THREE.CylinderGeometry(0.012, 0.016, st, 3), '#4f7a3a', x, h + st / 2, z, 0, 0, 0, 1, 1, 1); putP(new THREE.IcosahedronGeometry(0.07, 0), FLW[Math.floor(rf() * 4)], x, h + st + 0.04, z, 0, rf() * 6, 0, 1, 0.8, 1); } };
     const fern = (f, l) => { const [x, z] = at(f, l), h = hAt(x, z); for (let k = 0; k < 5; k++) { const a = k / 5 * 6.28 + rf() * 0.5; putP(new THREE.ConeGeometry(0.09, 0.55, 3), MOSS[1], x + Math.cos(a) * 0.16, h + 0.18, z + Math.sin(a) * 0.16, Math.cos(a) * 0.9, 0, -Math.sin(a) * 0.9, 1, 1, 1); } };
     if (F.kind === 'rock') rock(0, 0, 1.55, 0.9, rf() < 0.4);
     else if (F.kind === 'garden') {
-      rock(0.2, -0.1, 1.45, 0.22, false, false, 0.05); putP(bigRock, MOSS[1], P.x + P.rx * 0.4, hAt(P.x, P.z) + 0.24, P.z + P.rz * 0.4, 0, rf() * 6.28, 0, 0.55 / 1.4, 0.08 / 1.4, 0.4 / 1.4); /* the slab: flat, low, gray with one moss patch (no obstacle) */
+      rock(0.2, -0.1, 1.45, 0.22, true, false, 0.05); rf(); /* the slab: flat, low, gray; its flat top carries the moss (the old patch's draw stays) */
       const mossy = Math.floor(rf() * 5); [[-3.1, 0.7, 0.7], [-1.9, -0.8, 0.5], [1.9, 0.85, 0.75], [3.2, -0.5, 0.55], [1.0, -1.0, 0.38]].forEach(([f, l, r], k) => rock(f + (rf() - 0.5) * 0.4, l * (0.9 + rf() * 0.2), r, 0.7 + rf() * 0.3, k === mossy));
       for (let k = 0; k < 4; k++) rock(-3.2 + rf() * 6.4, (rf() - 0.5) * 1.8, 0.14 + rf() * 0.1, 0.6, false, false, 0.2); /* pebbles */
       flowers(-3.6, 0, 6, 0.7); flowers(3.6, 0, 6, 0.7); fern(0.4, 0.95);
     } else if (F.kind === 'arch') {
       const [ax, az] = at(0, -0.95), [bx, bz] = at(0, 0.95), ya = hAt(ax, az), yb = hAt(bx, bz), yawP = Math.atan2(-P.rz, P.rx);
-      for (const [x, z, y] of [[ax, az, ya], [bx, bz, yb]]) { putP(bigRock, GRAY[Math.floor(rf() * 3)], x, y + 1.1, z, rf() * 0.12, rf() * 6.28, rf() * 0.12, 0.62 / 1.4, 2.4 / 1.4, 0.62 / 1.4); addObst(x, z, 0.7); obst.get(Math.floor(x / 4) + ',' + Math.floor(z / 4)).at(-1).rock = true; }
-      const [cx, cz] = at(0, 0), yt = Math.max(ya, yb) + 2.35; putP(bigRock, MOSS[0], cx, yt, cz, 0.1, yawP, 0.05, 2.7 / 1.4, 0.6 / 1.4, 0.95 / 1.4); /* the lintel, mossy on top */
-      putP(bigRock, MOSS[2], cx, yt + 0.28, cz, 0, yawP, 0, 2.2 / 1.4, 0.16 / 1.4, 0.7 / 1.4);
+      for (const [x, z, y] of [[ax, az, ya], [bx, bz, yb]]) { putP(bigRock, GRAY[Math.floor(rf() * 3)], x, y + 1.1, z, rf() * 0.12, rf() * 6.28, rf() * 0.12, 0.62 / 1.4, 2.4 / 1.4, 0.62 / 1.4, mossK(x, z, 0.15)); addObst(x, z, 0.7); obst.get(Math.floor(x / 4) + ',' + Math.floor(z / 4)).at(-1).rock = true; }
+      const [cx, cz] = at(0, 0), yt = Math.max(ya, yb) + 2.35; putP(bigRock, GRAY[1], cx, yt, cz, 0.1, yawP, 0.05, 2.7 / 1.4, 0.6 / 1.4, 0.95 / 1.4, mossK(cx, cz, 0.35)); /* the lintel, mossy on top only */
       for (const [f, l, r] of [[-1.2, -0.9, 0.5], [1.3, 0.9, 0.45], [-0.9, 0.95, 0.35], [1.1, -0.85, 0.3]]) rock(f, l, r, 0.7, rf() < 0.6);
       fern(-2.0, 0.3); fern(2.0, -0.3); flowers(2.8, 0.2, 4, 0.5);
     } else if (F.kind === 'cairn') {
@@ -55834,35 +55836,88 @@ function paintingTexture() {
     g.restore(); });
   paintTex = new THREE.CanvasTexture(cv); paintTex.colorSpace = THREE.SRGBColorSpace; paintTex.anisotropy = 4; return paintTex; }
 function paintingMat() { if (!paintMatS) { const t = paintingTexture(); paintMatS = new THREE.MeshLambertMaterial({ map: t, emissive: '#ffffff', emissiveMap: t, emissiveIntensity: 0.3 }); SHARED_MATS.add(paintMatS); } return paintMatS; }
-function makeBulletinBoard(opts = {}) { /* the camp-only kiosk (see campBoardPose): posts 1.7 m, a 2.0 x 1.06 m backing with the 1.4 x 0.96 flag sheet on its left and three tacked-up loose
-     sheets on the right, a pitched roof, and a coin-operated tower viewer on a post beside it. All the wood, paper sheets, pins and the viewer are one merged vertex-colored mesh (campMat); the flag sheet is the one textured panel. */
+function makeBulletinBoard(opts = {}) { /* the camp-mode kiosk (see campBoardPose): posts 1.7 m, a 2.0 x 1.06 m backing with the 1.4 x 0.96 flag sheet on its left and three tacked-up loose
+     sheets on the right, a pitched roof, and a coin-operated tower viewer on a post beside it. All the wood, paper sheets, pins and the viewer are one merged vertex-colored mesh (campMat); the flag sheet is the one textured panel.
+     opts.ride = the main board alone for a camp's merged mesh (seen from the ride): the same wood and roof, posts sunk 0.15 below the foot for uneven ground, no loose sheets,
+     no viewer, no textured panel; instead the flag sheet is painted in vertex colors on the front and a trail map on the back (the ride lens looks at the back). Returns null. */
   const parts = opts.parts || [], M = opts.m || new THREE.Matrix4(), MM = new THREE.Matrix4(), QQ = new THREE.Quaternion(), EE = new THREE.Euler(), VV = new THREE.Vector3(), SS = new THREE.Vector3(1, 1, 1);
   const add = (geo, col, x, y, z, rx = 0, ry = 0, rz = 0, sx = 1, sy = 1, sz = 1) => { MM.compose(VV.set(x, y, z), QQ.setFromEuler(EE.set(rx, ry, rz)), SS.set(sx, sy, sz)); parts.push({ geo, col, m: MM.clone().premultiply(M) }); };
   const PW = 2.0, PH = 1.06, PY = 1.12, POST = 1.72; /* backing width / height / center height, post height */
-  for (const sd of [-1, 1]) { add(new THREE.CylinderGeometry(0.045, 0.055, POST, 6), '#6b5238', -0.03, POST / 2, sd * (PW / 2 - 0.1)); add(new THREE.DodecahedronGeometry(0.1, 0), '#7d7870', 0.05, 0.035, sd * (PW / 2 - 0.06)); } /* posts, a stone at each foot */
+  const ride = !!opts.ride, sink = ride ? 0.15 : 0;
+  for (const sd of [-1, 1]) { add(new THREE.CylinderGeometry(0.045, 0.055, POST + sink, 6), '#6b5238', -0.03, (POST - sink) / 2, sd * (PW / 2 - 0.1)); add(new THREE.DodecahedronGeometry(0.1, 0), '#7d7870', 0.05, 0.035, sd * (PW / 2 - 0.06)); } /* posts, a stone at each foot */
   add(new THREE.BoxGeometry(0.05, PH, PW), '#8a7050', 0, PY, 0); /* the backing board */
   for (const sd of [-1, 1]) { add(new THREE.BoxGeometry(0.06, 0.05, PW + 0.04), '#5a4230', 0.005, PY + sd * PH / 2, 0); add(new THREE.BoxGeometry(0.06, PH, 0.04), '#5a4230', 0.005, PY, sd * (PW / 2 + 0.01)); } /* the frame */
   add(new THREE.BoxGeometry(0.06, PH, 0.03), '#5a4230', 0.006, PY, PW / 2 - 0.05 - BOARD_TEX.pw); /* a divider between the flag sheet (board +z = the reader's left) and the loose sheets */
   for (const sd of [-1, 1]) add(new THREE.BoxGeometry(0.4, 0.03, PW + 0.24), sd < 0 ? '#8d3b2a' : '#7a3324', sd * 0.165, PY + PH / 2 + 0.12, 0, 0, 0, -sd * 0.55); /* the pitched rain roof, ridge along the board */
   add(new THREE.BoxGeometry(0.06, 0.04, PW + 0.26), '#5a4230', 0, PY + PH / 2 + 0.215, 0); /* the ridge cap */
-  { /* three loose sheets tacked in the right column: tilted a little, a few ink lines each, a pin at the top */
+  if (!ride) { /* three loose sheets tacked in the right column: tilted a little, a few ink lines each, a pin at the top */
     const cz = -(PW / 2 - 0.26), sheets = [[PY + 0.3, 0.12, '#f4efe2', 0.24, 0.3], [PY - 0.04, -0.09, '#efe6cf', 0.26, 0.2], [PY - 0.36, 0.06, '#f6f1e6', 0.22, 0.26]];
     sheets.forEach(([sy, tilt, col, sw, sh], si) => { const c = Math.cos(tilt), sn = Math.sin(tilt); add(new THREE.BoxGeometry(0.006, sh, sw), col, 0.03, sy, cz, tilt, 0, 0);
       for (let k = 0; k < 3; k++) { const ly = sh / 2 - 0.06 - k * 0.06, lw = sw * (k === 2 ? 0.5 : 0.8); add(new THREE.BoxGeometry(0.004, 0.012, lw), '#7a6a58', 0.035, sy + ly * c, cz + ly * sn + (k === 2 ? -(sw - lw) / 2 * c : 0), tilt, 0, 0); } /* lines of writing */
       add(new THREE.SphereGeometry(0.014, 6, 5), ['#c8553d', '#3d7fc8', '#e0b21a'][si], 0.04, sy + (sh / 2 - 0.02) * c, cz + (sh / 2 - 0.02) * sn); }); /* a pin at the top edge */
   }
-  { /* the coin-operated tower viewer beside the board: a post on a round base, a pedestal, the binocular head on a yoke, aimed out over the valley (board -x) */
+  if (!ride) { /* the coin-operated tower viewer beside the board: a post on a round base, a pedestal, the binocular head on a yoke, aimed out over the valley (board -x) */
     const vz = -(PW / 2 + 0.6), vx = 0.15, hy = 1.3; add(new THREE.CylinderGeometry(0.17, 0.2, 0.05, 10), '#4a4a4e', vx, 0.025, vz); add(new THREE.CylinderGeometry(0.045, 0.06, 1.1, 8), '#5a5e66', vx, 0.6, vz); add(new THREE.CylinderGeometry(0.07, 0.045, 0.1, 8), '#4a4a4e', vx, 1.17, vz);
     add(new THREE.BoxGeometry(0.06, 0.14, 0.3), '#4a4a4e', vx, 1.26, vz); for (const sd of [-1, 1]) add(new THREE.CylinderGeometry(0.025, 0.025, 0.12, 6), '#6a6e76', vx, hy, vz + sd * 0.14, 0, 0, Math.PI / 2); /* the yoke and its pivots */
     add(new THREE.BoxGeometry(0.34, 0.2, 0.26), '#c9c4b8', vx - 0.02, hy, vz, 0, 0, 0.12); for (const sd of [-1, 1]) add(new THREE.CylinderGeometry(0.052, 0.062, 0.14, 8), '#8a8e96', vx - 0.22, hy + 0.025, vz + sd * 0.065, 0, 0, Math.PI / 2 + 0.12); /* the head and its two lenses, looking away from the lens side */
     for (const sd of [-1, 1]) add(new THREE.CylinderGeometry(0.03, 0.03, 0.03, 8), '#2a2a2e', vx + 0.16, hy + 0.045, vz + sd * 0.065, 0, 0, Math.PI / 2 + 0.12); /* the eyepieces */
     add(new THREE.BoxGeometry(0.05, 0.04, 0.09), '#2a2a2e', vx + 0.07, hy + 0.12, vz, 0, 0, 0.12); add(new THREE.BoxGeometry(0.02, 0.012, 0.05), '#e0b21a', vx + 0.1, hy + 0.142, vz, 0, 0, 0.12); /* the coin box and slot */
   }
+  if (ride) { /* the painted paper: thin boxes stacked a few mm apart off the backing (lift = layer), so nothing z-fights at ride distance */
+    const pb = (sd, w, h, u, v, col, lift = 0, rx = 0) => add(new THREE.BoxGeometry(0.006, h, w), col, sd * (0.029 + lift * 0.007), v, u, rx);
+    { /* front: the flag sheet as the camp panel draws it (title band, five rows of swatch, symbol, word and dotted leader), pins at the corners; the reader's left is +z */
+      const L = PW / 2 - 0.02, sc = BOARD_TEX.pw / BOARD_TEX.w, top = PY + BOARD_TEX.ph / 2, u0 = L - BOARD_TEX.pw / 2;
+      pb(1, BOARD_TEX.pw, BOARD_TEX.ph, u0, PY, '#f2ead6'); pb(1, BOARD_TEX.pw - 0.03, 44 * sc, u0, top - (6 + 22) * sc, '#3a2415', 1);
+      BOARD_ROWS.forEach(([col, , word], i) => { const v = top - (82 + i * 60) * sc, wl = word.length * 0.062;
+        pb(1, 46 * sc, 46 * sc, L - 45 * sc, v, col, 1); pb(1, 0.06, 0.06, L - 136 * sc, v, '#3a2415', 1, Math.PI / 4);
+        pb(1, wl, 0.07, L - 184 * sc - wl / 2, v, '#3a2415', 1); pb(1, 488 * sc - 184 * sc - wl - 0.05, 0.01, L - (488 * sc + 184 * sc + wl + 0.05) / 2, v, '#b9a888', 1); });
+      for (const [a, b, c] of [[16, 16, '#c8553d'], [496, 16, '#3d7fc8'], [16, 336, '#e0b21a'], [496, 336, '#c8553d']]) pb(1, 0.03, 0.03, L - a * sc, top - b * sc, c, 2); }
+    { /* back: a trail map (title band, two patches of forest, the trail in brown with the five flag colors along it, a red you-are-here dot) */
+      const MW = 1.7, MH = 0.9; pb(-1, MW, MH, 0, PY, '#efe6cf'); pb(-1, MW - 0.03, 0.11, 0, PY + MH / 2 - 0.07, '#3a2415', 1);
+      for (const [u, v, w, h] of [[-0.45, -0.18, 0.5, 0.3], [0.42, 0.12, 0.55, 0.26], [0.05, -0.27, 0.3, 0.18]]) pb(-1, w, h, u, PY + v, '#a9c08a', 1);
+      const T = [[-0.72, 0.24], [-0.38, 0.12], [-0.06, 0.2], [0.22, 0.02], [-0.1, -0.1], [0.26, -0.22], [0.7, -0.3]];
+      for (let k = 0; k < T.length - 1; k++) { const [ua, va] = T[k], [ub, vb] = T[k + 1], du = ub - ua, dv = vb - va, ln = Math.hypot(du, dv); pb(-1, ln + 0.025, 0.028, (ua + ub) / 2, PY + (va + vb) / 2, '#7a4e30', 2, Math.atan2(-dv, du)); }
+      BOARD_ROWS.forEach(([col], i) => { const [u, v] = T[i + 1]; pb(-1, 0.07, 0.07, u, PY + v + 0.055, col, 3); });
+      pb(-1, 0.06, 0.06, T[0][0], PY + T[0][1], '#d8432e', 3, Math.PI / 4);
+      for (const [u, v, c] of [[-MW / 2 + 0.04, MH / 2 - 0.04, '#c8553d'], [MW / 2 - 0.04, MH / 2 - 0.04, '#3d7fc8'], [-MW / 2 + 0.04, -MH / 2 + 0.04, '#e0b21a'], [MW / 2 - 0.04, -MH / 2 + 0.04, '#c8553d']]) pb(-1, 0.03, 0.03, u, PY + v, c, 2); }
+    return null;
+  }
   if (!boardMat) { const t = bulletinTexture(); boardMat = new THREE.MeshBasicMaterial({ map: t, toneMapped: false }); SHARED_MATS.add(boardMat); } /* unlit and outside the tone map, like the trail pennants: the sheet shows its swatches in the exact FLAG_PAL values at any hour, so a flag on the trail and its swatch on the board are the same color */
   const pg = new THREE.PlaneGeometry(BOARD_TEX.pw, BOARD_TEX.ph, 4, 4); pg.userData.base = pg.attributes.position.array.slice(); /* the resting vertex positions, for the flutter */
   const panel = new THREE.Mesh(pg, boardMat); panel.rotation.y = Math.PI / 2; panel.position.set(0.032, PY, PW / 2 - 0.02 - BOARD_TEX.pw / 2); panel.applyMatrix4(M); /* the flag sheet fills the left column (a reader facing the board has +z on the left) */
   const group = new THREE.Group(); if (!opts.parts) { const wood = new THREE.Mesh(mergeParts(parts), campMat); group.add(wood); } group.add(panel); group.userData.panel = panel; return group;
 }
+let stumpG = null;
+function stumpGeo() { /* the tree stump beside the parked bike (CAMP_STUMP: radius r, height h, camp units; foot at y 0, built once and shared): a 13-sided trunk with a lumpy
+     outline (fixed sines, no random draws) and a little taper, bark in vertex-color bands (dark brown with lighter ridges, darker at the foot), five wedge roots flaring
+     out at the base, a flat cut top showing growth rings round an off-center pale heart, two axe notches at the rim (pale fresh wood) and a small patch of moss on one
+     side. Non-indexed with its own colors (mergeParts keeps them when a part has no col); every face is wound outward, so campMat's front faces show. */
+  if (stumpG) return stumpG;
+  const R = CAMP_STUMP.r, H = CAMP_STUMP.h, N = 13, TAU = Math.PI * 2, pos = [], col = [], C = new THREE.Color(), _a = new THREE.Vector3(), _b = new THREE.Vector3(), _n = new THREE.Vector3();
+  const tri = (a, b, c, hex, ox, oy, oz) => { _a.set(b[0] - a[0], b[1] - a[1], b[2] - a[2]); _b.set(c[0] - a[0], c[1] - a[1], c[2] - a[2]); _n.crossVectors(_a, _b);
+    if (_n.x * ox + _n.y * oy + _n.z * oz < 0) { const t = b; b = c; c = t; } pos.push(a[0], a[1], a[2], b[0], b[1], b[2], c[0], c[1], c[2]); C.set(hex); for (let i = 0; i < 3; i++) col.push(C.r, C.g, C.b); }; /* o = the outward direction */
+  const out = (p, q) => [(p[0] + q[0]) / 2, 0.15, (p[2] + q[2]) / 2]; /* a side face's outward direction: away from the axis, a little up */
+  const lump = (k) => 1 + 0.07 * Math.sin(k * 2.1 + 0.6) + 0.05 * Math.cos(k * 3.7 + 1.3);
+  const RING = [[-0.12, 1.2], [0, 1.16], [0.07, 1.07], [0.17, 1.0], [0.3, 0.97], [H - 0.06, 0.955], [H, 0.95]]; /* y, radius factor: the base flares, the trunk tapers a little */
+  const NOTCH = { 3: 0.74, 9: 0.8 }, nj = RING.length - 1; /* columns with an axe notch: the top ring is cut in to this share, the ring under it halfway */
+  const P = (k, j) => { const kk = ((k % N) + N) % N, a = kk / N * TAU; let f = R * lump(kk) * RING[j][1]; if (NOTCH[kk]) f *= j === nj ? NOTCH[kk] : j === nj - 1 ? (1 + NOTCH[kk]) / 2 : 1; return [Math.cos(a) * f, RING[j][0], Math.sin(a) * f]; };
+  for (let k = 0; k < N; k++) for (let j = 0; j < nj; j++) { /* the bark */
+    const a = P(k, j), b = P(k + 1, j), c = P(k + 1, j + 1), d = P(k, j + 1), o = out(a, b);
+    let hex = k % 3 === 0 ? '#7d5a3e' : k % 3 === 1 ? '#553b29' : '#654631'; if (j <= 1) hex = k % 3 === 0 ? '#624731' : '#46301f';
+    if (j >= nj - 1 && (NOTCH[k] || NOTCH[(k + 1) % N])) hex = j === nj - 1 ? '#a8835a' : '#c9a77c'; /* the notch: pale, freshly cut wood */
+    else if ((k === 6 || k === 7) && j >= 1 && j <= 2) hex = k === 6 ? '#4f6a32' : '#5a7438'; /* moss on the shady side, low down */
+    tri(a, b, c, hex, o[0], o[1], o[2]); tri(a, c, d, hex, o[0], o[1], o[2]); }
+  { /* the cut top: rings round a pith set a little off center (bark rim, pale sapwood, alternating dark and light rings, a pale heart) */
+    const cx = 0.05 * R, cz = -0.04 * R, F = [1, 0.9, 0.76, 0.62, 0.48, 0.34, 0.2], RC = ['#4f3525', '#e2c79a', '#b08458', '#d6b483', '#a97c52', '#dcbd8e', '#e8d2a6'];
+    const Q = (k, f) => { const p = P(k, nj); return [cx + (p[0] - cx) * f, H, cz + (p[2] - cz) * f]; };
+    for (let k = 0; k < N; k++) { for (let i = 0; i < F.length - 1; i++) { const a = Q(k, F[i]), b = Q(k + 1, F[i]), c = Q(k + 1, F[i + 1]), d = Q(k, F[i + 1]); tri(a, b, c, RC[i], 0, 1, 0); tri(a, c, d, RC[i], 0, 1, 0); }
+      tri(Q(k, F[F.length - 1]), Q(k + 1, F[F.length - 1]), [cx, H, cz], k % 4 === 0 ? '#c9a473' : RC[RC.length - 1], 0, 1, 0); } } /* a darker wedge or two in the heart */
+  for (const [ra, moss] of [[0.5, 0], [1.75, 0], [2.9, 1], [3.85, 0], [5.35, 0]]) { /* the roots: low wedges from the foot out to 1.75 r, sunk just under the ground at the tip */
+    const at = (a, f, y) => [Math.cos(a) * R * f, y, Math.sin(a) * R * f], A = at(ra - 0.24, 1.12, -0.03), B = at(ra + 0.24, 1.12, -0.03), Cc = at(ra, 1.04, 0.17), E = at(ra, 1.42, 0.07), D = at(ra, 1.75, -0.03);
+    const ox = Math.cos(ra), oz = Math.sin(ra), top = moss ? '#4f6a32' : '#5d412c';
+    tri(A, Cc, E, '#4a3324', ox + Math.sin(ra), 0.3, oz - Math.cos(ra)); tri(Cc, B, E, top, ox - Math.sin(ra), 0.3, oz + Math.cos(ra)); tri(A, E, D, '#3d2a1d', ox + Math.sin(ra), 0.3, oz - Math.cos(ra)); tri(E, B, D, '#4a3324', ox - Math.sin(ra), 0.3, oz + Math.cos(ra)); }
+  stumpG = new THREE.BufferGeometry(); stumpG.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); stumpG.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); stumpG.computeVertexNormals();
+  return stumpG; }
 function addCampMesh(cp) {
   /* seeded camp scenes, dealt along the mountain from a per-session shuffle (campVariantOrder) so neighbors differ: 0 cook, 1 sleeper, 2 bike mechanic, 3 guitarist, 4 stargazer, 5 reader, 6 map planner, 7 tea maker, 8 sketch painter. Your own camps: tent and fire only. */
   const seedC = (S.course && S.course.seed) || 1, rc = mulberry32(((seedC * 2654435761) ^ (cp.idx * 40503 + 977)) >>> 0); /* well-mixed per mountain + per camp (the LAYOUT stream: tent spot, woodpile, fence, bushes) */
@@ -56391,10 +56446,26 @@ function addCampMesh(cp) {
         if (laneClr(x3 - ex, z3 - ez, 0.16) < LANE_CLR || laneClr(x3 + ex, z3 + ez, 0.16) < LANE_CLR || !solFree(x3 - ex, z3 - ez, 0.16) || !solFree(x3 + ex, z3 + ez, 0.16) || !solFree(x3, z3, 0.16)) continue;
         seatAt(x3, z3, 1.3); cp.log3 = [x3, z3]; break; }
     }
-    /* the trail-flag notice board is not built on the ride: it exists only in camp mode, as an easter egg at the back of the camp (campBoardPose builds the one shared kiosk and moves it in). Nothing here draws from the layout stream. */
-    cp.board = null;
+    /* the stump by the parked bike and the main notice board are part of this merged mesh, so the ride shows them at the pose camp mode uses. They are placed last, on the
+       finished camp (fixed formulas, no draws from rc / rl), so nothing above moves; their footprints join cp.solids after everything else. The board's parts are the
+       LAST parts: camp mode cuts them off with the geometry's draw range (cp.boardV) and shows the live kiosk there instead (campBoardPose); the stump stays as it is. */
+    const clear = (lx, lz, r) => { const [wx, wz] = toW(lx, lz); for (const o of SOL) if (ccDist(o, wx, wz) < r * RS) return false; return true; };
+    const footLow = (lx, lz, r) => { let g = groundAt(lx, lz); for (let q = 0; q < 8; q++) { const b = q / 8 * 6.283; g = Math.min(g, groundAt(lx + Math.cos(b) * r, lz + Math.sin(b) * r)); } return g; }; /* the lowest ground under a footprint */
+    { const sx = CAMP_BIKE[0] + CAMP_STUMP.dx, sz = CAMP_BIKE[1] + CAMP_STUMP.dz; cp.stumpL = null; /* the stump stands where the parked bike leans on it; a camp whose loop lane runs over that spot keeps it camp-only (campBoardPose) */
+      if (laneClr(sx, sz, CAMP_STUMP.r) >= 0.3 && clear(sx, sz, CAMP_STUMP.r)) { const gy = footLow(sx, sz, CAMP_STUMP.r * 1.2) - 0.01; parts.push({ geo: stumpGeo(), col: null, m: new THREE.Matrix4().compose(V.set(sx, gy, sz), Q.setFromEuler(E.set(0, CAMP_STUMP.yaw, 0)), Sc.set(1, 1, 1)) });
+        solC(sx, sz, CAMP_STUMP.r, CAMP_STUMP.h, 'Hit a stump'); cp.stumpL = [sx, gy, sz]; } }
+    { /* the board: CAMPBOARD unless a prop of this camp stands there (a tent moved toward the back, its pack); then the first free spot along the back, turned to the camp lens like the kiosk */
+      let bsel = null; for (const [bx, bz] of [[CAMPBOARD.x, CAMPBOARD.z], [1.8, 4.4], [1.2, 4.4], [2.4, 3.7], [1.8, 3.8], [0.6, 4.3]]) {
+        const ya = Math.atan2(-(CAMPCAM.pos[2] - bz), CAMPCAM.pos[0] - bx) + CAMPBOARD.turn, px = Math.sin(ya) * 0.9, pz = Math.cos(ya) * 0.9;
+        if (clear(bx + px, bz + pz, 0.08) && clear(bx - px, bz - pz, 0.08) && clear(bx, bz, 0.2) && laneClr(bx, bz, 1.0) >= LANE_CLR) { bsel = [bx, bz, ya, px, pz]; break; } }
+      if (!bsel) { const bx = CAMPBOARD.x, bz = CAMPBOARD.z, ya = Math.atan2(-(CAMPCAM.pos[2] - bz), CAMPCAM.pos[0] - bx) + CAMPBOARD.turn; bsel = [bx, bz, ya, Math.sin(ya) * 0.9, Math.cos(ya) * 0.9]; } /* nothing free: the old spot */
+      const [bx, bz, ya, px, pz] = bsel, gy = groundAt(bx, bz); cp.boardL = [bx, bz, ya];
+      let nv = 0; for (const p of parts) nv += p.geo.index ? p.geo.index.count : p.geo.attributes.position.count; cp.boardV = nv; /* the vertex count before the board (mergeParts keeps the part order) */
+      makeBulletinBoard({ parts, m: new THREE.Matrix4().compose(V.set(bx, gy, bz), Q.setFromEuler(E.set(0, ya, 0)), Sc.set(1, 1, 1)), ride: true });
+      solS(bx - px, bz - pz, bx + px, bz + pz, 0.07, 1.72, 'Hit the notice board'); }
+    cp.board = null; /* the live kiosk (camp mode only) */
   }
-  const mesh = new THREE.Mesh(mergeParts(parts), campMat); grp.add(mesh);
+  const mesh = new THREE.Mesh(mergeParts(parts), campMat); grp.add(mesh); cp.body = mesh;
   /* live bits: ground glow (instead of a real point light), flag, smoke + steam, embers (the flame meshes were built with the fire above) */
   { /* ground glow draped over the real terrain (follows slopes, so it never clips), depth-tested so it stays under the tent and camper */
     const R = cp.lane ? 5.0 : 2.4, gg = new THREE.RingGeometry(0.001, R, 24, 7); gg.rotateX(-Math.PI / 2); /* 5 m glow disc at course camps - the warm light showing through the trees IS the 'found it' cue */ /* several rings so the brightness can fall off smoothly */
@@ -56977,6 +57048,55 @@ function groundFade(mat) {
     sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying float vFd; const float BAY[16] = float[16](0., 8., 2., 10., 12., 4., 14., 6., 3., 11., 1., 9., 15., 7., 13., 5.);')
       .replace('#include <clipping_planes_fragment>', '#include <clipping_planes_fragment>\n{ ivec2 ip = ivec2(mod(gl_FragCoord.xy, 4.0)); if (vFd < (BAY[ip.x + ip.y * 4] + 0.5) / 16.0) discard; }'); };
   mat.customProgramCacheKey = () => 'gfade'; return mat;
+}
+/* moss on rocks. Two rules, both from positions only (no random stream is touched):
+   - WHERE: a slow moss field over x, z (2-octave value noise, cells ~26 m) gives each rock an amount A; above the theme's cut the amount
+     ramps up over a few meters, so mossy rocks come in neighborhoods ~10-25 m across and rocks away from them stay bare.
+   - HOW MUCH OF THE ROCK: only faces that point up (normal.y > 0.42, within ~65 degrees of straight up) can carry moss; the score grows with how flat the face is, how high it sits
+     on the rock and, for up-facing ledges low on the rock, where it meets the ground. A per-face hash and a position noise make the edge ragged,
+     and a thin band just over the cut is a lighter lip. Instanced rocks do this in the shader (mossy), merged meshes on the CPU (mossPart). */
+const MOSS_T = { pine: [0.95, 0.6], autumn: [0.85, 0.62], mist: [1.0, 0.58], alpine: [0.55, 0.66], canyon: [0.2, 0.76], scrub: [0.12, 0.78] }; /* [max amount, field cut] per theme: wet themes more and bigger patches */
+const mossU = { sd: { value: 0 }, k: { value: new THREE.Vector2(0, 1) }, c0: { value: new THREE.Color('#567a42') }, c1: { value: new THREE.Color('#618646') }, c2: { value: new THREE.Color('#4d6d3d') }, lip: { value: new THREE.Color('#88a662') } };
+function mossSet(course) { const T = MOSS_T[course.theme] || [0.5, 0.58]; mossU.sd.value = (course.seed + 6262) | 0; mossU.k.value.set(T[0], T[1]); }
+function mossAt(x, z) { const f = fbm(x / 26, z / 26, mossU.sd.value, 2), K = mossU.k.value; return K.x * smooth(K.y, K.y + 0.16, f); } /* the amount A at a rock's center */
+function mossScore(A, u, rel, wob, hf) { if (u < 0.42 || A <= 0) return -1; const low = (1 - smooth(-0.75, -0.25, rel)) * smooth(0.5, 0.85, u);
+  return A * (1.3 * smooth(0.45, 0.95, u) + 0.3 * smooth(-0.1, 0.8, rel) + 0.35 * low) + (wob - 0.5) * 0.4 + (hf - 0.5) * 0.3 - 0.5; } /* > 0 = moss, 0..0.1 = the lighter lip */
+const MOSS_GLSL = 'uniform int uMsd; uniform vec2 uMossK; varying vec3 vWm; varying vec4 vMO; varying float vMA; flat varying float vHf; flat varying float vWob;\n' +
+  'float mh(int ix, int iz, int sd) { uint h = uint(ix) * 374761393u + uint(iz) * 668265263u + uint(sd) * 1442695041u; h = (h ^ (h >> 13u)) * 1274126177u; h ^= h >> 16u; return float(h) / 4294967295.0; }\n' +
+  'float mn(vec2 p, int sd) { vec2 i = floor(p), f = p - i, u = f * f * (3.0 - 2.0 * f); int ix = int(i.x), iz = int(i.y); return mix(mix(mh(ix, iz, sd), mh(ix + 1, iz, sd), u.x), mix(mh(ix, iz + 1, sd), mh(ix + 1, iz + 1, sd), u.x), u.y); }\n';
+function mossy(mat, key) {
+  const prev = mat.onBeforeCompile.bind(mat);
+  mat.onBeforeCompile = (sh, r) => { prev(sh, r); sh.uniforms.uMsd = mossU.sd; sh.uniforms.uMossK = mossU.k; sh.uniforms.uMc0 = mossU.c0; sh.uniforms.uMc1 = mossU.c1; sh.uniforms.uMc2 = mossU.c2; sh.uniforms.uMlip = mossU.lip;
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\n' + MOSS_GLSL)
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\n{ mat4 mw = modelMatrix;\n#ifdef USE_INSTANCING\n mw = mw * instanceMatrix;\n#endif\n vec3 wp = (mw * vec4(transformed, 1.0)).xyz, o = (mw * vec4(0.0, 0.0, 0.0, 1.0)).xyz; vWm = wp - o;' +
+        ' vMO = vec4(o, max(1e-3, length(position) * length(vec3(mw[0][1], mw[1][1], mw[2][1]))));' +
+        ' vHf = mh(int(floor(position.x * 97.0)) + int(floor(position.y * 61.0)) * 3, int(floor(position.z * 97.0)), uMsd + int(floor(o.x * 3.0)) * 7 + int(floor(o.z * 3.0)));' +
+        ' vWob = mn((wp.xz + wp.y * 0.7) * 2.5 / max(vMO.w, 0.3), uMsd + 5);' +
+        ' float f = (0.5 * mn(o.xz / 26.0, uMsd) + 0.25 * mn(o.xz / 26.0 * 2.03, uMsd + 17)) / 0.75; float t = clamp((f - uMossK.y) / 0.16, 0.0, 1.0); vMA = uMossK.x * t * t * (3.0 - 2.0 * t); }');
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\n' + MOSS_GLSL + 'uniform vec3 uMc0; uniform vec3 uMc1; uniform vec3 uMc2; uniform vec3 uMlip;\n')
+      .replace('#include <color_fragment>', '#include <color_fragment>\n{ vec3 fn = normalize(cross(dFdx(vWm), dFdy(vWm))); float u = fn.y;' +
+        ' if (u > 0.42 && vMA > 0.0) { float rel = clamp(fn.y * dot(fn, vWm) / vMO.w, -1.0, 1.0), hf = vHf, wob = vWob;' +
+        ' float low = (1.0 - smoothstep(-0.75, -0.25, rel)) * smoothstep(0.5, 0.85, u);' +
+        ' float v = vMA * (1.3 * smoothstep(0.45, 0.95, u) + 0.3 * smoothstep(-0.1, 0.8, rel) + 0.35 * low) + (wob - 0.5) * 0.4 + (hf - 0.5) * 0.3 - 0.5;' +
+        ' if (v > 0.0) { vec3 mc = hf < 0.33 ? uMc0 : hf < 0.66 ? uMc1 : uMc2; if (v < 0.1) mc = uMlip; diffuseColor.rgb = mix(diffuseColor.rgb, mc, 0.92); } } }'); };
+  mat.customProgramCacheKey = () => key + 'Moss'; return mat;
+}
+/* the CPU twin for merged vertex-colored meshes: a copy of a polyhedron part with its own vertex colors (mergeParts keeps them when col is null) */
+const _mpV = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()], _mpN = new THREE.Vector3(), _mpE = new THREE.Vector3(), _mpC = new THREE.Color(), _mpO = new THREE.Vector3();
+function mossPart(geo, col, m, A) {
+  const g = geo.index ? geo.toNonIndexed() : geo.clone(), pa = g.attributes.position, n = pa.count, ca = new Float32Array(n * 3), base = new THREE.Color(col);
+  const sd = mossU.sd.value, MC = [mossU.c0.value, mossU.c1.value, mossU.c2.value]; _mpO.setFromMatrixPosition(m); let top = -1e9;
+  for (let i = 0; i < n; i++) top = Math.max(top, _mpV[0].fromBufferAttribute(pa, i).applyMatrix4(m).y);
+  const ext = Math.max(1e-3, top - _mpO.y);
+  for (let i = 0; i + 2 < n; i += 3) {
+    for (let k = 0; k < 3; k++) _mpV[k].fromBufferAttribute(pa, i + k).applyMatrix4(m);
+    _mpN.subVectors(_mpV[1], _mpV[0]).cross(_mpE.subVectors(_mpV[2], _mpV[0])).normalize();
+    const cy = (_mpV[0].y + _mpV[1].y + _mpV[2].y) / 3;
+    const rel = Math.max(-1, Math.min(1, (cy - _mpO.y) / ext)), hf = hash2(i, Math.floor(_mpO.x * 3) * 7 + Math.floor(_mpO.z * 3), sd);
+    const v = mossScore(A, _mpN.y, rel, noise2((_mpV[2].x + _mpV[2].y * 0.7) * 2.5 / Math.max(ext, 0.3), (_mpV[2].z + _mpV[2].y * 0.7) * 2.5 / Math.max(ext, 0.3), sd + 5), hf); /* noise at one corner, like the shader's flat value */
+    if (v > 0) _mpC.copy(base).lerp(v < 0.1 ? mossU.lip.value : MC[hf < 0.33 ? 0 : hf < 0.66 ? 1 : 2], 0.92); else _mpC.copy(base);
+    for (let k = 0; k < 3; k++) _mpC.toArray(ca, (i + k) * 3); }
+  g.setAttribute('color', new THREE.BufferAttribute(ca, 3)); return { geo: g, col: null, m };
 }
 /* the water shimmer - a slow moving brightness ripple in the fragment shader (uT shared by every water material) */
 const waterT = { value: 0 }, yAxW = new THREE.Vector3(0, 1, 0);
@@ -58308,11 +58428,26 @@ let zonesOn = ZONES_OK; try { const v = localStorage.getItem('holdon.controls');
 document.body.classList.toggle('zonesOn', zonesOn);
 document.body.classList.toggle('touchy', ZONES_OK || (navigator.maxTouchPoints || 0) > 0);
 const zt = { steer: 0, gas: false, brk: 0, jump: false, legs: false, arms: false };
-const UIO = (() => { let o = {}; try { o = JSON.parse(localStorage.getItem('holdon.ui') || '{}') || {}; } catch (e) { } return Object.assign({ hand: 'right', pedal: 'hold', size: 1, haptics: true, sens: 'med' }, o); })();
-/* touch stick sensitivity: [gain, expo]; the throw grows to R / gain. 'orig' is the original curve; anything unknown reads as Medium */
-const SENS = { orig: [1, 1.35], high: [0.9, 1.45], med: [0.8, 1.55], low: [0.65, 1.7] };
-const sensKey = () => Object.prototype.hasOwnProperty.call(SENS, UIO.sens) ? UIO.sens : 'med';
-const sensCfg = () => SENS[sensKey()];
+const UIO = (() => { let o = {}; try { o = JSON.parse(localStorage.getItem('holdon.ui') || '{}') || {}; } catch (e) { } return Object.assign({ hand: 'right', pedal: 'hold', size: 1, haptics: true }, o); })();
+/* touch stick sensitivity: [gain, expo, deadzone px, anchor follow share, follow lead px, release rate per s].
+   The throw is R = ring radius / gain (G60 makes R 60 px on a 393 px tall phone and scales with the ring like the others).
+   The anchor starts to follow once the thumb is lead px past R and then takes share of the overshoot (1 = all of it).
+   The release rate caps how fast |steer| may drop toward zero or through it (0 = no cap; pushing out is never capped).
+   sens is only stored once the player picks a level (together with sensV: 2), so a missing or unknown value reads as Balanced.
+   A stored 'med' without sensV is the old default that nobody chose on purpose: it reads as no choice (Balanced). */
+const G60 = 56.592 / 60;
+const SENS = { bal: [G60, 1.15, 3, 0.5, 22, 0], orig: [1, 1.35, 6, 1, 10, 0], high: [0.9, 1.45, 6, 1, 10, 0], med: [0.8, 1.55, 6, 1, 10, 0], low: [0.65, 1.7, 6, 1, 10, 0] };
+if (UIO.sensV !== 2 && UIO.sens === 'med') delete UIO.sens;
+const sensKey = () => Object.prototype.hasOwnProperty.call(SENS, UIO.sens) ? UIO.sens : 'bal';
+/* comparison presets for a phone test link (?steer=B and so on): in memory only, nothing is saved; picking a level in Settings ends it */
+const STEER_TEST = { M: ['med'], A: [1, 1.35, 3, 1, 10, 0], B: [G60, 1.15, 3, 1, 10, 0], B2: [G60, 1.15, 4.5, 1, 10, 0], C: [G60, 1.15, 3, 0.5, 22, 0], D: [G60, 1.15, 3, 1, 10, 4.5], BEST: ['bal'] };
+let steerTest = (() => { try { const q = (new URLSearchParams(location.search).get('steer') || '').toUpperCase(); return Object.prototype.hasOwnProperty.call(STEER_TEST, q) ? q : ''; } catch (e) { return ''; } })();
+let steerToastDone = false;
+const steerTestCfg = () => { const t = STEER_TEST[steerTest]; return t.length === 1 ? SENS[t[0]] : t; };
+const sensCfg = () => steerTest ? steerTestCfg() : SENS[sensKey()];
+/* the Settings row value: the stored level, or the level a test preset equals (none for the others) */
+const sensShown = () => steerTest ? (STEER_TEST[steerTest].length === 1 ? STEER_TEST[steerTest][0] : '') : sensKey();
+const steerToast = () => { if (!steerTest || steerToastDone) return; steerToastDone = true; const c = sensCfg(); toast('Steering ' + steerTest + ': radius ' + Math.round(56.592 / c[0]) + ', curve ' + c[1] + ', dead ' + c[2] + (c[3] < 1 ? ', soft anchor' : '') + (c[5] ? ', release ' + c[5] + '/s' : '')); };
 const saveUIO = () => { try { localStorage.setItem('holdon.ui', JSON.stringify(UIO)); } catch (e) { } };
 const UI_REF_H = 390, UI_MIN_W = 720, UI_MAX = 6; let UIZ = 1, uiZoomOk = true;
 /* the saved UI size multiplier, or 0 for Auto (a missing, corrupt or out-of-range value reads as Auto) */
@@ -58331,12 +58466,12 @@ const haptic = (() => { let lastT = 0; return (p) => { if (!UIO.haptics || !padU
 const pad = (() => {
   const Z = $('zones'), stick = $('zStick'), padEl = $('pad'), legsEl = $('padLegs'), armsEl = $('padArms'), ringEl = $('padRing'), subEl = $('padSub');
   const ptrs = new Map(); let steerId = null, rideId = null;
-  const TAP_MS = 200, ARM_S = 0.15, HOP_IN = 34, HOP_OUT = 20, BRK_IN = 34, BRK_OUT = 22, DZ = 6, EDGE = 20, COAST_MS = 1500;
+  const TAP_MS = 200, ARM_S = 0.15, HOP_IN = 34, HOP_OUT = 20, BRK_IN = 34, BRK_OUT = 22, EDGE = 20, COAST_MS = 1500;
   let airEpoch = 0, wasGround = true, airClock = 0, latched = false, coastT0 = -1, jumpOut = false, flickUntil = 0;
   const now = () => performance.now();
   const stickR = () => Math.max(48, Math.min(64, 0.144 * innerHeight)); /* 56 px at 390 px tall (14.4 dvh); full lock at the ring edge */
   const stickRs = () => Math.min(stickR() / sensCfg()[0], 0.3 * innerHeight); /* the sensitivity throw, capped so the ring fits short screens */
-  const sizeRing = () => { if (sensKey() === 'orig') stick.style.removeProperty('--sr0'); else stick.style.setProperty('--sr0', stickRs().toFixed(1) + 'px'); };
+  const sizeRing = () => { if (sensCfg() === SENS.orig) stick.style.removeProperty('--sr0'); else stick.style.setProperty('--sr0', stickRs().toFixed(1) + 'px'); };
   const steerSide = (x) => UIO.hand === 'left' ? x >= innerWidth / 2 : x < innerWidth / 2;
   const inAir = () => S.running && !S.grounded && !S.crashed;
   const armed = () => !wasGround && airClock >= ARM_S;
@@ -58359,14 +58494,28 @@ const pad = (() => {
   const place = (el, x, y) => { el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.display = 'block'; };
   const knob = (el, dx, dy) => { el.firstElementChild.style.transform = `translate(${dx}px, ${dy}px)`; };
   const out = { held: false, hard: false, hop: false };
-  const recompute = () => {
+  let sOut = 0;
+  /* release cap: pushing out (or holding) passes at once; a drop toward or through zero falls at most rate * dt, so a
+     pointer event (dt 0) never lets it fall and the per-frame tick does; from zero the new side is free again */
+  const relax = (tgt, dt) => {
+    const rate = sensCfg()[5]; if (!rate) return (sOut = tgt);
+    const o = sOut, d = rate * (dt || 0);
+    if (o * tgt >= 0 && Math.abs(tgt) >= Math.abs(o)) sOut = tgt;
+    else if (Math.abs(o) <= d) sOut = tgt;
+    else sOut = o * tgt > 0 ? Math.sign(o) * Math.max(Math.abs(tgt), Math.abs(o) - d) : o - Math.sign(o) * d;
+    return sOut;
+  };
+  const recompute = (dt) => {
     syncAir();
     const T = touchState(), air = !wasGround, arm = armed(), t = now();
     let steer = 0, held = false, hard = false, jump = false, legs = false, arms = false;
     for (const P of ptrs.values()) {
       if (P.role === 'steer') {
-        const R = stickRs(), E = sensCfg()[1]; let dx = P.x - P.ox;
-        if (Math.abs(dx) > R + 10) { P.ox = P.x - Math.sign(dx) * (R + 10); dx = P.x - P.ox; P.moved = true; } /* the anchor follows the thumb: reversals are instant */
+        const c = sensCfg(), R = stickRs(), E = c[1], DZ = c[2], lim = R + c[4]; let dx = P.x - P.ox;
+        if (Math.abs(dx) > lim) { /* the anchor follows the thumb: reversals stay short; a part share keeps more steer on a pull-back */
+          if (c[3] === 1) P.ox = P.x - Math.sign(dx) * lim; else P.ox += (dx - Math.sign(dx) * lim) * c[3];
+          dx = P.x - P.ox; P.moved = true;
+        }
         const n = Math.max(0, Math.min(1, (Math.abs(dx) - DZ) / (R - DZ)));
         steer = Math.sign(dx) * Math.pow(n, E); /* gentle center, full lock at R */
       } else if (P.role === 'right') {
@@ -58387,11 +58536,11 @@ const pad = (() => {
     if (!air && !hard && (UIO.pedal === 'auto' || (UIO.pedal === 'latch' && latched))) held = true;
     if (!air && jumpOut && !jump) T.hop += 1; /* the swipe-up hop popped (thumb lifted or slid back) */
     jumpOut = jump && !air;
-    zt.steer = steer; zt.gas = held && !hard && !air; zt.brk = hard ? 1 : 0; zt.jump = jump && !air; zt.legs = legs; zt.arms = arms;
+    zt.steer = relax(steer, dt); zt.gas = held && !hard && !air; zt.brk = hard ? 1 : 0; zt.jump = jump && !air; zt.legs = legs; zt.arms = arms;
     T.held = held && !hard; T.hard = hard;
     out.held = held; out.hard = hard; out.hop = jump && !air;
   };
-  const clear = () => { ptrs.clear(); steerId = rideId = null; stick.style.display = 'none'; flickUntil = 0; jumpOut = false; recompute(); visuals(true); };
+  const clear = () => { sOut = 0; ptrs.clear(); steerId = rideId = null; stick.style.display = 'none'; flickUntil = 0; jumpOut = false; recompute(); visuals(true); };
   Z.addEventListener('pointerdown', e => {
     e.preventDefault(); try { Z.setPointerCapture(e.pointerId); } catch (err) { }
     if (e.clientX < EDGE || e.clientX > innerWidth - EDGE) return; /* back / forward swipe strips: never a control */
@@ -58466,7 +58615,7 @@ const pad = (() => {
     const T = touchState(); T.active = zonesOn && padUsed;
     if (!zonesOn) { if (ptrs.size) clear(); return; }
     if (S.running && !S.paused && !wasGround) airClock += dt;
-    recompute(); visuals();
+    recompute(dt); visuals();
   };
   const hideHints = () => coach.done(), showHints = () => coach.reset();
   return { clear, tick, visuals, hideHints, showHints, get used() { return padUsed; }, get armed() { return armed(); } };
@@ -59387,7 +59536,7 @@ function setScreen(name) {
   if (name === 'title') { refreshTitle(); syncContinue(); } /* 'Continue from camp N' follows the saved slot */
   gpMenu.onScreen(); /* the gamepad focus ring lands on the remembered / primary item */
 }
-function startRiding() { sfx.init(); setScreen(null); if (S.finished) resetRun(); S.running = true; S.paused = false; }
+function startRiding() { sfx.init(); setScreen(null); if (S.finished) resetRun(); S.running = true; S.paused = false; steerToast(); }
 /* a tiny 'no immediate repeat' memory. The last 3 theme ids live in localStorage holdon.themes (guarded: private mode / no storage
    just means no memory). rollSeed() re-rolls a RANDOM seed (up to 24 tries) while its theme matches the previous mountain's, so a fresh launch
    or 'new mountain' never looks like the one before it. A #MTN-code in the URL is never re-rolled. */
@@ -59568,14 +59717,14 @@ const SETTERS = {
   hand: (v) => { UIO.hand = v; saveUIO(); applyUIO(); pad.clear(); },
   pedal: (v) => { UIO.pedal = v; saveUIO(); pad.clear(); },
   size: (v) => { UIO.size = +v; saveUIO(); applyUIO(); pad.clear(); },
-  sens: (v) => { if (Object.prototype.hasOwnProperty.call(SENS, v)) { UIO.sens = v; saveUIO(); } pad.clear(); },
+  sens: (v) => { if (Object.prototype.hasOwnProperty.call(SENS, v)) { UIO.sens = v; UIO.sensV = 2; steerTest = ''; saveUIO(); } pad.clear(); },
   quality: (v) => setQualityMode(v),
   uiz: (v) => { const k = parseFloat(v); if (Number.isFinite(k) && k >= 0.5 && k <= 3) UIO.uiz = k; else delete UIO.uiz; saveUIO(); applyUIO(); },
 };
 $('bFps').addEventListener('click', () => { Q.showFps = !Q.showFps; try { localStorage.setItem('holdon.fps', Q.showFps ? '1' : '0'); } catch (e) { } syncSettings(); });
 $('setScr').addEventListener('click', e => { const b = e.target.closest('.seg button'); if (!b) return; const k = b.parentElement.dataset.set; if (SETTERS[k]) { SETTERS[k](b.dataset.v); syncSettings(); } });
 function syncSettings() {
-  const vals = { steer: steerScreen ? 'screen' : 'bike', cam: String(camPreset), mode: S.mode, layout: zonesOn ? 'zones' : 'buttons', hand: UIO.hand, pedal: UIO.pedal, size: String(UIO.size), sens: sensKey(), quality: Q.mode, uiz: uizK() ? String(uizK()) : 'auto' };
+  const vals = { steer: steerScreen ? 'screen' : 'bike', cam: String(camPreset), mode: S.mode, layout: zonesOn ? 'zones' : 'buttons', hand: UIO.hand, pedal: UIO.pedal, size: String(UIO.size), sens: sensShown(), quality: Q.mode, uiz: uizK() ? String(uizK()) : 'auto' };
   $('bFps').setAttribute('aria-checked', String(!!Q.showFps)); $('qNow').textContent = Q.mode === 'auto' ? 'auto · ' + Q_LEVELS[Q.level].name.toLowerCase() : Q_LEVELS[Q.level].name.toLowerCase();
   for (const g of document.querySelectorAll('#setScr .seg')) for (const b of g.children) b.setAttribute('aria-pressed', String(b.dataset.v === vals[g.dataset.set]));
   const snd = !sfx.isMuted(); $('bMute').setAttribute('aria-checked', String(snd)); $('mute').setAttribute('aria-checked', String(snd));
@@ -59637,6 +59786,21 @@ function uiTick(dt) {
   prevG = S.grounded; prevCrash = S.crashed; prevBerm = !!S.onBerm;
   pad.tick(dt); coach.tick(dt);
 }
+/* ---- active input device. The on-screen pause / back buttons only matter for touch and mouse: once a gamepad stick or button, or any key, is the
+   latest input, body.devKb hides them; a touch, a click or a real mouse move brings them back at once. Esc, B and Start keep working either way.
+   A resting mouse that jitters a pixel or two does not count (24 px of travel inside 0.3 s does). ---- */
+const inDev = (() => {
+  let dev = 'ptr', acc = 0, accT = 0;
+  const set = (d) => { if (d === dev) return; dev = d; document.body.classList.toggle('devKb', d !== 'ptr'); };
+  addEventListener('pointerdown', () => { acc = 0; set('ptr'); }, true);
+  addEventListener('pointermove', (e) => { if (e.pointerType !== 'mouse') { set('ptr'); return; } const n = performance.now(); if (n - accT > 300) acc = 0; accT = n; acc += Math.abs(e.movementX || 0) + Math.abs(e.movementY || 0); if (acc > 24) { acc = 0; set('ptr'); } }, true);
+  addEventListener('keydown', (e) => { if (e.key === 'Shift' || e.key === 'Control' || e.key === 'Alt' || e.key === 'Meta') return; acc = 0; set('key'); }, true);
+  const poll = () => { const P = getPads(); for (const g of P) { if (!g || g.connected === false) continue; let on = false;
+    for (const b of g.buttons) if (b && (b.pressed || b.value > 0.5)) { on = true; break; }
+    if (!on) for (let k = 0; k < g.axes.length && k < 4; k++) if (Math.abs(g.axes[k]) > 0.35) { on = true; break; }
+    if (on) { set('pad'); return; } } };
+  return { poll, get dev() { return dev; } };
+})();
 /* ---- gamepad + arrow-key menu navigation. One focus ring (.gpf) walks every screen (title, code entry, settings, pause, results):
    d-pad / left stick move it (up / down = next / previous item, left / right = the item beside it in a row, or adjust a segmented control / slider),
    A confirms (button, switch, code box = focus it for typing), B goes back (settings -> where it came from, code row -> close, pause -> resume,
@@ -59737,6 +59901,22 @@ const SEAT_KEYS = ['pel', 'ch', 'hd', 'eL', 'hL', 'eR', 'hR', 'kL', 'fL', 'kR', 
 const gearQ = new THREE.Quaternion(); /* the rider's body yaw in camp mode (the gloves / shoes / helmet follow it instead of the bike) */
 const pokeStick = { k: 0, hold: false, q: new THREE.Quaternion() }; /* hold = the stoke game is on (the stick stays in the hand) */ /* the camp poker - k = S.camp.pokeK (0..1) mirrored for the rider rig, q = the stick's yaw / pitch from the right hand toward the fire (+x = along the stick) */
 const campLook = new THREE.Vector3(), _cw = new THREE.Vector3(), _cw2 = new THREE.Vector3(), _cw3 = new THREE.Vector3(), _gl = new THREE.Vector3(); /* _gl = the game pose's look target */
+/* ---- gentle camera drift for the mini games (the one place for it). A game opts in through GAME_FX in CampMini (cam: 'drift'). Two slow sines (14.3 s and 18.7 s)
+   carry the lens about 0.045 units sideways and 0.03 up, easing in over ~2 s, and a hit or success adds a small settle push-in (a 1.6 s hump toward the subject).
+   The camp lens applies it in campTick (pose.drift = the game's amplitude scale); a game with its own scene (skip) ticks it and reads x / y / push itself, and
+   its 2D overlay uses the same numbers, so the overlay stays on the pixels. Reduced motion: everything stays 0. Time comes from the frame dt, no random draws. ---- */
+const CAM_DRIFT = (() => {
+  const A = 0.045, PX = 14.3, PY = 18.7, KT = 1.6, TAU2 = Math.PI * 2;
+  const d = { t: 0, k: 0, x: 0, y: 0, push: 0, kT: KT, kA: 0 };
+  const reset = () => { d.t = 0; d.k = 0; d.x = 0; d.y = 0; d.push = 0; d.kT = KT; d.kA = 0; };
+  const tick = (dt, on, scale) => { if (reduceMotion.matches) { reset(); return; }
+    d.k += ((on ? Math.max(0, +scale || 0) : 0) - d.k) * (1 - Math.exp(-dt * 1.2)); d.t += dt; if (d.kT < KT) d.kT += dt;
+    d.x = A * d.k * Math.sin(TAU2 * d.t / PX + 0.6); d.y = A * 0.65 * d.k * Math.sin(TAU2 * d.t / PY + 2.1);
+    d.push = d.kT < KT ? 0.03 * d.kA * Math.sin(Math.PI * d.kT / KT) : 0; };
+  const kick = (a) => { if (reduceMotion.matches || !(a > 0)) return; d.kT = 0; d.kA = Math.min(1, a); };
+  return { reset, tick, kick, get x() { return d.x; }, get y() { return d.y; }, get push() { return d.push; } };
+})();
+const _dfw = new THREE.Vector3(), _drt = new THREE.Vector3(), _dup = new THREE.Vector3();
 const DUSK = { fog: new THREE.Color('#5c4f6c'), sky: new THREE.Color('#7a6488'), sun: new THREE.Color('#ffb47a'), sunI: 1.9, hemiS: new THREE.Color('#9a88b8'), hemiG: new THREE.Color('#6a5040'), hemiI: 1.6, expo: 1.15 }; /* a lifted dusk (the camp frame's mean L* ~45), still warm; colors only, no new lights */
 const DAY = { fog: new THREE.Color(), sky: new THREE.Color(), sun: new THREE.Color(), sunI: 2.4, hemiS: new THREE.Color(), hemiG: new THREE.Color(), hemiI: 1.25, expo: 1.08 };
 const campFrame = (cp) => { const cy = Math.cos(cp.yaw || 0), sy = Math.sin(cp.yaw || 0); return (lx, ly, lz, out) => out.set(cp.x + (lx * cy + lz * sy) * RIDER_SCALE, cp.y + ly * RIDER_SCALE, cp.z + (-lx * sy + lz * cy) * RIDER_SCALE); }; /* camp units -> world */
@@ -59774,26 +59954,26 @@ const campHold = (() => { const el = $('bCamp'), ring = $('campRing'); let t = 0
    turned to face the camera and scaled up so the words read on a phone; leaveCamp puts it back exactly (position, yaw, scale; the collision
    footprint on cp.solids is world-space and never touched, so the ride is unchanged). Left-hand mode mirrors the whole canvas with CSS, so the paper
    is mirrored in 3D meanwhile (panel.scale.x = -1) and reads the right way round. */
-const CAMPBOARD = { x: 2.4, z: 4.3, y: 0, s: 1.0, word: 9.6, grow: 1.6 }; /* the kiosk stands at the BACK of the camp by the fence (camp units; it exists only in camp mode), turned to the lens; s = its base scale, grown by campFit up to grow x s until the flag words reach `word` CSS px on a small screen */
-const CAMP_STUMP = { dx: 0.1, dz: 0.37, r: 0.16, h: 0.75 }; /* the standing log the parked bike leans on (offset from CAMP_BIKE in camp units, +dz = the bike's lean side, away from the lens), radius, height */
-let campProps = null; /* the ONE camp-mode prop set (the kiosk with its sheets and the tower viewer, the bike's stump), built once and moved into whichever camp is entered; see campBoardPose */
+const CAMPBOARD = { x: 2.4, z: 4.3, y: 0, s: 1.0, word: 9.6, grow: 1.6, turn: 0.5 }; /* the kiosk stands at the BACK of the camp by the fence (camp units; it exists only in camp mode), turned to the lens; s = its base scale, grown by campFit up to grow x s until the flag words reach `word` CSS px on a small screen */
+const CAMP_STUMP = { dx: 0.1, dz: 0.68, r: 0.42, h: 0.44, yaw: 0.4 }; /* the tree stump the parked bike leans on (stumpGeo; offset from CAMP_BIKE in camp units, +dz = the bike's lean side, away from the lens; its rim meets the bike's near pedal), radius, height, turn */
+let campProps = null; /* the ONE camp-mode prop set (the live kiosk with its sheets and the tower viewer; a stump for the rare camp that has none in its merged mesh), built once and moved into whichever camp is entered; see campBoardPose */
 function campPropsBuild() {
   const grp = new THREE.Group(), board = makeBulletinBoard(); grp.add(board);
-  const parts = [], MM = new THREE.Matrix4(); parts.push({ geo: new THREE.CylinderGeometry(CAMP_STUMP.r, CAMP_STUMP.r * 1.08, CAMP_STUMP.h, 9), col: '#5e4531', m: MM.clone().makeTranslation(0, CAMP_STUMP.h / 2, 0) });
-  parts.push({ geo: new THREE.CylinderGeometry(CAMP_STUMP.r * 0.94, CAMP_STUMP.r * 0.94, 0.02, 9), col: '#c9a883', m: MM.clone().makeTranslation(0, CAMP_STUMP.h + 0.005, 0) }); /* the pale cut end */
-  parts.push({ geo: new THREE.CylinderGeometry(CAMP_STUMP.r * 0.6, CAMP_STUMP.r * 0.6, 0.006, 9), col: '#b08f6e', m: MM.clone().makeTranslation(0, CAMP_STUMP.h + 0.018, 0) }); /* a growth ring */
-  parts.push({ geo: new THREE.BoxGeometry(0.05, 0.3, 0.04), col: '#4d3220', m: MM.clone().makeTranslation(CAMP_STUMP.r - 0.01, CAMP_STUMP.h * 0.45, 0.03) }); /* a strip of loose bark */
-  const stump = new THREE.Mesh(mergeParts(parts), campMat); grp.add(stump);
+  const stump = new THREE.Mesh(mergeParts([{ geo: stumpGeo(), col: null, m: new THREE.Matrix4() }]), campMat); grp.add(stump);
   return { grp, board, stump }; }
-function campBoardPose(cp, on) { /* on = bring the shared camp props into this camp's group (the kiosk at CAMPBOARD facing the lens, the stump by the parked bike, both on the real ground); off = take them out again. Nothing of this exists on the ride, so the course hash and the solids are untouched. */
+function campBoardPose(cp, on) { /* on = bring the shared camp props into this camp's group (the live kiosk where the camp's own board stands, cp.boardL, facing the lens; the camp's
+     board in the merged mesh is cut off by the draw range meanwhile, so the two never overlap) and, only where the camp has no stump of its own, the shared stump by the parked
+     bike; off = take them out again and show the camp's board. The course hash and the solids are untouched. */
   if (!cp || !cp.mesh) return;
   const fx = campFx.find(f => f.grp === cp.mesh);
+  if (cp.body && cp.boardV) cp.body.geometry.setDrawRange(0, on ? cp.boardV : Infinity);
   if (!on) { if (campProps && campProps.grp.parent === cp.mesh) cp.mesh.remove(campProps.grp); if (fx && fx.board) fx.board = null; cp.board = null; return; }
   if (!campProps) campProps = campPropsBuild(); const P = campProps; if (P.grp.parent !== cp.mesh) { if (P.grp.parent) P.grp.parent.remove(P.grp); cp.mesh.add(P.grp); }
   cp.board = { grp: P.board, props: P.grp }; if (fx) fx.board = P.board; const G = P.board, panel = G.userData.panel, W = campFrame(cp);
-  W(CAMPBOARD.x, 0, CAMPBOARD.z, _cw); { const g = S.surf(_cw.x, _cw.z), gy = g ? (g.h - cp.y) / RIDER_SCALE : 0; G.position.set(CAMPBOARD.x, gy + (CAMPBOARD.y || 0), CAMPBOARD.z); }
-  G.rotation.y = Math.atan2(-(CAMPCAM.pos[2] - CAMPBOARD.z), CAMPCAM.pos[0] - CAMPBOARD.x); G.scale.setScalar(CAMPBOARD.s); if (panel) panel.scale.x = S.camp && S.camp.mirror ? -1 : 1;
-  { const sx = CAMP_BIKE[0] + CAMP_STUMP.dx, sz = CAMP_BIKE[1] + CAMP_STUMP.dz; W(sx, 0, sz, _cw); const g = S.surf(_cw.x, _cw.z), gy = g ? (g.h - cp.y) / RIDER_SCALE : 0; P.stump.position.set(sx, gy, sz); P.stump.rotation.y = 0.4; }
+  const bx = cp.boardL ? cp.boardL[0] : CAMPBOARD.x, bz = cp.boardL ? cp.boardL[1] : CAMPBOARD.z;
+  W(bx, 0, bz, _cw); { const g = S.surf(_cw.x, _cw.z), gy = g ? (g.h - cp.y) / RIDER_SCALE : 0; G.position.set(bx, gy + (CAMPBOARD.y || 0), bz); }
+  G.rotation.y = Math.atan2(-(CAMPCAM.pos[2] - bz), CAMPCAM.pos[0] - bx) + CAMPBOARD.turn; G.scale.setScalar(CAMPBOARD.s); if (panel) panel.scale.x = S.camp && S.camp.mirror ? -1 : 1;
+  P.stump.visible = !cp.stumpL; if (!cp.stumpL) { const sx = CAMP_BIKE[0] + CAMP_STUMP.dx, sz = CAMP_BIKE[1] + CAMP_STUMP.dz; W(sx, 0, sz, _cw); const g = S.surf(_cw.x, _cw.z), gy = g ? (g.h - cp.y) / RIDER_SCALE : 0; P.stump.position.set(sx, gy - 0.01, sz); P.stump.rotation.y = CAMP_STUMP.yaw; }
   P.grp.updateMatrixWorld(true); }
 function enterCamp(cp) {
   if (S.camp || !cp) return; campFound(cp); if (cp.idx >= (S.cp.idx ?? 0)) S.cp = cp; awardCampXp(cp);
@@ -59815,7 +59995,140 @@ function leaveCamp() {
 }
 function campDusk(k) { /* k 0 = the day look, 1 = dusk: colors only, no new lights, no new draw calls */
   scene.fog.color.copy(DAY.fog).lerp(DUSK.fog, k); if (skyDome) skyDome.material.color.copy(DAY.sky).lerp(DUSK.sky, k); sun.color.copy(DAY.sun).lerp(DUSK.sun, k); sun.intensity = DAY.sunI + (DUSK.sunI - DAY.sunI) * k;
-  hemi.color.copy(DAY.hemiS).lerp(DUSK.hemiS, k); hemi.groundColor.copy(DAY.hemiG).lerp(DUSK.hemiG, k); hemi.intensity = DAY.hemiI + (DUSK.hemiI - DAY.hemiI) * k; renderer.toneMappingExposure = DAY.expo + (DUSK.expo - DAY.expo) * k; }
+  hemi.color.copy(DAY.hemiS).lerp(DUSK.hemiS, k); hemi.groundColor.copy(DAY.hemiG).lerp(DUSK.hemiG, k); hemi.intensity = DAY.hemiI + (DUSK.hemiI - DAY.hemiI) * k; renderer.toneMappingExposure = DAY.expo + (DUSK.expo - DAY.expo) * k; campSky.sync(k); }
+/* ---- the camp sky. While the camp lens is up, ONE vertex-colored mesh stands in for the ride's dome, sun disc and clouds (those three are
+   hidden), so the camp draws fewer calls than before. The camp lens looks ~17 deg down over the valley: the sky it sees is a band from ~2 to
+   ~12 deg BELOW level (above the fence and the trees), so the camp's horizon glow, far ridges, sun, clouds and birds are laid out in that band
+   and the sky goes on above it for the look-around and the game lenses. Everything is opaque: the sun's halo, the high wisps and the stars
+   melt into the sky because their edge vertices carry the sky's own color at that spot (nothing to sort, no blending). Each vertex has a day
+   color and a dusk color; the shader mixes them with campDusk's k. Clouds (three depth layers, the near one fastest) and two small flocks of
+   birds turn slowly about the vertical axis in the vertex shader; reduced motion freezes them. Built when the camp lens comes up, disposed
+   when it goes. The layout comes from its own stream (a per-session random base + the mountain + the camp index; no course or camp layout
+   stream is touched), so a camp keeps the same sky for the session and another camp gets another one, including its dusk mood. ---- */
+const CAMP_SKY = { R: 600, sunAz: -5, sunEl: -7.0, sunR: 1.45, haloR: 10, ridgeBase: -26 }; /* degrees; az + = left of the lens' heading, el = above level */
+const campSky = (() => {
+  const base = (Math.random() * 4294967296) >>> 0, D2R = Math.PI / 180;
+  const U = { uK: { value: 0 }, uT: { value: 0 }, uStar: { value: 1 } };
+  const mat = new THREE.MeshBasicMaterial({ vertexColors: true, fog: false, side: THREE.DoubleSide });
+  mat.onBeforeCompile = (sh) => { Object.assign(sh.uniforms, U);
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute vec3 colorB; attribute vec3 aMove; uniform float uK; uniform float uT; uniform float uStar;')
+      .replace('#include <color_vertex>', 'vColor = mix(color, colorB, uK);')
+      .replace('#include <begin_vertex>', `vec3 transformed = vec3(position);
+        if (aMove.z > 1.5 && aMove.z < 2.5) transformed.y += sin(uT * 6.5 + aMove.y) * 1.3;
+        float sa = sin(aMove.x * uT), ca = cos(aMove.x * uT); transformed.xz = vec2(transformed.x * ca + transformed.z * sa, transformed.z * ca - transformed.x * sa);
+        if (aMove.z > 2.5 && uStar < 0.5) transformed = vec3(0.0);`); }; /* aMove: x = the drift (rad/s), y = a bird's wing phase, z = the kind (0 still, 1 drifts, 2 wing tip, 3 star) */
+  mat.customProgramCacheKey = () => 'campSky';
+  const col = (h) => new THREE.Color(h), stops = (a) => a.map(([e, h]) => [e, col(h)]);
+  /* the gradients, elevation (deg) -> color. 'A' = away from the sun, 'S' = toward it; the haze below the ridges is the scene's fog color */
+  const DAY_A = stops([[-14, '#e2e8e6'], [-11.5, '#e9efee'], [-9, '#c9e0ef'], [-6, '#a8cde9'], [-3, '#8fbfe5'], [1, '#7cb2df'], [10, '#66a2d6'], [30, '#5591c9'], [90, '#4882be']]);
+  const DAY_S = stops([[-14, '#f2e2c8'], [-11.5, '#fcebd0'], [-9, '#efe6da'], [-6, '#c3daeb'], [-3, '#9cc5e6'], [1, '#82b5df'], [10, '#66a2d6'], [30, '#5591c9'], [90, '#4882be']]);
+  const DUSK_A = stops([[-14, '#9a6d8e'], [-11.5, '#f0928e'], [-9, '#e88a9c'], [-6, '#c27fac'], [-3, '#9776b0'], [0, '#7a6cab'], [6, '#5f5e9e'], [16, '#46488a'], [36, '#333670'], [90, '#24264f']]);
+  const DUSK_S = stops([[-14, '#c47a7e'], [-11.5, '#ffb066'], [-9, '#ffa070'], [-6, '#f28a8e'], [-3, '#b97fae'], [0, '#8a71ad'], [6, '#6662a0'], [16, '#48498b'], [36, '#333670'], [90, '#24264f']]);
+  const MOODS = [0, -0.028, 0.022]; /* the dusk's hue: peach, rose, amber (a camp rolls one) */
+  let mesh = null, cpOn = null, on = false, ease = 0;
+  const _a = new THREE.Color(), _b = new THREE.Color(), fogD = new THREE.Color(), fogN = new THREE.Color(), tint = new THREE.Color(), warmS = [];
+  const ramp = (G, e, out) => { if (e <= G[0][0]) return out.copy(G[0][1]); for (let i = 1; i < G.length; i++) if (e <= G[i][0]) return out.copy(G[i - 1][1]).lerp(G[i][1], (e - G[i - 1][0]) / (G[i][0] - G[i - 1][0])); return out.copy(G[G.length - 1][1]); };
+  const wrapD = (a) => { a = (a + 180) % 360; if (a < 0) a += 360; return a - 180; };
+  const sunW = (e, az) => Math.exp(-Math.pow(wrapD(az - CAMP_SKY.sunAz) / 50, 2)) * (0.55 + 0.45 * Math.exp(-Math.pow(Math.max(0, e - CAMP_SKY.sunEl) / 14, 2)));
+  let mood = 0;
+  /* the sky color at (el, az): dusk = 1 for the dusk set, 0 for the day set; the band under the ridges fades into the fog so far fogged ground melts in */
+  function skyAt(e, az, dusk, out) { const w = sunW(e, az);
+    if (dusk) { ramp(DUSK_A, e, out); ramp(DUSK_S, e, _a); if (mood) _a.offsetHSL(mood, 0, 0); out.lerp(_a, w); }
+    else { ramp(DAY_A, e, out); ramp(DAY_S, e, _a); out.lerp(_a, w * 0.8); out.multiply(tint); }
+    if (e < -14) out.lerp(dusk ? fogD : fogN, Math.min(1, (-14 - e) / 8));
+    return out; }
+  const dir = (e, az, r, v) => { const ce = Math.cos(e * D2R); return v.set(r * ce * Math.sin(az * D2R), r * Math.sin(e * D2R), r * ce * Math.cos(az * D2R)); };
+  function build(cp) {
+    const rnd = mulberry32((base + (S.course ? S.course.seed : 0) * 7 + cp.idx * 7919) | 0); mood = MOODS[Math.floor(rnd() * 3)];
+    const P = [], CA = [], CB = [], M = [], v = new THREE.Vector3(), cA = new THREE.Color(), cB = new THREE.Color();
+    const put = (p, a, b, m) => { P.push(p.x, p.y, p.z); CA.push(a.r, a.g, a.b); CB.push(b.r, b.g, b.b); M.push(m[0], m[1], m[2]); };
+    const STILL = [0, 0, 0];
+    const quad = (r, e0, a0, e1, a1, fn) => { const q = [[e0, a0], [e0, a1], [e1, a1], [e0, a0], [e1, a1], [e1, a0]]; for (const [e, a] of q) { fn(e, a, cA, cB); put(dir(e, a, r, v), cA, cB, STILL); } };
+    const skyFn = (e, a, x, y) => { skyAt(e, a, 0, x); skyAt(e, a, 1, y); };
+    /* the dome: rings packed where the camp lens looks (the glow band), 48 slices */
+    const ER = [-90, -40, -26, -18, -14, -12, -10.5, -9, -7.5, -6, -4.5, -3, -1.5, 0, 2, 5, 9, 14, 22, 32, 46, 64, 90], NA = 48;
+    for (let i = 0; i < ER.length - 1; i++) for (let j = 0; j < NA; j++) quad(CAMP_SKY.R, ER[i], j * 360 / NA - 180, ER[i + 1], (j + 1) * 360 / NA - 180, skyFn);
+    /* far ridges: two faceted silhouettes all the way round, the far one paler (air), the near one darker; their feet are the fog color */
+    for (const L of [{ r: 582, lo: -12.2, hi: -9.0, n: 96, aer: 0.62, dN: '#a3aebb', dD: '#7d6890' }, { r: 556, lo: -14.0, hi: -10.4, n: 72, aer: 0.34, dN: '#8e9bab', dD: '#5e4d75' }]) {
+      const ph = [rnd() * 6.3, rnd() * 6.3, rnd() * 6.3], H = [], tn = col(L.dN), td = col(L.dD);
+      for (let j = 0; j <= L.n; j++) { const a = j / L.n * 6.2832; const s = 0.5 + 0.22 * Math.sin(a * 2 + ph[0]) + 0.17 * Math.sin(a * 5 + ph[1]) + 0.11 * Math.sin(a * 11 + ph[2]) + (j % L.n ? (rnd() - 0.5) * 0.18 : 0); H.push(L.lo + (L.hi - L.lo) * Math.max(0, Math.min(1, s))); }
+      H[L.n] = H[0];
+      for (let j = 0; j < L.n; j++) { const a0 = j * 360 / L.n - 180, a1 = (j + 1) * 360 / L.n - 180, sl = H[j + 1] - H[j], am = (a0 + a1) / 2;
+        const lit = 1 + Math.max(-1, Math.min(1, sl * 1.6 * Math.sign(wrapD(CAMP_SKY.sunAz - am) || 1))) * 0.07; /* the slope facing the sun a shade lighter: low-poly facets */
+        const top = (e, a, x, y) => { skyAt(e, a, 0, x).lerp(tn, 1 - L.aer).multiplyScalar(lit); skyAt(e, a, 1, y).lerp(td, 1 - L.aer).lerp(_b.setRGB(1, 0.62, 0.5), 0.22 * sunW(e, a)).multiplyScalar(lit); };
+        const foot = (e, a, x, y) => { x.copy(fogN); y.copy(fogD); };
+        const T0 = [], T1 = [], F0 = [], F1 = [];
+        top(H[j], a0, cA, cB); T0.push(dir(H[j], a0, L.r, new THREE.Vector3()), cA.clone(), cB.clone()); top(H[j + 1], a1, cA, cB); T1.push(dir(H[j + 1], a1, L.r, new THREE.Vector3()), cA.clone(), cB.clone());
+        foot(0, 0, cA, cB); F0.push(dir(CAMP_SKY.ridgeBase, a0, L.r, new THREE.Vector3()), cA.clone(), cB.clone()); F1.push(dir(CAMP_SKY.ridgeBase, a1, L.r, new THREE.Vector3()), cA.clone(), cB.clone());
+        for (const q of [T0, T1, F1, T0, F1, F0]) put(q[0], q[1], q[2], STILL); } }
+    /* the sun (low, sitting on the glow) and its halo: rings fading into the sky's own color */
+    { const sE = CAMP_SKY.sunEl, sA = CAMP_SKY.sunAz, ring = (rho, f) => { const out = []; for (let k = 0; k <= 28; k++) { const t = k / 28 * 6.2832, e = sE + rho * Math.sin(t), a = sA + rho * Math.cos(t) / Math.cos(e * D2R); out.push([e, a]); } return out; };
+      const RH = [CAMP_SKY.sunR * 1.02, 2.6, 4.2, 6.4, CAMP_SKY.haloR], gD = col('#fff1d6'), gK = col('#ffd29a');
+      const hal = (e, a, rho, x, y) => { const w = Math.pow(1 - Math.min(1, (rho - CAMP_SKY.sunR) / (CAMP_SKY.haloR - CAMP_SKY.sunR)), 2.2); skyAt(e, a, 0, x).lerp(gD, 0.5 * w); skyAt(e, a, 1, y); _a.copy(gK); if (mood) _a.offsetHSL(mood * 0.6, 0, 0); y.lerp(_a, 0.9 * w); };
+      for (let i = 0; i < RH.length - 1; i++) { const r0 = ring(RH[i]), r1 = ring(RH[i + 1]);
+        for (let k = 0; k < 28; k++) for (const [p, rho] of [[r0[k], RH[i]], [r0[k + 1], RH[i]], [r1[k + 1], RH[i + 1]], [r0[k], RH[i]], [r1[k + 1], RH[i + 1]], [r1[k], RH[i + 1]]]) { hal(p[0], p[1], rho, cA, cB); put(dir(p[0], p[1], 591, v), cA, cB, STILL); } }
+      const c0 = col('#fff8e8'), c1 = col('#fff0cf'), d0 = col('#fff0c8'), d1 = col('#ffd08a'), rs = ring(CAMP_SKY.sunR);
+      for (let k = 0; k < 28; k++) { put(dir(sE, sA, 588, v), c0, d0, STILL); put(dir(rs[k][0], rs[k][1], 588, v), c1, d1, STILL); put(dir(rs[k + 1][0], rs[k + 1][1], 588, v), c1, d1, STILL); } }
+    /* high wisps: thin ribbons whose edges are the sky itself and whose middle line is lighter (they stay put; high air barely moves) */
+    for (let w = 0; w < 7; w++) {
+      let a0 = rnd() * 360 - 180; if (Math.abs(wrapD(a0 - CAMP_SKY.sunAz)) < 22) a0 += 50;
+      const e0 = -4.2 + rnd() * 11, len = 18 + rnd() * 20, th = 0.35 + rnd() * 0.55, tilt = (rnd() - 0.5) * 3, N = 12, str = 0.4 + rnd() * 0.25;
+      const pt = (s, off) => { const e = e0 + tilt * s + off, a = a0 + len * s; return [e, a]; };
+      const wc = (s, off, x, y) => { const [e, a] = pt(s, off); skyAt(e, a, 0, x); skyAt(e, a, 1, y); if (off === 0) { const f = str * Math.pow(Math.sin(Math.PI * s), 0.8); x.lerp(_a.setRGB(1, 1, 1), f * 0.75); _b.set(sunW(e, a) > 0.3 ? '#ffc6a2' : '#f5b4c6'); y.lerp(_b, f); } };
+      for (let j = 0; j < N - 1; j++) { const s0 = j / (N - 1), s1 = (j + 1) / (N - 1), t0 = th * Math.pow(Math.sin(Math.PI * s0), 0.7) * (0.8 + 0.4 * Math.sin(s0 * 9 + w)), t1 = th * Math.pow(Math.sin(Math.PI * s1), 0.7) * (0.8 + 0.4 * Math.sin(s1 * 9 + w));
+        for (const [ua, oa, ub, ob] of [[s0, t0, s1, t1], [s0, -0.6 * t0, s1, -0.6 * t1]]) {
+          const tri = [[ua, 0], [ub, 0], [ub, ob], [ua, 0], [ub, ob], [ua, oa]];
+          for (const [s, off] of tri) { wc(s, off, cA, cB); const [e, a] = pt(s, off); put(dir(e, a, 595, v), cA, cB, STILL); } } } }
+    /* stars: away from the glow, brighter higher up; at day they are the sky's color (invisible) */
+    for (let i = 0; i < 110; i++) { const e = -5 + Math.pow(rnd(), 1.6) * 75, a = rnd() * 360 - 180, sw = sunW(e, a); if (sw > 0.3) continue;
+      const b = Math.min(1, Math.max(0, (e + 6) / 18)) * (0.45 + 0.55 * rnd()) * (1 - sw), sz = 0.13 + rnd() * 0.14 + (rnd() < 0.08 ? 0.12 : 0), mv = [0, 0, 3];
+      skyAt(e, a, 0, cA); skyAt(e, a, 1, cB).lerp(_a.setRGB(1, 0.97, 0.9), 0.25 + 0.7 * b);
+      const ce = Math.cos(e * D2R), pts = [[e + sz, a], [e, a + sz / ce], [e - sz, a], [e, a - sz / ce]];
+      for (const k of [0, 1, 2, 0, 2, 3]) { skyAt(pts[k][0], pts[k][1], 0, _b); put(dir(pts[k][0], pts[k][1], 597, v), _b, cB, mv); } }
+    /* clouds: flat-bottomed low-poly puffs; tops cool, bellies catching the low sun (warm at dusk), the far layers fading into the air */
+    { const geo0 = new THREE.IcosahedronGeometry(1, 0), geo1 = new THREE.IcosahedronGeometry(1, 1), n = new THREE.Vector3(), e1 = new THREE.Vector3(), e2 = new THREE.Vector3(), q = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
+      const dTop = col('#ffffff'), dBot = col('#c1cede'), kTopA = col('#6e65a0'), kTopS = col('#a585b5'), kBotA = col('#f7909c'), kBotS = col('#ffa266'), sky0 = new THREE.Color(), sky1 = new THREE.Color();
+      const LAY = [{ r: 560, n: 20, e: [-9.6, -5.2], w: [5, 9], dr: 0.0022, aer: 0.38, g: geo0 }, { r: 470, n: 14, e: [-8.8, -3.6], w: [6, 11], dr: 0.0038, aer: 0.26, g: geo1 },
+        { r: 385, n: 9, e: [-7.4, -2.2], w: [7, 13], dr: 0.0058, aer: 0.06, g: geo1 }, { r: 500, n: 9, e: [3, 18], w: [8, 14], dr: 0.0034, aer: 0.22, g: geo0 }];
+      for (const L of LAY) { const off = rnd() * 360;
+        for (let c = 0; c < L.n; c++) {
+          const az = off + (c + rnd() * 0.75) * 360 / L.n, el = L.e[0] + rnd() * (L.e[1] - L.e[0]), wd = (L.w[0] + rnd() * (L.w[1] - L.w[0])) * D2R * L.r;
+          if (Math.abs(wrapD(az - CAMP_SKY.sunAz)) < 10 && el < CAMP_SKY.sunEl + 6) continue; /* the sun starts clear; the drift brings clouds across it later */
+          const C0 = dir(el, az, L.r, new THREE.Vector3()), ux = Math.cos(az * D2R), uz = -Math.sin(az * D2R), np = 3 + Math.floor(rnd() * 4), baseY = C0.y - wd * 0.06;
+          const sw = sunW(el, az), mv = [L.dr, 0, 1]; skyAt(el, az, 0, sky0); skyAt(el, az, 1, sky1);
+          for (let p = 0; p < np; p++) { const s = np > 1 ? p / (np - 1) - 0.5 : 0, pr = wd * (0.2 + 0.13 * Math.cos(s * Math.PI) + rnd() * 0.07), cx = s * wd * 0.82, cy = pr * (0.15 + rnd() * 0.25) * Math.cos(s * 2.4), cz = (rnd() - 0.5) * pr * 0.6;
+            const pa = L.g.attributes.position;
+            for (let f = 0; f < pa.count; f += 3) {
+              for (let k = 0; k < 3; k++) { const x = pa.getX(f + k) * pr, y = pa.getY(f + k) * pr * 0.6, z = pa.getZ(f + k) * pr * 0.8;
+                q[k].set(C0.x + ux * (cx + x) + Math.sin(az * D2R) * (cz + z), C0.y + cy + y, C0.z + uz * (cx + x) + Math.cos(az * D2R) * (cz + z)); if (q[k].y < baseY) q[k].y = baseY + (q[k].y - baseY) * 0.18; }
+              n.crossVectors(e1.subVectors(q[1], q[0]), e2.subVectors(q[2], q[0])).normalize(); const up = n.y, tt = Math.max(0, Math.min(1, up * 0.6 + 0.5)), jit = 0.97 + ((f * 7 + p * 13) % 7) / 100;
+              cA.copy(dBot).lerp(dTop, tt * tt * (3 - 2 * tt)).multiplyScalar(jit).lerp(sky0, L.aer);
+              _a.copy(kBotA).lerp(kBotS, sw); _b.copy(kTopA).lerp(kTopS, sw * 0.6); if (mood) { _a.offsetHSL(mood, 0, 0); }
+              cB.copy(_a).lerp(_b, Math.max(0, Math.min(1, up * 0.75 + 0.45))).multiplyScalar(jit).lerp(sky1, L.aer);
+              for (let k = 0; k < 3; k++) put(q[k], cA, cB, mv); } } } }
+      geo0.dispose(); geo1.dispose(); }
+    /* two small flocks: thin chevrons, wing tips flapping in the shader, drifting faster than the clouds */
+    for (const F of [{ az: CAMP_SKY.sunAz + 15, el: -5.8, n: 5 }, { az: CAMP_SKY.sunAz + 170, el: -4.5, n: 3 }]) {
+      const r = 330, dN = col('#55606c'), dD = col('#3b2c47'), mvB = [0.011, 0, 1];
+      for (let b = 0; b < F.n; b++) { const a = F.az + (b % 2 ? 1 : -1) * Math.ceil(b / 2) * 1.0 + (rnd() - 0.5) * 0.4, e = F.el - Math.ceil(b / 2) * 0.45 + (rnd() - 0.5) * 0.3, s = 0.36 + rnd() * 0.1, ph = rnd() * 6.3;
+        const B = dir(e, a, r, new THREE.Vector3()), Bb = dir(e - s * 0.28, a, r, new THREE.Vector3()), L0 = dir(e + s * 0.32, a + s, r, new THREE.Vector3()), R0 = dir(e + s * 0.32, a - s, r, new THREE.Vector3()), mvW = [0.011, ph, 2];
+        put(L0, dN, dD, mvW); put(B, dN, dD, mvB); put(Bb, dN, dD, mvB); put(B, dN, dD, mvB); put(R0, dN, dD, mvW); put(Bb, dN, dD, mvB); } }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(CA, 3));
+    g.setAttribute('colorB', new THREE.Float32BufferAttribute(CB, 3)); g.setAttribute('aMove', new THREE.Float32BufferAttribute(M, 3)); g.boundingSphere = new THREE.Sphere(new THREE.Vector3(), CAMP_SKY.R + 10);
+    const m = new THREE.Mesh(g, mat); m.frustumCulled = false; m.renderOrder = -1; return m; }
+  function off() { if (!on && !mesh) return; on = false; cpOn = null; if (mesh) { sky.remove(mesh); mesh.geometry.dispose(); mesh = null; }
+    if (skyDome) skyDome.visible = true; if (sky.children[1]) sky.children[1].visible = true; clouds.visible = true; }
+  /* k = campDusk's blend. Shown only while a camp lens is up (not under the entry fade, where the ride camera still draws) */
+  function sync(k) { const C = S.camp; if (!C || C.hold) { off(); return; } U.uK.value = k;
+    if (on && cpOn === C.cp) return;
+    off(); fogN.copy(DAY.fog); fogD.copy(DUSK.fog); tint.copy(DAY.sky); on = true; cpOn = C.cp; ease = 0; U.uT.value = 0;
+    const p = new THREE.Vector3(), l = new THREE.Vector3(); C.W(CAMPCAM.pos[0], CAMPCAM.pos[1], CAMPCAM.pos[2], p); C.W(CAMPCAM.look[0], CAMPCAM.look[1], CAMPCAM.look[2], l);
+    mesh = build(C.cp); mesh.rotation.y = Math.atan2(l.x - p.x, l.z - p.z); sky.add(mesh);
+    if (skyDome) skyDome.visible = false; for (const c of sky.children) if (c !== mesh) c.visible = false; clouds.visible = false; }
+  /* the drift clock: eases in over ~4 s after the camp comes up; held still with reduced motion. The stars hide while a game lens looks steeply up (the stargazing game draws its own). */
+  function tick(dt) { if (!on) return; const G = S.camp && S.camp.gcam; U.uStar.value = G && G.look.y - G.pos.y > 0.5 * Math.hypot(G.look.x - G.pos.x, G.look.z - G.pos.z) ? 0 : 1; /* only the stargazing lens looks this far up */
+    if (reduceMotion.matches) return; ease = Math.min(1, ease + dt / 4); U.uT.value += dt * ease * ease * (3 - 2 * ease); }
+  return { sync, tick, off, get on() { return on; } }; })();
 const sstep = (x) => { x = Math.max(0, Math.min(1, x)); return x * x * x * (x * (x * 6 - 15) + 10); };
 let _campW = 0, _campH = 0, _puffO;
 /* the camp lens framing. The camera pose is fixed in the camp frame (CAMPCAM.pos / look); the fov and the view offset are solved so the
@@ -59832,14 +60145,17 @@ const CAMP_OTHER = (() => { const seatA = [[-1.4, 0, 1.0], [0.2, 0, 1.0], [-1.4,
     [[-2.6, 0, 0.45], [-1.0, 0, 0.45], [-2.6, 0, 1.85], [-1.0, 0, 1.85], [-1.9, 1.0, 1.4], [-2.3, 1.45, 2.3], [-2.3, 0, 2.6]], seatA, /* 4 stargazer, 5 reader */ /* the sleeper's mat and the stargazer's blanket are fitted to x -2.6: the figure stays in frame, the far end of the mat may tuck under the panel, and the lens zooms in a little more on those two */
     [[-2.7, 0, 0.3], [-1.2, 0, 0.3], [-2.7, 0, 1.3], [-1.2, 0, 1.3], [-2.0, 1.0, 0.75], [-2.6, 1.75, 1.0], [-2.9, 0, 1.0]], seatA, /* 6 planner, 7 tea maker */
     [[-2.4, 0, 2.5], [-1.4, 0, 3.1], [-1.9, 2.0, 2.8], [-2.5, 1.75, 2.05], [-2.8, 0, 1.9], [-2.2, 0, 1.4]]]; })(); /* 8 painter */
-function campFit(C, eye, look, w, h) {
-  const vfb = 2 * Math.atan(Math.tan(CAMPCAM.hfov * Math.PI / 360) / (w / h)) * 180 / Math.PI, fb = { w, h, fov: vfb, dx: Math.round(w * CAMPCAM.shift), dy: 0, tmp: true }; /* the old fixed framing = the fallback (tmp: tried again next frame) */
+function campFree(C, w, h) { /* the rectangle (screen px, mirrored with the canvas in left-hand mode) the camp UI leaves free: beside the panel, below the header plate / points chip, above the tab bar; null while the UI has no layout */
   const rc = (sel) => { const el = document.querySelector(sel); if (!el || el.offsetParent === null) return null; const b = el.getBoundingClientRect(); if (!(b.width > 0)) return null; return C.mirror ? { l: w - b.right, r: w - b.left, t: b.top, b: b.bottom } : { l: b.left, r: b.right, t: b.top, b: b.bottom }; };
-  const pn = rc('#campPn'), tb = rc('#campTabs'), hd = rc('.camphd'), pt = rc('#campPts'); if (!pn || !tb) return fb;
+  const pn = rc('#campPn'), tb = rc('#campTabs'), hd = rc('.camphd'), pt = rc('#campPts'); if (!pn || !tb) return null;
   const G = CAMPCAM.gap, E = CAMPCAM.edge, pl = (pn.l + pn.r) / 2 < w / 2; /* pl: the panel is on the canvas's left (left-hand mode without the mirror) */
   const L = pl ? pn.r + G : E, R = pl ? w - E : pn.l - G, B = tb.t - G;
   let T = E; for (const u of [hd, pt]) if (u && u.r > L && u.l < R) T = Math.max(T, u.b + G); /* the header plate / points chip, where they sit over the free columns */
-  if (R - L < 60 || B - T < 60) return fb;
+  if (R - L < 60 || B - T < 60) return null;
+  return { L, R, T, B }; }
+function campFit(C, eye, look, w, h) {
+  const vfb = 2 * Math.atan(Math.tan(CAMPCAM.hfov * Math.PI / 360) / (w / h)) * 180 / Math.PI, fb = { w, h, fov: vfb, dx: Math.round(w * CAMPCAM.shift), dy: 0, tmp: true }; /* the old fixed framing = the fallback (tmp: tried again next frame) */
+  const FR = campFree(C, w, h); if (!FR) return fb; const { L, R, T, B } = FR; /* the free rectangle the camp UI leaves */
   _cfM.lookAt(eye, look, UP); _cfM.setPosition(eye); _cfM.invert(); let x0, x1, y0, y1, py0, py1, paper = false;
   const add = (v) => { v.applyMatrix4(_cfM); if (v.z > -0.2) return; const tx = v.x / -v.z, ty = v.y / -v.z; x0 = Math.min(x0, tx); x1 = Math.max(x1, tx); y0 = Math.min(y0, ty); y1 = Math.max(y1, ty); if (paper) { py0 = Math.min(py0, ty); py1 = Math.max(py1, ty); } };
   const P = (x, y, z) => { C.W(x, y, z, _cfV); add(_cfV); };
@@ -59862,6 +60178,38 @@ function campFit(C, eye, look, w, h) {
     sc = Math.min(CAMPBOARD.s * CAMPBOARD.grow, sc * Math.min(1.25, wordT / word * 1.02)); }
   if (BG && fit && BG.scale.x !== fit.bs) { BG.scale.setScalar(fit.bs); BG.updateMatrixWorld(true); }
   return fit || fb; }
+/* the color-menu lens (CAMP_NUDGE gives the viewing direction and the fallback), fitted to what is being edited: the whole seated rider (every pose point padded by its gear:
+   helmet / hair over the head, gloves, knee pads, shoes under the feet, the pack on the back) or the whole parked bike (sampled vertices at its parked pose), plus a 7 % margin, into
+   the same free rectangle campFit uses, so head to feet (or wheel to bar) sit clear of the header, the panel and the tab bar at any size and aspect. Returns the world eye / look,
+   the vertical fov and the view offset; cached per camp and window size; null while the UI has no layout (the caller keeps the fixed pose). */
+const _nfPts = [], _nfE = new THREE.Vector3(), _nfD = new THREE.Vector3(), _nfL = new THREE.Vector3(), _nfT = new THREE.Matrix4(), _nfEu = new THREE.Euler(), _nfQ = new THREE.Quaternion(); let _nfBike = null;
+const NF_R = { pel: 0.22, ch: 0.28, hd: 0.2, eL: 0.12, eR: 0.12, hL: 0.14, hR: 0.14, kL: 0.16, kR: 0.16, fL: 0.14, fR: 0.14 }, NF_MARGIN = 0.07; /* pad radii in camp units */
+function campNudgeFit(C, key, w, h) {
+  C.nf = C.nf || {}; const ck = key + ':' + w + 'x' + h; if (C.nf[ck]) return C.nf[ck];
+  const FR = campFree(C, w, h), N = CAMP_NUDGE[key]; if (!FR || !N) return null;
+  const RS = RIDER_SCALE, pts = _nfPts; pts.length = 0;
+  if (key === 'rider') { const a = C.yaw - (C.cp.yaw || 0), c = Math.cos(a), s = Math.sin(a);
+    for (const k of SEAT_KEYS) { const q = SEATED[k]; C.W(1.3 + q[0] * c + q[2] * s, q[1], 1.4 - q[0] * s + q[2] * c, _nfE); pts.push([_nfE.x, _nfE.y, _nfE.z, NF_R[k] * RS]);
+      if (k === 'hd') { C.W(1.3 + q[0] * c + q[2] * s, q[1] + 0.22, 1.4 - q[0] * s + q[2] * c, _nfE); pts.push([_nfE.x, _nfE.y, _nfE.z, 0.1 * RS]); } } } /* the helmet's crown / hair stands a hand above the head point */
+  else { if (!_nfBike) { _nfBike = []; bikeGroup.updateMatrixWorld(true); const inv = _nfT.copy(bikeGroup.matrixWorld).invert(), v = new THREE.Vector3(), M = new THREE.Matrix4();
+      bikeGroup.traverse((m) => { if (!m.isMesh || !m.geometry) return; const pa = m.geometry.attributes.position, st = Math.max(1, Math.floor(pa.count / 120)); M.multiplyMatrices(inv, m.matrixWorld); for (let i = 0; i < pa.count; i += st) _nfBike.push(v.fromBufferAttribute(pa, i).applyMatrix4(M).clone()); }); } /* the bike's own vertices in its local frame, once */
+    C.W(CAMP_BIKE[0], 0, CAMP_BIKE[1], _nfE); { const g = S.surf(_nfE.x, _nfE.z); if (g) _nfE.y = g.h; } _nfQ.setFromEuler(_nfEu.set(CAMP_BIKE[3], campYaw(C.cp, CAMP_BIKE[2]), 0, 'YZX')); _nfT.compose(_nfE, _nfQ, bikeGroup.scale); /* the parked pose campTick settles on */
+    for (const v of _nfBike) { _nfD.copy(v).applyMatrix4(_nfT); pts.push([_nfD.x, _nfD.y, _nfD.z, 0.06]); } }
+  let lo = [1e9, 1e9, 1e9], hi = [-1e9, -1e9, -1e9]; for (const p of pts) for (let i = 0; i < 3; i++) { lo[i] = Math.min(lo[i], p[i] - p[3]); hi[i] = Math.max(hi[i], p[i] + p[3]); }
+  _nfL.set((lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2, (lo[2] + hi[2]) / 2); /* the lens looks at the middle of the body, so the picture centers on it */
+  C.W(N.pos[0], N.pos[1], N.pos[2], _nfE); C.W(N.look[0], N.look[1], N.look[2], _nfD); const dir = _nfD.subVectors(_nfE, _nfD), dist0 = dir.length(); dir.normalize(); /* the viewing direction and distance of the fixed pose */
+  let dist = dist0, out = null;
+  for (let it = 0; it < 3; it++) {
+    _nfE.copy(_nfL).addScaledVector(dir, dist); { const g = S.surf(_nfE.x, _nfE.z); if (g && _nfE.y < g.h + 0.4) _nfE.y = g.h + 0.4; } /* the same ground clamp campTick applies */
+    _cfM.lookAt(_nfE, _nfL, UP); _cfM.setPosition(_nfE); _cfM.invert(); let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
+    for (const p of pts) { _cfV.set(p[0], p[1], p[2]).applyMatrix4(_cfM); const z = -_cfV.z; if (z < 0.5) continue; x0 = Math.min(x0, (_cfV.x - p[3]) / z); x1 = Math.max(x1, (_cfV.x + p[3]) / z); y0 = Math.min(y0, (_cfV.y - p[3]) / z); y1 = Math.max(y1, (_cfV.y + p[3]) / z); }
+    if (!(x1 > x0) || !(y1 > y0)) return null;
+    const m = NF_MARGIN * (y1 - y0); x0 -= m; x1 += m; y0 -= m; y1 += m;
+    const f = Math.min((FR.R - FR.L) / (x1 - x0), (FR.B - FR.T) / (y1 - y0)), cx = (FR.L + FR.R) / 2 - f * (x0 + x1) / 2, cy = (FR.T + FR.B) / 2 + f * (y0 + y1) / 2;
+    const fov = 2 * Math.atan(h / 2 / f) * 180 / Math.PI; out = { pos: _nfE.clone(), look: _nfL.clone(), fov, dx: Math.round(w / 2 - cx), dy: Math.round(h / 2 - cy) };
+    if (fov >= 12 && fov <= 45) break; const ft = h / 2 / Math.tan(Math.max(12, Math.min(45, fov)) * Math.PI / 360); dist *= ft / f; } /* a lens that would need an extreme fov slides along its sight line instead (the pixel scale grows with the distance) */
+  if (!out || !(out.fov > 8 && out.fov < 90)) return null;
+  return (C.nf[ck] = out); }
 /* ---- the camp rider's life - the walk-in, the seated idle, the poke, and the camera's look-around / color-menu nudge ----
    Frames: the FIGURE frame (+x = facing, +z = the figure's right, y up, camp units above the pad), placed in the CAMP frame (fire at 0, +x down-trail = screen LEFT
    on the fixed lens, +z toward the valley = away from the lens) by a heading a: figure +x -> camp (cos a, -sin a) (the seated rider's a = C.yaw - cp.yaw), then
@@ -59976,8 +60324,11 @@ function campTick(dt) { /* after updateCamera: the seated rider / the walk-in, t
     if (!C.fit || C.fit.tmp || C.fit.w !== w || C.fit.h !== h) C.fit = campFit(C, _cw, _cw2, w, h); /* once per camp and per window size */
     const aspect = w / h; let vf = C.fit.fov, gk = 0;
     campCam.apply(campCam.tick(C, dt), _cw, _cw2); /* the look-around (0 at rest) */
-    { const N = C.camNudge && CAMP_NUDGE[C.camNudge] ? CAMP_NUDGE[C.camNudge] : null; C.nk = Math.max(0, Math.min(1, (C.nk || 0) + (N ? dt : -dt) / (reduceMotion.matches ? 0.01 : 0.6))); if (N) C.nlast = N; const NL = C.nlast; /* the color-menu nudge, eased both ways */
-      if (NL && C.nk > 0) { const nk = sstep(C.nk); W(NL.pos[0], NL.pos[1], NL.pos[2], _cw3); W(NL.look[0], NL.look[1], NL.look[2], _gl); const gg = S.surf(_cw3.x, _cw3.z); if (gg && _cw3.y < gg.h + 0.4) _cw3.y = gg.h + 0.4; _cw.lerp(_cw3, nk); _cw2.lerp(_gl, nk); vf += (2 * Math.atan(Math.tan(NL.hfov * Math.PI / 360) / aspect) * 180 / Math.PI - vf) * nk; } }
+    let nfx = 0, nfy = 0; /* the fitted nudge's view offset, relative to the resting fit */
+    { const N = C.camNudge && CAMP_NUDGE[C.camNudge] ? C.camNudge : null; C.nk = Math.max(0, Math.min(1, (C.nk || 0) + (N ? dt : -dt) / (reduceMotion.matches ? 0.01 : 0.6))); if (N) C.nlast = N; const NK = C.nlast; /* the color-menu nudge, eased both ways */
+      if (NK && C.nk > 0) { const nk = sstep(C.nk), NF = campNudgeFit(C, NK, w, h), NL = CAMP_NUDGE[NK];
+        if (NF) { _cw3.copy(NF.pos); _gl.copy(NF.look); nfx = (NF.dx - C.fit.dx) * nk; nfy = (NF.dy - C.fit.dy) * nk; } else { W(NL.pos[0], NL.pos[1], NL.pos[2], _cw3); W(NL.look[0], NL.look[1], NL.look[2], _gl); } /* fitted to the whole body / bike, else the fixed pose */
+        const gg = S.surf(_cw3.x, _cw3.z); if (gg && _cw3.y < gg.h + 0.4) _cw3.y = gg.h + 0.4; _cw.lerp(_cw3, nk); _cw2.lerp(_gl, nk); vf += ((NF ? NF.fov : 2 * Math.atan(Math.tan(NL.hfov * Math.PI / 360) / aspect) * 180 / Math.PI) - vf) * nk; } }
     /* per-game camera pose. campUI sets C.gcam = { pos, look (world Vector3), hfov } while a mini game runs (null after); the pose eases in / out over
        CAMP_GCAM_T (smootherstep on C.gk) and a retarget mid-game (the tune-up's three parts) glides with tau 0.22 s. Camera only: nothing else in the scene changes. */
     if (C.gcam || (C.gk || 0) > 0) { C.gk = Math.max(0, Math.min(1, (C.gk || 0) + (C.gcam ? dt : -dt) / (reduceMotion.matches ? 0.01 : CAMP_GCAM_T)));
@@ -59985,12 +60336,16 @@ function campTick(dt) { /* after updateCamera: the seated rider / the walk-in, t
         const gg = S.surf(_cw3.x, _cw3.z); if (gg && _cw3.y < gg.h + 0.3) _cw3.y = gg.h + 0.3;
         if (!C.gcur) C.gcur = { pos: _cw3.clone(), look: _gl.clone(), hfov: G.hfov }; else { const a = 1 - Math.exp(-dt / 0.22); C.gcur.pos.lerp(_cw3, a); C.gcur.look.lerp(_gl, a); C.gcur.hfov += (G.hfov - C.gcur.hfov) * a; } }
       gk = sstep(C.gk); if (_puffO === undefined) _puffO = puffMat.opacity; puffMat.opacity = _puffO * (1 - 0.85 * gk); /* the smoke column fills a close lens: thinned while a game pose is in (restored with it) */ if (C.gcur && gk > 0) { _cw.lerp(C.gcur.pos, gk); _cw2.lerp(C.gcur.look, gk); vf += (2 * Math.atan(Math.tan(C.gcur.hfov * Math.PI / 360) / aspect) * 180 / Math.PI - vf) * gk; } if (C.gk <= 0) C.gcur = null; }
+    { const dv = C.gcam ? C.gcam.drift : C.gdv; /* the games that opted in (pose.drift = amplitude scale) drift the lens gently; the look target stays put, so it reads as a slow parallax */
+      if (typeof dv === 'number' && gk > 0) { C.gdv = dv; CAM_DRIFT.tick(dt, !!C.gcam, dv); _dfw.subVectors(_cw2, _cw); const dist = _dfw.length() || 1; _dfw.divideScalar(dist); _drt.crossVectors(_dfw, UP).normalize(); _dup.crossVectors(_drt, _dfw);
+        _cw.addScaledVector(_drt, CAM_DRIFT.x * gk).addScaledVector(_dup, CAM_DRIFT.y * gk).addScaledVector(_dfw, CAM_DRIFT.push * dist * gk); }
+      else if (!C.gcam) C.gdv = undefined; }
     if (e >= 1) { camera.position.copy(_cw); campLook.copy(_cw2); camera.fov = vf; } else { camera.position.lerp(_cw, e); campLook.copy(camLook).lerp(_cw2, e); camera.fov += (vf - camera.fov) * e; }
     camera.lookAt(campLook); sky.position.copy(camera.position);
-    const dx = Math.round(C.fit.dx * e * (1 - gk)), dy = Math.round(C.fit.dy * e * (1 - gk)); /* no panel during a game: no shift */ if (w !== _campW || h !== _campH || !camera.view || !camera.view.enabled || camera.view.offsetX !== dx || camera.view.offsetY !== dy) { _campW = w; _campH = h; camera.setViewOffset(w, h, dx, dy, w, h); }
+    const dx = Math.round((C.fit.dx + nfx) * e * (1 - gk)), dy = Math.round((C.fit.dy + nfy) * e * (1 - gk)); /* no panel during a game: no shift */ if (w !== _campW || h !== _campH || !camera.view || !camera.view.enabled || camera.view.offsetX !== dx || camera.view.offsetY !== dy) { _campW = w; _campH = h; camera.setViewOffset(w, h, dx, dy, w, h); }
     camera.updateProjectionMatrix();
     if (DEBUG && window.__camOverride) { const O = window.__camOverride; camera.position.set(O.px, O.py, O.pz); if (O.fov) camera.fov = O.fov; if (O.noShift) camera.clearViewOffset(); camera.lookAt(O.lx, O.ly, O.lz); camera.updateProjectionMatrix(); } } /* debug: the camera override works in camp mode too (close-up views of the seats) */
-  campDusk(e); S.armW = 0; contactBlob.mesh.visible = false;
+  campDusk(e); campSky.tick(dt); S.armW = 0; contactBlob.mesh.visible = false;
 }
 const _ce = new THREE.Euler(), _cq3 = new THREE.Quaternion();
 /* ---- XP ---- */
@@ -60099,6 +60454,14 @@ const CampHelp = (() => {
 })();
 const CAMP_HELP = { roast: [{ g: 'A', label: 'Hold: lower', btn: 0, hold: 0.9 }], stoke: [{ g: 'A', label: 'Tap', btn: 0 }], tune: [{ g: 'stick', label: 'Turn' }, { g: 'A', label: 'Set', btn: 0 }], /* matches the game's own chips (Turn / Set) */
   stars: [{ g: 'stick', label: 'Move' }, { g: 'A', label: 'Select', btn: 0 }, { g: 'A', label: 'Hold: draw', btn: 0, hold: 0.6 }], skip: [{ g: 'stick', label: 'Slide / angle' }, { g: 'A', label: 'Throw', btn: 0 }] }; /* the host's default chips per game; a game's own CampHelp.set() replaces them */
+/* the skip game's river is rolled once per camp: a well-mixed hash of the mountain code and the camp (never saved, never from the course or ride streams),
+   so a camp keeps its river on every visit, two camps differ, and the same camp on another code differs. kind (0..7) walks with the camp's place on the
+   mountain, so neighboring camps never share a layout. */
+function riverKey(cp) {
+  const seedC = ((S.course && S.course.seed) || 1) | 0, ci = (cp && cp.idx) | 0, ks = S.course && S.course.checkpoints ? S.course.checkpoints.indexOf(cp) : 0;
+  const s = (hash2(ci, 0x7131, seedC) * 4294967295) >>> 0, m = (hash2(0x6d6e, 0x51e, seedC) * 4294967295) >>> 0;
+  return { s, kind: ((m >>> 5) + Math.max(0, ks)) & 7 };
+}
 const campUI = (() => {
   const body = $('campBody'), host = $('campHost'), pn = $('campPn'), tabs = $('campTabs'), scr = $('campScr'), tabRow = tabs.querySelector('.tabs'), ind = $('campInd'); let draft = null, game = null, gameId = null, gameDone = false, sessionPlays = 0; const repeats = {};
   const CM = () => CampMini;
@@ -60217,7 +60580,7 @@ const campUI = (() => {
   const campGameCam = (p) => { const C = S.camp; if (!C) return; if (!p) { C.gcam = null; return; } const pos = new THREE.Vector3(), look = new THREE.Vector3();
     if (p.space === 'bike') { pos.set(p.pos[0], p.pos[1], p.pos[2]); look.set(p.look[0], p.look[1], p.look[2]); } /* kept in bike space: campTick maps it through the parked bike's matrix every frame */
     else { C.W(p.pos[0], p.pos[1], p.pos[2], pos); C.W(p.look[0], p.look[1], p.look[2], look); }
-    C.gcam = { pos, look, hfov: p.hfov || 60, space: p.space || 'camp' }; };
+    C.gcam = { pos, look, hfov: p.hfov || 60, space: p.space || 'camp', drift: p.drift }; };
   const _pj = new THREE.Vector3();
   const campProj = (lx, ly, lz) => { const C = S.camp; if (!C) return null; C.W(lx, ly, lz, _pj); camera.updateMatrixWorld(true); camera.matrixWorldInverse.copy(camera.matrixWorld).invert(); _pj.project(camera); if (_pj.z > 1) return null;
     let x = (_pj.x * 0.5 + 0.5) * innerWidth; if (C.mirror) x = innerWidth - x; return [x, (-_pj.y * 0.5 + 0.5) * innerHeight]; }; /* camp units -> screen px (the view offset is in the projection matrix; left-hand mode mirrors the picture) */
@@ -60227,6 +60590,7 @@ const campUI = (() => {
   const gameOff = () => { board(true); pn.classList.remove('game'); scr.classList.remove('game'); host.hidden = true; body.hidden = false; host.innerHTML = ''; CampHelp.clear(); };
   const startGame = (id) => { const M = CM(); if (!M.ids.includes(id) || game) return; stopGame(false); gameId = id; gameDone = false; V.act = Math.max(0, M.ids.indexOf(id));
     if (S.camp) S.camp.camNudge = null; board(false); pn.classList.add('game'); scr.classList.add('game'); body.hidden = true; host.hidden = false; host.innerHTML = ''; sfx.mini(id); CampHelp.set(CAMP_HELP[id] || []);
+    const rvK = S.camp && S.camp.cp ? riverKey(S.camp.cp) : null; /* the skip game's river: rolled once per camp from the mountain code and the camp, never from saved data */
     const onDone = (r) => { if (gameDone) return; gameDone = true; const score = Math.max(0, Math.min(1, +(r && r.score) || 0)); const aborted = !!(r && (r.aborted || r.stopped)); game = null; sfx.mini(null); if (S.camp) { S.camp.gcam = null; S.camp.fireK = 1; S.camp.pokeK = 0; S.camp.stick = false; }
       gameOff();
       if (aborted || !S.camp) { gameId = null; if (S.camp) { render(); focusDef(); } return; }
@@ -60237,7 +60601,7 @@ const campUI = (() => {
       body.innerHTML = `<div class="pt"><b>${esc(M.names[id] || id)}</b><span class="m">${score > best && best > 0 ? 'New best!' : 'Done'}</span></div><div class="mres"><div class="big">${starsRow(st, 30)}</div><div class="lvl">${Math.round(score * 100)}%</div>
         <div class="xpr"><span>XP</span><b>+${xp}</b></div>${buff ? `<div class="xpr"><span>Buff</span><b>${esc(buff)}</b></div>` : ''}${L1 > L0 ? `<div class="xpr"><span>Level up</span><b>LV ${L1}</b></div>` : ''}${id === 'stars' && M.found ? `<div class="xpr"><span>Constellations</span><b>${M.found().length} / ${M.total}</b></div>` : ''}</div>
         <div class="foot"><button class="mb sm" id="ckAgain">Play again</button><button class="mb sm pri" id="ckBack">Done</button></div>`; body.classList.remove('slR', 'slL'); void body.offsetWidth; body.classList.add('slR'); header(); focusDef(); };
-    try { game = M.start(id, { host, level: levelOfXp(PROF.xp), onDone, left: UIO.hand === 'left', cam: campGameCam, fire: (v) => { if (S.camp) S.camp.fireK = v; }, proj: campProj, bike3d, help: CampHelp, rider: campRiderVis, poke: (k) => { if (S.camp) S.camp.pokeK = k; }, world: (lx, ly, lz, o) => (S.camp ? S.camp.W(lx, ly, lz, o) : o.set(lx, ly, lz)), stick: (v) => { if (S.camp) S.camp.stick = !!v; }, mirror: !!(S.camp && S.camp.mirror) }) || null; } catch (e) { errBox('Mini game: ' + e.message); game = null; }
+    try { game = M.start(id, { host, level: levelOfXp(PROF.xp), river: rvK, onDone, left: UIO.hand === 'left', cam: campGameCam, fire: (v) => { if (S.camp) S.camp.fireK = v; }, proj: campProj, bike3d, help: CampHelp, rider: campRiderVis, poke: (k) => { if (S.camp) S.camp.pokeK = k; }, world: (lx, ly, lz, o) => (S.camp ? S.camp.W(lx, ly, lz, o) : o.set(lx, ly, lz)), stick: (v) => { if (S.camp) S.camp.stick = !!v; }, mirror: !!(S.camp && S.camp.mirror) }) || null; } catch (e) { errBox('Mini game: ' + e.message); game = null; }
     if (!game) { gameDone = true; gameId = null; if (S.camp) { S.camp.gcam = null; S.camp.fireK = 1; S.camp.pokeK = 0; S.camp.stick = false; } gameOff(); render(); } };
   const stopGame = (leaving) => { if (!game) return; const g = game; gameDone = true; game = null; gameId = null; try { g.stop(); } catch (e) { } sfx.mini(null); if (S.camp) { S.camp.gcam = null; S.camp.fireK = 1; S.camp.pokeK = 0; S.camp.stick = false; } gameOff(); if (!leaving && S.camp) render(); };
   const back = () => { if (game) { stopGame(false); focusDef(); return; } if (pn.dataset.tab === 'res') { render(); focusDef(); return; } if (subBack()) return; leaveCamp(); }; /* B: leave a game, a result card, a sub-menu; else leave camp */
@@ -60296,7 +60660,7 @@ function frame(now) {
   requestAnimationFrame(frame);
   frameStamp = now; const rawMs = now - last; let dt = Math.min(0.05, rawMs / 1000); last = now;
   governor(rawMs, screen === null && S.running && !S.paused && !document.hidden); /* adaptive quality */
-  gpMenu.poll(); /* menus first (every frame, before the flyover's frame skip), so a press that closes a screen is swallowed before readInput sees it */
+  inDev.poll(); gpMenu.poll(); /* menus first (every frame, before the flyover's frame skip), so a press that closes a screen is swallowed before readInput sees it */
   if (screen === 'title' || (screen === 'settings' && setBack === 'title')) { titleSkip = !titleSkip; if (titleSkip) { skipAcc += dt; return; } dt += skipAcc; skipAcc = 0; } else skipAcc = 0; /* the flyover renders at half rate (the skipped frame's time is carried over): the menu is DOM, nothing on it moves faster */
   const inp = readInput(); campHold.tick(dt); /* the save / make-camp hold */
   if (S.running && !S.finished && !S.paused && !S.camp) { applyLimbInput(inp); acc += dt; while (acc >= DT) { step(DT, inp); stepRider(DT); acc -= DT; } }
@@ -60415,7 +60779,6 @@ const CampMini = (() => {
   }
   function fireGlow(c, G, s, a) { /* the 3D fire is the fire (2D tongues would double-draw over the bigger A/B/C fires); this is the only 2D accent: a warm haze at its base */
     const b = G.proj(0, 0.35, 0); if (!b) return null; const g = c.createRadialGradient(b[0], b[1], 0, b[0], b[1], s); g.addColorStop(0, `rgba(255,150,60,${a})`); g.addColorStop(1, 'rgba(255,120,40,0)'); c.fillStyle = g; c.fillRect(b[0] - s, b[1] - s, s * 2, s * 2); return b; }
-  const swatch = (c, x, y, r, col) => { c.save(); c.fillStyle = rgb(col); c.beginPath(); c.arc(x, y, r, 0, TAU); c.fill(); c.strokeStyle = 'rgba(253,248,234,0.7)'; c.lineWidth = 2; c.stroke(); c.restore(); };
   const label = (c, text, x, y, size, font, col, align) => { c.fillStyle = col; c.font = `${font === 'disp' ? 'italic 800' : '700'} ${size}px ${font === 'disp' ? FONT.disp : FONT.ui}`; c.textAlign = align || 'center'; c.textBaseline = 'middle'; c.fillText(text, x, y); };
   const FONT = { disp: '"Barlow Condensed", sans-serif', ui: 'Rubik, sans-serif' };
 
@@ -60512,14 +60875,15 @@ const CampMini = (() => {
         const sh = (0.84 + 0.24 * clamp(1 - Math.hypot(u + 0.35, v + 0.4) / 1.1, 0, 1)) * (0.8 + 0.2 * Math.min(1, Math.sqrt(Math.max(0, 1 - r * r)) * 1.6)); /* key from the upper left, darker toward the edge */
         o[k * 3] = 0.24 * nz + 0.22 * ed; o[k * 3 + 1] = pw; o[k * 3 + 2] = sh; m[k] = 1; n++; so += o[k * 3]; sp += pw; ss += sh; }
       so /= n; sp /= n; ss /= n; for (let k = 0; k < DN * DN; k++) if (m[k]) { o[k * 3] -= so; o[k * 3 + 1] -= sp; o[k * 3 + 2] /= ss; } return { o, m }; })();
-    let discCv = null, discD = -1;
-    const toastDisc = (c, x, y, r, dv) => { /* the target disc at doneness dv, radius r (design px), with the light ring every swatch has */
-      if (dv !== discD || !discCv) { discD = dv; if (!discCv) { discCv = document.createElement('canvas'); discCv.width = discCv.height = DN; }
-        const g = discCv.getContext('2d'), im = g.createImageData(DN, DN), P = im.data, { o, m } = DOFF;
-        for (let k = 0; k < DN * DN; k++) { if (!m[k]) continue; const tv = clamp(dv * (1 + o[k * 3]) + (dv > 0.3 ? o[k * 3 + 1] * 0.3 * (dv - 0.3) : 0), 0, 1), cc = colAt(tv), s = o[k * 3 + 2];
+    const DISCS = [{ cv: null, d: -1, ch: -1 }, { cv: null, d: -1, ch: -1 }]; /* one baked canvas per use: [0] the target, [1] the player's result */
+    const toastDisc = (c, x, y, r, dv, ch, slot) => { /* a disc at doneness dv (ch = char 0..1 toward the burnt black, the 3D marshmallow's rule), radius r (design px), with the light ring every swatch has. The target and the player's result both come through here, so they read as the same material */
+      const D = DISCS[slot || 0]; ch = ch || 0;
+      if (dv !== D.d || ch !== D.ch || !D.cv) { D.d = dv; D.ch = ch; if (!D.cv) { D.cv = document.createElement('canvas'); D.cv.width = D.cv.height = DN; }
+        const g = D.cv.getContext('2d'), im = g.createImageData(DN, DN), P = im.data, { o, m } = DOFF;
+        for (let k = 0; k < DN * DN; k++) { if (!m[k]) continue; const tv = clamp(dv * (1 + o[k * 3]) + (dv > 0.3 ? o[k * 3 + 1] * 0.3 * (dv - 0.3) : 0), 0, 1), cc = ch > 0 ? mix3(colAt(tv), [12, 10, 9], ch) : colAt(tv), s = o[k * 3 + 2];
           P[k * 4] = Math.min(255, cc[0] * s); P[k * 4 + 1] = Math.min(255, cc[1] * s); P[k * 4 + 2] = Math.min(255, cc[2] * s); P[k * 4 + 3] = 255; }
         g.putImageData(im, 0, 0); }
-      c.save(); c.beginPath(); c.arc(x, y, r, 0, TAU); c.save(); c.clip(); c.imageSmoothingEnabled = true; c.drawImage(discCv, x - r, y - r, r * 2, r * 2); c.restore();
+      c.save(); c.beginPath(); c.arc(x, y, r, 0, TAU); c.save(); c.clip(); c.imageSmoothingEnabled = true; c.drawImage(D.cv, x - r, y - r, r * 2, r * 2); c.restore();
       c.strokeStyle = 'rgba(253,248,234,0.75)'; c.lineWidth = 2; c.stroke(); c.restore(); };
     const ladder = (c, x, y, w, h, dv) => { /* the doneness ladder: raw -> golden -> brown -> burnt (the same ramp), a marker on the target */
       const g = c.createLinearGradient(x, 0, x + w, 0); for (const [k, cc] of RAMP) g.addColorStop(k, rgb(cc)); c.save(); c.fillStyle = g; c.beginPath(); c.roundRect(x, y, w, h, h / 2); c.fill();
@@ -60533,7 +60897,7 @@ const CampMini = (() => {
     const setup = () => { d = 0; h = 0; hold = false; st = 'wait'; stT = 0; burnt = false; spin0 = G.rng() * TAU; if (M3) M3.reset(G.rng); G.prog(`Marshmallow ${i + 1} / ${N}`); };
     function finishOne(fire) { st = 'show'; stT = 0; const tg = targets[i]; q = fire ? 0 : Math.pow(clamp(1 - Math.abs(d - tg.v) / tol, 0, 1), 0.85); sc.push(q);
       word = fire ? 'On fire!' : q >= 0.9 ? 'Spot on!' : q >= 0.7 ? 'Close!' : q >= 0.4 ? 'Not bad' : d < tg.v ? 'Too pale' : 'Too dark';
-      if (fire) G.cue('miss'); else if (q >= 0.9) G.cue('success', q > 0.97); else if (q >= 0.6) G.cue('good'); else G.cue('miss'); }
+      if (fire) G.cue('miss'); else if (q >= 0.9) G.cue('success', q > 0.97); else if (q >= 0.6) G.cue('good'); else G.cue('miss'); if (q >= 0.7) G.kick(q); }
     function act(dn) { if (st === 'wait' && dn) { st = 'cook'; hold = true; G.buzz(8); } else if (st === 'cook') { if (dn) hold = true; else if (hold) { hold = false; st = 'lift'; G.cue('sizzle', 0.5); G.buzz(12); } } }
     G.rider(false); G.help.set(CHIPS.roast); setup();
     return {
@@ -60590,7 +60954,7 @@ const CampMini = (() => {
           const k = Math.min(1, stT / 0.35), cy = H * 0.47, R = clamp(H * 0.06, 16, 26); c.globalAlpha = k;
           c.fillStyle = 'rgba(11,21,23,0.66)'; c.beginPath(); c.roundRect(W / 2 - 150, cy - 64, 300, 128, 18); c.fill();
           label(c, word.toUpperCase(), W / 2, cy - 28, 34, 'disp', burnt || q < 0.4 ? '#fdf8ea' : '#f3c56b');
-          toastDisc(c, W / 2 - R * 1.6, cy + 18, R, tg.v); swatch(c, W / 2 + R * 1.6, cy + 18, R, burnt ? [12, 10, 9] : colAt(d));
+          toastDisc(c, W / 2 - R * 1.6, cy + 18, R, tg.v); toastDisc(c, W / 2 + R * 1.6, cy + 18, R, dd, char, 1);
           label(c, 'TARGET', W / 2 - R * 1.6, cy + 18 + R + 12, 9, 'ui', 'rgba(253,248,234,0.7)'); label(c, 'YOURS', W / 2 + R * 1.6, cy + 18 + R + 12, 9, 'ui', 'rgba(253,248,234,0.7)');
           label(c, Math.round(q * 100) + '%', W / 2, cy + 18, 22, 'disp', '#fdf8ea'); c.globalAlpha = 1; }
       }
@@ -60713,7 +61077,7 @@ const CampMini = (() => {
     function lock() { if (st !== 'turn') return; st = 'lock'; stT = 0; err = Math.abs(v - tg); locked = score(err); sc.push(locked); G.cue('lock'); G.buzz(locked >= 0.9 ? [18, 40, 18] : 14);
       grade = err <= tol ? 'Excellent!' : err <= tol * 2.5 ? 'Good' : err <= tol * 5 ? 'Close' : 'Miss';
       gr.push(err <= tol ? 3 : err <= tol * 2.5 ? 2 : err <= tol * 5 ? 1 : 0); burst(gr[gr.length - 1]);
-      if (err <= tol) { G.cue('success', err < tol * 0.4); } else if (err <= tol * 2.5) G.cue('good'); else G.cue('miss');
+      if (err <= tol) { G.cue('success', err < tol * 0.4); G.kick(0.6); } else if (err <= tol * 2.5) G.cue('good'); else G.cue('miss');
     }
     G.help.set(CHIPS.tune); setup();
     /* a gear outline: n teeth between the root radius r0 and the tip radius r1, turned by a */
@@ -61024,6 +61388,37 @@ const CampMini = (() => {
      (length = power, sideways = aim) and let go. A dotted preview shows the throw into the distance. Plinks: G.cue('skip', n). A stone that
      lands beyond the bank stops there. */
 
+  /* ---- the skip river's per-camp shape. The playable stretch (0..44 m, where stones land) keeps the game's own bend and width formula; only its
+     phases come from the camp, so the corridor is the same family the game always rolled. Past the throw's reach the river is free to wander: far() adds a
+     lateral drift and wm() scales the drawn width from 44 m outward (smooth, zero slope at 44), which is where the eight layouts differ most. The bank
+     profile (lip, nzA), islands past the reach, and extra rocks, pebbles, reeds and trees (on a stream of their own) finish the layout. ---- */
+  function riverShape(RK) {
+    const r = mulberry((RK.s ^ 0x2f6b9d4b) | 0), kind = RK.kind & 7, u2 = () => r() * 2 - 1, rnd = (a, b) => a + (b - a) * r();
+    let ph = r() * TAU, ph2 = r() * TAU; const ph3 = r() * 7, sg = r() < 0.5 ? -1 : 1;
+    const dirK = [-1, 1, sg, sg, -1, 1, sg, sg][kind]; /* which way the river bends away (negative: left on a right-hand screen) */
+    if (kind === 0) ph = Math.PI + u2() * 0.4; else if (kind === 1) ph = u2() * 0.4; else if (kind === 4) ph = 1.91 + u2() * 0.5; else if (kind === 5) ph = -1.23 + u2() * 0.5; /* S-curves and the gentle bends choose their first swing */
+    const sm = (u) => u * u * (3 - 2 * u), up = (d) => clamp((d - 44) / 100, 0, 1), A = [100, 100, 35, 25, 110, 110, 120, 0][kind] * (0.85 + 0.3 * r());
+    const far = (d) => { const u = up(d); if (u <= 0) return 0; const e = sm(u);
+      if (kind <= 1) return dirK * A * Math.sin(TAU * e); if (kind === 2) return dirK * A * e * Math.sin(Math.PI * u + 0.4); if (kind === 3) return dirK * A * e * Math.sin(5 * Math.PI * u);
+      if (kind === 6) return dirK * A * sm(Math.min(1, u * 1.5)); return kind === 7 ? 0 : dirK * A * e; };
+    const wm = (d) => { const e = sm(up(d)); return kind === 2 ? 1 + 2.4 * e : kind === 3 ? 1 - 0.55 * e : kind === 7 ? 1 + 0.08 * e : 1 + 0.3 * e * dirK; };
+    const tint = new THREE.Color(...[[1, 1, 1], [0.95, 1.05, 0.95], [0.9, 1.08, 1.0], [1.1, 1, 0.9], [1.08, 1, 0.84], [0.92, 1, 1.12], [1.12, 1.02, 0.95], [1, 1.12, 0.9]][kind]);
+    const bk = { lip: [1.2, 1.2, 2.0, 0.8, 1.6, 1.0, 0.8, 1.2][kind] * (0.95 + 0.1 * r()), nzA: [1, 1.3, 0.8, 1.6, 1, 1.2, 1.7, 0.7][kind] * (0.95 + 0.1 * r()), hgt: [1, 1.4, 0.6, 2.4, 1.1, 1.5, 1.9, 0.8][kind], rise: [1, 1.2, 0.5, 2.6, 1.3, 1.1, 1.9, 0.6][kind] };
+    const cA = [0.4, 0.3, 0.6, 0.12, 0.35, 0.3, 0.2, 0.15][kind] * (0.8 + 0.4 * r()), cK = rnd(0.12, 0.3), cP = r() * TAU; /* coves: the shore steps back from the water's edge in places (never closer than the game's edge) */
+    const cove = (d, sd) => d > 44 ? 0 : cA * Math.pow(Math.max(0, Math.sin(cK * d + cP + (sd > 0 ? 1.7 : 0))), 1.5);
+    const isl = []; if (kind === 0) isl.push({ d: 66, off: 0.3, rl: 1.8, h: 0.35 }); else if (kind === 1) isl.push({ d: 74, off: -0.6, rl: 1.6, h: 0.3 }); else if (kind === 2) isl.push({ d: 58, off: -1.2, rl: 2.2, h: 0.32 }, { d: 86, off: 1.6, rl: 3, h: 0.4 });
+    for (const i of isl) { i.rd = i.rl * 1.7; i.d += u2() * 3; }
+    const rocks = [], pebbles = [], trees = [], reeds = [];
+    const tr = (n, d0, d1, sd, o0, o1, kd) => { for (let i = 0; i < n; i++) trees.push({ d: rnd(d0, d1), sd: sd || (r() < 0.5 ? -1 : 1), off: rnd(o0, o1), kind: kd || (r() < 0.3 ? 'birch' : 'pine'), h: rnd(2.6, 4.2), w: rnd(0.85, 1.2), v: r() }); };
+    if (kind === 0) tr(8, 6, 36, 1, 2.2, 6, 'birch'); else if (kind === 1) tr(8, 6, 36, -1, 2.2, 6, 'pine');
+    else if (kind === 2) { for (let i = 0; i < 12; i++) reeds.push({ d: rnd(3, 16), sd: r() < 0.5 ? -1 : 1, off: rnd(-0.15, 0.5), h: rnd(0.8, 1.6), lean: u2() * 0.5, p: r() * TAU }); }
+    else if (kind === 3) { for (let i = 0; i < 16; i++) rocks.push({ d: rnd(3, 36), sd: r() < 0.5 ? -1 : 1, off: rnd(-0.45, 0.5), s: rnd(0.3, 0.9), f: r() }); for (let i = 0; i < 26; i++) pebbles.push({ d: rnd(3, 30), sd: r() < 0.5 ? -1 : 1, off: rnd(-0.2, 0.9), s: rnd(0.06, 0.15), c: r() }); }
+    else if (kind === 4) tr(10, 8, 34, 1, 2.5, 7, 'pine'); else if (kind === 5) tr(10, 8, 34, -1, 2.5, 7, 'birch');
+    else if (kind === 6) { for (let i = 0; i < 14; i++) rocks.push({ d: rnd(10, 30), sd: dirK, off: rnd(0.1, 2.6), s: rnd(0.4, 1.0), f: r() }); for (let i = 0; i < 30; i++) pebbles.push({ d: rnd(10, 30), sd: dirK, off: rnd(-0.2, 1.8), s: rnd(0.08, 0.18), c: r() }); }
+    else { for (let i = 0; i < 12; i++) trees.push({ d: 4 + i * 3, sd: i & 1 ? 1 : -1, off: 3 + r() * 0.5, kind: 'birch', h: rnd(2.8, 3.6), w: rnd(0.9, 1.1), v: r() }); }
+    return { kind, ph, ph2, ph3, far, wm, bk, tint, cove, isl, rocks, pebbles, trees, reeds, r, fr: mulberry((RK.s ^ 0x6a09e667) | 0) };
+  }
+
   /* ---- the skip game's 3D river. World axes: x = lateral (the game's l), y = height, z = -d (distance down the river). The lens sits at
      d = -D0, CAMH up, looking level down the river with the horizon at 0.4 of the screen height (an off-center frustum). Left-hand mode
      mirrors the root (x * side). Layout comes from the game's lists; the extra dressing draws from its own stream seeded from the river's
@@ -61077,17 +61472,23 @@ const CampMini = (() => {
 
     /* ---- ground: both banks as river-aligned strips (columns at fixed offsets from the water's edge), so the shoreline follows the bend */
     const nz = (x, z) => Math.sin(x * 0.83 + p1) * Math.sin(z * 0.61 + p2) * 0.55 + Math.sin(x * 2.1 + z * 1.6 + p3) * 0.22;
-    const hU = (u, l, d) => { if (u <= 0) return 0.05 + u * 0.55; const s = Math.min(1, u / 1.2); return 0.05 + 0.2 * s * (2 - s) + (0.04 + Math.min(u, 12) * 0.026) * nz(l, d) + Math.max(0, u - 14) * 0.035 + Math.max(0, u - 45) * 0.05; };
-    const gh = (l, d) => hU(Math.abs(l - cxd(d)) - wdr(d), l, d);
+    const BK = K.bk || { lip: 1.2, nzA: 1, hgt: 1, rise: 1 }, CV = K.cove || (() => 0), ISL = K.islands || []; /* the bank profile (how far the shore takes to rise, how lumpy the meadow is) and the islands past the throw's reach */
+    const hU = (u, l, d) => { if (u <= 0) return 0.05 + u * 0.55; const s = Math.min(1, u / BK.lip); return 0.05 + 0.2 * BK.hgt * s * (2 - s) + (0.04 + Math.min(u, 12) * 0.026) * BK.nzA * nz(l, d) + Math.max(0, u - 14) * 0.035 * BK.rise + Math.max(0, u - 45) * 0.05 * BK.rise; };
+    const isH = (i, l, d) => { const x = (l - i.l) / i.rl, z = (d - i.d) / i.rd, q = Math.min(1.4, x * x + z * z); return -0.3 + (i.h + 0.3) * Math.pow(Math.max(0, 1 - q), 0.7); };
+    const gh = (l, d) => { for (const i of ISL) { const x = (l - i.l) / i.rl, z = (d - i.d) / i.rd; if (x * x + z * z < 1) return isH(i, l, d); } return hU(Math.abs(l - cxd(d)) - wdr(d) - CV(d, l > cxd(d) ? 1 : -1), l, d); };
     const DR = [-3, -1.5, -0.5, 0.3, 1, 1.7, 2.5, 3.4, 4.4, 5.5, 6.8, 8.2, 9.8, 11.6, 13.6, 16, 18.7, 21.7, 25, 29, 33.5, 38.5, 44, 51, 60, 72, 88, 108, 135, 170, 215];
     const UC = [-1.4, -0.4, 0, 0.18, 0.45, 0.9, 1.5, 2.3, 3.4, 4.8, 6.6, 9, 12, 16, 22, 30, 42, 60, 85, 120, 170, 240];
     const GC = { mud: C('#4a3d33'), sand: C('#7a6549'), dry: C('#8f8645'), g: ['#59682f', '#657336', '#4f5d2b', '#6f7a39'].map(C), far: C('#59623f') };
+    if (K.tint) for (const c of GC.g) c.multiply(K.tint); /* each camp's meadow leans a little greener, drier or cooler */
     { const P = [], Cl = [];
-      for (const s of [-1, 1]) { const grid = DR.map((d, i) => UC.map((u, j) => { const jd = i > 0 && i < DR.length - 1 ? (vr() - 0.5) * 0.3 * (DR[i + 1] - DR[i - 1]) * 0.5 : 0, dd = d + jd, ju = j > 2 ? (vr() - 0.5) * 0.35 * (UC[j] - UC[j - 1]) : 0, uu = u + ju, x = cxd(dd) + s * (wdr(dd) + uu); return [x, hU(uu, x, dd), -dd, uu, dd]; }));
+      for (const s of [-1, 1]) { const grid = DR.map((d, i) => UC.map((u, j) => { const jd = i > 0 && i < DR.length - 1 ? (vr() - 0.5) * 0.3 * (DR[i + 1] - DR[i - 1]) * 0.5 : 0, dd = d + jd, ju = j > 2 ? (vr() - 0.5) * 0.35 * (UC[j] - UC[j - 1]) : 0, uu = u + ju, x = cxd(dd) + s * (wdr(dd) + CV(dd, s) + uu); return [x, hU(uu, x, dd), -dd, uu, dd]; }));
         for (let i = 0; i < DR.length - 1; i++) for (let j = 0; j < UC.length - 1; j++) { const a = grid[i][j], b = grid[i][j + 1], c = grid[i + 1][j], e = grid[i + 1][j + 1];
           for (const [p, q, r] of ((i + j) & 1 ? [[a, b, e], [a, e, c]] : [[a, b, c], [b, e, c]])) { const cu = (p[3] + q[3] + r[3]) / 3, cd = (p[4] + q[4] + r[4]) / 3, cl = (p[0] + q[0] + r[0]) / 3;
             let col = cu < 0.06 ? GC.mud.clone() : cu < 0.4 ? GC.sand.clone().lerp(GC.mud, vr() * 0.3) : GC.g[Math.floor(vr() * 4)].clone(); if (cu >= 0.4 && nz(cl * 0.37, cd * 0.41) > 0.3) col.lerp(GC.dry, 0.55); if (cd > 50) col.lerp(GC.far, Math.min(1, (cd - 50) / 80) * 0.6);
             col.multiplyScalar(0.93 + vr() * 0.12); upTri(P, Cl, p, q, r, col, col, col); } } }
+      for (const i of ISL) { const RF = [0, 0.4, 0.75, 1, 1.2], NS = 14, ring = RF.map((f, k) => Array.from({ length: NS }, (_, j) => { const a = j / NS * TAU, w = 1 + 0.12 * Math.sin(j * 2.3 + i.d), x = i.l + Math.cos(a) * f * i.rl * w, z = i.d + Math.sin(a) * f * i.rd * w; return [x, isH(i, x, z), -z, f]; }));
+        for (let k = 0; k < RF.length - 1; k++) for (let j = 0; j < NS; j++) { const j2 = (j + 1) % NS, a = ring[k][j], b = ring[k][j2], c = ring[k + 1][j], e = ring[k + 1][j2], tl = k === 0 ? [[a, c, e]] : [[a, c, b], [b, c, e]];
+          for (const [p, q, r2] of tl) { const hh = (p[1] + q[1] + r2[1]) / 3, col = hh < 0.03 ? GC.sand.clone() : GC.g[(j + k) & 3].clone().multiplyScalar(0.95 + 0.1 * Math.sin(j * 5.1 + k)); upTri(P, Cl, p, q, r2, col, col, col); } } }
       const g = tris(P, Cl); root.add(new THREE.Mesh(g, litMat)); }
     /* ---- water: one strip down the river (wider than the banks' edge: the ground's own crossing of y = 0 draws the shoreline) */
     { const P = [], Cl = [], NC = 20, DW = [-3, -2.2, -1.5, -0.9, -0.3, 0.3, 0.9, 1.5, 2.2, 3, 3.8, 4.7, 5.7, 6.8, 8, 9.4, 11, 12.8, 14.8, 17, 19.5, 22.3, 25.5, 29, 33, 38, 44, 51, 60, 72, 88, 108, 135, 170, 215, 260], stops = [[-3, '#3f3a5e'], [3, '#493f66'], [9, '#5f4c6e'], [18, '#836276'], [30, '#ad7f7c'], [46, '#dc9d7e'], [80, '#f1ae80'], [300, '#f6be88']].map(([d, h]) => [d, C(h)]);
@@ -61125,7 +61526,7 @@ const CampMini = (() => {
       for (const [x, y, z, r, c] of [[0, 0.8, 0, 0.21, '#6f8f3e'], [-0.13, 0.64, 0.05, 0.16, '#7d9a46'], [0.12, 0.62, -0.05, 0.15, '#64843a'], [0.02, 0.66, 0.12, 0.13, '#759443']]) put(L, new THREE.IcosahedronGeometry(r, 0), c, x, y, z); return merged(L); })();
     const pines = [], birches = [];
     for (const tr of K.trees) { if (tr.sd === K.campSd && Math.abs(tr.d - K.campD) < 3.4 && Math.abs(tr.off - K.campOff) < 2.6) continue; /* the camp stands in a clearing */
-      const l = lat(tr.d, tr.sd, tr.off), y = gh(l, tr.d) - 0.05, ry = tr.v * TAU, tint = C('#ffffff').multiplyScalar(0.9 + tr.v * 0.2);
+      const l = tr.l !== undefined ? tr.l : lat(tr.d, tr.sd, tr.off), y = gh(l, tr.d) - 0.05, ry = tr.v * TAU, tint = C('#ffffff').multiplyScalar(0.9 + tr.v * 0.2);
       if (tr.kind === 'pine') pines.push([l, y, -tr.d, 0, ry, 0, tr.h * tr.w * 0.6, tr.h, tr.h * tr.w * 0.6, tint]); else birches.push([l, y, -tr.d, 0, ry, 0, tr.h * tr.w * 0.55, tr.h, tr.h * tr.w * 0.55, tint]); }
     for (let i = 0; i < 70; i++) { const d = 6 + Math.pow(vr(), 0.8) * 85, sd = vr() < 0.5 ? -1 : 1, off = 7 + vr() * 28 + d * 0.15, l = cxd(d) + sd * (wdr(d) + off), h = 3.2 + vr() * 3.5; if (sd === K.campSd && Math.abs(d - K.campD) < 4 && off < 9) continue;
       (vr() < 0.2 ? birches : pines).push([l, gh(l, d) - 0.05, -d, 0, vr() * TAU, 0, h * 0.62, h, h * 0.62, C('#ffffff').multiplyScalar(0.85 + vr() * 0.25)]); }
@@ -61134,7 +61535,7 @@ const CampMini = (() => {
     /* ---- bushes, boulders, pebbles */
     { const L = []; for (let i = 0; i < 26; i++) { const d = 6 + Math.pow(vr(), 1.3) * 55, sd = vr() < 0.5 ? -1 : 1, off = 1 + vr() * 9, l = cxd(d) + sd * (wdr(d) + off), s = 0.35 + vr() * 0.55; if (sd === K.campSd && Math.abs(d - K.campD) < 3.5 && Math.abs(off - K.campOff) < 3) continue; L.push([l, gh(l, d) + s * 0.15, -d, 0, vr() * TAU, 0, s, s * 0.7, s * 0.9, ['#4e6a34', '#5a7838', '#46602f'][Math.floor(vr() * 3)]]); }
       inst(jitterPoly(new THREE.IcosahedronGeometry(1, 0), 0.25), litMat, L); }
-    { const L = []; for (const rk of K.rocks) { const l = lat(rk.d, rk.sd, rk.off), s = rk.s * 0.9; L.push([l, Math.max(gh(l, rk.d), -0.25) + s * 0.12, -rk.d, (rk.f - 0.5) * 0.4, rk.f * TAU, 0, s, s * 0.62, s * 0.85, ['#77726b', '#6e6a64', '#837c72'][Math.floor(rk.f * 3)]]); }
+    { const L = []; for (const rk of K.rocks) { const l = rk.l !== undefined ? rk.l : lat(rk.d, rk.sd, rk.off), s = rk.s * 0.9; L.push([l, Math.max(gh(l, rk.d), -0.25) + s * 0.12, -rk.d, (rk.f - 0.5) * 0.4, rk.f * TAU, 0, s, s * 0.62, s * 0.85, ['#77726b', '#6e6a64', '#837c72'][Math.floor(rk.f * 3)]]); }
       for (let i = 0; i < 12; i++) { const d = 3 + vr() * 40, sd = vr() < 0.5 ? -1 : 1, off = 0.4 + vr() * 6, l = cxd(d) + sd * (wdr(d) + off), s = 0.3 + vr() * 0.7; L.push([l, gh(l, d) + s * 0.1, -d, vr() * 0.4, vr() * TAU, 0, s, s * 0.6, s * 0.85, ['#77726b', '#6a665f', '#857e74'][Math.floor(vr() * 3)]]); }
       inst(jitterPoly(new THREE.DodecahedronGeometry(1, 0), 0.3), litMat, L); }
     { const L = [], PC = ['#8a847a', '#a39a8a', '#6e6a64', '#968c7c']; for (const pb of K.pebbles) { const l = lat(pb.d, pb.sd, pb.off), s = pb.s * 0.8; L.push([l, gh(l, pb.d) + s * 0.2, -pb.d, 0, pb.c * TAU, 0, s, s * 0.45, s * 0.75, PC[Math.floor(pb.c * 4)]]); }
@@ -61214,6 +61615,7 @@ const CampMini = (() => {
       scene: sc, cam,
       /* o: { st, s (the stone in flight), rip, fish, hand: [l, h, pull] | null }; S(d) = pixels per meter at distance d (the overlay's scale) */
       sync(W, H, t, o, S) {
+        cam.position.set(o.cx || 0, CAMH + (o.cy || 0), D0 - (o.cz || 0)); cam.updateMatrixWorld(); /* the gentle drift */
         if (W !== pW || H !== pH) { pW = W; pH = H; const F = (H * 0.97 - H * 0.4) * D0 / CAMH, n = cam.near; cam.projectionMatrix.makePerspective(-n * W / 2 / F, n * W / 2 / F, n * H * 0.4 / F, -n * H * 0.6 / F, n, cam.far); cam.projectionMatrixInverse.copy(cam.projectionMatrix).invert(); }
         const dt = lastT < 0 ? 0 : Math.max(0, Math.min(0.1, t - lastT)), mt = RM ? 0 : t; lastT = t;
         swU.uT.value = mt; swU.uW.value = RM ? 0 : wind(t); wU.uT.value = mt; wU.uA.value = RM ? 0.4 : 1;
@@ -61252,33 +61654,45 @@ const CampMini = (() => {
 
   function skip(G) {
     const N = 5, XF = 40, H0 = 0.9, L0 = 0.6, LMAX = 1.5, GR = 9.8, sc = [], CAMH = 1.6, D0 = 2.5; /* the throw starts L0 to the handed side (+- LMAX, the slide), H0 up */
-    const ph = G.rng() * TAU, ph2 = G.rng() * TAU, ph3 = G.rng() * 7;
+    let ph = G.rng() * TAU, ph2 = G.rng() * TAU, ph3 = G.rng() * 7; /* always drawn, so the game's stream is the same with or without a camp river */
+    const RV = G.river ? riverShape(G.river) : null; if (RV) { ph = RV.ph; ph2 = RV.ph2; ph3 = RV.ph3; } /* a camp's river: its phases come from the camp, the formula below is unchanged */
     const cxd = (d) => 1.3 * Math.sin(d * 0.14 + ph) + 0.8 * Math.sin(d * 0.06 + ph2), wd = (d) => 3.3 - 0.02 * d + 0.4 * Math.sin(d * 0.27 + ph2); /* the bend never crosses a straight throw's line: aiming is for the look, not a trap */ /* the river's center line and half width at distance d */
     const wdr = (d) => (d <= 44 ? wd(d) : wd(44) * (0.75 + 0.25 * Math.exp(-(d - 44) / 60))); /* past the throw's reach (44) the drawn width stops shrinking (the physics never reads past XF) */
     const hex = (h) => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
     const SKY = [hex('#5a4a8a'), hex('#f08f6a'), hex('#ffd28a')], HILLS = [hex('#7a5475'), hex('#5c4468'), hex('#3a3d44')], STONE = hex('#8a8276');
     /* the scene's furniture, placed once (world units: d along the river, lateral off the bank's edge); the 3D scene is laid out from these lists */
-    const trees = []; for (let i = 0; i < 34; i++) trees.push({ d: 3 + Math.pow(G.rng(), 1.1) * 40, sd: G.rng() < 0.5 ? -1 : 1, off: 1.2 + G.rng() * 6, kind: G.rng() < 0.3 ? 'birch' : 'pine', h: 2.4 + G.rng() * 2.6, w: 0.8 + G.rng() * 0.45, v: G.rng() });
-    const rocks = []; for (let i = 0; i < 11; i++) rocks.push({ d: 1.5 + G.rng() * 30, sd: G.rng() < 0.5 ? -1 : 1, off: -0.25 + G.rng() * 1.4, s: 0.35 + G.rng() * 0.75, f: G.rng() });
-    const pebbles = []; for (let i = 0; i < 44; i++) pebbles.push({ d: 0.9 + G.rng() * 3.2, sd: G.rng() < 0.5 ? -1 : 1, off: 0.05 + G.rng() * 1.3, s: 0.06 + G.rng() * 0.09, c: G.rng() });
-    const reeds = []; for (let i = 0; i < 16; i++) reeds.push({ d: 1.2 + G.rng() * 3.8, sd: G.rng() < 0.5 ? -1 : 1, off: -0.15 + G.rng() * 0.5, h: 0.8 + G.rng() * 0.9, lean: (G.rng() - 0.5) * 0.7, p: G.rng() * TAU });
-    const pads = []; for (let i = 0; i < 8; i++) pads.push({ d: 2 + G.rng() * 7, sd: G.rng() < 0.5 ? -1 : 1, off: -(0.4 + G.rng() * 1.3), s: 0.22 + G.rng() * 0.2, fl: G.rng() < 0.45, a: G.rng() * TAU });
-    const flies = []; for (let i = 0; i < 18; i++) flies.push({ d: 1 + G.rng() * 7, sd: G.rng() < 0.5 ? -1 : 1, off: 0.2 + G.rng() * 2.6, h: 0.3 + G.rng() * 1.1, p: G.rng() * TAU, sp: 0.8 + G.rng() * 0.8 });
+    const furn = (rn) => { /* the furniture lists, rolled from the given stream (the game's own, or a camp river's) */
+      const trees = []; for (let i = 0; i < 34; i++) trees.push({ d: 3 + Math.pow(rn(), 1.1) * 40, sd: rn() < 0.5 ? -1 : 1, off: 1.2 + rn() * 6, kind: rn() < 0.3 ? 'birch' : 'pine', h: 2.4 + rn() * 2.6, w: 0.8 + rn() * 0.45, v: rn() });
+      const rocks = []; for (let i = 0; i < 11; i++) rocks.push({ d: 1.5 + rn() * 30, sd: rn() < 0.5 ? -1 : 1, off: -0.25 + rn() * 1.4, s: 0.35 + rn() * 0.75, f: rn() });
+      const pebbles = []; for (let i = 0; i < 44; i++) pebbles.push({ d: 0.9 + rn() * 3.2, sd: rn() < 0.5 ? -1 : 1, off: 0.05 + rn() * 1.3, s: 0.06 + rn() * 0.09, c: rn() });
+      const reeds = []; for (let i = 0; i < 16; i++) reeds.push({ d: 1.2 + rn() * 3.8, sd: rn() < 0.5 ? -1 : 1, off: -0.15 + rn() * 0.5, h: 0.8 + rn() * 0.9, lean: (rn() - 0.5) * 0.7, p: rn() * TAU });
+      const pads = []; for (let i = 0; i < 8; i++) pads.push({ d: 2 + rn() * 7, sd: rn() < 0.5 ? -1 : 1, off: -(0.4 + rn() * 1.3), s: 0.22 + rn() * 0.2, fl: rn() < 0.45, a: rn() * TAU });
+      const flies = []; for (let i = 0; i < 18; i++) flies.push({ d: 1 + rn() * 7, sd: rn() < 0.5 ? -1 : 1, off: 0.2 + rn() * 2.6, h: 0.3 + rn() * 1.1, p: rn() * TAU, sp: 0.8 + rn() * 0.8 });
+      const campD = 21 + rn() * 4, heronD = 8 + rn() * 2; /* the camp sits well back and well off the bank */
+      return { trees, rocks, pebbles, reeds, pads, flies, campD, heronD }; };
     const dfly = [{ d: 4.2, l: -1.1, h: 0.8, p: 0, col: '#2d9aa5' }, { d: 6.5, l: 1.4, h: 1.0, p: 2.1, col: '#d65a4a' }];
     const birds = [{ x: 0.1, y: 0.12, sp: 0.022, p: 0 }, { x: 0.3, y: 0.17, sp: 0.019, p: 1.4 }, { x: 0.55, y: 0.09, sp: 0.025, p: 2.6 }];
-    const campD = 21 + G.rng() * 4, campSd = 1, campOff = 4.2, heronD = 8 + G.rng() * 2, heronSd = -1, heronOff = 0.1; /* the camp sits well back and well off the bank */
+    const campSd = 1, campOff = 4.2, heronSd = -1, heronOff = 0.1; /* the camp sits well back and well off the bank */
+    let FU = furn(G.rng); if (RV) FU = furn(RV.fr); /* the game's stream always pays for the layout (its later draws are unchanged); a camp river then lays the dressing out again from the camp's own stream */
+    const { trees, rocks, pebbles, reeds, pads, flies, campD, heronD } = FU;
+    const latV = RV ? (d, sd, off) => cxd(d) + sd * (wd(d) + RV.cove(d, sd) + off) : (d, sd, off) => lat(d, sd, off), cxdV = RV ? (d) => cxd(d) + RV.far(d) : cxd, wdrV = RV ? (d) => wdr(d) * RV.wm(d) : wdr, islands = [];
+    if (RV) { trees.push(...RV.trees); rocks.push(...RV.rocks); pebbles.push(...RV.pebbles); reeds.push(...RV.reeds); const R = RV.r;
+      for (const i of RV.isl) { const l = cxdV(i.d) + i.off; islands.push({ d: i.d, l, rl: i.rl, rd: i.rd, h: i.h });
+        for (let k = 0; k < 5; k++) { const a = R() * TAU, q = Math.sqrt(R()) * 0.55; trees.push({ d: i.d + Math.sin(a) * q * i.rd, l: l + Math.cos(a) * q * i.rl, sd: 0, off: 0, kind: k % 3 === 2 ? 'birch' : 'pine', h: 1.6 + R() * 1.6, w: 0.8 + R() * 0.3, v: R() }); }
+        for (let k = 0; k < 3; k++) { const a = R() * TAU, q = 0.5 + R() * 0.4; rocks.push({ d: i.d + Math.sin(a) * q * i.rd, l: l + Math.cos(a) * q * i.rl, sd: 0, off: 0, s: 0.3 + R() * 0.4, f: R() }); } } } /* extra layout on a stream of its own: it never touches the game's draws */
     const rip = [], fish = []; let fishT = 2 + G.rng() * 2;
     let n = 0, st = 'aim', stT = 0, ang = 8, pw = 0, yaw = 0, lx = 0, t = 0, sw = G.rng() * 6, s = null, cnt = 0, total = 0, drag = null, manual = 0, trail = [];
     const hl = () => G.side * L0 + lx, slide = (d) => { lx = clamp(lx + d, -LMAX, LMAX); }; /* the stone's lateral in hand; slide(d) moves it d m (screen-right positive) */
     const angP = 2.6 - 0.5 * G.d, pwP = 1.9 - 0.4 * G.d;
-    const view = () => { const W = G.W, H = G.H, hor = H * 0.4, F = (H * 0.97 - hor) * D0 / CAMH; const S = (d) => F / (Math.max(-1.5, d) + D0); return { W, H, hor, S, P: (d, l, h) => { const ss = S(d); return [W / 2 + G.side * l * ss, hor + (CAMH - (h || 0)) * ss, ss]; } }; };
+    const view = () => { const W = G.W, H = G.H, hor = H * 0.4, F = (H * 0.97 - hor) * D0 / CAMH, cx = CAM_DRIFT.x, cy = CAM_DRIFT.y, cz = CAM_DRIFT.push * D0 * 1.5; /* the lens drift (CAM_DRIFT): the overlay projects from the same camera the 3D scene uses */
+      const S = (d) => F / (Math.max(-1.5, d) + D0 - cz); return { W, H, hor, S, P: (d, l, h) => { const ss = S(d); return [W / 2 + G.side * l * ss - cx * ss, hor + (CAMH + cy - (h || 0)) * ss, ss]; } }; };
     const lat = (d, sd, off) => cxd(d) + sd * (wd(d) + off); /* lateral of a thing `off` past the bank's edge (negative: in the water) */
     /* the 3D river (drawn in place of the camp while the game runs); if it cannot be built the overlay paints a plain dusk backdrop */
     const SV = [[-50, 0], [-36, -16], [-8, -24], [26, -18], [50, 0], [30, 18], [-2, 24], [-34, 16]], SH = [0.18, 0.1, 0.22, 0.05, -0.1, -0.2, -0.05, 0.08];
-    let V3 = null; try { V3 = skipWorld({ side: G.side, cxd, wd, wdr, lat, CAMH, D0, XF, ph, ph3, SKY, HILLS, STONE, SV, SH, trees, rocks, pebbles, reeds, pads, flies, dfly, birds, campD, campSd, campOff, heronD, heronSd, heronOff }); MINI_VIEW = V3; } catch (e) { console.error('CampMini skip scene', e); V3 = null; }
+    let V3 = null; try { V3 = skipWorld({ side: G.side, cxd: cxdV, wd, wdr: wdrV, bk: RV && RV.bk, tint: RV && RV.tint, islands, cove: RV && RV.cove, lat: latV, CAMH, D0, XF, ph, ph3, SKY, HILLS, STONE, SV, SH, trees, rocks, pebbles, reeds, pads, flies, dfly, birds, campD, campSd, campOff, heronD, heronSd, heronOff }); MINI_VIEW = V3; } catch (e) { console.error('CampMini skip scene', e); V3 = null; }
     G.help.set(CHIPS.skip); G.prog(`Stone 1 / ${N}`);
     function throwIt() { const v = 6 + 12 * pw, a = ang * Math.PI / 180, yw = yaw * Math.PI / 180; s = { x: 0, y: H0, l: hl(), vx: v * Math.cos(a) * Math.cos(yw), vl: v * Math.cos(a) * Math.sin(yw), vy: v * Math.sin(a), rot: 0, tilt: 0 }; cnt = 0; trail = []; st = 'fly'; G.cue('page'); G.buzz(10); G.help.hold(1, 0); }
-    function settle(msg, soft) { st = 'rest'; stT = 0; sc.push(cnt); total += cnt; G.float(msg, 0.5, 0.3, soft); if (cnt >= 5) G.cue('success', cnt >= 7); else if (cnt >= 2) G.cue('good'); }
+    function settle(msg, soft) { st = 'rest'; stT = 0; sc.push(cnt); total += cnt; G.float(msg, 0.5, 0.3, soft); if (cnt >= 5) G.cue('success', cnt >= 7); else if (cnt >= 2) G.cue('good'); if (cnt >= 3) G.kick(cnt / 8); }
     function act() { if (st === 'aim') { st = 'power'; stT = 0; G.cue('tick', 0.5); G.buzz(6); } else if (st === 'power') throwIt(); }
     function sim(a0, p0, y0, out) { /* the preview: the same physics, every skip assumed, up to three splashes */
       const v = 6 + 12 * p0, a = a0 * Math.PI / 180, yw = y0 * Math.PI / 180; let x = 0, y = H0, l = hl(), vx = v * Math.cos(a) * Math.cos(yw), vl = v * Math.cos(a) * Math.sin(yw), vy = v * Math.sin(a), sp = 0; out.length = 0;
@@ -61299,7 +61713,7 @@ const CampMini = (() => {
       peek: () => ({ st, n, ang, pw, yaw, lx, total, side: G.side, cnt }),
       end() { if (!V3) return; if (MINI_VIEW === V3) MINI_VIEW = null; V3.dispose(); V3 = null; }, /* the camp is drawn again from the next frame */
       update(dt) {
-        t += dt; stT += dt;
+        t += dt; stT += dt; CAM_DRIFT.tick(dt, !!V3, st === 'power' ? 0.35 : 1); /* calmer while the power is being set */
         if (st === 'aim') { manual -= dt; if (manual <= 0 && G.ay === 0) { sw += dt; ang = 15 + 21 * Math.sin(sw * TAU / angP); } else if (G.ay) { ang = clamp(ang - G.ay * dt * 25, -6, 36); manual = 2.5; } if (G.ax) slide(G.side * G.ax * dt * 2.4); }
         else if (st === 'power') { if (!drag) pw = 0.5 - 0.5 * Math.cos(stT * TAU / pwP); if (G.ax) yaw = clamp(yaw + G.ax * dt * 22, -16, 16); G.help.hold(1, pw); }
         else if (st === 'fly') {
@@ -61319,7 +61733,7 @@ const CampMini = (() => {
       },
       draw(c, W, H) {
         const V = view(), { S, P } = V;
-        if (V3) { o3.st = st; o3.s = s; if (st === 'aim' || st === 'power') { hand3[0] = hl(); hand3[1] = 0.62 + 0.02 * Math.sin(t * 2); hand3[2] = st === 'power' ? pw : 0; o3.hand = hand3; } else o3.hand = null; V3.sync(W, H, t, o3, S); }
+        if (V3) { o3.st = st; o3.s = s; if (st === 'aim' || st === 'power') { hand3[0] = hl(); hand3[1] = 0.62 + 0.02 * Math.sin(t * 2); hand3[2] = st === 'power' ? pw : 0; o3.hand = hand3; } else o3.hand = null; o3.cx = CAM_DRIFT.x; o3.cy = CAM_DRIFT.y; o3.cz = CAM_DRIFT.push * D0 * 1.5; V3.sync(W, H, t, o3, S); }
         else { const g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, rgb(SKY[0])); g.addColorStop(0.38, rgb(SKY[2])); g.addColorStop(0.42, '#c8907c'); g.addColorStop(1, '#3b3a66'); c.fillStyle = g; c.fillRect(0, 0, W, H); }
         /* the throw: the preview, the trail (the stone itself is 3D) */
         if (st === 'aim' || st === 'power') { sim(ang, st === 'power' ? pw : 0.55, yaw, prev); c.fillStyle = 'rgba(255,243,216,0.85)'; for (let i = 0; i < prev.length; i++) { const [d, l, h, sp] = prev[i], [x, y, ss] = P(d, l, h); if (y > H + 10) continue; c.globalAlpha = sp ? 0.9 : 0.75 * (1 - i / prev.length) + 0.2; if (sp) { c.strokeStyle = 'rgba(255,243,216,0.85)'; c.lineWidth = 1.5; c.beginPath(); c.ellipse(x, y, Math.max(4, ss * 0.35), Math.max(1.5, ss * 0.09), 0, 0, TAU); c.stroke(); } else { c.beginPath(); c.arc(x, y, Math.max(2, ss * 0.06), 0, TAU); c.fill(); } } c.globalAlpha = 1; } /* the dotted preview into the distance */
@@ -61394,6 +61808,10 @@ const CampMini = (() => {
   }
 
   const GAMES = { roast, tune, stoke, stars, skip };
+  /* per-game camera behavior. cam: 'drift' opts a game into the gentle camera drift (CAM_DRIFT); amp scales it; own: true = the game renders its own scene and applies
+     the drift itself (the camp lens leaves it alone). A new game gets drift by adding a line here. Aiming games stay safe: roast, stoke and the stars sky project through
+     the live camera (G.proj), tune's dial and the stars figure are screen-fixed overlays, and skip's overlay is built from the same drift numbers. */
+  const GAME_FX = { roast: { cam: 'drift', amp: 0.5 }, tune: { cam: 'drift', amp: 0.8 }, stoke: { cam: 'drift', amp: 0.7 }, stars: { cam: 'drift', amp: 0.7 }, skip: { cam: 'drift', amp: 1, own: true } };
   const RESULT = { roast: ['Charcoal chef', 'Toasty', 'Golden', 'Perfectly golden'], tune: ['Rattly but rideable', 'Pretty smooth', 'Dialed', 'Silky smooth'],
     stoke: ['Smoldering', 'Crackling', 'Roaring', 'Bonfire!'], stars: ['Cloudy night', 'Stargazer', 'Skywatcher', 'Astronomer'], skip: ['Plop plop', 'Nice skips', 'Skipper', 'River legend'] };
 
@@ -61416,14 +61834,16 @@ const CampMini = (() => {
     const flags = { key: false, pad: false, ptr: false }; let actNow = false;
     const FDT = 1 / 60; let simT = 0, acc = 0, frameNow = performance.now();
     const hooks = { cam: typeof opts.cam === 'function' ? opts.cam : () => {}, fire: typeof opts.fire === 'function' ? opts.fire : () => {}, proj: typeof opts.proj === 'function' ? opts.proj : null, rider: typeof opts.rider === 'function' ? opts.rider : null, poke: typeof opts.poke === 'function' ? opts.poke : null, stick: typeof opts.stick === 'function' ? opts.stick : null };
+    const fx = GAME_FX[id] && GAME_FX[id].cam === 'drift' ? GAME_FX[id] : null; if (fx) CAM_DRIFT.reset();
     let bike = null; if (id === 'tune' && opts.bike3d) { try { bike = TuneBike(opts.bike3d); } catch (e) { console.error('CampMini tune bike', e); bike = null; } }
     const G = {
       auto: opts.auto !== undefined ? !!opts.auto : (typeof miniAutoOn === 'function' ? miniAutoOn() : false), /* the auto-finish assists (Settings) */
-      rng, d: clamp((level - 1) / 4, 0, 1), side, left, fontDisp, fontUi, ax: 0, ay: 0, touch: matchMedia('(pointer: coarse)').matches, get W() { return W; }, get H() { return H; }, get pad() { return padSeen; },
+      rng, river: opts.river || null, d: clamp((level - 1) / 4, 0, 1), side, left, fontDisp, fontUi, ax: 0, ay: 0, touch: matchMedia('(pointer: coarse)').matches, get W() { return W; }, get H() { return H; }, get pad() { return padSeen; },
       cue, prog: (s) => { progEl.textContent = s; }, buzz, help,
       float: (text, fx, fy, soft) => { const el = document.createElement('div'); el.className = 'cm-fl' + (soft ? ' soft' : ''); el.textContent = text; el.style.left = fx * 100 + '%'; el.style.top = fy * 100 + '%'; root.appendChild(el); floats.push({ el, t: 0 }); },
       dom: (tag, cls) => { const el = document.createElement(tag); el.className = cls; root.appendChild(el); return el; },
-      cam: (p) => { try { hooks.cam(p); } catch (e) { /* host without a camera */ } }, fire: (v) => { try { hooks.fire(v); } catch (e) { /* noop */ } },
+      cam: (p) => { try { hooks.cam(p && fx && !fx.own ? Object.assign({ drift: fx.amp }, p) : p); } catch (e) { /* host without a camera */ } }, kick: (a) => { if (fx) CAM_DRIFT.kick(a); }, /* a small settle push-in after a hit (drift games only) */
+      fire: (v) => { try { hooks.fire(v); } catch (e) { /* noop */ } },
       rider: (v) => { if (!hooks.rider) return; try { hooks.rider(!!v); riderHid = !v; } catch (e) { /* noop */ } }, /* hide / show the seated rider + bike (roast) */
       poke: (k) => { if (!hooks.poke) return; try { hooks.poke(clamp(+k || 0, 0, 1)); } catch (e) { /* noop */ } }, /* S.camp.pokeK for the rider's poke animation (stoke) */
       stick: (v) => { if (!hooks.stick) return; try { hooks.stick(!!v); } catch (e) { /* noop */ } }, /* S.camp.stick: the rider holds the poker for the whole stoke game */
