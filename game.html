@@ -53695,7 +53695,6 @@ import * as THREE from 'three';
 const errSeen = new Set();
 const errBox = (msg) => { if (errSeen.has(msg) || errSeen.size >= 3) return; errSeen.add(msg); const d = document.createElement('div'); d.id = 'err'; d.textContent = msg; document.body.appendChild(d); };
 window.addEventListener('error', e => errBox('Error: ' + e.message));
-window.addEventListener('unhandledrejection', e => errBox('Error: ' + ((e.reason && e.reason.message) || e.reason)));
 /* small corner notice for graphics trouble; built on demand so the normal page carries nothing extra */
 const gfxNote = (on) => {
   let n = document.getElementById('gfxNote');

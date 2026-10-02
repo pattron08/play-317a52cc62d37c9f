@@ -28,7 +28,7 @@
   <p>Private preview build. Landscape works best.</p>
   <button id="go">Play fullscreen</button>
   <button id="inst" class="sec" style="display:none">Install for fullscreen</button>
-  <a class="alt" id="win" href="game.html">Play in this window</a>
+  <a class="alt" id="win" href="game.html" onclick="this.href='game.html?v='+Date.now()+location.hash">Play in this window</a>
   <div id="steps"></div>
   <p id="tip" style="max-width:420px;font-size:14px"></p>
 </div>
@@ -40,7 +40,7 @@
     else if(/Android/.test(ua)){tip.textContent="For no address bar: tap the browser menu, then Add to Home screen (or Install app), and open it from your home screen.";}})();
   var stage=document.getElementById('stage'), frame=document.getElementById('frame');
   document.getElementById('go').addEventListener('click', function(){
-    frame.src='game.html' + location.hash;
+    frame.src='game.html?v=' + Date.now() + location.hash;
     stage.style.display='block';
     document.getElementById('launch').style.display='none';
     var r=document.documentElement.requestFullscreen||document.documentElement.webkitRequestFullscreen;
