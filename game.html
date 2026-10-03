@@ -61,19 +61,19 @@
   #hud { position: fixed; inset: 0; pointer-events: none; z-index: 2; text-shadow: 0 2px 6px rgba(0,0,0,.55); transition: opacity .3s; }
   body.onTitle #hud, body.onTitle #zones, body.onTitle #touch, body.onTitle #prog, body.scrOn #zones, body.scrOn #touch { opacity: 0; pointer-events: none !important; }
   body.scrOn #hud, body.scrOn #bPause { opacity: 0; }
-  #bPause { position: fixed; z-index: 4; left: var(--sl); top: var(--st); width: 48px; height: 48px; border-radius: 12px; padding: 0; cursor: pointer;
+  #bPause { position: fixed; z-index: 4; left: var(--sl); top: var(--st); width: 36px; height: 36px; border-radius: 10px; padding: 0; cursor: pointer;
     background: var(--glass); border: 1px solid var(--panel-edge); display: flex; gap: 5px; align-items: center; justify-content: center; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
-  #bPause s { display: block; width: 5px; height: 18px; background: var(--cream); border-radius: 2px; }
+  #bPause s { display: block; width: 4px; height: 14px; background: var(--cream); border-radius: 2px; }
+  #bPause::after { content: ''; position: absolute; inset: -6px; } /* the drawn button is small, the tap area stays 48 px */
   body.onTitle #bPause { display: none; }
   /* the on-screen pause / back buttons are for touch and mouse: while a gamepad or the keyboard is the active input they step aside (the class follows inDev) */
   body.devKb #bPause, body.devKb .cm-back { visibility: hidden; pointer-events: none; }
   #hTime { position: absolute; left: calc(var(--sl) + 58px); top: calc(var(--st) - 4px); font: italic 800 36px/1 var(--f-disp); letter-spacing: .01em; visibility: hidden; } /* the run clock keeps counting but is not drawn: the time shows on the finish card and in the records */
-  #hSpd { position: absolute; left: calc(var(--sl) + 60px); top: calc(var(--st) + 34px); font: 500 11px var(--f-ui); opacity: .55; letter-spacing: .06em; }
   #hScore { position: absolute; right: var(--sr); top: calc(var(--st) - 2px); text-align: right; font: italic 800 28px/1 var(--f-disp); opacity: 0; transition: opacity .6s linear; }
   #hScore.live { opacity: 1; transition: opacity .15s var(--ease-out); }
   #hScore.calm { opacity: .35; }
   #hScore small { display: block; font: 700 10px var(--f-ui); letter-spacing: .14em; color: var(--cream-70); margin-bottom: 2px; }
-  #hMeal { position: absolute; left: calc(var(--sl) + 60px); top: calc(var(--st) + 52px); display: flex; align-items: center; gap: 4px; padding: 2px 8px 2px 6px; border-radius: 10px; background: rgba(21,16,12,.5); color: var(--cream); font: 700 11px/1.3 var(--f-ui); letter-spacing: .04em; }
+  #hMeal { position: absolute; right: var(--sr); top: calc(var(--st) + 50px); display: flex; align-items: center; gap: 4px; padding: 2px 8px 2px 6px; border-radius: 10px; background: rgba(21,16,12,.5); color: var(--cream); font: 700 11px/1.3 var(--f-ui); letter-spacing: .04em; }
   #hMeal svg { width: 13px; height: 13px; color: #f3c56b; } #hMeal[hidden] { display: none; }
   #hLimbs { position: absolute; left: var(--sl); bottom: var(--sb); display: flex; gap: 14px; font: 700 10px var(--f-ui); letter-spacing: .12em; color: var(--cream-70); align-items: center; }
   #hLimbs span { display: flex; align-items: center; gap: 6px; }
@@ -539,7 +539,6 @@
 <div id="campFade"></div>
 <div id="hud">
   <div id="hTime"><span id="tTime">0:00.0</span></div>
-  <div id="hSpd"><span id="tSpeed">0 km/h</span></div>
   <div id="hScore"><small>SCORE <span id="tCombo"></span></small><span id="tScore">0</span></div>
   <div id="hMeal" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 1v5M2.5 1v4a1.5 1.5 0 003 0V1M4 7v8M11 1c-1.8 1-2.3 3.4-2.3 5.4h2.3V15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><b id="hMealN">2</b></div>
   <div id="hLimbs" aria-label="Limbs"><span id="lLegs"><i></i>LEGS <em style="font-style:normal;opacity:.6">Q</em></span><span id="lArms"><i></i>ARMS <em style="font-style:normal;opacity:.6">E</em></span></div>
@@ -590,7 +589,7 @@
   </div>
   <div id="tapGo" role="status">Tap to start</div>
   <button class="ico" id="mute" role="switch" aria-checked="true" aria-label="Sound"><svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg><svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M17 9l5 6M22 9l-5 6"/></svg></button>
-  <div class="foot"><span id="verTag">v0.31.2</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span></div>
+  <div class="foot"><span id="verTag">v0.32.0</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span></div>
   <button id="btnNew" hidden>New mountain</button>
 </div>
 
@@ -55733,9 +55732,12 @@ function mergeParts(parts) {
 }
 const campMat = new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true });
 const campFlutMat = flutterMat(new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true, side: THREE.DoubleSide }), 0.35); /* every camp's bunting + pole flag (flutter shader) */
-const puffMat = new THREE.MeshLambertMaterial({ color: '#c9c7c0', transparent: true, opacity: 0.35, depthWrite: false }); /* pale, warm smoke */
+const SMK = {"n": 20, "spread": 1.2, "sh": [[1, 0.16], [0.84, 0.18], [0.68, 0.2], [0.52, 0.23], [0.36, 0.26]], "detail": 1, "jit": 0.0, "mode": 1, "sp": [0.11, 0.21], "pk": [0.85, 1.0], "in": 0.08, "f0": 0.2, "tm": 0.26, "c0": "#ffffff", "c1": "#ffffff", "tone": [0.66, 0.63, 0.6], "steam": 0.3, "ht": 5.4, "wind": 2.6, "ease": 1.15, "fq": [1.6, 2.8], "am": [1.2, 0.85], "zk": 1.0, "spin": 3.0, "r0": [0.2, 0.12], "r1": [0.75, 0.5], "st": [1.3, 2.4], "squash": 1};
+const PUFF_O = 0.35; /* puffMat's base opacity: the game lens thins the smoke through it, the wisps read it back as a factor */
+const puffMat = new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: PUFF_O, depthWrite: false, fog: false, toneMapped: false, blending: THREE.CustomBlending, blendEquation: THREE.AddEquation, blendSrc: THREE.ConstantColorFactor, blendDst: THREE.OneMinusSrcColorFactor, blendSrcAlpha: THREE.ZeroFactor, blendDstAlpha: THREE.OneFactor }); puffMat.blendColor.setRGB(SMK.tone[0], SMK.tone[1], SMK.tone[2]); /* out = smoke tone x coverage + backdrop x (1 - coverage), per channel. A puff's instance color IS its coverage (unlit, so the lights' tint stays out of it), the smoke tone is the blend constant: one mesh fades puff by puff, and the order of the puffs does not matter */
 const glowMat = new THREE.MeshBasicMaterial({ color: '#ff9a4a', transparent: true, opacity: 0.16, depthWrite: false, blending: THREE.AdditiveBlending });
-const puffGeo = new THREE.IcosahedronGeometry(0.2, 2); /* detail 2 = smooth soft ball (detail 0 read as a floating grey rock/cloud block above the camp fire) */
+const smkH = (n) => { const s = Math.sin(n * 12.9898) * 43758.5453; return s - Math.floor(s); }; /* position hash 0-1: smoke variation per puff and per rise, no random stream */
+const puffGeo = (() => { const g = new THREE.IcosahedronGeometry(0.2, SMK.detail); if (SMK.jit) { const p = g.attributes.position, v = new THREE.Vector3(); for (let i = 0; i < p.count; i++) { v.fromBufferAttribute(p, i); const k = 1 + SMK.jit * (Math.sin(v.x * 19 + 1.3) * Math.sin(v.y * 23 + 0.7) + 0.5 * Math.sin(v.z * 17 + 2.1)); p.setXYZ(i, v.x * k, v.y * k, v.z * k); } } return g; })(); /* lumpy low-poly ball: a smooth bump field on an icosphere (same point, same push, so no cracks) */
 for (const m of [campMat, campFlutMat, puffMat, glowMat]) SHARED_MATS.add(m);
 /* ---------- the camps' LOOK is rolled per session, not per mountain seed. S.campLook is a Math.random number drawn in newRun() whenever a NEW
    mountain is rolled (a relaunch rolls it again); the same mountain code in another session gets other looks, and the looks hold for as long as the
@@ -56251,7 +56253,7 @@ function addCampMesh(cp) {
     if (o.breathe) { const cg = pivotM(new THREE.Matrix4().makeTranslation(chB.x, chB.y, chB.z).premultiply(F)); animMesh(cg, TL); fx.chest = cg; }
     { /* the head frame: +x = the face, +y = the top of the head; J.face / J.up (figure frame) override the upright default (the lying campers) */
       let HM; if (J.face) { const f = V3(J.face).normalize(), u = J.up ? V3(J.up) : sn.clone(); u.addScaledVector(f, -u.dot(f)).normalize(); HM = new THREE.Matrix4().makeBasis(f, u, new THREE.Vector3().crossVectors(f, u)).setPosition(hd).premultiply(F); } else HM = headFrame(F, hd, tilt);
-      const hp = pivotM(HM), hl = []; headAt(new THREE.Matrix4(), o.head || {}, hl); animMesh(hp, hl); fx.heads.push({ g: hp, q: hp.quaternion.clone(), y: hp.position.y, ph: rv() * 6.28, k: o.headK ?? 1, nod: o.nod || 0, na: o.nodA || 0 }); } /* nod = a rhythmic nod's rate (the guitarist, in time with the strum) */
+      const hp = pivotM(HM), hl = []; headAt(new THREE.Matrix4(), o.head || {}, hl); animMesh(hp, hl); fx.heads.push({ g: hp, q: hp.quaternion.clone(), y: hp.position.y, ph: rv() * 6.28, k: o.headK ?? 1, nod: o.nod || 0, na: o.nodA || 0, look: !!o.look, p: hp.position.clone() }); } /* nod = a rhythmic nod's rate (the guitarist, in time with the strum) */
     for (const [sd, e, h] of [[-1, V3(J.eL), V3(J.hL)], [1, V3(J.eR), V3(J.hR)]]) {
       const sh = sd < 0 ? shL : shR; if (skip.includes(sd < 0 ? 'armL' : 'armR')) continue;
       L(sh, e, 0.07, jac); if (skip.includes(sd < 0 ? 'foreL' : 'foreR')) continue;
@@ -56306,18 +56308,23 @@ function addCampMesh(cp) {
         put(cyl(0.09, 0.03, 6), '#2a2a2a', sx, 0.43, sz); put(cyl(0.075, 0.18, 6), '#ffe6a8', sx, 0.535, sz); put(new THREE.CylinderGeometry(0.03, 0.09, 0.05, 6), '#2a2a2a', sx, 0.65, sz); put(new THREE.TorusGeometry(0.05, 0.008, 4, 8, Math.PI), '#3a3a3a', sx, 0.68, sz); /* the lantern on it */
         for (const [mx, mz] of [[0.14, 0.1], [-0.1, 0.16]]) put(new THREE.OctahedronGeometry(0.022, 0), '#f0e6d0', sx + mx, 0.8 + mz, sz + mz, 0.3, 0.5, 0); /* two moths */
         solC(sx, sz, 0.28, 0.75, 'Hit the stump'); }
-    } else { /* the tea maker: on the log, turned to a twig stove at his left with a kettle steaming on it (the left forearm stirs the pot),
-         a mug in the right hand, two enamel cups and a tea tin on a tray at his feet. Seat-A footprint as the cook; the stove has its own. */
-      figure(F, { ...seated, ch: [0.06, 0.8, -0.06], hd: [0.12, 1.1, -0.12], face: [0.8, -0.4, -0.45], up: [0.3, 0.95, 0], eL: [0.14, 0.52, -0.36], hL: [0.42, 0.52, -0.5], eR: [0.2, 0.55, 0.26], hR: [0.4, 0.66, 0.08] }, ['foreL'], -0.3);
-      put(cyl(0.045, 0.09, 7), '#b5452f', 0.47, 0.68, 0.03, 0, 0, 0, 1, 1, 1, F); put(new THREE.TorusGeometry(0.03, 0.009, 4, 6), '#b5452f', 0.431, 0.69, 0.058, 0, -2.52, 0, 1, 1, 1, F); /* the mug in the right hand, held by its handle (centered on the hand, the fist sat half inside the mug) */
-      fx.arm = { g: foreArm(F, [0.14, 0.52, -0.36], [0.42, 0.52, -0.5], (sl, dx, dy, dz) => sl.push({ geo: cyl(0.008, 0.22, 4), col: '#c9a883', m: new THREE.Matrix4().compose(V.set(dx + 0.05, dy - 0.05, dz - 0.03), Q.setFromEuler(E.set(0.3, 0, -0.5)), Sc.set(1, 1, 1)) })), q: null, mode: 'stir' }; fx.arm.q = fx.arm.g.quaternion.clone(); /* a wooden spoon in the hand */
-      { const SX = 0.6, SZ = -0.7, [sx, sz] = fc(F, SX, SZ), [ox, oz] = fc(F, 0.5, -0.62); put(cyl(0.14, 0.2, 7), '#2a2520', sx, 0.1, sz); /* the stove stands a little further out than the stirring hand reaches; (ox, oz) = its footprint, kept where it always was (it still covers the stove) */ put(cyl(0.11, 0.03, 7), '#1c1512', sx, 0.21, sz); /* the twig stove */
+    } else { /* the tea maker: on the log facing the fire, a mug in the right hand, the left hand resting on his knee, a twig stove at his left with a kettle steaming on it,
+         two enamel cups and a tea tin on a tray at his feet. He sits and sips: the head looks round, the body settles now and then, and every so often the mug comes
+         up to his mouth (fx.tea, animateCamps). The right arm and the mug are the one moving mesh (they replace the old stirring forearm), so the draw calls are unchanged. */
+      figure(F, { ...seated, ch: [0.08, 0.8, 0], hd: [0.13, 1.1, 0], eL: [0.12, 0.56, -0.31], hL: [0.34, 0.58, -0.12], eR: [0.07, 0.55, 0.3], hR: [0.234, 0.66, 0.07] }, ['armR'], -0.2, { look: true });
+      { const S0 = [0.0854, 0.8295, 0.175], E1 = [0.07, 0.55, 0.3], H1 = [0.234, 0.66, 0.07], sp = pivot(F, S0[0], S0[1], S0[2]), sl = [], el = [E1[0] - S0[0], E1[1] - S0[1], E1[2] - S0[2]], hl = [H1[0] - S0[0], H1[1] - S0[1], H1[2] - S0[2]]; /* the shoulder, elbow and hand of the right arm in the figure frame */
+        limb(new THREE.Matrix4(), 0, 0, 0, el[0], el[1], el[2], 0.07, jac, sl); limb(new THREE.Matrix4(), el[0], el[1], el[2], hl[0], hl[1], hl[2], 0.06, jac, sl);
+        sl.push({ geo: sph(0.062, 7, 5), col: jacD, m: new THREE.Matrix4().makeTranslation(hl[0] + (el[0] - hl[0]) * 0.2, hl[1] + (el[1] - hl[1]) * 0.2, hl[2] + (el[2] - hl[2]) * 0.2) }, { geo: sph(0.052, 7, 5), col: SKIN, m: new THREE.Matrix4().makeTranslation(hl[0], hl[1], hl[2]) }); /* sleeve, cuff, hand */
+        sl.push({ geo: cyl(0.045, 0.09, 7), col: '#b5452f', m: new THREE.Matrix4().makeTranslation(hl[0] + 0.065, hl[1] + 0.015, hl[2] - 0.01) }, { geo: new THREE.TorusGeometry(0.03, 0.009, 4, 6), col: '#b5452f', m: new THREE.Matrix4().compose(V.set(hl[0] + 0.031, hl[1] + 0.03, hl[2] - 0.022), Q.setFromEuler(E.set(0, -2.52, 0)), Sc.set(1, 1, 1)) }); /* the mug, held by its handle */
+        animMesh(sp, sl); fx.teaArm = { g: sp, q: sp.quaternion.clone(), p: sp.position.clone() }; }
+      { const SX = 0.6, SZ = -0.7, [sx, sz] = fc(F, SX, SZ), [ox, oz] = fc(F, 0.5, -0.62); put(cyl(0.14, 0.2, 7), '#2a2520', sx, 0.1, sz); /* (ox, oz) = the stove's footprint, kept where it always was */ put(cyl(0.11, 0.03, 7), '#1c1512', sx, 0.21, sz); /* the twig stove */
         for (let i = 0; i < 5; i++) { const a = i * 1.26; beamP(sx + Math.cos(a) * 0.12, 0.19, sz + Math.sin(a) * 0.12, sx + Math.cos(a) * 0.05, 0.3, sz + Math.sin(a) * 0.05, 0.011, '#6b4a30', 3); }
         { const fl = [{ geo: flameGeo(0.07, 0.2, FL_RED, FL_YEL), col: null, m: new THREE.Matrix4().makeTranslation(0, 0, 0) }, { geo: flameGeo(0.045, 0.15, FL_YEL, FL_CREAM), col: null, m: new THREE.Matrix4().makeTranslation(0.03, 0.01, 0.02) }]; const fm = new THREE.Mesh(mergeParts(fl), flameMat); fm.position.set(sx, 0.2, sz); grp.add(fm); flames.push(fm); } /* its little flame, flickering with the fire */
         { const st = kettleB(sx, 0.31, sz, 1.15, Math.PI); fx.steam.push([st.x, st.y + 0.01, st.z, 0.28]); } /* the blue enamel kettle, its foot on the twig tips (y 0.31), the spout turned away from him, steaming */
         solC(ox, oz, 0.3, 0.62, 'Hit the stove'); }
       { const [tx, tz] = fc(F, 0.3, -0.95), ta = Math.atan2(SA[1], -SA[0]) + 0.3; put(box(0.5, 0.03, 0.3), '#8a5a34', tx, 0.03, tz, 0, ta, 0); const c = Math.cos(ta), s = Math.sin(ta);
         put(cyl(0.05, 0.08, 7), '#3f6e86', tx - c * 0.1, 0.085, tz + s * 0.1); put(cyl(0.05, 0.08, 7), '#b5452f', tx + c * 0.1, 0.085, tz - s * 0.1); put(box(0.1, 0.12, 0.08), '#5a7a4a', tx + s * 0.09, 0.105, tz + c * 0.09, 0, ta, 0); } /* the tray: two enamel cups and a tea tin */
+      fx.tea = { arm: fx.teaArm, head: fx.heads[fx.heads.length - 1], gap: 4 + Math.random() * 8, u: -1, look: 0.5 + Math.random() * 2, yaw: 0, pit: 0, ty: 0, tp: 0, shT: 2 + Math.random() * 5, sx: 0, sy: 0, sz: 0, tx: 0, tz: 0, ty2: 0, dur: 3.4, fq: new THREE.Quaternion().setFromRotationMatrix(F) }; /* per-session Math.random: the camper's own rhythm, no seeded draw */
     }
   } else if (variant === 1) { /* the sleeper: the regular camper model lying on his back on a foam sleeping mat, both arms behind the head, one knee up with the boot
        flat on the mat and the other leg straight, toes up; the chest rises and falls (fx.chest). Head toward the fire, on the camera side of it;
@@ -56529,7 +56536,7 @@ function addCampMesh(cp) {
   /* the pole flag is a swallowtail (0.9 x 0.5 at course camps, 0.75 x 0.4 at your own), hung from the pole top; it and the bunting flutter in the shader */
   swallowFlag(flutB, poleP[0], poleY + poleH - 0.05, poleP[1], 0.2, cp.lane ? 0.9 : 0.75, cp.lane ? 0.5 : 0.4, cp.lane ? ACC : '#6fe0c4', '#f2ecdc');
   fx.flag = new THREE.Mesh(flagGeo(flutB), campFlutMat); grp.add(fx.flag);
-  fx.smoke = new THREE.InstancedMesh(puffGeo, puffMat, 9 + 3 * fx.steam.length); fx.smoke.frustumCulled = false; /* + 3 puffs per steam source (the pot, the kettle) */ grp.add(fx.smoke); fx.smokeT = Array.from({ length: 9 }, (_, k) => k / 9);
+  fx.smoke = new THREE.InstancedMesh(puffGeo, puffMat, SMK.n * SMK.sh.length + 3 * fx.steam.length); fx.smoke.frustumCulled = false; /* + 3 puffs per steam source (the pot, the kettle) */ grp.add(fx.smoke); fx.smokeT = Array.from({ length: SMK.n }, (_, k) => k / SMK.n); fx.smokeC = new Int32Array(SMK.n);
   fx.smokeHi = cp.lane ? 1.7 : 1; /* course camps sit behind their tree screen, so their smoke column rises twice as high (7.5 m, pale) - the wisp IS the glimpse */
   const eg = new THREE.BufferGeometry(); eg.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(14 * 3), 3));
   fx.embers = new THREE.Points(eg, new THREE.PointsMaterial({ color: '#ffb35c', size: 0.09, transparent: true, opacity: 0.9, depthWrite: false })); fx.embers.frustumCulled = false; grp.add(fx.embers);
@@ -56556,6 +56563,43 @@ function stargazerArms(F) {
     A.g.quaternion.copy(A.q).multiply(_sgq).multiply(_sgq2.setFromAxisAngle(_cz, (az - lift) * k + br * (1 - k))).multiply(_cq.setFromAxisAngle(_cx, ax * k)); }
   const H = G.head; if (H) { H.g.quaternion.multiply(_sgq.setFromAxisAngle(_cy, 0.25 * lookX * look)).multiply(_sgq2.setFromAxisAngle(_cz, -0.12 * look)); } /* the head turns toward the hand and tips back a touch while an arm is up */
 }
+const smkC2 = new THREE.Color();
+const smkCov = (o, a) => o.setScalar(Math.pow(Math.min(1, Math.max(0, a)), 2.2)); /* coverage 0-1 -> instance color (the shader sRGB-encodes it on the way out) */
+const smkSS = (a, b, x) => { const u = Math.min(1, Math.max(0, (x - a) / (b - a))); return u * u * (3 - 2 * u); };
+const smkQ = new THREE.Quaternion(), smkQ2 = new THREE.Quaternion(), smkA = new THREE.Vector3(), smkB = new THREE.Vector3(), smkC = new THREE.Color();
+function smokePath(o, t, ph, fq, am, HI, ft) { /* one wisp's centerline in camp space: eased rise, wind lean, a curl that widens with height, a slow column sway */
+  const K = SMK, w = am * (0.15 + t), a = fq * 6.283 * t + ph;
+  return o.set(K.wind * HI * Math.pow(t, 1.6) + w * Math.sin(a) + 0.1 * Math.sin(ft * 0.8 + t * 3), 1.05 + K.ht * HI * (1 - Math.pow(1 - t, K.ease)), -0.3 * t + K.zk * w * Math.cos(a)); }
+function smokePuff(F, i, t, c, fast, HI, thin) { /* puff i at life t (cycle c): placed on the instanced mesh, faded through its instance color (see puffMat) */
+  const K = SMK, n = i * 7.31 + c * 19.7 + 0.5, r1 = smkH(n), r2 = smkH(n + 1.7), r3 = smkH(n + 3.4);
+  if (K.mode === 0) { /* the first smoke: same rise and growth, now fading with height and turning slowly */
+    const sc = (0.6 + t * (1.6 + 0.8 * HI)) * Math.sin(Math.PI * Math.min(1, t * 1.1));
+    smkA.set(0.9 * t * t + Math.sin(t * 6 + F.t) * 0.08, 1.05 + t * 3.8 * HI, -0.3 * t); smkQ.setFromAxisAngle(_cy, F.t * 0.25 + i * 1.7); smkQ2.setFromAxisAngle(_cx, 0.3 * Math.sin(i + c)); smkQ.multiply(smkQ2);
+    _cs.set(sc, sc * K.squash, sc); _cm.compose(smkA, smkQ, _cs); F.smoke.setMatrixAt(i, _cm);
+    const a = K.pk[0] * smkSS(0, K.in, t) * (1 - smkSS(K.f0, 1, t)) * thin; F.smoke.setColorAt(i, smkCov(smkC, a)); return; }
+  const ph = r1 * 6.283, fq = K.fq[fast] * (0.8 + 0.4 * r2), am = K.am[fast] * (0.7 + 0.6 * r3);
+  smokePath(smkA, t, ph, fq, am, HI, F.t); smokePath(smkB, t < 0.97 ? t + 0.03 : t - 0.03, ph, fq, am, HI, F.t); smkB.sub(smkA); if (t >= 0.97) smkB.negate(); if (smkB.lengthSq() < 1e-8) smkB.set(0, 1, 0);
+  smkQ.setFromUnitVectors(_cy, smkB.normalize()); smkQ2.setFromAxisAngle(_cy, ph + t * K.spin); smkQ.multiply(smkQ2); /* long axis along the flow, then a twist so the lumps differ */
+  const spr = K.spread * (0.2 + t); smkA.x += (r2 - 0.5) * spr; smkA.z += (r3 - 0.5) * spr; /* each lump strays a little off the strand */
+  const s = (K.r0[fast] + K.r1[fast] * t) * (0.85 + 0.3 * r3) / 0.2, L = 1 + K.st[fast] * Math.pow(1 - t, 1.2); /* long and thin at the flame, rounder and wider as it climbs */
+  const a = K.pk[fast] * (0.8 + 0.4 * r2) * smkSS(0, K.in, t) * (1 - smkSS(K.f0, 1, t)) * thin; /* in at the flame, out well before the top: nothing ends as a lump */
+  for (let h = 0; h < K.sh.length; h++) { /* each wisp is a nest of shells (big faint, small dense): the soft edge a flat low-poly blob does not have */
+    const q = K.sh[h]; _cs.set(s * q[0], s * L * q[0], s * q[0] * (0.85 + 0.3 * r1)); _cm.compose(smkA, smkQ, _cs); F.smoke.setMatrixAt(i * K.sh.length + h, _cm);
+    F.smoke.setColorAt(i * K.sh.length + h, smkCov(smkC2, a * q[1])); } }
+const TEA_SIP = 1.126; /* the right arm's swing about the shoulder (rad): from the mug resting at his chest to the rim at his lips */
+const teaEase = (x) => { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); };
+function teaIdle(F, dt) { /* the tea maker's calm idle: slow looks round, a small settle of the body, and a sip every 4 to 12 s (per-session Math.random; reduced motion = the resting pose, breathing only) */
+  const T = F.tea, H = T.head, A = T.arm, R = Math.random, rm = reduceMotion.matches;
+  if (rm) { H.g.quaternion.copy(H.q); H.g.position.copy(H.p); H.g.position.y += 0.004 * Math.sin(F.t * 1.2); A.g.quaternion.copy(A.q); A.g.position.copy(A.p); return; }
+  T.look -= dt; if (T.look <= 0) { T.look = 2.6 + R() * 4; const u = R(); T.ty = u < 0.3 ? (R() - 0.5) * 0.3 : u < 0.55 ? 0.55 + R() * 0.35 : u < 0.8 ? -0.2 - R() * 0.3 : (R() - 0.5) * 0.7; T.tp = -0.12 + R() * 0.24; } /* centre, the stove at his left, the valley at his right, a glance about */
+  T.shT -= dt; if (T.shT <= 0) { T.shT = 4 + R() * 7; T.tx = (R() - 0.5) * 0.022; T.tz = (R() - 0.5) * 0.022; T.ty2 = (R() - 0.5) * 0.01; } /* settle the body a little */
+  const kk = 1 - Math.exp(-dt * 1.3), ks = 1 - Math.exp(-dt * 0.8); T.yaw += (T.ty - T.yaw) * kk; T.pit += (T.tp - T.pit) * kk; T.sx += (T.tx - T.sx) * ks; T.sz += (T.tz - T.sz) * ks; T.sy += (T.ty2 - T.sy) * ks;
+  if (T.u < 0) { T.gap -= dt; if (T.gap <= 0) T.u = 0; } else { T.u += dt / T.dur; if (T.u >= 1) { T.u = -1; T.gap = 4 + R() * 8; } }
+  const u = T.u, k = u < 0 ? 0 : u < 0.3 ? teaEase(u / 0.3) : u < 0.62 ? 1 : 1 - teaEase((u - 0.62) / 0.38), tilt = u > 0.3 && u < 0.62 ? 0.09 * Math.sin(Math.PI * (u - 0.3) / 0.32) : 0; /* up, a held tip of the mug, down */
+  const yaw = T.yaw * (1 - k) + 0.04 * k, pit = T.pit * (1 - k) - 0.3 * k + 0.02 * Math.sin(F.t * 1.3);
+  H.g.quaternion.copy(H.q).multiply(_cq.setFromAxisAngle(_cy, yaw)).multiply(_cq2.setFromAxisAngle(_cz, pit));
+  _cp.set(T.sx + 0.035 * k, T.sy + 0.005 * Math.sin(F.t * 1.4) - 0.02 * k, T.sz + 0.012 * k).applyQuaternion(T.fq); H.g.position.copy(H.p).add(_cp); /* the offsets are in the figure's frame */
+  _cp.set(T.sx, T.sy, T.sz).applyQuaternion(T.fq); A.g.position.copy(A.p).add(_cp); A.g.quaternion.copy(A.q).multiply(_cq.setFromAxisAngle(_cz, TEA_SIP * k + tilt + 0.02 * Math.sin(F.t * 0.9))); }
 function animateCamps(dt) {
   for (const F of campFx) {
     if (!F.grp.parent) continue;
@@ -56564,9 +56608,11 @@ function animateCamps(dt) {
     F.t += dt;
     F.glow.material.opacity = (F.glowBase || 0.2) * (S.camp ? 1 + 0.12 * sstep(S.camp.k) : 1) * (1 + Math.sin(F.t * 4.2) * 0.03 + Math.sin(F.t * 7.9) * 0.02) + (Math.random() - 0.5) * 0.006; /* the glow breathes slowly (+-5 %); x1.12 at dusk (more and the fire blows out to flat yellow with the disc drawn over the flames in camp mode, see below) and its core is halved (the vertex colors: a 0.5 -> 1 ramp over the first 22 %), so the flames and the ring stones keep their color under it */
     F.glow.material.depthTest = !S.camp; /* the glow disc is draped on the ground, so with the depth test every prop standing in it cuts a hard edge where it occludes the disc. In camp mode (the fixed lens, nothing between it and the pad) the disc draws over everything instead: on the logs, the wheels and the rider's boots it reads as the fire's light on them. In the ride it stays depth-tested (it must not show through a hill or a tree trunk) */
-    { const ST = F.smokeT, HI = S.camp ? Math.min(F.smokeHi || 1, 0.5) : (F.smokeHi || 1); /* camp lens: the column stops ~3 m up (the ride keeps 7.5 m: the wisp seen through the trees) */ for (let i = 0; i < ST.length; i++) { const t = (ST[i] = (ST[i] + dt * 0.2) % 1), sc = (0.6 + t * (1.6 + 0.8 * HI)) * Math.sin(Math.PI * Math.min(1, t * 1.1)); _cm.compose(_cp.set(0.9 * t * t + Math.sin(t * 6 + F.t) * 0.08, 1.05 + t * 3.8 * HI, -0.3 * t), _cq.identity(), _cs.set(sc, sc, sc)); F.smoke.setMatrixAt(i, _cm); } }
+    { const ST = F.smokeT, SC = F.smokeC, HI = F.smokeHi || 1, thin = puffMat.opacity / PUFF_O; /* thin: 1, less while a game pose fills the lens */
+      for (let i = 0; i < ST.length; i++) { const f = i & 1, t0 = ST[i], t = (ST[i] = (t0 + dt * SMK.sp[f]) % 1); if (t < t0) SC[i]++; smokePuff(F, i, t, SC[i], f, HI, thin); } }
     if (F.steam.length) { /* the pot's / kettle's steam: three small puffs per source ride the same instanced mesh as the smoke (0 extra draw calls) */
-      for (let k = 0; k < F.steam.length; k++) { const [sx, sy, sz, sr] = F.steam[k]; for (let j = 0; j < 3; j++) { const life = (F.t * 0.35 + j / 3 + k * 0.17) % 1, sc = sr * (0.3 + life * 0.9) * Math.sin(Math.PI * Math.min(1, life * 1.2)); _cm.compose(_cp.set(sx + Math.sin(life * 6 + j * 2) * 0.05, sy + life * 0.55, sz + Math.cos(life * 5 + j) * 0.04), _cq.identity(), _cs.set(sc, sc, sc)); F.smoke.setMatrixAt(9 + k * 3 + j, _cm); } } }
+      for (let k = 0; k < F.steam.length; k++) { const [sx, sy, sz, sr] = F.steam[k]; for (let j = 0; j < 3; j++) { const life = (F.t * 0.35 + j / 3 + k * 0.17) % 1, sc = sr * (0.3 + life * 0.9) * Math.sin(Math.PI * Math.min(1, life * 1.2)); _cm.compose(_cp.set(sx + Math.sin(life * 6 + j * 2) * 0.05, sy + life * 0.55, sz + Math.cos(life * 5 + j) * 0.04), _cq.identity(), _cs.set(sc, sc, sc)); F.smoke.setMatrixAt(SMK.n * SMK.sh.length + k * 3 + j, _cm); const a = SMK.steam * Math.sin(Math.PI * Math.min(1, life * 1.2)) * (puffMat.opacity / PUFF_O); F.smoke.setColorAt(SMK.n * SMK.sh.length + k * 3 + j, smkCov(smkC, a)); } } }
+    F.smoke.instanceColor.needsUpdate = true;
     F.smoke.instanceMatrix.needsUpdate = true;
     const ep = F.embers.geometry.attributes.position.array;
     for (let i = 0; i < F.emb.length; i++) { const E = F.emb[i]; E.t += dt * 0.7 * E.s; if (E.t > 1) { E.t = 0; E.x = (Math.random() - 0.5) * 0.3; E.z = (Math.random() - 0.5) * 0.3; } ep[i * 3] = E.x + Math.sin(E.t * 9 + i) * 0.12 + E.t * 0.3; ep[i * 3 + 1] = 0.5 + E.t * 2.2; ep[i * 3 + 2] = E.z; }
@@ -56577,7 +56623,8 @@ function animateCamps(dt) {
     if (F.hand) F.hand.quaternion.copy(F.handQ).multiply(_cq.setFromAxisAngle(_cz, 0.14 * Math.sin(F.t * 9.4))); /* wrench pumping */
     if (F.strum) F.strum.rotation.x = 0.25 * Math.sin(F.t * 5.5);
     if (F.stick) F.stick.quaternion.copy(F.stickQ).multiply(_cq.setFromAxisAngle(_cy, 0.12 * Math.sin(F.t * 0.9))).multiply(_cq2.setFromAxisAngle(_cz, 0.05 * Math.sin(F.t * 1.3))); /* turning the hot dog over the fire */
-    for (const H of F.heads) { const t = F.t + H.ph; H.g.quaternion.copy(H.q).multiply(_cq.setFromAxisAngle(_cy, 0.14 * H.k * Math.sin(t * 0.37) * Math.sin(t * 0.11 + 1))).multiply(_cq2.setFromAxisAngle(_cz, 0.04 * H.k * Math.sin(t * 0.63) + (H.nod ? H.na * Math.sin(F.t * H.nod) : 0))); H.g.position.y = H.y + 0.006 * Math.sin(t * 1.4); } /* a slow look round, a small nod, a breathing bob (+ the guitarist's rhythmic nod) */
+    for (const H of F.heads) { if (H.look) continue; const t = F.t + H.ph; H.g.quaternion.copy(H.q).multiply(_cq.setFromAxisAngle(_cy, 0.14 * H.k * Math.sin(t * 0.37) * Math.sin(t * 0.11 + 1))).multiply(_cq2.setFromAxisAngle(_cz, 0.04 * H.k * Math.sin(t * 0.63) + (H.nod ? H.na * Math.sin(F.t * H.nod) : 0))); H.g.position.y = H.y + 0.006 * Math.sin(t * 1.4); } /* a slow look round, a small nod, a breathing bob (+ the guitarist's rhythmic nod) */
+    if (F.tea) teaIdle(F, dt);
     if (F.foot) { const u = F.strum ? Math.max(0, Math.sin(F.t * 5.5 + 1.2)) : Math.max(0, Math.sin(F.t * 3.6)) * (0.5 + 0.5 * Math.sin(F.t * 0.23)); F.foot.quaternion.copy(F.footQ).multiply(_cq.setFromAxisAngle(_cz, 0.3 * u * u)); } /* the tapping toe lifts about the heel: in time with the strum, or now and then */
     if (F.chest) { const s = 1 + (F.gaze ? 0.05 : 0.035) * Math.sin(F.t * 1.4); F.chest.scale.set(s, s, s); } /* the lying campers' chests rise and fall (about the chest's base) */
     if (F.gaze) stargazerArms(F);
@@ -56585,7 +56632,6 @@ function animateCamps(dt) {
       if (A.mode === 'point') { az = 0.08 * Math.sin(t * 0.9); ay = 0.06 * Math.sin(t * 0.6 + 1); } /* the stargazer tracing the sky */
       else if (A.mode === 'page') { const u = Math.max(0, Math.sin(t * 0.55)); ax = -0.4 * u * u * u; } /* the reader lifting a page every few seconds */
       else if (A.mode === 'pencil') { ax = 0.1 * Math.sin(t * 2.4); az = 0.07 * Math.cos(t * 3.1); } /* the planner's pencil circling */
-      else if (A.mode === 'stir') { ay = 0.18 * Math.sin(t * 2.6); ax = 0.05 * Math.cos(t * 2.6); } /* the tea maker stirring */
       else if (A.mode === 'brush') { az = 0.1 * Math.sin(t * 2.1); ay = 0.09 * Math.sin(t * 3.3 + 0.5); } /* the painter's strokes */
       A.g.quaternion.copy(A.q).multiply(_cq.setFromAxisAngle(_cx, ax)).multiply(_cq2.setFromAxisAngle(_cy, ay)).multiply(_cqa.setFromAxisAngle(_cz, az)); }
     if (F.board) { const P = F.board.userData.panel, pa = P.geometry.attributes.position, base = P.geometry.userData.base; if (pa && base) { for (let i = 0; i < pa.count; i++) { const x = base[i * 3], y = base[i * 3 + 1], k = (BOARD_TEX.ph / 2 - y) / BOARD_TEX.ph; pa.setZ(i, 0.016 * k * k * (0.5 + 0.5 * Math.sin(F.t * 3.2 + x * 4)) + 0.005 * k * (0.5 + 0.5 * Math.sin(F.t * 5 + y * 6))); } pa.needsUpdate = true; } } /* the paper's lower rows flutter, bowing outward only (its top edge is pinned; the plank seams sit 6 mm behind it) */
@@ -56730,14 +56776,22 @@ function mountBike(R, roleC) {
   for (const s of [-1, 1]) { const arm = new THREE.Group(); arm.rotation.z = s < 0 ? 0 : Math.PI; R.crank.add(arm); const ped = mesh(G.pedal[s < 0 ? 0 : 1], arm); ped.position.set(0, -CRANK, s * 0.16); ped.userData.counter = true; }
   return () => { for (const m of merged) { const Rg = m.geometry.userData.ranges; if (!Rg) continue; const col = m.geometry.attributes.color.array; for (const rg of Rg) { const c = roleC[rg.role](); for (let v = rg.o, e = rg.o + rg.n; v < e; v++) { col[v * 3] = c.r; col[v * 3 + 1] = c.g; col[v * 3 + 2] = c.b; } } m.geometry.attributes.color.needsUpdate = true; } };
 }
-/* ---------- the front basket and its cat (static props on the bars) ----------
-   A galvanized wire basket on the handlebar with a sitting cat in it. Both are plain vertex-colored parts in bike space that mountBike appends
+/* ---------- the front basket and its cat (static props on the front of the bike) ----------
+   A galvanized wire basket with a sitting cat in it. Both are plain vertex-colored parts in bike space that mountBike appends
    to the steering mesh (the basket and the ride cat share its draw call and turn with the bars); the camp cat (with eyes) is one extra mesh
-   that only shows at camp, where the ride cat is cut off by the steering mesh's draw range. Nothing here moves and nothing is random. */
+   that only shows at camp, where the ride cat is cut off by the steering mesh's draw range. Nothing here moves and nothing is random.
+   PLACEMENT: every option is one row of BK_PLACE (bike space, +x forward, +y up; the front axle is at (0.80, 0.35), the tire top at y 0.735, the bars at (0.55, 1.17)).
+   org = basket inner floor centre [x, y, z]; tilt = degrees about the z axis, + = nose down (forward), - = back toward the rider; scale = uniform size of
+   basket + cat; mount = the hardware style ('bar' straps + crown stay, 'crown' platform on the fork crown, 'rack' wire rack on the fork legs). BK_SEL picks the row. */
+const BK_PLACE = {
+  A: { name: 'E.T. low-hang', org: [0.86, 0.745, 0], tilt: 5, scale: 1, mount: 'bar' },
+  B: { name: 'fork crown platform', org: [0.88, 1.02, 0], tilt: -12, scale: 1, mount: 'crown' },
+  C: { name: 'lowrider fork-leg rack', org: [1.31, 0.56, 0], tilt: 0, scale: 0.8, mount: 'rack' } };
+const BK_SEL = 'B';
+const BK_P = BK_PLACE[BK_SEL], BK_BAR = [0.55, 1.17], BK_CROWN = [0.595, 0.878] /* bar centre, front face of the lower fork crown */, BK_AXLE = [0.803, 0.35], BK_LEG_Z = 0.12;
 const BK = { fur: '#f4efe6', furCool: '#d6d8e2', spot: '#26242b', pink: '#e9a3aa', nose: '#d8848f', eye: '#26242b', glint: '#f6f2ea',
   wire: '#b8bec4', wireSide: '#aab0b6', wireIn: '#9aa0a6', wireHi: '#dde2e6', wireHi2: '#c4cacf', wireLo2: '#80868d', wireLo: '#6a7077', liner: '#7d838a', bracket: '#7b8188',
   strap: '#8b6914', strapD: '#6e5310', buckle: '#c9ccd0' };
-const BK_ORG = [0.759, 1.11, 0], BK_BAR = [0.55, 1.17], BK_CROWN = [0.487, 1.104], BK_CLAMP = [0.712, 0.56, 0.152]; /* inner floor center, bar, upper fork crown, stay clamps on the fork lowers (bike space) */
 const BK_D = { half: 0.20, H: 0.26, floor: 0.015, wall: 0.014, rimH: 0.024, flare: 6.5 * Math.PI / 180, cham: 0.18 };
 const BK_YB = -BK_D.floor, BK_YT = BK_D.H - BK_D.floor, BK_YRC = BK_YT - BK_D.rimH / 2;
 const BK_SO0 = (BK_D.half - 0.008) - (BK_YRC - BK_YB) * Math.tan(BK_D.flare), bkSo = (y) => BK_SO0 + (y - BK_YB) * Math.tan(BK_D.flare);
@@ -56781,23 +56835,43 @@ function bkWire() { /* the basket body: rim wire, bottom frame, two rings outsid
       S.quad(bkV(v - hw, y + 0.0004, -s), bkV(v + hw, y + 0.0004, -s), bkV(v + hw, y + 0.0004, s), bkV(v - hw, y + 0.0004, s), BK.wireHi2, UP); } }
   return S.geo();
 }
-function bkHardware(L) { /* basket frame: a strap loop round the bar, up the back wall and over the rim wire with a buckle, twice; a crown bracket and two stays to the fork lowers */
-  const W = BK_W, bar = bkV(BK_BAR[0] - BK_ORG[0], BK_BAR[1] - BK_ORG[1], 0), R = 0.019 + 0.007, xr = -(bkSo(BK_YRC) - W.inset), wS = 0.024;
-  const strip = (A, B, w, t, col) => { const d = B.clone().sub(A); L.push({ geo: new THREE.BoxGeometry(d.length(), t, w), col, m: new THREE.Matrix4().compose(A.clone().add(B).multiplyScalar(0.5), new THREE.Quaternion().setFromUnitVectors(bkV(1, 0, 0), d.normalize()), bkV(1, 1, 1)) }); };
-  for (const s of [-1, 1]) { const z = s * 0.1, S = bkSoup(), pts = [];
-    for (let k = 0; k < 6; k++) { const a = k / 6 * Math.PI * 2 + 0.3; pts.push([bar.x + Math.cos(a) * R, bar.y + Math.sin(a) * R]); }
-    for (let k = 0; k < 6; k++) { const [ax, ay] = pts[k], [bx, by] = pts[(k + 1) % 6]; S.quad(bkV(ax, ay, z - wS / 2), bkV(bx, by, z - wS / 2), bkV(bx, by, z + wS / 2), bkV(ax, ay, z + wS / 2), BK.strapD, bkV((ax + bx) / 2 - bar.x, (ay + by) / 2 - bar.y, 0)); }
-    L.push({ geo: S.geo(), col: null, m: new THREE.Matrix4() });
-    const A = bkV(bar.x + 0.006, bar.y + R - 0.002, z), B = bkV(xr - W.rimR - 0.0035, BK_YRC, z), T = bkV(xr, BK_YRC + W.rimR + 0.0035, z), Cc = bkV(xr + W.rimR + 0.0035, BK_YRC - 0.002, z), D = bkV(xr + W.rimR + 0.004, BK_YRC - 0.032, z);
-    strip(A, B, wS, 0.005, BK.strap); strip(B, T, wS, 0.005, BK.strap); strip(T, Cc, wS, 0.005, BK.strap); strip(Cc, D, wS, 0.005, BK.strapD);
-    const bk = A.clone().lerp(B, 0.5), dir = B.clone().sub(A).normalize(), off = bkV(-dir.y, dir.x, 0); if (off.x > 0) off.negate();
-    L.push({ geo: new THREE.BoxGeometry(0.03, 0.008, 0.032), col: BK.buckle, m: new THREE.Matrix4().compose(bk.addScaledVector(off, 0.004), new THREE.Quaternion().setFromUnitVectors(bkV(1, 0, 0), dir), bkV(1, 1, 1)) }); }
-  const cr = bkV(BK_CROWN[0] - BK_ORG[0], BK_CROWN[1] - BK_ORG[1], 0), yb = 0.028, xb = -(bkSo(yb) - W.inset) - W.upR - 0.005;
-  L.push({ geo: new THREE.BoxGeometry(0.026, 0.034, 0.16), col: BK.bracket, m: new THREE.Matrix4().makeTranslation(cr.x + 0.006, cr.y, 0) });
-  L.push({ geo: new THREE.BoxGeometry(0.008, 0.022, 0.25), col: BK.bracket, m: new THREE.Matrix4().makeTranslation(xb, yb, 0) });
-  for (const s of [-1, 1]) strip(bkV(cr.x + 0.018, cr.y + 0.004, s * 0.06), bkV(xb - 0.002, yb, s * 0.1), 0.018, 0.007, BK.bracket);
-  for (const s of [-1, 1]) { const A = bkV(0.1, BK_YB - 0.002, s * 0.13), B = bkV(BK_CLAMP[0] - BK_ORG[0], BK_CLAMP[1] - BK_ORG[1], s * BK_CLAMP[2]);
-    strip(A, B, 0.011, 0.007, BK.bracket); L.push({ geo: new THREE.BoxGeometry(0.03, 0.03, 0.016), col: BK.bracket, m: new THREE.Matrix4().makeTranslation(B.x, B.y, B.z) }); }
+function bkHardware(L, M) { /* the mount hardware in BIKE space; basket-frame points go through M (basket frame -> bike space) */
+  const W = BK_W, T = THREE, mq = new T.Quaternion(), P = (x, y, z = 0) => bkV(x, y, z).applyMatrix4(M), sc = BK_P.scale, XA = bkV(1, 0, 0), YA = bkV(0, 1, 0);
+  M.decompose(new T.Vector3(), mq, new T.Vector3());
+  const strip = (A, B, w, t, col) => { const d = B.clone().sub(A); L.push({ geo: new T.BoxGeometry(d.length(), t, w), col, m: new T.Matrix4().compose(A.clone().add(B).multiplyScalar(0.5), new T.Quaternion().setFromUnitVectors(XA, d.normalize()), bkV(1, 1, 1)) }); };
+  const rod = (A, B, r, col) => { const d = B.clone().sub(A); L.push({ geo: new T.CylinderGeometry(r, r, d.length(), 5, 1), col, m: new T.Matrix4().compose(A.clone().add(B).multiplyScalar(0.5), new T.Quaternion().setFromUnitVectors(YA, d.normalize()), bkV(1, 1, 1)) }); };
+  const blk = (w, h, d, p, q, col) => L.push({ geo: new T.BoxGeometry(w, h, d), col, m: new T.Matrix4().compose(p, q || new T.Quaternion(), bkV(1, 1, 1)) });
+  const xr = -(bkSo(BK_YRC) - W.inset), bar = bkV(BK_BAR[0], BK_BAR[1], 0), crown = bkV(BK_CROWN[0], BK_CROWN[1], 0), mount = BK_P.mount;
+  if (mount === 'bar') { /* two cognac straps from loops round the bar down the back wall and over the rim wire, a buckle each; a stay from the lower fork crown to a cross bar on the back wall */
+    const R = 0.026, wS = 0.024;
+    for (const s of [-1, 1]) { const z = s * 0.1, S = bkSoup(), B = P(xr - W.rimR - 0.0035, BK_YRC, z / sc), dir = B.clone().sub(bar).setZ(0).normalize(), a0 = Math.atan2(dir.y, dir.x), pts = [];
+      for (let k = 0; k < 6; k++) { const a = k / 6 * Math.PI * 2 + a0; pts.push([bar.x + Math.cos(a) * R, bar.y + Math.sin(a) * R]); }
+      for (let k = 0; k < 6; k++) { const [ax, ay] = pts[k], [bx, by] = pts[(k + 1) % 6]; S.quad(bkV(ax, ay, z - wS / 2), bkV(bx, by, z - wS / 2), bkV(bx, by, z + wS / 2), bkV(ax, ay, z + wS / 2), BK.strapD, bkV((ax + bx) / 2 - bar.x, (ay + by) / 2 - bar.y, 0)); }
+      L.push({ geo: S.geo(), col: null, m: new T.Matrix4() });
+      const A = bkV(bar.x + dir.x * R, bar.y + dir.y * R, z), T1 = P(xr, BK_YRC + W.rimR + 0.0035, z / sc), Cc = P(xr + W.rimR + 0.0035, BK_YRC - 0.002, z / sc), D = P(xr + W.rimR + 0.004, BK_YRC - 0.032, z / sc);
+      B.z = z; T1.z = z; Cc.z = z; D.z = z;
+      strip(A, B, wS, 0.005, BK.strap); strip(B, T1, wS, 0.005, BK.strap); strip(T1, Cc, wS, 0.005, BK.strap); strip(Cc, D, wS, 0.005, BK.strapD);
+      const off = bkV(-dir.y, dir.x, 0); if (off.x > 0) off.negate(); blk(0.03, 0.008, 0.032, A.clone().lerp(B, 0.5).addScaledVector(off, 0.004), new T.Quaternion().setFromUnitVectors(XA, B.clone().sub(A).normalize()), BK.buckle); }
+    const yb = 0.03, xb = -(bkSo(yb) - W.inset) - W.upR - 0.005;
+    blk(0.026, 0.034, 0.16, bkV(crown.x + 0.006, crown.y, 0), null, BK.bracket);
+    blk(0.008 * sc, 0.022 * sc, 0.25 * sc, P(xb, yb, 0), mq, BK.bracket);
+    for (const s of [-1, 1]) strip(bkV(crown.x + 0.018, crown.y + 0.004, s * 0.06), P(xb - 0.002, yb, s * 0.1 / sc), 0.018, 0.007, BK.bracket); }
+  else if (mount === 'crown') { /* a steel tray under the floor on two arms that leave the front of the lower fork crown, a short stay from the back wall to each fork leg */
+    blk(0.30 * sc, 0.006, 0.30 * sc, P(0, -0.024, 0), mq, BK.bracket);
+    blk(0.026, 0.034, 0.16, bkV(crown.x + 0.006, crown.y, 0), null, BK.bracket);
+    for (const s of [-1, 1]) { const a = bkV(crown.x + 0.018, crown.y - 0.006, s * 0.07), b = P(-0.16, -0.032, s * 0.075 / sc), c = P(0.12, -0.032, s * 0.075 / sc);
+      strip(a, b, 0.018, 0.007, BK.bracket); strip(b, c, 0.018, 0.007, BK.bracket); }
+    for (const s of [-1, 1]) { const A = P(-0.14, 0.02, s * 0.13 / sc), B = bkV(crown.x + 0.03, crown.y - 0.05, s * 0.15); strip(A, B, 0.012, 0.006, BK.bracket); }
+    for (const s of [-1, 1]) strip(bkV(BK_BAR[0] + 0.03, BK_BAR[1] - 0.045, s * 0.05), P(-0.17, 0.1, s * 0.1 / sc), 0.014, 0.007, BK.bracket); } /* stem stay: from the front of the stem up to the back wall */
+  else { /* rack: a clamp on each fork leg and on each axle lug, wire rods out to the basket's back corners, a wider stance than the legs */
+    const ax = (t, z) => bkV(0.5 - Math.cos(65 * Math.PI / 180) * t, 1.0 + Math.sin(65 * Math.PI / 180) * t, z), zr = 0.17;
+    for (const s of [-1, 1]) {
+      const lug = bkV(BK_AXLE[0], BK_AXLE[1], s * 0.158), leg = ax(-0.5, s * (BK_LEG_Z + 0.02)), legHi = ax(-0.3, s * (BK_LEG_Z + 0.02));
+      const f0 = P(-0.17, -0.012, s * zr / sc), f1 = P(0.17, -0.012, s * zr / sc), w1 = P(-0.19, 0.12, s * zr / sc);
+      rod(lug.clone().setZ(s * zr), f0, 0.0055, BK.bracket); rod(lug, lug.clone().setZ(s * zr), 0.0055, BK.bracket);
+      rod(leg.clone().setZ(s * zr), w1, 0.0055, BK.bracket); rod(leg, leg.clone().setZ(s * zr), 0.0055, BK.bracket); rod(legHi, leg.clone().setZ(s * zr), 0.0055, BK.bracket);
+      rod(f0, f1, 0.0055, BK.bracket);
+      blk(0.03, 0.03, 0.016, lug.clone().setZ(s * 0.166), null, BK.bracket); blk(0.034, 0.034, 0.016, leg.clone().setZ(s * 0.136), null, BK.bracket); } }
 }
 /* the cat: low-count spheres, tubes and pyramids merged into one geometry, black patches painted per triangle from fixed blobs (a position hash roughens the edges) */
 const bkHash = (x, y, z) => { let h = Math.imul(Math.round(x * 400) | 0, 73856093) ^ Math.imul(Math.round(y * 400) | 0, 19349663) ^ Math.imul(Math.round(z * 400) | 0, 83492791); h = Math.imul(h ^ (h >>> 13), 1274126177); return ((h ^ (h >>> 16)) >>> 0) / 4294967296; };
@@ -56862,8 +56936,9 @@ function bkCat(rig, camp) { /* the cat geometry in the basket frame (origin = th
 }
 /* { base: basket parts, ride: ride cat parts, camp: camp cat parts } in bike space, all with their own vertex colors */
 function basketPack() {
-  const M = new THREE.Matrix4().makeTranslation(...BK_ORG), hw = [], base = [{ geo: bkWire(), col: null, m: M.clone() }], one = (g) => [{ geo: g, col: null, m: M.clone() }];
-  bkHardware(hw); for (const p of hw) { p.m.premultiply(M); base.push(p); }
+  const sc = BK_P.scale, M = new THREE.Matrix4().compose(bkV(...BK_P.org), new THREE.Quaternion().setFromAxisAngle(bkV(0, 0, 1), -BK_P.tilt * Math.PI / 180), bkV(sc, sc, sc)), hw = [];
+  const base = [{ geo: bkWire(), col: null, m: M.clone() }], one = (g) => [{ geo: g, col: null, m: M.clone() }];
+  bkHardware(hw, M); for (const p of hw) base.push(p);
   return { base, ride: one(bkCat(BK_CAT.ride, false)), camp: one(bkCat(BK_CAT.sit, true)) };
 }
 function vertCount(L) { let n = 0; for (const p of L) n += (p.geo.index ? p.geo.index.count : p.geo.attributes.position.count); return n; } /* vertices after mergeParts un-indexes the parts */
@@ -59765,12 +59840,12 @@ function updateRiderFx(dt) {
   if (onR) { const [cx, cy] = riderScreen(0.9); ring.style.left = cx + 'px'; ring.style.top = cy + 'px'; $('cringArc').setAttribute('stroke-dashoffset', (226 * (1 - S.comboT / COMBO_T)).toFixed(1)); $('cringX').textContent = 'x' + (1 + 0.5 * S.streak).toFixed(1); }
   if (bannerT > 0) { bannerT -= dt; if (bannerT <= 0) $('banner').classList.remove('show'); }
 }
-const hudLast = {}; let hudPrevT = performance.now(), scoreSeen = -1, comboSeen = '', scoreAt = -1e9, hudTenth = -1, hudKmh = -1;
+const hudLast = {}; let hudPrevT = performance.now(), scoreSeen = -1, comboSeen = '', scoreAt = -1e9, hudTenth = -1;
 const setTxt = (id, v) => { if (hudLast[id] !== v) { hudLast[id] = v; $(id).textContent = v; } };
 const setCls = (el, c, on) => { if (el.classList.contains(c) !== on) el.classList.toggle(c, on); };
 function updateHud() {
   const tNow = performance.now(), dt = Math.min(0.1, (tNow - hudPrevT) / 1000); hudPrevT = tNow;
-  { const tenth = Math.round(S.t * 10), kmh = Math.round(Math.abs(S.speed) * 3.6); if (tenth !== hudTenth) { hudTenth = tenth; setTxt('tTime', fmtTime(S.t)); } if (kmh !== hudKmh) { hudKmh = kmh; setTxt('tSpeed', kmh + ' km/h'); } }
+  { const tenth = Math.round(S.t * 10); if (tenth !== hudTenth) { hudTenth = tenth; setTxt('tTime', fmtTime(S.t)); } }
   const combo = S.streak ? '×' + (1 + 0.5 * S.streak).toFixed(1) : '';
   if (S.score !== scoreSeen || combo !== comboSeen) { scoreSeen = S.score; comboSeen = combo; scoreAt = tNow; setTxt('tScore', S.score.toLocaleString()); setTxt('tCombo', combo); }
   { const el = $('hScore'), inAirPts = !S.grounded && !S.crashed && S.trickPts > 40, live = S.score > 0 || S.streak > 0; /* score / combo: only when there is one, fades to 35 % after 3 s idle */
@@ -60362,22 +60437,29 @@ function campDusk(k) { /* k 0 = the day look, 1 = dusk: colors only, no new ligh
    ~12 deg BELOW level (above the fence and the trees), so the camp's horizon glow, far ridges, sun, clouds and birds are laid out in that band
    and the sky goes on above it for the look-around and the game lenses. Everything is opaque: the sun's halo, the high wisps and the stars
    melt into the sky because their edge vertices carry the sky's own color at that spot (nothing to sort, no blending). Each vertex has a day
-   color and a dusk color; the shader mixes them with campDusk's k. Clouds (three depth layers, the near one fastest) and two small flocks of
-   birds turn slowly about the vertical axis in the vertex shader; reduced motion freezes them. Built when the camp lens comes up, disposed
+   color and a dusk color; the shader mixes them with campDusk's k. Clouds (three depth layers, the near one fastest) turn slowly about the vertical axis in the vertex shader; reduced motion freezes them. The birds are 9
+   reserved slots at the end of the same mesh: planBirds() (once the camp lens has settled) rolls this visit's flights with Math.random (how many 0-9, which lane and
+   direction, how far and how big, when they appear, how long they stay away) and writes them into those vertices; the shader shows a bird only inside its time window
+   and grows / shrinks it about its own center at both ends, so one mesh and one draw call carry all of it. Built when the camp lens comes up, disposed
    when it goes. The layout comes from its own stream (a per-session random base + the mountain + the camp index; no course or camp layout
    stream is touched), so a camp keeps the same sky for the session and another camp gets another one, including its dusk mood. ---- */
 const CAMP_SKY = { R: 600, sunAz: -5, sunEl: -7.0, sunR: 1.45, haloR: 10, ridgeBase: -26 }; /* degrees; az + = left of the lens' heading, el = above level */
 const campSky = (() => {
   const base = (Math.random() * 4294967296) >>> 0, D2R = Math.PI / 180;
   const U = { uK: { value: 0 }, uT: { value: 0 }, uStar: { value: 1 } };
+  const BIRD_MAX = 9, BIRD_W = [2, 3, 4, 4, 3, 2, 1.5, 1, 0.7, 0.4]; /* slots in the mesh; the weights for 0 .. 9 birds in one visit */
   const mat = new THREE.MeshBasicMaterial({ vertexColors: true, fog: false, side: THREE.DoubleSide });
   mat.onBeforeCompile = (sh) => { Object.assign(sh.uniforms, U);
-    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute vec3 colorB; attribute vec3 aMove; uniform float uK; uniform float uT; uniform float uStar;')
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute vec3 colorB; attribute vec3 aMove; attribute vec4 aBird; attribute vec3 aCen; uniform float uK; uniform float uT; uniform float uStar;')
       .replace('#include <color_vertex>', 'vColor = mix(color, colorB, uK);')
       .replace('#include <begin_vertex>', `vec3 transformed = vec3(position);
-        if (aMove.z > 1.5 && aMove.z < 2.5) transformed.y += sin(uT * 6.5 + aMove.y) * 1.3;
+        if (aMove.z > 3.5 || (aMove.z > 1.5 && aMove.z < 2.5)) { /* a bird: shown only inside its time window, growing / shrinking about its own center at both ends (it arrives from and leaves into the distance) */
+          float rp = max(0.01, min(2.5, 0.3 * (aBird.y - aBird.x))), k = clamp(min(uT - aBird.x, aBird.y - uT) / rp, 0.0, 1.0); k = k * k * (3.0 - 2.0 * k);
+          transformed = aCen + (transformed - aCen) * k;
+          if (aMove.z < 3.0) transformed.y += sin(uT * (5.0 + 3.0 * fract(aMove.y * 7.31)) + aMove.y) * aBird.w * k;
+          transformed.y += aBird.z * (uT - aBird.x); }
         float sa = sin(aMove.x * uT), ca = cos(aMove.x * uT); transformed.xz = vec2(transformed.x * ca + transformed.z * sa, transformed.z * ca - transformed.x * sa);
-        if (aMove.z > 2.5 && uStar < 0.5) transformed = vec3(0.0);`); }; /* aMove: x = the drift (rad/s), y = a bird's wing phase, z = the kind (0 still, 1 drifts, 2 wing tip, 3 star) */
+        if (aMove.z > 2.5 && aMove.z < 3.5 && uStar < 0.5) transformed = vec3(0.0);`); }; /* aMove: x = the drift (rad/s), y = a bird's wing phase, z = the kind (0 still, 1 drifts, 2 bird wing tip, 3 star, 4 bird body); aBird: x, y = a bird's window (s), z = its climb (units/s), w = its wing flap size */
   mat.customProgramCacheKey = () => 'campSky';
   const col = (h) => new THREE.Color(h), stops = (a) => a.map(([e, h]) => [e, col(h)]);
   /* the gradients, elevation (deg) -> color. 'A' = away from the sun, 'S' = toward it; the haze below the ridges is the scene's fog color */
@@ -60401,8 +60483,8 @@ const campSky = (() => {
   const dir = (e, az, r, v) => { const ce = Math.cos(e * D2R); return v.set(r * ce * Math.sin(az * D2R), r * Math.sin(e * D2R), r * ce * Math.cos(az * D2R)); };
   function build(cp) {
     const rnd = mulberry32((base + (S.course ? S.course.seed : 0) * 7 + cp.idx * 7919) | 0); mood = MOODS[Math.floor(rnd() * 3)];
-    const P = [], CA = [], CB = [], M = [], v = new THREE.Vector3(), cA = new THREE.Color(), cB = new THREE.Color();
-    const put = (p, a, b, m) => { P.push(p.x, p.y, p.z); CA.push(a.r, a.g, a.b); CB.push(b.r, b.g, b.b); M.push(m[0], m[1], m[2]); };
+    const P = [], CA = [], CB = [], M = [], AB = [], AC = [], v = new THREE.Vector3(), cA = new THREE.Color(), cB = new THREE.Color();
+    const put = (p, a, b, m) => { P.push(p.x, p.y, p.z); CA.push(a.r, a.g, a.b); CB.push(b.r, b.g, b.b); M.push(m[0], m[1], m[2]); AB.push(0, 0, 0, 0); AC.push(0, 0, 0); };
     const STILL = [0, 0, 0];
     const quad = (r, e0, a0, e1, a1, fn) => { const q = [[e0, a0], [e0, a1], [e1, a1], [e0, a0], [e1, a1], [e1, a0]]; for (const [e, a] of q) { fn(e, a, cA, cB); put(dir(e, a, r, v), cA, cB, STILL); } };
     const skyFn = (e, a, x, y) => { skyAt(e, a, 0, x); skyAt(e, a, 1, y); };
@@ -60468,16 +60550,55 @@ const campSky = (() => {
               cB.copy(_a).lerp(_b, Math.max(0, Math.min(1, up * 0.75 + 0.45))).multiplyScalar(jit).lerp(sky1, L.aer);
               for (let k = 0; k < 3; k++) put(q[k], cA, cB, mv); } } } }
       geo0.dispose(); geo1.dispose(); }
-    /* two small flocks: thin chevrons, wing tips flapping in the shader, drifting faster than the clouds */
-    for (const F of [{ az: CAMP_SKY.sunAz + 15, el: -5.8, n: 5 }, { az: CAMP_SKY.sunAz + 170, el: -4.5, n: 3 }]) {
-      const r = 330, dN = col('#55606c'), dD = col('#3b2c47'), mvB = [0.011, 0, 1];
-      for (let b = 0; b < F.n; b++) { const a = F.az + (b % 2 ? 1 : -1) * Math.ceil(b / 2) * 1.0 + (rnd() - 0.5) * 0.4, e = F.el - Math.ceil(b / 2) * 0.45 + (rnd() - 0.5) * 0.3, s = 0.36 + rnd() * 0.1, ph = rnd() * 6.3;
-        const B = dir(e, a, r, new THREE.Vector3()), Bb = dir(e - s * 0.28, a, r, new THREE.Vector3()), L0 = dir(e + s * 0.32, a + s, r, new THREE.Vector3()), R0 = dir(e + s * 0.32, a - s, r, new THREE.Vector3()), mvW = [0.011, ph, 2];
-        put(L0, dN, dD, mvW); put(B, dN, dD, mvB); put(Bb, dN, dD, mvB); put(B, dN, dD, mvB); put(R0, dN, dD, mvW); put(Bb, dN, dD, mvB); } }
+    /* the bird slots: BIRD_MAX chevrons (6 vertices each) parked out of sight until planBirds() fills them in */
+    const birdAt = P.length / 3; for (let b = 0; b < BIRD_MAX; b++) for (let k = 0; k < 6; k++) { put(v.set(0, 0, 0), cA.setRGB(0.3, 0.3, 0.3), cB.setRGB(0.2, 0.2, 0.2), [0, 0, 4]); AB[AB.length - 4] = 1e9; AB[AB.length - 3] = 1e9; }
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(CA, 3));
-    g.setAttribute('colorB', new THREE.Float32BufferAttribute(CB, 3)); g.setAttribute('aMove', new THREE.Float32BufferAttribute(M, 3)); g.boundingSphere = new THREE.Sphere(new THREE.Vector3(), CAMP_SKY.R + 10);
-    const m = new THREE.Mesh(g, mat); m.frustumCulled = false; m.renderOrder = -1; return m; }
-  function off() { if (!on && !mesh) return; on = false; cpOn = null; if (mesh) { sky.remove(mesh); mesh.geometry.dispose(); mesh = null; }
+    g.setAttribute('colorB', new THREE.Float32BufferAttribute(CB, 3)); g.setAttribute('aMove', new THREE.Float32BufferAttribute(M, 3)); g.setAttribute('aBird', new THREE.Float32BufferAttribute(AB, 4)); g.setAttribute('aCen', new THREE.Float32BufferAttribute(AC, 3)); g.boundingSphere = new THREE.Sphere(new THREE.Vector3(), CAMP_SKY.R + 10);
+    const m = new THREE.Mesh(g, mat); m.frustumCulled = false; m.renderOrder = -1; m.userData.birdAt = birdAt; return m; }
+  /* ---- this visit's birds. Screen space decides the lanes: where the camp lens actually looks (the fit changes with the camp, the window and the panel), so most
+     flights keep to the sky left of the camp panel, under the header plate and above the fence, and only now and then one crosses the whole width. ---- */
+  const _bv = new THREE.Vector3(), _bdn = new THREE.Color('#55606c'), _bdd = new THREE.Color('#3b2c47'), _bfn = new THREE.Color('#8794a2'), _bfd = new THREE.Color('#6a5879'), _bc1 = new THREE.Color(), _bc2 = new THREE.Color();
+  let planSize = '', planAge = 0, planned = false;
+  const sizeKey = () => (renderer.domElement.clientWidth || innerWidth) + 'x' + (renderer.domElement.clientHeight || innerHeight);
+  function planBirds() {
+    const A = mesh.geometry.attributes, o = mesh.userData.birdAt, rm = reduceMotion.matches, R = Math.random, W = renderer.domElement.clientWidth || innerWidth, H = renderer.domElement.clientHeight || innerHeight;
+    camera.updateMatrixWorld(); mesh.updateMatrixWorld(true);
+    const proj = (e, a) => { dir(e, a, 330, _bv); mesh.localToWorld(_bv); return _bv.project(camera); };
+    const azs = [], xs = []; for (let a = 70; a >= -70; a--) { azs.push(a); xs.push((proj(-7, a).x + 1) / 2 * W); }
+    const azAt = (x) => { for (let i = 1; i < azs.length; i++) if (xs[i] >= x) return azs[i - 1] + (azs[i] - azs[i - 1]) * (x - xs[i - 1]) / (xs[i] - xs[i - 1] || 1); return azs[azs.length - 1]; };
+    const FR = campFree(S.camp, W, H), hd = document.querySelector('.camphd'), hdB = hd && hd.offsetParent !== null ? hd.getBoundingClientRect().bottom : 0;
+    const aL = azAt(-20), aR = azAt(W + 20), aF = azAt(FR ? Math.min(FR.R, W) : W * 0.97), aM = azAt(W * 0.3); /* az of the left edge, the right edge, the panel's edge, the lens' middle */
+    const elAt = (y) => { let best = -7, bd = 1e9; for (let e = -16; e <= 2; e += 0.25) { const d = Math.abs((1 - proj(e, aM).y) / 2 * H - y); if (d < bd) { bd = d; best = e; } } return best; };
+    const cnt = rm ? 2 + Math.floor(R() * 3) : (() => { let t = 0, x; for (const w of BIRD_W) t += w; x = R() * t; for (let i = 0; i < BIRD_W.length; i++) { x -= BIRD_W[i]; if (x < 0) return i; } return 3; })();
+    const set = (b, v6) => { for (let k = 0; k < 6; k++) { const q = v6[k], i = o + b * 6 + k;
+        A.position.setXYZ(i, q.p.x, q.p.y, q.p.z); A.color.setXYZ(i, q.a.r, q.a.g, q.a.b); A.colorB.setXYZ(i, q.b.r, q.b.g, q.b.b); A.aMove.setXYZ(i, q.w, q.ph, q.kind); A.aBird.setXYZ(i, q.t0, q.t1, q.cl); A.aBird.setW(i, q.amp); A.aCen.setXYZ(i, q.c.x, q.c.y, q.c.z); } };
+    for (let b = 0; b < BIRD_MAX; b++) for (let k = 0; k < 6; k++) { const i = o + b * 6 + k; A.position.setXYZ(i, 0, 0, 0); A.aBird.setXYZ(i, 1e9, 1e9, 0); A.aBird.setW(i, 0); A.aCen.setXYZ(i, 0, 0, 0); A.aMove.setXYZ(i, 0, 0, 4); }
+    let slot = 0, tNext = U.uT.value + (R() < 0.25 ? 14 + R() * 26 : 1.5 + R() * 6); /* the first one: soon, or after a long quiet start */
+    const yLo = H * 0.05, yHi = H * 0.27;
+    const fly = (cls, pair) => { /* one flight; pair = the second bird of a pair (same lane, a little behind and lower) */
+      const dn = pair ? pair.dn : (R() < 0.5 ? 1 : -1), cross = !pair && R() < 0.12, KL = [{ s: [0.16, 0.24], v: [0.8, 1.4], r: 340 }, { s: [0.34, 0.54], v: [1.8, 3.2], r: 300 }, { s: [0.65, 1.0], v: [3.5, 6], r: 240 }, { s: [1.2, 1.8], v: [8, 13], r: 150 }][cls];
+      let y = yLo + R() * (yHi - yLo); if (hdB && R() < 0.65 && hdB + 8 < yHi) y = hdB + 8 + R() * (yHi - hdB - 8);
+      const el = pair ? pair.el - 0.35 - R() * 0.3 : elAt(y), sz = KL.s[0] + R() * (KL.s[1] - KL.s[0]), mg = 3 + sz * 3; let a0, a1, sp = KL.v[0] + R() * (KL.v[1] - KL.v[0]);
+      if (rm) { a0 = a1 = aF + (aL - aF) * (0.2 + 0.6 * R()); sp = 0; }
+      else if (pair) { a0 = pair.a0 - dn * (1.1 + R()); a1 = pair.a1 - dn * (1.1 + R()); sp = pair.sp * (0.97 + R() * 0.06); }
+      else if (dn > 0) { a0 = cross ? aR - mg : aF + 3 + R() * Math.max(2, (aL - aF) * 0.5); a1 = R() < 0.65 || cross ? aL + mg * (1 + R()) : a0 + (aL - a0) * (0.4 + 0.4 * R()); }
+      else { a0 = R() < 0.65 || cross ? aL + mg : aF + 3 + (aL - aF) * (0.3 + 0.5 * R()); a1 = cross ? aR - mg * (1 + R()) : Math.max(aF + 3, Math.min(a0 - 14, aF + 3 + R() * (a0 - aF - 17))); }
+      if (!rm && Math.abs(a1 - a0) < 12) a1 = a0 + dn * 12;
+      const dur = rm ? 2e6 : Math.max(5, Math.abs(a1 - a0) / sp); if (!rm) sp = Math.abs(a1 - a0) / dur;
+      const t0 = rm ? -1e6 : (pair ? pair.t0 + 0.3 * R() : tNext), t1 = t0 + dur, w = dn * sp * Math.PI / 180, ab = a0 - w * t0 * 180 / Math.PI, r = KL.r, ph = R() * 6.3;
+      const vd = rm ? 0 : (R() - 0.5) * 3 / dur, cl = r * vd * Math.PI / 180, amp = r * sz * Math.PI / 180 * 0.45;
+      const far = cls === 0 ? 0.55 : cls === 1 ? 0.2 : 0, cN = _bc1.copy(_bdn).lerp(_bfn, far).clone(), cD = _bc2.copy(_bdd).lerp(_bfd, far).clone();
+      const B = dir(el, ab, r, new THREE.Vector3()), Bb = dir(el - sz * 0.28, ab, r, new THREE.Vector3()), L0 = dir(el + sz * 0.32, ab + sz, r, new THREE.Vector3()), R0 = dir(el + sz * 0.32, ab - sz, r, new THREE.Vector3());
+      const mk = (p, kind) => ({ p, a: cN, b: cD, w, ph, kind, t0, t1, cl, amp, c: B });
+      set(slot++, [mk(L0, 2), mk(B, 4), mk(Bb, 4), mk(B, 4), mk(R0, 2), mk(Bb, 4)]);
+      return { dn, el, a0, a1, sp, t0 }; };
+    while (slot < cnt) {
+      const u = R(), cls = rm ? (u < 0.5 ? 0 : 1) : u < 0.4 ? 0 : u < 0.8 ? 1 : u < 0.92 ? 2 : 3, f = fly(cls, null);
+      if (!rm && cls < 3 && slot < cnt && R() < 0.22) fly(cls, f);
+      tNext += R() < 0.3 ? 22 + R() * 38 : 3 + R() * 14; } /* the gap to the next flight: mostly short, now and then a long quiet spell */
+    for (const k of ['position', 'color', 'colorB', 'aMove', 'aBird', 'aCen']) A[k].needsUpdate = true;
+    planned = true; planSize = sizeKey(); }
+  function off() { if (!on && !mesh) return; on = false; cpOn = null; planned = false; planAge = 0; if (mesh) { sky.remove(mesh); mesh.geometry.dispose(); mesh = null; }
     if (skyDome) skyDome.visible = true; if (sky.children[1]) sky.children[1].visible = true; clouds.visible = true; }
   /* k = campDusk's blend. Shown only while a camp lens is up (not under the entry fade, where the ride camera still draws) */
   function sync(k) { const C = S.camp; if (!C || C.hold) { off(); return; } U.uK.value = k;
@@ -60487,7 +60608,8 @@ const campSky = (() => {
     mesh = build(C.cp); mesh.rotation.y = Math.atan2(l.x - p.x, l.z - p.z); sky.add(mesh);
     if (skyDome) skyDome.visible = false; for (const c of sky.children) if (c !== mesh) c.visible = false; clouds.visible = false; }
   /* the drift clock: eases in over ~4 s after the camp comes up; held still with reduced motion. The stars hide while a game lens looks steeply up (the stargazing game draws its own). */
-  function tick(dt) { if (!on) return; const G = S.camp && S.camp.gcam; U.uStar.value = G && G.look.y - G.pos.y > 0.5 * Math.hypot(G.look.x - G.pos.x, G.look.z - G.pos.z) ? 0 : 1; /* only the stargazing lens looks this far up */
+  function tick(dt) { if (!on) return; planAge += dt; if (planned ? planSize !== sizeKey() : planAge > 1.2 && S.camp && S.camp.ready) planBirds(); /* the birds are rolled once the lens has settled, and again if the window changes size */
+    const G = S.camp && S.camp.gcam; U.uStar.value = G && G.look.y - G.pos.y > 0.5 * Math.hypot(G.look.x - G.pos.x, G.look.z - G.pos.z) ? 0 : 1; /* only the stargazing lens looks this far up */
     if (reduceMotion.matches) return; ease = Math.min(1, ease + dt / 4); U.uT.value += dt * ease * ease * (3 - 2 * ease); }
   return { sync, tick, off, get on() { return on; } }; })();
 const sstep = (x) => { x = Math.max(0, Math.min(1, x)); return x * x * x * (x * (x * 6 - 15) + 10); };
@@ -63143,17 +63265,17 @@ const CampMini = (() => {
           L.push({ geo: g, col: null, m: new THREE.Matrix4().compose(new THREE.Vector3(cx + (j - n / 2) * r * 1.3, cy + (vr() - 0.5) * r * 0.4, cz + (vr() - 0.5) * 20), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, vr() * 3, 0)), new THREE.Vector3(r * 1.5, r * 0.5, r)) }); } }
       root.add(new THREE.Mesh(merged(L), keepM(new THREE.MeshBasicMaterial({ vertexColors: true, fog: false, side: THREE.DoubleSide })))); }
     /* ---- trees: the game's 34 (pines + birches, the camp's clearing kept), a second row behind them and a far tree line in the haze */
-    const pineG = (() => { const L = []; put(L, new THREE.CylinderGeometry(0.035, 0.05, 0.32, 5), '#5a4030', 0, 0.16, 0);
-      for (const [r, h, y, c] of [[0.36, 0.42, 0.36, '#2b4535'], [0.29, 0.38, 0.56, '#33503c'], [0.2, 0.34, 0.75, '#3c5b43'], [0.11, 0.24, 0.9, '#47684b']]) put(L, new THREE.ConeGeometry(r, h, 7), c, 0, y, 0); return merged(L); })();
-    const birchG = (() => { const L = []; put(L, new THREE.CylinderGeometry(0.022, 0.034, 0.72, 5), '#e8e2d6', 0, 0.36, 0); put(L, new THREE.CylinderGeometry(0.0235, 0.0235, 0.03, 5), '#3a342c', 0, 0.2, 0); put(L, new THREE.CylinderGeometry(0.0225, 0.0225, 0.025, 5), '#3a342c', 0, 0.36, 0);
-      for (const [x, y, z, r, c] of [[0, 0.8, 0, 0.21, '#6f8f3e'], [-0.13, 0.64, 0.05, 0.16, '#7d9a46'], [0.12, 0.62, -0.05, 0.15, '#64843a'], [0.02, 0.66, 0.12, 0.13, '#759443']]) put(L, new THREE.IcosahedronGeometry(r, 0), c, x, y, z); return merged(L); })();
+    /* the river's trees are the ride's: the same pine (trunk, wide lower cone, narrower upper cone) and round tree (trunk + faceted ball), in the ride's colors (its HSL bases), one merged mesh each */
+    const rc = (h, sa, l) => new THREE.Color().setHSL(h, sa, l, THREE.SRGBColorSpace), TRUNK = rc(0.06, 0.22, 0.3);
+    const pineG = (() => { const L = []; put(L, new THREE.CylinderGeometry(0.1, 0.15, 0.8, 5), TRUNK, 0, 0.4, 0); put(L, new THREE.ConeGeometry(1, 1, 7), rc(0.4, 0.26, 0.31), 0, 0.9, 0); put(L, new THREE.ConeGeometry(0.7, 0.9, 7), rc(0.38, 0.27, 0.36), 0, 1.55, 0); return merged(L); })();
+    const birchG = (() => { const L = []; put(L, new THREE.CylinderGeometry(0.1, 0.15, 0.8, 5), TRUNK, 0, 0.4, 0); put(L, new THREE.IcosahedronGeometry(0.9, 0), rc(0.32, 0.3, 0.43), 0, 1.5, 0); return merged(L); })();
     const pines = [], birches = [];
     for (const tr of K.trees) { if (tr.sd === K.campSd && Math.abs(tr.d - K.campD) < 3.4 && Math.abs(tr.off - K.campOff) < 2.6) continue; /* the camp stands in a clearing */
       const l = tr.l !== undefined ? tr.l : lat(tr.d, tr.sd, tr.off), y = gh(l, tr.d) - 0.05, ry = tr.v * TAU, tint = C('#ffffff').multiplyScalar(0.9 + tr.v * 0.2);
-      if (tr.kind === 'pine') pines.push([l, y, -tr.d, 0, ry, 0, tr.h * tr.w * 0.6, tr.h, tr.h * tr.w * 0.6, tint]); else birches.push([l, y, -tr.d, 0, ry, 0, tr.h * tr.w * 0.55, tr.h, tr.h * tr.w * 0.55, tint]); }
+      if (tr.kind === 'pine') pines.push([l, y, -tr.d, 0, ry, 0, tr.h * tr.w * 0.36, tr.h * 0.5, tr.h * tr.w * 0.36, tint]); else birches.push([l, y, -tr.d, 0, ry, 0, tr.h * tr.w * 0.27, tr.h / 2.4, tr.h * tr.w * 0.27, tint]); }
     for (let i = 0; i < 70; i++) { const d = 6 + Math.pow(vr(), 0.8) * 85, sd = vr() < 0.5 ? -1 : 1, off = 7 + vr() * 28 + d * 0.15, l = cxd(d) + sd * (wdr(d) + off), h = 3.2 + vr() * 3.5; if (sd === K.campSd && Math.abs(d - K.campD) < 4 && off < 9) continue;
-      (vr() < 0.2 ? birches : pines).push([l, gh(l, d) - 0.05, -d, 0, vr() * TAU, 0, h * 0.62, h, h * 0.62, C('#ffffff').multiplyScalar(0.85 + vr() * 0.25)]); }
-    for (let i = 0; i < 90; i++) { const d = 75 + vr() * 75, sd = vr() < 0.5 ? -1 : 1, off = 3 + vr() * 90, l = cxd(d) + sd * (wdr(d) + off), h = 4 + vr() * 4; pines.push([l, gh(l, d) - 0.1, -d, 0, vr() * TAU, 0, h * 0.75, h, h * 0.75, '#ffffff']); }
+      const rnd2 = vr() < 0.2; (rnd2 ? birches : pines).push([l, gh(l, d) - 0.05, -d, 0, vr() * TAU, 0, h * (rnd2 ? 0.27 : 0.36), rnd2 ? h / 2.4 : h * 0.5, h * (rnd2 ? 0.27 : 0.36), C('#ffffff').multiplyScalar(0.85 + vr() * 0.25)]); }
+    for (let i = 0; i < 90; i++) { const d = 75 + vr() * 75, sd = vr() < 0.5 ? -1 : 1, off = 3 + vr() * 90, l = cxd(d) + sd * (wdr(d) + off), h = 4 + vr() * 4; pines.push([l, gh(l, d) - 0.1, -d, 0, vr() * TAU, 0, h * 0.36, h * 0.5, h * 0.36, '#ffffff']); }
     inst(pineG, litMat, pines); inst(birchG, litMat, birches);
     /* ---- bushes, boulders, pebbles */
     { const L = []; for (let i = 0; i < 26; i++) { const d = 6 + Math.pow(vr(), 1.3) * 55, sd = vr() < 0.5 ? -1 : 1, off = 1 + vr() * 9, l = cxd(d) + sd * (wdr(d) + off), s = 0.35 + vr() * 0.55; if (sd === K.campSd && Math.abs(d - K.campD) < 3.5 && Math.abs(off - K.campOff) < 3) continue; L.push([l, gh(l, d) + s * 0.15, -d, 0, vr() * TAU, 0, s, s * 0.7, s * 0.9, ['#4e6a34', '#5a7838', '#46602f'][Math.floor(vr() * 3)]]); }
