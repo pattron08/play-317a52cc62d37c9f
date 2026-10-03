@@ -615,7 +615,7 @@
   </div>
   <div id="tapGo" role="status">Tap to start</div>
   <button class="ico" id="mute" role="switch" aria-checked="true" aria-label="Sound"><svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg><svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M17 9l5 6M22 9l-5 6"/></svg></button>
-  <div class="foot"><span id="verTag">v0.34.0</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span></div>
+  <div class="foot"><span id="verTag">v0.35.0</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span></div>
   <button id="btnNew" hidden>New mountain</button>
 </div>
 
@@ -53827,7 +53827,7 @@ const SOFT_HOLD_PULL = G_SLOPE * Math.sin(SOFT_HOLD_DEG * Math.PI / 180);
 const SKILL = { ids: ['speed', 'jump', 'handling', 'air', 'landing', 'accel'], name: { speed: 'Speed', jump: 'Jump height', handling: 'Handling', air: 'Air control', landing: 'Landing stability', accel: 'Acceleration' },
   M0: { speed: 0.893, accel: 0.833, handling: 0.870, jump: 0.870, air: 0.800, landing: 0.769 }, what: { speed: 'top speed', jump: 'hop height', handling: 'steering', air: 'spin & air steer', landing: 'landing grip', accel: 'pedal power' },
   buffOf: { roast: 'accel', tune: 'speed', stoke: 'stoke', stars: 'air', skip: 'jump', zen: 'landing', cairn: 'handling', chop: 'steady', dinner: 'belly' }, BUFF: 0.05, LEVELS: 25, PIPS: 10 };
-/* ---------- CAMP BUFFS. A mini game played to 2 stars or more grants its buff (SKILL.buffOf). Every buff except Full Belly is TIMED: BUFF_T seconds of
+/* ---------- CAMP BUFFS. A mini game played to a score of BUFF_MIN (0.85, a score gate, not a star count) grants its buff (SKILL.buffOf). Every buff except Full Belly is TIMED: BUFF_T seconds of
    riding time, counted in step() only (the run clock), so pause, camp, the title and the results never use it up; the clock starts when the rider leaves
    camp (or at the ride start). Earning a buff that is already on refreshes it to BUFF_T (never adds up). Stat buffs add to the skill multiplier, every
    source of one stat summed in BUFF_KEYS order and capped at BUFF_CAP (tune's Speed +5 % and stoke's Speed boost +8 % share the speed stat: +10 % at most).
@@ -53879,7 +53879,7 @@ function buffTick(dt) { /* step(): the riding clock. MOD is rebuilt only when a 
   for (const k of BUFF_KEYS) { if (!PROF.buff[k]) continue; if (BUFF_DEF[k].stat) S.bRun = true; const t = buffLeft(k) - dt; if (t > 0) PROF.bt[k] = t; else { delete PROF.buff[k]; delete PROF.bt[k]; if (BUFF_DEF[k].stat) mod = true; } }
   if (mod) recomputeMOD(); }
 /* ---------- CAMP KITCHEN: Settings 'Full Belly' (holdon.kitchen = { v, mode }: 'off' turns the Dinner bonus off; 'both' / 'xp' from older builds read as on).
-   FULL BELLY: a Dinner played to 2 stars or more feeds the rider for the rest of the TRAIL (this mountain run): +BELLY_XP0 % run XP for the first
+   FULL BELLY: a Dinner played to a score of BUFF_MIN (0.85) feeds the rider for the rest of the TRAIL (this mountain run): +BELLY_XP0 % run XP for the first
    dinner, +1 point for each further dinner on the same trail (7, 8, 9, 10 %, capped at BELLY_MAX), at most one dinner per camp. It is paid on the run XP
    at the finish (runXp) and then cleared; a new run from the start, Restart run, a new mountain or Quit to title clear it too (resetRun). Continue from a
    camp brings back what the camp save held: the slot carries fb = { trail (the mountain code), n (dinners cooked), camps (camp idxs used) }, written
@@ -55371,6 +55371,7 @@ function buildWorld(course, surf) {
     stakes.computeBoundingSphere(); pens.computeBoundingSphere(); world.add(stakes, pens);
   }
   for (const cp of course.checkpoints) addCampMesh(cp);
+  smokeColBuild();
   { /* entrance dressing for the 'gate' (two boulders) and 'lantern' (two posts) camps, one merged mesh for the map; solid pieces are obstacles. Placed at lane point 6 (a few meters in, just past the peel-off) either side of the lane's tangent. */
     const parts = [], rd = mulberry32(seed + 1819), Mx = new THREE.Matrix4(), Qq = new THREE.Quaternion(), Ee = new THREE.Euler(), Vv = new THREE.Vector3(), Ss = new THREE.Vector3();
     for (const cp of course.checkpoints) { if (!cp.lane || (cp.kind !== 'gate' && cp.kind !== 'lantern')) continue;
@@ -55783,24 +55784,59 @@ function mergeParts(parts) {
 }
 const campMat = new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true });
 const campFlutMat = flutterMat(new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true, side: THREE.DoubleSide }), 0.35); /* every camp's bunting + pole flag (flutter shader) */
-const SMK = {"n": 20, "spread": 1.2, "sh": [[1, 0.16], [0.84, 0.18], [0.68, 0.2], [0.52, 0.23], [0.36, 0.26]], "detail": 1, "jit": 0.0, "mode": 1, "sp": [0.11, 0.21], "pk": [0.85, 1.0], "in": 0.08, "f0": 0.2, "tm": 0.26, "c0": "#ffffff", "c1": "#ffffff", "tone": [0.66, 0.63, 0.6], "steam": 0.3, "ht": 5.4, "wind": 2.6, "ease": 1.15, "fq": [1.6, 2.8], "am": [1.2, 0.85], "zk": 1.0, "spin": 3.0, "r0": [0.2, 0.12], "r1": [0.75, 0.5], "st": [1.3, 2.4], "squash": 1};
-const PUFF_O = 0.35; /* puffMat's base opacity: the game lens thins the smoke through it, the wisps read it back as a factor */
-const puffMat = new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: PUFF_O, depthWrite: false, fog: false, toneMapped: false, blending: THREE.CustomBlending, blendEquation: THREE.AddEquation, blendSrc: THREE.OneFactor, blendDst: THREE.OneMinusSrcAlphaFactor, blendSrcAlpha: THREE.ZeroFactor, blendDstAlpha: THREE.OneFactor }); /* out = tone x coverage + backdrop x (1 - coverage): premultiplied, so the order of the puffs does not matter and any pile of shells tops out at the smoke tone (never darker). A puff's instance color IS its coverage (unlit, the lights' tint stays out of it) */
-const SMKB = {"grow": 1.5, "soft": 2.5, "w": 1.6, "v": 0.1, "dens": 0.3, "t0": [0.76, 0.67, 0.57], "t1": [0.6, 0.62, 0.66], "hs": 7.0}; /* blend: grow = shell size gain (more overlap), soft = radial falloff power, w = shell coverage gain, v = per-wisp brightness spread, dens = thinning toward the top, t0/t1 = smoke tone at the fire / at hs metres above it */
-puffMat.customProgramCacheKey = () => 'smkblend1'; /* still ONE program: it replaces the plain puff program, it does not add one */
-puffMat.onBeforeCompile = (sh) => { /* each shell fades to nothing at its own edge (view-angle falloff on its smooth normals) and the tone runs warm and dense at the flame to cool and thin at the top, so the shells fuse into one body instead of reading as stacked balls */
-  sh.uniforms.uSoft = { value: SMKB.soft }; sh.uniforms.uDens = { value: SMKB.dens }; sh.uniforms.uHs = { value: SMKB.hs }; sh.uniforms.uT0 = { value: new THREE.Vector3(...SMKB.t0) }; sh.uniforms.uT1 = { value: new THREE.Vector3(...SMKB.t1) };
-  sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vSN;\nvarying vec3 vSV;\nvarying float vSY;')
-    .replace('#include <project_vertex>', `#include <project_vertex>
-    { mat3 im3 = mat3(instanceMatrix); vec3 sq = max(vec3(dot(im3[0], im3[0]), dot(im3[1], im3[1]), dot(im3[2], im3[2])), vec3(1e-6)); /* normal of a stretched ellipsoid: R S^-1 */
-      vSN = normalMatrix * (im3 * (normal / sq)); vSV = -mvPosition.xyz; vSY = (instanceMatrix * vec4(position, 1.0)).y; }`);
-  sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec3 vSN;\nvarying vec3 vSV;\nvarying float vSY;\nuniform float uSoft;\nuniform float uDens;\nuniform float uHs;\nuniform vec3 uT0;\nuniform vec3 uT1;')
+const SMK = {"rings": 13, "sides": 8, "cov": 0.8, "soft": 2.2, "rp": 1.1, "puff": 0.3, "dk": 0.8, "campK": 0.75, "t0": [0.76, 0.67, 0.57], "t1": [0.6, 0.62, 0.66], "lean": 0.42, "sway": 0.14, "lam": [4.4, 7.1], "v": 1.25, "bulge": 0.3, "wisp": 0.45, "near": [1.6, 4.2], "cap": 0.17, "top": 0.5, "base": 0.08, "camp": [7.0, 0.85], "lane": [12.5, 1.45], "ride": [40, 20, -15, -45, 190], "rideLean": 0.8, "rideYaw": 0.6, "rideTone": [0.93, 0.94, 0.96], "rideBoost": 0.9, "steam": [0.7, 0.11, 0.32, 0.3]}; /* the smoke column: rings x sides of the tube; cov = coverage at the base (0-1); soft = silhouette falloff power; t0 / t1 = tone at the fire / at the top;
+   lean = downwind lean at the top (x height); sway = sway amplitude at the top (x height); lam = the two wavelengths (m) of the travelling sway; v = rise speed (m/s); bulge = radius pulse;
+   wisp = fragment noise depth; near = [fade start, full] distance to the lens (m); cap = apparent half-width cap (share of the window's half height); top = where the top starts to dissolve (0-1);
+   base = radius at the base (x the top radius); camp / lane = [height m, top radius m] of your own camp's column and of a course camp's plume; ride = [ramp-in start, ramp-in full] in trail meters
+   BEFORE the camp's flag (the first cue), [fade-out start, fade-out full] in trail meters before (+) / after (-) the camp, and the cull distance (m); rideLean = the ride plume's extra downwind drift
+   (x height, added to lean); rideYaw = how far (rad, +-) the ride plume's wind turns away from "across the trail"; rideTone / rideBoost = the ride plume's tone and
+   coverage gain (seen from above in daylight over pale ground, the camp's dusk grey vanishes); steam = [height, radius, coverage, rise speed] of the pot / kettle wisp */
+const PUFF_O = 0.35; /* puffMat's base opacity: the game lens thins the smoke through it, the column reads it back as a factor */
+const puffMat = new THREE.MeshBasicMaterial({ color: '#ffffff', side: THREE.DoubleSide, forceSinglePass: true, transparent: true, opacity: PUFF_O, depthWrite: false, fog: false, toneMapped: false, blending: THREE.CustomBlending, blendEquation: THREE.AddEquation, blendSrc: THREE.OneFactor, blendDst: THREE.OneMinusSrcAlphaFactor, blendSrcAlpha: THREE.ZeroFactor, blendDstAlpha: THREE.OneFactor }); /* both walls in ONE pass (forceSinglePass: a transparent DoubleSide material would otherwise draw twice, back then front, and compile a second program); out = tone x coverage + backdrop x (1 - coverage): premultiplied, unlit (the lights' tint stays out of it). An instance's color carries its coverage (r), its phase (g) and its rise speed (b) */
+const smkU = { t: { value: 0 }, rm: { value: 0 } }; /* the smoke clock (s) and the reduced-motion switch, read by every column */
+puffMat.customProgramCacheKey = () => 'smktube1'; /* still ONE program: it replaces the plain basic program for this material, it does not add one */
+puffMat.onBeforeCompile = (sh) => { /* the column is a tube (rings x sides, unit radius, y 0-1) that the vertex shader bends: narrow at the fire, widening with height, leaning downwind, a slow sway
+     that travels upward at the rise speed (two sines + smooth noise) and a radius pulse, so the puffs seem to climb. The fragment fades each ring at its silhouette (view-angle falloff on the
+     radial normal, taken across the tube's axis, so a lens looking down the column sees a thin soft ring instead of a smear), thins the smoke toward the top, fades it near the lens and runs
+     the tone warm at the flame to cool at the top. The apparent half-width is capped (a column passing close to the lens stays a column) */
+  sh.uniforms.uT = smkU.t; sh.uniforms.uRm = smkU.rm; sh.uniforms.uSoft = { value: SMK.soft }; sh.uniforms.uTop = { value: SMK.top }; sh.uniforms.uT0 = { value: new THREE.Vector3(...SMK.t0) }; sh.uniforms.uT1 = { value: new THREE.Vector3(...SMK.t1) };
+  sh.uniforms.uLean = { value: SMK.lean }; sh.uniforms.uSway = { value: SMK.sway }; sh.uniforms.uLam = { value: new THREE.Vector2(...SMK.lam) }; sh.uniforms.uBulge = { value: SMK.bulge }; sh.uniforms.uWisp = { value: SMK.wisp };
+  sh.uniforms.uNear = { value: new THREE.Vector2(...SMK.near) }; sh.uniforms.uCap = { value: SMK.cap }; sh.uniforms.uBase = { value: SMK.base }; sh.uniforms.uRp = { value: SMK.rp }; sh.uniforms.uPuff = { value: SMK.puff }; sh.uniforms.uDk = { value: SMK.dk }; sh.uniforms.uTR = { value: new THREE.Vector3(...SMK.rideTone) }; sh.uniforms.uRB = { value: SMK.rideBoost };
+  sh.vertexShader = sh.vertexShader.replace('#include <common>', `#include <common>
+    uniform float uT; uniform float uRm; uniform float uLean; uniform float uSway; uniform vec2 uLam; uniform float uBulge; uniform float uCap; uniform float uBase; uniform float uRp;
+    varying vec3 vSN; varying vec3 vSV; varying vec3 vSA; varying vec3 vSW; varying float vSU; varying float vSD; varying float vSK;
+    float smkH(float n) { return fract(sin(n * 12.9898) * 43758.5453); }`)
+    .replace('#include <project_vertex>', `
+    { mat3 im3 = mat3(instanceMatrix); float W = max(length(im3[0]), 1e-4), H = max(length(im3[1]), 1e-4); /* the instance scale carries the top radius (x, z) and the height (y) */
+      float ph = instanceColor.g * 6.2832, v = fract(instanceColor.b) * 4.0, lx = uLean + floor(instanceColor.b) * 0.1, u = max(position.y, 1e-4), rise = u * H - uT * v; /* rise: meters the pattern has climbed; it travels up at v m/s */
+      float fi = rise * 0.45 + ph, i0 = floor(fi), fr = fract(fi); fr = fr * fr * (3.0 - 2.0 * fr); float nz = mix(smkH(i0), smkH(i0 + 1.0), fr) - 0.5; /* smooth noise riding up with the smoke */
+      float A = uSway * H * u * (1.0 - 0.7 * uRm), sx = A * (sin(6.2832 * rise / uLam.x + ph) + 0.6 * sin(6.2832 * rise / uLam.y + 2.1 * ph) + 1.2 * nz), sz = A * (sin(6.2832 * rise / uLam.y + 1.9 * ph) + 0.6 * sin(6.2832 * rise / (uLam.x * 0.71) + 0.7 * ph) - 0.9 * nz);
+      float r = (uBase + (1.0 - uBase) * pow(u, uRp)) * (1.0 + uBulge * sin(6.2832 * rise / 3.1 + ph) * (1.0 - 0.6 * uRm)); /* narrow at the flame, wide at the top, a puff travelling up */
+      vec3 cen = vec3((lx * H * pow(u, 1.6) + sx) / W, u, sz / W); /* the ring's center: the lean and the sway are meters, the instance x / z scale is the top radius; color b = extra lean (whole tenths) + rise speed / 4 */
+      vec4 cmv = modelViewMatrix * (instanceMatrix * vec4(cen, 1.0)); float d = length(cmv.xyz);
+      r *= min(1.0, uCap * d / max(W * r * projectionMatrix[1][1], 1e-5)); /* the ring's apparent half-width stays under uCap x the half height of the window */
+      transformed = cen + vec3(position.x * r, 0.0, position.z * r);
+      vSN = normalMatrix * (im3 * vec3(position.x, 0.0, position.z)); vSA = normalMatrix * im3[1]; vSW = vec3(position.x, position.z, rise); vSU = u; vSD = d; vSK = floor(instanceColor.r * 0.5); vColor.r -= 2.0 * vSK; } /* color r = coverage, + 2 for a ride plume */
+    #include <project_vertex>
+    vSV = -mvPosition.xyz;`);
+  sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>
+    uniform float uSoft; uniform float uTop; uniform vec3 uT0; uniform vec3 uT1; uniform float uWisp; uniform vec2 uNear; uniform float uPuff; uniform float uDk; uniform vec3 uTR; uniform float uRB;
+    varying vec3 vSN; varying vec3 vSV; varying vec3 vSA; varying vec3 vSW; varying float vSU; varying float vSD; varying float vSK;`)
     .replace('#include <colorspace_fragment>', `#include <colorspace_fragment>
-    { float f = clamp(dot(normalize(vSN), normalize(vSV)), 0.0, 1.0), g = smoothstep(0.0, 1.0, (vSY - 1.05) / uHs), c = gl_FragColor.r * pow(f, uSoft) * (1.0 - uDens * g);
-      gl_FragColor = vec4(mix(uT0, uT1, g) * c, c); }`); };
+    { vec3 n = normalize(vSN), v = normalize(vSV), ax = normalize(vSA); vec3 vp = v - ax * dot(v, ax); float lp = length(vp);
+      float f = clamp(abs(dot(n, vp)) / max(lp, 1e-4), 0.0, 1.0) * smoothstep(0.1, 0.4, lp); /* silhouette falloff across the axis (both walls draw, so the middle is denser than the edge); a lens looking down the column sees it thin out */
+      float u = vSU, dens = smoothstep(0.0, 0.05, u) * pow(1.0 - u, uDk) * (1.0 - smoothstep(uTop, 1.0, u)) * (1.0 - uPuff * (0.5 + 0.5 * sin(vSW.z * 2.4 + 0.8 * vSW.x))); /* dense at the flame, thinning, dissolved before the top; puffs of density climbing with it */
+      float c2 = vSW.x * vSW.x - vSW.y * vSW.y, s2 = 2.0 * vSW.x * vSW.y, wisp = 1.0 - uWisp * (0.5 + 0.5 * sin(vSW.z * 2.3 + 1.7 * c2 + 0.9 * s2) * sin(vSW.z * 1.4 - 2.2 * s2 + 1.0 * vSW.x + 1.3)); /* light wisps climbing with the smoke */
+      float c = gl_FragColor.r * pow(f, uSoft) * dens * wisp * smoothstep(uNear.x, uNear.y, vSD);
+      c = min(1.0, c * (1.0 + uRB * vSK)); gl_FragColor = vec4(mix(mix(uT0, uT1, smoothstep(0.0, 1.0, u)), uTR, vSK) * c, c); }`); };
 const glowMat = new THREE.MeshBasicMaterial({ color: '#ff9a4a', transparent: true, opacity: 0.16, depthWrite: false, blending: THREE.AdditiveBlending });
-const smkH = (n) => { const s = Math.sin(n * 12.9898) * 43758.5453; return s - Math.floor(s); }; /* position hash 0-1: smoke variation per puff and per rise, no random stream */
-const puffGeo = (() => { const g = new THREE.IcosahedronGeometry(0.2, SMK.detail); if (SMK.jit) { const p = g.attributes.position, v = new THREE.Vector3(); for (let i = 0; i < p.count; i++) { v.fromBufferAttribute(p, i); const k = 1 + SMK.jit * (Math.sin(v.x * 19 + 1.3) * Math.sin(v.y * 23 + 0.7) + 0.5 * Math.sin(v.z * 17 + 2.1)); p.setXYZ(i, v.x * k, v.y * k, v.z * k); } } return g; })(); /* lumpy low-poly ball: a smooth bump field on an icosphere (same point, same push, so no cracks) */
+const smkH = (n) => { const s = Math.sin(n * 12.9898) * 43758.5453; return s - Math.floor(s); }; /* position hash 0-1: the per-camp wind direction and phase, no random stream */
+const puffGeo = (() => { /* the column tube: SMK.rings rings of SMK.sides vertices, unit radius, y = 0 (the fire) .. 1 (the top); every bend, taper and pulse happens in the shader */
+  const R = SMK.rings, N = SMK.sides, pos = [], idx = [];
+  for (let i = 0; i < R; i++) for (let j = 0; j < N; j++) { const a = j / N * Math.PI * 2; pos.push(Math.cos(a), i / (R - 1), Math.sin(a)); }
+  for (let i = 0; i < R - 1; i++) for (let j = 0; j < N; j++) { const a = i * N + j, b = i * N + (j + 1) % N, c = a + N, d = b + N; idx.push(a, c, b, b, c, d); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeBoundingSphere(); return g; })();
+let smokeCol = null; /* ONE InstancedMesh for every camp's column and every pot / kettle wisp (one draw call for all the smoke on the map), built with the world's camps */
 for (const m of [campMat, campFlutMat, puffMat, glowMat]) SHARED_MATS.add(m);
 /* ---------- the camps' LOOK is rolled per session, not per mountain seed. S.campLook is a Math.random number drawn in newRun() whenever a NEW
    mountain is rolled (a relaunch rolls it again); the same mountain code in another session gets other looks, and the looks hold for as long as the
@@ -56597,9 +56633,49 @@ function addCampMesh(cp) {
         if (clear(bx + px, bz + pz, 0.08) && clear(bx - px, bz - pz, 0.08) && clear(bx, bz, 0.2) && laneClr(bx, bz, 1.0) >= LANE_CLR) { bsel = [bx, bz, ya, px, pz]; break; } }
       if (!bsel) { const bx = CAMPBOARD.x, bz = CAMPBOARD.z, ya = Math.atan2(-(CAMPCAM.pos[2] - bz), CAMPCAM.pos[0] - bx) + CAMPBOARD.turn; bsel = [bx, bz, ya, Math.sin(ya) * 0.9, Math.cos(ya) * 0.9]; } /* nothing free: the old spot */
       const [bx, bz, ya, px, pz] = bsel, gy = groundAt(bx, bz); cp.boardL = [bx, bz, ya];
+      /* the sand tray: a small plank-frame Zen garden tray that lives behind the fire (+z, away from the lens). It is a prop only: Zen Garden still cuts to the game's own tray. The sand is a grid of
+         flat-colored cells (warm sand, a few faint raked lines, rings round the two stones), so the whole prop is part of this merged mesh. Candidates are fixed offsets from the fire on BOTH sides (the
+         board stands at +x = the lens's left; -x is the lens's right, where the camp UI panel sits); a candidate is clear when it touches no lane, slope, prop, fence, the tent's drawn footprint or the
+         board (0.3 m round the frame and its grass tufts). The pick (owner, 2026-10-03): the first clear candidate whose frame, projected through the default camp lens (CAMPCAM: a pinhole estimate,
+         campFit only re-centers it), sits mostly outside the panel's ~40 % of the width on the right; if no clear candidate does, the first clear one in list order. It may differ from camp to camp;
+         nothing fits -> no tray. Fixed formulas and position hashes only, no random draws. */
+      let trayP = null; cp.trayL = null;
+      { const TWD = 1.3, THD = 0.85, TT = 0.05, SX = TWD / 2 - TT, SZ = THD / 2 - TT, HX = TWD / 2 + 0.14, HZ = THD / 2 + 0.14, MARG = 0.32, TR2 = cp.tentL;
+        const TCAND = [[-2.4, 3.6], [1.4, 3.2], [0.6, 3.6], [0.9, 3.0], [2.6, 3.4], [-2.2, 3.8], [3.2, 2.6], [-3.6, 2.8], [4.4, 2.4], [-4.2, 2.4], [-5.0, 1.2], [5.0, 1.4]]; /* the -x spots from the measured set (6 mountains x every camp x 9 variants; the 5th -x spot fits every layout); the +x spots are the lens's left between the seats and the board, often blocked by the board, the pole or the tent, taken when clear and in view */
+        const fX = CAMPCAM.look[0] - CAMPCAM.pos[0], fZ = CAMPCAM.look[2] - CAMPCAM.pos[2], fL = Math.hypot(fX, fZ), fx = fX / fL, fz = fZ / fL, tH = Math.tan(CAMPCAM.hfov * Math.PI / 360), PANEL = 0.52; /* the lens's forward (xz) and half-angle; the panel starts at ~60 % of the width, 0.52 keeps a margin for the fit's zoom (every -x spot estimates >= 0.58, the +x spots <= 0.4) */
+        const trayU = (x, z) => { const dx = x - CAMPCAM.pos[0], dz = z - CAMPCAM.pos[2], f = dx * fx + dz * fz, r = -dx * fz + dz * fx; if (f < 1) return 2; return 0.5 + 0.5 * (r / f) / tH - CAMPCAM.shift + 0.5 * (HX / f) / tH; }; /* the frame's right edge as a share of the width (screen-right = -x): center + half width, the picture slid left by `shift` */
+        const segD = (x, z, a, b, c, d) => { const ux = c - a, uz = d - b, L2 = ux * ux + uz * uz || 1e-9, t = Math.max(0, Math.min(1, ((x - a) * ux + (z - b) * uz) / L2)); return Math.hypot(x - a - ux * t, z - b - uz * t); };
+        const tentD = (x, z) => { if (!TR2) return 99; const ca = Math.cos(TR2[2]), sa = Math.sin(TR2[2]), dx = x - TR2[0], dz = z - TR2[1], u = dx * ca - dz * sa, v = dx * sa + dz * ca; return Math.hypot(Math.max(-1.94 - u, u - 2.0, 0), Math.max(Math.abs(v) - 1.32, 0)); }; /* the tent's drawn footprint, as the fence measures it */
+        for (const [tcx, tcz] of TCAND) { const yw = Math.atan2(CAMPCAM.pos[0] - tcx, CAMPCAM.pos[2] - tcz) + 0.2, co = Math.cos(yw), si = Math.sin(yw); let ok = true, lo = 1e9, hi = -1e9;
+          for (let iu = -4; iu <= 4 && ok; iu++) for (let iv = -3; iv <= 3 && ok; iv++) { const u = iu / 4 * HX, v = iv / 3 * HZ, x = tcx + u * co + v * si, z = tcz - u * si + v * co, g = groundAt(x, z); lo = Math.min(lo, g); hi = Math.max(hi, g);
+            if (g < -0.35 || laneClr(x, z, 0) < LANE_CLR || tentD(x, z) < MARG / RS + 0.05 || segD(x, z, bx - px, bz - pz, bx + px, bz + pz) < MARG / RS + 0.1) { ok = false; break; }
+            const [wx, wz] = toW(x, z); for (const o of SOL) if (ccDist(o, wx, wz) < MARG) { ok = false; break; } }
+          if (!ok || hi - lo > 0.22) continue;
+          const vis = trayU(tcx, tcz) <= PANEL; if (vis || !trayP) trayP = { x: tcx, z: tcz, a: yw, lo, hi, co, si }; if (vis) break; } /* the first clear spot in view wins; else the first clear spot */
+        if (trayP) { const { x: tcx, z: tcz, a: yw, lo, hi, co, si } = trayP, TM = new THREE.Matrix4().compose(V.set(tcx, 0, tcz), Q.setFromEuler(E.set(0, yw, 0)), Sc.set(1, 1, 1)); cp.trayL = [tcx, tcz, yw];
+          const ys = hi + 0.07, yt = ys + 0.04, yb = lo - 0.08, hh = yt - yb; /* the sand sits 7 cm over the highest ground under the frame; the planks reach down below the lowest */
+          const hsh = (a, b) => { const s = Math.sin(a * 12.9898 + b * 78.233) * 43758.5453; return s - Math.floor(s); };
+          put(box(TWD, hh, TT), '#6e4a2c', 0, (yt + yb) / 2, -(THD - TT) / 2, 0, 0, 0, 1, 1, 1, TM); put(box(TWD, hh, TT), '#5e3f24', 0, (yt + yb) / 2, (THD - TT) / 2, 0, 0, 0, 1, 1, 1, TM);
+          for (const sd of [-1, 1]) put(box(TT, hh, THD - 2 * TT), '#664428', sd * (TWD - TT) / 2, (yt + yb) / 2, 0, 0, 0, 0, 1, 1, 1, TM);
+          for (const sd of [-1, 1]) { put(box(TWD + 0.012, 0.012, TT + 0.012), '#8a6038', 0, yt + 0.006, sd * (THD - TT) / 2, 0, 0, 0, 1, 1, 1, TM); put(box(TT + 0.012, 0.012, THD - 2 * TT), '#7e5632', sd * (TWD - TT) / 2, yt + 0.006, 0, 0, 0, 1, 1, 1, 1, TM); }
+          const STN = [[0.34, -0.12, 0.085], [-0.42, 0.17, 0.062]], BASE = new THREE.Color('#dcc7a0'), GRV = new THREE.Color('#c0a477'), RDG = new THREE.Color('#ebdcb9'), EDG = new THREE.Color('#a68f68'), cc = new THREE.Color();
+          const NX = 48, NZ = 30, dx = 2 * SX / NX, dz = 2 * SZ / NZ, sp = new Float32Array(NX * NZ * 18), sc = new Float32Array(NX * NZ * 18); let w = 0;
+          for (let i = 0; i < NX; i++) for (let j = 0; j < NZ; j++) { const x0 = -SX + i * dx, z0 = -SZ + j * dz, x1 = x0 + dx, z1 = z0 + dz, cx = (x0 + x1) / 2, cz = (z0 + z1) / 2; let k = 0, near = 9;
+            for (const [sx, sz, sr] of STN) near = Math.min(near, Math.hypot(cx - sx, cz - sz) - sr); /* distance from the nearest stone's rim */
+            if (near < 0.05) k = 0; else if (near < 0.22) { const m = (near - 0.06) % 0.075; k = m < 0.025 ? -1 : m < 0.05 ? 1 : 0; } /* two or three rings round a stone */
+            else { const u = cz + 0.012 * Math.sin(cx * 5), r = Math.round(u / 0.15), dl = Math.abs(u - r * 0.15); k = Math.abs(r) <= 2 ? (dl < 0.0125 ? -1 : dl < 0.0375 ? 1 : 0) : 0; } /* five faint lines along the tray, a slight wave in each */
+            cc.copy(k < 0 ? GRV : k > 0 ? RDG : BASE); const tone = 0.97 + 0.06 * hsh(i, j); cc.multiplyScalar(tone);
+            const ed = Math.min(SX - Math.abs(cx), SZ - Math.abs(cz)); if (ed < 0.035) cc.lerp(EDG, 0.45 * (1 - ed / 0.035));
+            const V6 = [[x0, z0], [x0, z1], [x1, z0], [x1, z0], [x0, z1], [x1, z1]]; for (const [px2, pz2] of V6) { sp[w * 3] = px2; sp[w * 3 + 1] = ys; sp[w * 3 + 2] = pz2; sc[w * 3] = cc.r; sc[w * 3 + 1] = cc.g; sc[w * 3 + 2] = cc.b; w++; } }
+          const sg = new THREE.BufferGeometry(); sg.setAttribute('position', new THREE.BufferAttribute(sp, 3)); sg.setAttribute('color', new THREE.BufferAttribute(sc, 3)); put(sg, null, 0, 0, 0, 0, 0, 0, 1, 1, 1, TM);
+          STN.forEach(([sx, sz, sr], k) => { const g = new THREE.IcosahedronGeometry(sr, 1), p = g.attributes.position; for (let v = 0; v < p.count; v++) { const q = 0.86 + 0.28 * hsh(p.getX(v) * 97 + k, p.getZ(v) * 61 + p.getY(v) * 31); p.setXYZ(v, p.getX(v) * q, p.getY(v) * q, p.getZ(v) * q); }
+            put(g, k ? '#6f747c' : '#8a8f98', sx, ys + sr * 0.18, sz, 0, k * 1.9 + 0.6, 0, 1, 0.62, 1, TM); });
+          for (const [lu, lv] of [[0.72, -0.4], [-0.7, 0.45]]) { const wx2 = tcx + lu * co + lv * si, wz2 = tcz - lu * si + lv * co, g0 = groundAt(wx2, wz2); /* two grass tufts at the far corners, standing on the real ground */
+            for (let q = 0; q < 5; q++) { const h2 = 0.08 + 0.07 * hsh(q, lu * 10), a2 = q * 1.26 + lu; put(new THREE.ConeGeometry(0.011, h2, 3), ['#7aa04c', '#86ad54', '#6c9547', '#93b45c', '#7aa04c'][q], lu + Math.cos(a2) * 0.025, g0 + h2 / 2 - 0.004, lv + Math.sin(a2) * 0.025, Math.sin(a2) * 0.35, a2, -Math.cos(a2) * 0.35, 1, 1, 1, TM); } } } }
       let nv = 0; for (const p of parts) nv += p.geo.index ? p.geo.index.count : p.geo.attributes.position.count; cp.boardV = nv; /* the vertex count before the board (mergeParts keeps the part order) */
       makeBulletinBoard({ parts, m: new THREE.Matrix4().compose(V.set(bx, gy, bz), Q.setFromEuler(E.set(0, ya, 0)), Sc.set(1, 1, 1)), ride: true });
-      solS(bx - px, bz - pz, bx + px, bz + pz, 0.07, 1.72, 'Hit the notice board'); }
+      solS(bx - px, bz - pz, bx + px, bz + pz, 0.07, 1.72, 'Hit the notice board');
+      if (trayP) solB(trayP.x, trayP.z, trayP.a, 0.67, 0.44, 0.12, 'Hit the sand tray'); }
     cp.board = null; /* the live kiosk (camp mode only) */
   }
   const mesh = new THREE.Mesh(mergeParts(parts), campMat); grp.add(mesh); cp.body = mesh;
@@ -56616,8 +56692,7 @@ function addCampMesh(cp) {
   /* the pole flag is a swallowtail (0.9 x 0.5 at course camps, 0.75 x 0.4 at your own), hung from the pole top; it and the bunting flutter in the shader */
   swallowFlag(flutB, poleP[0], poleY + poleH - 0.05, poleP[1], 0.2, cp.lane ? 0.9 : 0.75, cp.lane ? 0.5 : 0.4, cp.lane ? ACC : '#6fe0c4', '#f2ecdc');
   fx.flag = new THREE.Mesh(flagGeo(flutB), campFlutMat); grp.add(fx.flag);
-  fx.smoke = new THREE.InstancedMesh(puffGeo, puffMat, SMK.n * SMK.sh.length + 3 * fx.steam.length); fx.smoke.frustumCulled = false; /* + 3 puffs per steam source (the pot, the kettle) */ grp.add(fx.smoke); fx.smokeT = Array.from({ length: SMK.n }, (_, k) => k / SMK.n); fx.smokeC = new Int32Array(SMK.n);
-  fx.smokeHi = cp.lane ? 1.7 : 1; /* course camps sit behind their tree screen, so their smoke column rises twice as high (7.5 m, pale) - the wisp IS the glimpse */
+  fx.cp = cp; fx.wind = -Math.PI / 2 + (smkH(cp.idx * 0.731 + (S.course && S.course.seed ? (S.course.seed % 9973) * 0.013 : 0.37) + 0.5) - 0.5) * 4.36; /* the wind lean's direction (yaw of the column's +x), a hash of the camp and the mountain, so it differs per camp; centered on +z (away from the camp lens at -z), within 125 degrees of it */
   const eg = new THREE.BufferGeometry(); eg.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(14 * 3), 3));
   fx.embers = new THREE.Points(eg, new THREE.PointsMaterial({ color: '#ffb35c', size: 0.09, transparent: true, opacity: 0.9, depthWrite: false })); fx.embers.frustumCulled = false; grp.add(fx.embers);
   fx.emb = Array.from({ length: 14 }, () => ({ t: Math.random(), x: 0, z: 0, s: 0.6 + Math.random() }));
@@ -56643,29 +56718,39 @@ function stargazerArms(F) {
     A.g.quaternion.copy(A.q).multiply(_sgq).multiply(_sgq2.setFromAxisAngle(_cz, (az - lift) * k + br * (1 - k))).multiply(_cq.setFromAxisAngle(_cx, ax * k)); }
   const H = G.head; if (H) { H.g.quaternion.multiply(_sgq.setFromAxisAngle(_cy, 0.25 * lookX * look)).multiply(_sgq2.setFromAxisAngle(_cz, -0.12 * look)); } /* the head turns toward the hand and tips back a touch while an arm is up */
 }
-const smkC2 = new THREE.Color();
-const smkCov = (o, a) => o.setScalar(Math.pow(Math.min(1, Math.max(0, a)), 2.2)); /* coverage 0-1 -> instance color (the shader sRGB-encodes it on the way out) */
 const smkSS = (a, b, x) => { const u = Math.min(1, Math.max(0, (x - a) / (b - a))); return u * u * (3 - 2 * u); };
-const smkQ = new THREE.Quaternion(), smkQ2 = new THREE.Quaternion(), smkA = new THREE.Vector3(), smkB = new THREE.Vector3(), smkC = new THREE.Color();
-function smokePath(o, t, ph, fq, am, HI, ft) { /* one wisp's centerline in camp space: eased rise, wind lean, a curl that widens with height, a slow column sway */
-  const K = SMK, w = am * (0.15 + t), a = fq * 6.283 * t + ph;
-  return o.set(K.wind * HI * Math.pow(t, 1.6) + w * Math.sin(a) + 0.1 * Math.sin(ft * 0.8 + t * 3), 1.05 + K.ht * HI * (1 - Math.pow(1 - t, K.ease)), -0.3 * t + K.zk * w * Math.cos(a)); }
-function smokePuff(F, i, t, c, fast, HI, thin) { /* puff i at life t (cycle c): placed on the instanced mesh, faded through its instance color (see puffMat) */
-  const K = SMK, n = i * 7.31 + c * 19.7 + 0.5, r1 = smkH(n), r2 = smkH(n + 1.7), r3 = smkH(n + 3.4);
-  if (K.mode === 0) { /* the first smoke: same rise and growth, now fading with height and turning slowly */
-    const sc = (0.6 + t * (1.6 + 0.8 * HI)) * Math.sin(Math.PI * Math.min(1, t * 1.1));
-    smkA.set(0.9 * t * t + Math.sin(t * 6 + F.t) * 0.08, 1.05 + t * 3.8 * HI, -0.3 * t); smkQ.setFromAxisAngle(_cy, F.t * 0.25 + i * 1.7); smkQ2.setFromAxisAngle(_cx, 0.3 * Math.sin(i + c)); smkQ.multiply(smkQ2);
-    _cs.set(sc, sc * K.squash, sc); _cm.compose(smkA, smkQ, _cs); F.smoke.setMatrixAt(i, _cm);
-    const a = K.pk[0] * smkSS(0, K.in, t) * (1 - smkSS(K.f0, 1, t)) * thin; F.smoke.setColorAt(i, smkCov(smkC, a)); return; }
-  const ph = r1 * 6.283, fq = K.fq[fast] * (0.8 + 0.4 * r2), am = K.am[fast] * (0.7 + 0.6 * r3);
-  smokePath(smkA, t, ph, fq, am, HI, F.t); smokePath(smkB, t < 0.97 ? t + 0.03 : t - 0.03, ph, fq, am, HI, F.t); smkB.sub(smkA); if (t >= 0.97) smkB.negate(); if (smkB.lengthSq() < 1e-8) smkB.set(0, 1, 0);
-  smkQ.setFromUnitVectors(_cy, smkB.normalize()); smkQ2.setFromAxisAngle(_cy, ph + t * K.spin); smkQ.multiply(smkQ2); /* long axis along the flow, then a twist so the lumps differ */
-  const spr = K.spread * (0.2 + t); smkA.x += (r2 - 0.5) * spr; smkA.z += (r3 - 0.5) * spr; /* each lump strays a little off the strand */
-  const s = (K.r0[fast] + K.r1[fast] * t) * (0.85 + 0.3 * r3) / 0.2, L = 1 + K.st[fast] * Math.pow(1 - t, 1.2); /* long and thin at the flame, rounder and wider as it climbs */
-  const a = K.pk[fast] * (1 - SMKB.v + 2 * SMKB.v * r2) * smkSS(0, K.in, t) * (1 - smkSS(K.f0, 1, t)) * thin; /* in at the flame, out well before the top: nothing ends as a lump */
-  for (let h = 0; h < K.sh.length; h++) { /* each wisp is a nest of shells (big faint, small dense): the soft edge a flat low-poly blob does not have */
-    const q = K.sh[h]; const g = SMKB.grow; _cs.set(s * q[0] * g, s * L * q[0] * g, s * q[0] * g * (0.85 + 0.3 * r1)); _cm.compose(smkA, smkQ, _cs); F.smoke.setMatrixAt(i * K.sh.length + h, _cm);
-    F.smoke.setColorAt(i * K.sh.length + h, smkCov(smkC2, a * q[1] * SMKB.w)); } }
+const smkQ = new THREE.Quaternion(), smkA = new THREE.Vector3(), smkC = new THREE.Color();
+function smokeColBuild() { /* the shared column mesh for this world: one instance per camp (its column / ride plume) + one per pot or kettle (a short wisp) */
+  let n = 0; for (const F of campFx) { F.col = n++; F.stm = n; n += F.steam.length; F.colOn = -1; }
+  if (!n) { smokeCol = null; return; }
+  const M = new THREE.InstancedMesh(puffGeo, puffMat, n); M.frustumCulled = false; M.renderOrder = 5; /* after the other transparent things (the glow disc, water): it writes no depth */
+  smkC.setRGB(0, 0, 0); for (let i = 0; i < n; i++) { M.setMatrixAt(i, _cm.makeScale(0, 0, 0)); M.setColorAt(i, smkC); } /* instance color from the start, so the program compiles once */
+  world.add(M); smokeCol = M; }
+function smokeColSet(i, F, x, y, z, h, w, cov, ph, v, yaw = F.wind, ln = 0, rp = false) { /* instance i: a column at camp point (x, y, z), h tall, w top radius, leaning along yaw (the camp's wind) by ln extra; its color = coverage, phase, extra lean + rise speed */
+  _cm.compose(_cp.set(x, y, z), smkQ.setFromAxisAngle(_cy, yaw), _cs.set(w, h, w)); _cm.premultiply(F.grp.matrixWorld); smokeCol.setMatrixAt(i, _cm);
+  smokeCol.setColorAt(i, smkC.setRGB(Math.pow(Math.min(1, Math.max(0, cov)), 2.2) + (rp ? 2 : 0), ph, Math.round(ln * 10) + v / 4)); } /* coverage is sRGB-encoded on the way out, so it goes in as pow 2.2 */
+function smokeRideSetup(F) { /* once per camp: where its trail flag stands (trail meters before the camp) and the ride plume's wind, which blows ACROSS the trail (the ride camera frames the trail, the
+     camp sits off its edge) turned by a per-camp hash of the camp and the mountain, so each camp's plume drifts its own way over the track */
+  const cp = F.cp, C = S.course; let fi = -1; for (const f of (C && C.flags) || []) if (f.k === 'camp' && f.i <= cp.idx && f.i > cp.idx - 120 && f.i > fi) fi = f.i;
+  F.flagDs = fi >= 0 ? cp.idx - fi : 40; const P = C && C.pts[cp.idx];
+  if (P) { F.grp.updateMatrixWorld(); const q = F.grp.worldToLocal(smkA.set(P.x, F.grp.matrixWorld.elements[13], P.z)); F.windR = Math.atan2(-q.z, q.x); } /* yaw that turns the column's +x toward the trail */
+  else F.windR = F.wind;
+  F.windR += (smkH(cp.idx * 0.517 + (C && C.seed ? (C.seed % 9973) * 0.011 : 0.29) + 3.1) - 0.5) * 2 * SMK.rideYaw; }
+function smokeColOff(i) { smokeCol.setMatrixAt(i, _cm.makeScale(0, 0, 0)); smokeCol.setColorAt(i, smkC.setRGB(0, 0, 0)); }
+function smokePlume(F, d, dt) { /* the camp's column: your own camp and the entered camp carry it always; on the ride a course camp's taller plume ramps in behind the camp flag (ride[0] -> ride[1] trail meters
+     before the camp's own trail flag, i.e. 80 -> 60 before a camp whose flag stands 40 before it), fades out after the camp (ride[2] -> ride[3]) and is culled beyond ride[4] m; it softens with the fog. Returns whether it drew */
+  const K = SMK, cp = F.cp, R = K.ride, lane = !!cp.lane, thin = puffMat.opacity / PUFF_O, here = !!(S.camp && S.camp.cp === cp); let fade;
+  if (lane && F.flagDs === undefined) smokeRideSetup(F);
+  if (here) fade = 1;
+  else { const ds = cp.idx - S.segIdx; fade = (lane ? smkSS(F.flagDs + R[0], F.flagDs + R[1], ds) : 1) * (1 - smkSS(R[2], R[3], ds)); if (d > R[4]) fade = 0; else { const fg = scene.fog; if (fg && fg.isFog) fade *= 1 - smkSS(fg.near, fg.far, d); } }
+  const on = fade > 0.002 && thin > 0.002;
+  if (!on) { if (F.colOn !== 0) { smokeColOff(F.col); F.colOn = 0; } return false; }
+  let [h, w] = lane ? K.lane : K.camp; if (S.camp && S.camp.cp === cp) h *= 1 - (1 - K.campK) * sstep(S.camp.k); /* in the camp lens the plume is shorter, so its top dissolves in frame */ const ride = lane && !here; /* on the ride the plume drifts across the trail (its own wind, extra lean); in a camp lens it stands on the camp's wind */
+  smokeColSet(F.col, F, 0, 1.05, 0, h, w, K.cov * fade * thin, smkH(cp.idx * 1.37 + 2.2), K.v, ride ? F.windR : F.wind, ride ? K.rideLean : 0, ride); F.colOn = 1; return true; }
+function smokeSteam(F, on) { /* the pot's / kettle's wisp: a short thin column on the spout, only while the camp animates */
+  const K = SMK.steam, thin = puffMat.opacity / PUFF_O; let any = false;
+  for (let k = 0; k < F.steam.length; k++) { const i = F.stm + k; if (!on) { smokeColOff(i); continue; } const [sx, sy, sz, sr] = F.steam[k]; smokeColSet(i, F, sx, sy, sz, K[0] * (0.7 + sr), K[1] * (0.7 + sr), K[2] * thin, smkH(F.cp.idx * 0.91 + k * 3.3 + 1.1), K[3]); any = true; }
+  return any; }
 const TEA_SIP = 1.126; /* the right arm's swing about the shoulder (rad): from the mug resting at his chest to the rim at his lips */
 const teaEase = (x) => { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); };
 function teaIdle(F, dt) { /* the tea maker's calm idle: slow looks round, a small settle of the body, and a sip every 4 to 12 s (per-session Math.random; reduced motion = the resting pose, breathing only) */
@@ -56680,20 +56765,18 @@ function teaIdle(F, dt) { /* the tea maker's calm idle: slow looks round, a smal
   H.g.quaternion.copy(H.q).multiply(_cq.setFromAxisAngle(_cy, yaw)).multiply(_cq2.setFromAxisAngle(_cz, pit));
   _cp.set(T.sx + 0.035 * k, T.sy + 0.005 * Math.sin(F.t * 1.4) - 0.02 * k, T.sz + 0.012 * k).applyQuaternion(T.fq); H.g.position.copy(H.p).add(_cp); /* the offsets are in the figure's frame */
   _cp.set(T.sx, T.sy, T.sz).applyQuaternion(T.fq); A.g.position.copy(A.p).add(_cp); A.g.quaternion.copy(A.q).multiply(_cq.setFromAxisAngle(_cz, TEA_SIP * k + tilt + 0.02 * Math.sin(F.t * 0.9))); }
+let smkAny = false; /* whether any column drew this frame (the shared mesh hides otherwise: no draw call) */
 function animateCamps(dt) {
+  const rm = reduceMotion.matches; smkU.rm.value = rm ? 1 : 0; smkU.t.value += dt * (rm ? 0.5 : 1); /* the smoke clock: reduced motion = half speed (and a third of the sway, in the shader) */
+  smkAny = false;
   for (const F of campFx) {
     if (!F.grp.parent) continue;
     F.grp.getWorldPosition(_cv); const d = _cv.distanceTo(S.pos); const on = d < 70; /* getWorldPosition also keeps the camp group's world matrix current between renders */
-    F.smoke.visible = F.embers.visible = F.glow.visible = on; if (!on) continue; /* only camps near you animate */
+    let drew = false; if (smokeCol) { drew = smokePlume(F, d, dt) || drew; drew = smokeSteam(F, on) || drew; if (drew) smokeCol.instanceMatrix.needsUpdate = smokeCol.instanceColor.needsUpdate = smkAny = true; }
+    F.embers.visible = F.glow.visible = on; if (!on) continue; /* only camps near you animate (the column keeps its own range) */
     F.t += dt;
     F.glow.material.opacity = (F.glowBase || 0.2) * (S.camp ? 1 + 0.12 * sstep(S.camp.k) : 1) * (1 + Math.sin(F.t * 4.2) * 0.03 + Math.sin(F.t * 7.9) * 0.02) + (Math.random() - 0.5) * 0.006; /* the glow breathes slowly (+-5 %); x1.12 at dusk (more and the fire blows out to flat yellow with the disc drawn over the flames in camp mode, see below) and its core is halved (the vertex colors: a 0.5 -> 1 ramp over the first 22 %), so the flames and the ring stones keep their color under it */
     F.glow.material.depthTest = !S.camp; /* the glow disc is draped on the ground, so with the depth test every prop standing in it cuts a hard edge where it occludes the disc. In camp mode (the fixed lens, nothing between it and the pad) the disc draws over everything instead: on the logs, the wheels and the rider's boots it reads as the fire's light on them. In the ride it stays depth-tested (it must not show through a hill or a tree trunk) */
-    { const ST = F.smokeT, SC = F.smokeC, HI = F.smokeHi || 1, thin = puffMat.opacity / PUFF_O; /* thin: 1, less while a game pose fills the lens */
-      for (let i = 0; i < ST.length; i++) { const f = i & 1, t0 = ST[i], t = (ST[i] = (t0 + dt * SMK.sp[f]) % 1); if (t < t0) SC[i]++; smokePuff(F, i, t, SC[i], f, HI, thin); } }
-    if (F.steam.length) { /* the pot's / kettle's steam: three small puffs per source ride the same instanced mesh as the smoke (0 extra draw calls) */
-      for (let k = 0; k < F.steam.length; k++) { const [sx, sy, sz, sr] = F.steam[k]; for (let j = 0; j < 3; j++) { const life = (F.t * 0.35 + j / 3 + k * 0.17) % 1, sc = sr * (0.3 + life * 0.9) * Math.sin(Math.PI * Math.min(1, life * 1.2)); _cm.compose(_cp.set(sx + Math.sin(life * 6 + j * 2) * 0.05, sy + life * 0.55, sz + Math.cos(life * 5 + j) * 0.04), _cq.identity(), _cs.set(sc, sc, sc)); F.smoke.setMatrixAt(SMK.n * SMK.sh.length + k * 3 + j, _cm); const a = SMK.steam * Math.sin(Math.PI * Math.min(1, life * 1.2)) * (puffMat.opacity / PUFF_O); F.smoke.setColorAt(SMK.n * SMK.sh.length + k * 3 + j, smkCov(smkC, a)); } } }
-    F.smoke.instanceColor.needsUpdate = true;
-    F.smoke.instanceMatrix.needsUpdate = true;
     const ep = F.embers.geometry.attributes.position.array;
     for (let i = 0; i < F.emb.length; i++) { const E = F.emb[i]; E.t += dt * 0.7 * E.s; if (E.t > 1) { E.t = 0; E.x = (Math.random() - 0.5) * 0.3; E.z = (Math.random() - 0.5) * 0.3; } ep[i * 3] = E.x + Math.sin(E.t * 9 + i) * 0.12 + E.t * 0.3; ep[i * 3 + 1] = 0.5 + E.t * 2.2; ep[i * 3 + 2] = E.z; }
     F.embers.geometry.attributes.position.needsUpdate = true;
@@ -56716,6 +56799,7 @@ function animateCamps(dt) {
       A.g.quaternion.copy(A.q).multiply(_cq.setFromAxisAngle(_cx, ax)).multiply(_cq2.setFromAxisAngle(_cy, ay)).multiply(_cqa.setFromAxisAngle(_cz, az)); }
     if (F.board) { const P = F.board.userData.panel, pa = P.geometry.attributes.position, base = P.geometry.userData.base; if (pa && base) { for (let i = 0; i < pa.count; i++) { const x = base[i * 3], y = base[i * 3 + 1], k = (BOARD_TEX.ph / 2 - y) / BOARD_TEX.ph; pa.setZ(i, 0.016 * k * k * (0.5 + 0.5 * Math.sin(F.t * 3.2 + x * 4)) + 0.005 * k * (0.5 + 0.5 * Math.sin(F.t * 5 + y * 6))); } pa.needsUpdate = true; } } /* the paper's lower rows flutter, bowing outward only (its top edge is pinned; the plank seams sit 6 mm behind it) */
   }
+  if (smokeCol) smokeCol.visible = smkAny;
 }
 /* ---------- bike ---------- */
 /* ---------- the look. Curated palettes (id -> color; .d = the derived shade, .l = the derived light) and the style options that swap cheap geometry. ---------- */
@@ -61648,7 +61732,7 @@ const CampMini = (() => {
   const DEF = {}, IDS = [], NAMES = {}, INSTR = {}, CHIPS = {}, RESULT = {}, GAMES = {}, GAME_FX = {}; /* the per-id views of the registry the shell and the games read */
   for (const d of GAME_DEFS) { DEF[d.id] = d; IDS.push(d.id); NAMES[d.id] = d.name; INSTR[d.id] = d.instr; CHIPS[d.id] = d.chips; RESULT[d.id] = d.result; GAMES[d.id] = d.play; if (d.fx) GAME_FX[d.id] = d.fx; try { sfx.miniDef(d.id, d.fire); } catch (e) { /* no audio */ } }
   const STAR_T = [0.35, 0.6, 0.85];
-  const BUFF_MIN = 0.70, INPUT_FLOOR = 0.35; /* the shared buff gate (a score, NOT a star count) and the completion floor for a run that ended naturally after at least one input */
+  const BUFF_MIN = 0.85, INPUT_FLOOR = 0.35; /* the shared buff gate (a score, NOT a star count) and the completion floor for a run that ended naturally after at least one input */
   const starsOf = (s) => STAR_T.filter((t) => s >= t - 1e-9).length;
   const clamp = (v, a, b) => (v < a ? a : v > b ? b : v), lerp = (a, b, k) => a + (b - a) * k, TAU = Math.PI * 2;
   const mulberry = (a) => () => { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
@@ -62726,7 +62810,7 @@ const CampMini = (() => {
         for (let i = 1; i < Q.length; i++) { const th = Math.atan2(Q[i][1] - Q[i - 1][1], Q[i][0] - Q[i - 1][0]); if (t0 !== null) { const tu = Math.atan2(Math.sin(th - t0), Math.cos(th - t0)); if (a0 !== null && a1 !== null) { sj += Math.abs(a1 - (a0 + tu) / 2); n++; } a0 = a1; a1 = tu; } t0 = th; } }
       return n ? clamp(1 - (sj / n - 0.015) / 0.25, 0, 1) : 0; }
     const free = () => ci >= ND;
-    function parts() { const rc = TS.length ? covN / TS.length : 0, pr = allLen > 0 ? inLen / allLen : 0, smv = smoothness(), acc = rc * (0.35 + 0.65 * pr); return { rc, pr, sm: smv, acc, s: free() ? (allLen >= 300 ? 0.5 : 0) : clamp(0.7 * acc + 0.3 * smv * rc, 0, 1) }; }
+    function parts() { const rc = TS.length ? covN / TS.length : 0, pr = allLen > 0 ? inLen / allLen : 0, smv = smoothness(), acc = rc * (0.35 + 0.65 * pr); return { rc, pr, sm: smv, acc, s: free() ? (allLen >= 300 ? 0.5 : 0) : clamp(0.8 * acc + 0.2 * smv * rc, 0, 1) }; }
     const shove = (x, y) => { for (const [rx, ry, rr] of D.rocks) { const R = rr + HW + 3, ddx = x - rx, ddy = y - ry, d = Math.hypot(ddx, ddy); if (d < R) { if (d > 1e-6) { x = rx + ddx * R / d; y = ry + ddy * R / d; } else x = rx + R; } } return [clamp(x, 2, TW - 2), clamp(y, 2, TH - 2)]; }; /* the rake slides round the stones */
     function setDown(p) { /* the rake comes down on the sand at p: the first time with a soft thud and a puff of sand, later a short drop */
       rk.at = [p[0], p[1]]; if (!rk.on) { rk.on = true; G.cue('rakeIn'); rk.in = rm ? ENT : 0; if (!rm) rk.puff = { x: p[0], y: p[1], t: 0 }; } else rk.in = rm ? ENT : ENT * 0.55; dirty = true; }
@@ -63437,7 +63521,7 @@ const CampMini = (() => {
       const pot = (g) => { const s = clamp(g.u * 0.12, 34, 92), bx = g.sx - side * s * 1.82, by = g.potY + s * 0.55, tilt = (rm ? 0.5 : 1) * 0.55 * Math.pow(P.flow, 0.7); /* the teapot's frame: T(u, v) maps its own units (tipping about the handle) */
         const T = (u, v) => { const a = side * tilt, x0 = u * s * side, y0 = v * s, px = -1.0 * s * side, py = -0.45 * s, dx = x0 - px, dy = y0 - py; return [bx + px + dx * Math.cos(a) - dy * Math.sin(a), by + py + dx * Math.sin(a) + dy * Math.cos(a)]; };
         return { s, T, mo: T(1.82, -0.93), bx, by, tilt }; };
-      const judge = () => { const q = clamp(1 - Math.abs(P.fill - FILL) / 0.30 - 0.5 * (P.spill / Math.max(0.05, P.fill + P.spill)), 0, 1); res.push(q); meal.fills[P.mug] = P.fill; P.st = 'out'; P.stT = 0; P.q = q;
+      const judge = () => { const q = clamp(1 - Math.abs(P.fill - FILL) / 0.50 - 0.5 * (P.spill / Math.max(0.05, P.fill + P.spill)), 0, 1); res.push(q); meal.fills[P.mug] = P.fill; P.st = 'out'; P.stT = 0; P.q = q;
         word = q >= 0.9 ? 'Just right' : q >= 0.7 ? 'Nice pour' : P.fill > FILL + 0.08 ? 'Too full' : P.fill < FILL - 0.15 ? 'Short pour' : 'Bit spilly'; wordQ = q; G.cue(q >= 0.9 ? 'good' : q >= 0.5 ? 'tick' : 'miss'); };
       P.t0 = t;
       return { P, start() { G.prog('Tea · mug 1 / 2'); },
@@ -63457,7 +63541,7 @@ const CampMini = (() => {
             if (t - P.t0 > PASS && P.flow <= 0) judge(); /* the mug's pass is over: the pot comes up and it slides on */
             G.help.hold(0, P.hold ? clamp(P.fill / FILL, 0, 1) : 0); }
           else if (P.st === 'out') { if (P.stT > 0.5) { P.mug++; if (P.mug >= N) { P.done = true; P.q = res.reduce((a, b) => a + b, 0) / N; return; } P.st = 'in'; P.stT = 0; P.fill = 0; P.spill = 0; P.flow = 0; P.poured = false; P.idle = 0; G.prog('Tea · mug 2 / 2'); } } },
-        partial() { return (res.reduce((a, b) => a + b, 0) + (P.poured && P.st !== 'out' ? clamp(1 - Math.abs(P.fill - FILL) / 0.30, 0, 1) : 0)) / N; },
+        partial() { return (res.reduce((a, b) => a + b, 0) + (P.poured && P.st !== 'out' ? clamp(1 - Math.abs(P.fill - FILL) / 0.50, 0, 1) : 0)) / N; },
         peek() { const g = L(); return { ph: 'pour', st: P.st, mug: P.mug, fill: P.fill, spill: P.spill, flow: P.flow, mx: mugX(g), sx: pot(g).mo[0], half: g.mw * 0.42, hold: P.hold, vx: dirS * g.mw * amp * TAU / sway * Math.cos(TAU * (t - P.t0) / sway) }; },
         draw(c, W, H) { const g = L(), mx = mugX(g), K = pot(g), s = K.s, T = K.T;
           /* the blue enamel teapot: a faceted bell body, lid and knob, a straight tapered spout toward the middle, the handle on the far side; it tips about the handle */
@@ -63532,7 +63616,7 @@ const CampMini = (() => {
     }
     /* ================= phase 3: COOK (the roast game's hold-and-release heat model with a steak ramp: sear, flip, the golden band) ================= */
     function cookPh() {
-      const tol = 0.15 - 0.05 * G.d, RATE = 0.2, tg = clamp(0.64 + (G.rng() - 0.5) * 0.06, 0.55, 0.72), fl = G.rng() * 100;
+      const tol = 0.26 - 0.05 * G.d, RATE = 0.2, tg = clamp(0.64 + (G.rng() - 0.5) * 0.06, 0.55, 0.72), fl = G.rng() * 100;
       const P = { ph: 'cook', side: 0, st: 'wait', stT: 0, h: 0, d: 0, d2: 0, hold: false, sizT: 0, q: [], flip: 0, hinted: false };
       const puffs = []; const L = () => { const W = G.W, H = G.H, u = Math.min(W, H); return { W, H, u, px: W / 2, py: H * 0.74, pw: clamp(u * 0.62, 180, 460) }; };
       const done1 = (fire) => { const q = fire ? 0 : Math.pow(clamp(1 - Math.abs(P.d - tg) / tol, 0, 1), 0.85); P.q.push(q); if (P.side === 0) meal.dA = Math.min(1, P.d); else meal.dB = Math.min(1, P.d); if (fire) meal.burnt = true;
@@ -63593,7 +63677,7 @@ const CampMini = (() => {
         const l = P.lines[k], [sa, sb] = SP[k], inS = path.filter((p) => p[1] >= sa && p[1] <= sb); if (inS.length < 2) return false;
         const cover = clamp((Math.min(b0, sb) - Math.max(a0, sa)) / (sb - sa), 0, 1); if (cover < 0.35) return false;
         const dev = inS.reduce((s, p) => s + Math.abs(p[0] - l.u), 0) / inS.length;
-        l.q = clamp(1 - dev / (gap * 0.30), 0, 1) * clamp(cover / 0.9, 0, 1); l.done = true; l.xs = path.slice(); l.mean = inS.reduce((s, p) => s + p[0], 0) / inS.length; l.t = t;
+        l.q = clamp(1 - dev / (gap * 0.55), 0, 1) * clamp(cover / 0.9, 0, 1); l.done = true; l.xs = path.slice(); l.mean = inS.reduce((s, p) => s + p[0], 0) / inS.length; l.t = t;
         G.cue('slice'); G.buzz(10); word = l.q >= 0.9 ? 'Clean cut' : l.q >= 0.6 ? 'Good cut' : 'Ragged'; wordQ = l.q; P.idle = 0;
         if (P.lines.every((x) => x.done)) { const m = [-0.86].concat(P.lines.map((x) => x.mean).sort((x, y) => x - y), [0.86]), wd = []; for (let j = 1; j < m.length; j++) wd.push(m[j] - m[j - 1]);
           const mw = wd.reduce((s, x) => s + x, 0) / wd.length, cv = Math.sqrt(wd.reduce((s, x) => s + (x - mw) ** 2, 0) / wd.length) / mw; P.even = clamp(1 - cv * 3, 0, 1);
@@ -64207,7 +64291,7 @@ const CampMini = (() => {
           else if (drag.on) { pw = clamp(Math.hypot(dx, dy) / (Math.min(G.W, G.H) * 0.45), 0, 1); yaw = clamp(-G.side * dx / G.W * 50, -16, 16); } } /* a sling: pull back for power, sideways to aim */
         else if ((type === 'up' || type === 'cancel') && drag) { const d = drag; drag = null; if (d.on) throwIt(); else if (!d.mode && type === 'up' && st === 'aim') act(); } /* a plain tap locks the angle, as before */
       },
-      partial() { return clamp(total / (N * 9.3), 0, 1); },
+      partial() { return clamp(total / (N * 8.2), 0, 1); },
       peek: () => ({ st, n, ang, pw, yaw, lx, total, side: G.side, cnt }),
       end() { if (!V3) return; if (MINI_VIEW === V3) MINI_VIEW = null; V3.dispose(); V3 = null; }, /* the camp is drawn again from the next frame */
       update(dt) {
