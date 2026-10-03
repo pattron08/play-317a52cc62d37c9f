@@ -222,6 +222,13 @@
   #pauseMenu .pmDev { margin-top: 2px; padding-top: 8px; border-top: 1px dashed rgba(253,248,234,.2); display: grid; gap: 6px; }
   #pauseMenu .devh { text-align: center; font: 700 9px var(--f-ui); letter-spacing: .24em; opacity: .5; }
   #pauseMenu .pmDev .mb { min-height: 34px; font-size: 11px; background: transparent; border-style: dashed; color: rgba(253,248,234,.7); }
+  #pauseMenu .pmDev .drow { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  #pauseMenu .pmDev .dsw { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 0 8px; text-align: left; }
+  #pauseMenu .dsw small { display: block; font-size: 9px; opacity: .7; line-height: 1.1; }
+  #pauseMenu .dsw .dk { flex-shrink: 0; width: 28px; height: 16px; border-radius: 99px; border: 1.5px solid rgba(253,248,234,.45); position: relative; box-sizing: border-box; }
+  #pauseMenu .dsw .dk::after { content: ""; position: absolute; left: 2px; top: 2px; width: 9px; height: 9px; border-radius: 50%; background: rgba(253,248,234,.7); transition: transform .15s; }
+  #pauseMenu .dsw[aria-checked="true"] .dk { background: var(--acc1); border-color: var(--acc1); } #pauseMenu .dsw[aria-checked="true"] .dk::after { transform: translateX(12px); background: var(--accInk); }
+  #pauseMenu .sheet { max-height: 100%; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; } /* a short window scrolls the card instead of clipping the DEV row */
   #pauseMenu .pmAsk { display: none; gap: 10px; } #pauseMenu .askt { text-align: center; font: 600 14px/1.35 var(--f-ui); padding: 4px 4px 2px; }
   #pauseMenu .mb.bad { background: #b3382c; border-color: transparent; color: #fff; }
   #pauseMenu.asking .sheet > :not(h2):not(.pmAsk) { display: none; } #pauseMenu.asking .pmAsk { display: grid; }
@@ -608,7 +615,7 @@
   </div>
   <div id="tapGo" role="status">Tap to start</div>
   <button class="ico" id="mute" role="switch" aria-checked="true" aria-label="Sound"><svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg><svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M17 9l5 6M22 9l-5 6"/></svg></button>
-  <div class="foot"><span id="verTag">v0.33.0</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span></div>
+  <div class="foot"><span id="verTag">v0.34.0</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span></div>
   <button id="btnNew" hidden>New mountain</button>
 </div>
 
@@ -618,7 +625,7 @@
   <button class="mb pri" id="pmResume">&#9654; Resume</button>
   <div class="two"><button class="mb sm" id="pmRestart">Restart run</button><button class="mb sm" id="pmSettings">Settings</button></div>
   <div class="two"><button class="mb sm" id="pmNew">New mountain</button><button class="mb sm" id="pmQuit">Quit to title</button></div>
-  <div class="pmDev" id="pmDev"><div class="devh">DEV</div><button class="mb sm" id="pmReset">Reset game (new player)</button></div>
+  <div class="pmDev" id="pmDev"><div class="devh">DEV</div><button class="mb sm" id="pmReset">Reset game (new player)</button><div class="drow"><button class="mb sm dsw" id="pmHaptic" role="switch" aria-checked="true" aria-label="Haptics"><span>Haptics <small>Android</small></span><i class="dk"></i></button><button class="mb sm dsw" id="pmFps" role="switch" aria-checked="false" aria-label="FPS counter"><span>FPS counter</span><i class="dk"></i></button></div></div>
   <div class="pmAsk" id="pmAsk"><div class="askt">Really erase everything? Cannot be undone.</div><div class="two"><button class="mb sm" id="pmAskNo">Cancel</button><button class="mb sm bad" id="pmAskYes">Erase</button></div></div>
 </div></div>
 
@@ -55815,8 +55822,12 @@ function flameGeo(w, h, cb, ct, cone = false) { /* a flame tongue: a squashed oc
 const FL_RED = '#c2401a', FL_OR = '#ff8a26', FL_YEL = '#ffc93c', FL_CREAM = '#fff1b0', FL_DEEP = '#e0521d';
 /* CAMPFIRE FLAMES. A handful of simple faceted tongues (flameGeo leaves and open cones, the base -> tip vertex-color ramp), the same small
    set and size for all three fires, with or without the pot. Each vertex carries aFl = (phase, height along its tongue 0..1, tongue height,
-   motion amount) and aFb = its tongue's base: fireMat's vertex shader stretches and sways every tongue on its own phase with slow sines
-   (about 0.8-1.5 Hz), so the motion is smooth and never pops, at no CPU cost. The whole mesh breathes very slowly on top (the flicker loop).
+   motion amount) and aFb = its tongue's base (xyz) and surge allowance (w): fireMat's vertex shader stretches and sways every tongue on its own
+   phase with slow sines (about 0.8-1.5 Hz), so the motion is smooth and never pops, at no CPU cost. The whole mesh breathes very slowly on top
+   (the flicker loop). SURGES: a tongue with an allowance shoots upward now and then (a quick rise, ~0.8 s, settling back), its timing hashed
+   from its own phase: every cone has its own 14-36 s cycle with the surge at a different moment of each cycle, so a fire sends up one tongue
+   roughly every 3-9 s, sometimes two at once. The allowance is the tongue's height as a fraction (0.9 = up to 1.9x); with the pot it is cut per
+   tongue so the surged tip stays under the pot's feet. None under reduced motion (uFlA 0).
    Unlit and tone mapped like flameMat, DoubleSide, see-through toward the tips (below). FLAME_STYLES: 1 plain with a red-orange heart (as 6), 2 warmer (yellow heart,
    orange tips), 3 fuller (two more small tongues), 4 calmer (shorter, slower), 5 / 6 / 7 plain with a light / medium / strong red-orange heart
    (FLAME_CORE), 1 and 6 with a per-tongue color shift (vary); FLAME_STYLE picks one (?flame=N with ?debug). */
@@ -55838,18 +55849,22 @@ const fireMat = new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.Do
 const FIRE_TIP_A = 0.48, FIRE_EDGE_A = 0.7, FIRE_BACK_A = 0.6;
 fireMat.onBeforeCompile = (sh) => { sh.uniforms.uFlT = flutU.t; sh.uniforms.uFlA = flutU.a; /* the flag clock: it stops while paused and under reduced motion */
   const sp = FLAME_STYLE.sp.toFixed(3), am = FLAME_STYLE.amp.toFixed(3), vy = (FLAME_STYLE.vary || 0).toFixed(3);
-  sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute vec4 aFl;\nattribute vec3 aFb;\nuniform float uFlT;\nuniform float uFlA;\nvarying float vFu;\nvarying vec3 vFvp;')
+  sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute vec4 aFl;\nattribute vec4 aFb;\nuniform float uFlT;\nuniform float uFlA;\nvarying float vFu;\nvarying vec3 vFvp;')
     .replace('#include <project_vertex>', '#include <project_vertex>\n    vFvp = mvPosition.xyz;')
     .replace('#include <begin_vertex>', `#include <begin_vertex>
     { float hh = fract(sin(aFl.x * 91.7) * 43758.55) * 2.0 - 1.0, hv = fract(sin(aFl.x * 47.3 + 1.7) * 24634.63) * 2.0 - 1.0;
       vColor.gb *= 1.0 + ${vy} * hh * vec2(0.24, 0.3); vColor *= 1.0 + ${vy} * 0.07 * hv; vFu = aFl.y; } /* toward yellow (hh > 0) or deeper red (hh < 0), a touch brighter or darker */
     { float ph = aFl.x, u = aFl.y, A = aFl.w * uFlA * ${am}, t = uFlT * ${sp};
       float f = A * (0.06 * sin(t * 6.3 + ph) + 0.035 * sin(t * 9.4 + ph * 1.7 + 1.3)); /* ~1.0 and ~1.5 Hz */
-      vec3 d = transformed - aFb; d.y *= 1.0 + f; d.xz *= 1.0 - 0.3 * f * u;
+      float se = 0.0; /* the surge envelope: this tongue's own cycle (14-36 s), the surge at a hashed moment of each cycle, a quick rise over 0.25 s, settling by 0.8 s; added to the stretch, so a surged tip = base + height x (1 + stretch + allowance) at most */
+      if (aFb.w * uFlA > 0.0) { float hp = fract(sin(ph * 12.9898) * 43758.5453), P = 14.0 + 22.0 * hp, c = uFlT / P + hp, cu = fract(c) * P;
+        float st = fract(sin((floor(c) + hp * 7.0) * 78.233) * 43758.5453) * (P - 1.2), x = (cu - st) / 0.8;
+        se = uFlA * smoothstep(0.0, 0.3, x) * (1.0 - smoothstep(0.45, 1.0, x)); }
+      vec3 d = transformed - aFb.xyz; d.y *= 1.0 + f + aFb.w * se; d.xz *= 1.0 - 0.3 * f * u - 0.35 * u * se; /* it narrows as it shoots up */
       float sw = A * u * u * aFl.z; /* the tip sways, the base stays put; ~0.85 and ~1.2 Hz */
       d.x += sw * 0.07 * sin(t * 5.3 + ph * 0.7);
       d.z += sw * 0.06 * sin(t * 7.6 + ph * 1.9 + 2.0);
-      transformed = aFb + d; }`);
+      transformed = aFb.xyz + d; }`);
   sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying float vFu;\nvarying vec3 vFvp;')
     .replace('#include <color_fragment>', `#include <color_fragment>
     { vec3 fn = normalize(cross(dFdx(vFvp), dFdy(vFvp))); float face = abs(dot(fn, normalize(vFvp)));
@@ -55859,17 +55874,17 @@ fireMat.onBeforeCompile = (sh) => { sh.uniforms.uFlT = flutU.t; sh.uniforms.uFlA
       if (!gl_FrontFacing) a *= ${FIRE_BACK_A.toFixed(3)}; /* the inside of a cone / the far side of a leaf only tints what it shows */
       diffuseColor.a *= a; }`); };
 fireMat.customProgramCacheKey = () => 'campFire';
-function fireMesh(list) { /* list of { geo (a flameGeo tongue, base at y 0), h, m (base matrix), ph, amp } -> one geometry; userData.peak = the highest point a tongue can stretch to (mesh space) */
+function fireMesh(list) { /* list of { geo (a flameGeo tongue, base at y 0), h, m (base matrix), ph, amp, sg (surge allowance, 0 / absent = never surges) } -> one geometry; userData.peak = the highest point a tongue can stretch to (mesh space, surges aside) */
   const gs = list.map(T => T.geo.index ? T.geo.toNonIndexed() : T.geo); let n = 0; for (const g of gs) n += g.attributes.position.count;
-  const pos = new Float32Array(n * 3), col = new Float32Array(n * 3), fl = new Float32Array(n * 4), fb = new Float32Array(n * 3), v = new THREE.Vector3(), b = new THREE.Vector3();
+  const pos = new Float32Array(n * 3), col = new Float32Array(n * 3), fl = new Float32Array(n * 4), fb = new Float32Array(n * 4), v = new THREE.Vector3(), b = new THREE.Vector3();
   let o = 0, peak = 0;
   gs.forEach((g, i) => { const T = list[i], P = g.attributes.position, C = g.attributes.color; b.set(0, 0, 0).applyMatrix4(T.m);
     for (let k = 0; k < P.count; k++, o++) { const u = Math.min(1, Math.max(0, P.getY(k) / T.h)); v.fromBufferAttribute(P, k).applyMatrix4(T.m);
-      pos.set([v.x, v.y, v.z], o * 3); col.set([C.getX(k), C.getY(k), C.getZ(k)], o * 3); fl.set([T.ph, u, T.h, T.amp], o * 4); fb.set([b.x, b.y, b.z], o * 3);
+      pos.set([v.x, v.y, v.z], o * 3); col.set([C.getX(k), C.getY(k), C.getZ(k)], o * 3); fl.set([T.ph, u, T.h, T.amp], o * 4); fb.set([b.x, b.y, b.z, T.sg || 0], o * 4);
       peak = Math.max(peak, b.y + (v.y - b.y) * (1 + FIRE_FLICK * T.amp)); } });
   for (const T of list) T.geo.dispose();
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.BufferAttribute(col, 3));
-  g.setAttribute('aFl', new THREE.BufferAttribute(fl, 4)); g.setAttribute('aFb', new THREE.BufferAttribute(fb, 3)); g.computeBoundingSphere(); g.boundingSphere.radius *= 1.2; /* room for the sway */
+  g.setAttribute('aFl', new THREE.BufferAttribute(fl, 4)); g.setAttribute('aFb', new THREE.BufferAttribute(fb, 4)); g.computeBoundingSphere(); g.boundingSphere.radius *= 1.5; /* room for the sway and the surges */
   g.userData.peak = peak; return g; }
 /* ---------- the trail-flag notice board. One shared canvas texture (drawn once, redrawn when the embedded fonts land) listing ALL FIVE flags
    at once: a color swatch with a tiny pennant + a symbol + ONE word per row (camp green, bridge blue, jump red, hairpin yellow, fork pink).
@@ -56073,10 +56088,11 @@ function addCampMesh(cp) {
   /* the fire, one of three designs (rolled per session), all with the flame at the camp origin so the seats, the mini games (proj(0, y, 0)),
      the burn footprint (solC above) and the flame scaling (the `flames` list: every mesh in it is scaled each frame by the flicker x the camp-mode /
      stoke-game factor) are the same for all. Each fire is three meshes in `flames`: two of fireMat tongues (A / B: the cones,
-     then the hot leaves + licks; C: the turning crown of cones, then the leaves + licks) and the embers round the base (flameMat), plus its
-     logs in the merged camp mesh. All three fires burn the same small, low flame (flameSet), with or without the dutch oven: the flicker loop
-     clamps the camp-mode boost and the stoke fuel so the tallest stretched tip stays at 0.79 under the pot's feet (0.815), 0.85 without it.
-     B with the pot: the stack loses its top two layers. */
+     then the hot leaves; C: the turning crown of cones, then the leaves) and the embers round the base (flameMat), plus its logs in the
+     merged camp mesh. All three fires burn the same small, low flame (flameSet), with or without the dutch oven: the flicker loop clamps the
+     camp-mode boost and the stoke fuel so the tallest stretched tip stays at 0.79 under the pot's feet (0.815), 0.85 without it.
+     B with the pot: the stack loses its top two layers. The tongues sit IN the pit: every tongue has its own base height (FIRE_SINK below the
+     set's nominal base), so some start down among the coals and some at the log line, none above the logs or below the ash bed. */
   const beamP = (ax, ay, az, bx, by, bz, r, col, seg = 5, list = parts, r1) => { const A2 = new THREE.Vector3(ax, ay, az), B2 = new THREE.Vector3(bx, by, bz), m = new THREE.Matrix4().compose(A2.clone().add(B2).multiplyScalar(0.5), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), B2.clone().sub(A2).normalize()), new THREE.Vector3(1, 1, 1)); list.push({ geo: new THREE.CylinderGeometry(r1 ?? r, r, A2.distanceTo(B2), seg), col, m }); }; /* a cylinder from a to b (r1 = the top radius) */
   const tubeT = (pts, r0, r1, seg = 8, sides = 6) => { const cv = new THREE.CatmullRomCurve3(pts.map(([x, y, z]) => new THREE.Vector3(x, y, z))), g = new THREE.TubeGeometry(cv, seg, 1, sides, false), p = g.attributes.position, c = new THREE.Vector3();
     for (let i = 0; i <= seg; i++) { cv.getPointAt(i / seg, c); const r = r0 + (r1 - r0) * i / seg; for (let j = 0; j <= sides; j++) { const k = i * (sides + 1) + j; p.setXYZ(k, c.x + (p.getX(k) - c.x) * r, c.y + (p.getY(k) - c.y) * r, c.z + (p.getZ(k) - c.z) * r); } }
@@ -56114,40 +56130,42 @@ function addCampMesh(cp) {
     return stm.applyMatrix4(KF); };
   const logP = (ax, ay, az, bx, by, bz, r, col) => { beamP(ax, ay, az, bx, by, bz, r, col, 7); const d = new THREE.Vector3(bx - ax, by - ay, bz - az).normalize(); for (const [px, py, pz, s] of [[ax, ay, az, -1], [bx, by, bz, 1]]) { const m = new THREE.Matrix4().compose(new THREE.Vector3(px + d.x * s * 0.004, py + d.y * s * 0.004, pz + d.z * s * 0.004), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), d), new THREE.Vector3(1, 1, 1)); parts.push({ geo: new THREE.CylinderGeometry(r * 0.92, r * 0.92, 0.012, 7), col: '#c9a883', m }); } }; /* a log with pale cut ends */
   {
-    const fh = POT ? [0.43, 0.31, 0.45][FIRE] : 1, fy = POT && FIRE === 1 ? 0.6 : 1, _q1 = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _yv = new THREE.Vector3(0, 1, 0), _xv = new THREE.Vector3(1, 0, 0);
-    const outer = [], inner = [], low = [], FS = FLAME_STYLE, ph0 = cp.idx * 1.913, FH = 0.36 * FS.h, TOP = 0.14 + 1.05 * FH; let tk = 0; /* outer = the cones (fire C: its turning crown), inner = the hot leaves and the low licks, low = the embers and coals (flameMat). Every fire gets the same small set, its tips at TOP */
-    /* tongue(list, x, z, halfWidth, height, colBase, colTip, y0, lean, dir, spin, cone, amp): a flameGeo leaf (or open cone) at (x, y0, z), tilted `lean` rad toward
-       heading `dir`, turned `spin` about its own axis, its own motion phase (golden-angle steps); a tongue based higher is shorter, so every tip ends at the same height */
-    const tongue = (list, x, z, w, h, cb, ct, y0 = 0.14, lean = 0, dir = 0, spin = 0, cone = false, amp = 1) => { const hh = h * FH * (TOP - y0) / (TOP - 0.14); _q1.setFromAxisAngle(_yv, dir).multiply(_q2.setFromAxisAngle(_xv, lean)).multiply(new THREE.Quaternion().setFromAxisAngle(_yv, spin)); list.push({ geo: flameGeo(w, hh, cb, ct, cone), h: hh, amp, ph: ph0 + (tk++) * 2.39996, m: new THREE.Matrix4().compose(new THREE.Vector3(x, y0, z), _q1.clone(), new THREE.Vector3(1, 1, 1)) }); };
+    const _q1 = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _yv = new THREE.Vector3(0, 1, 0), _xv = new THREE.Vector3(1, 0, 0);
+    const outer = [], inner = [], low = [], FS = FLAME_STYLE, ph0 = cp.idx * 1.913, FH = 0.42 * FS.h, FW = 1.17, TOP = 0.14 + 1.05 * FH, FIRE_SINK = 0.09, SURGE = 0.9; let tk = 0; /* outer = the cones (fire C: its turning crown), inner = the hot leaves, low = the embers and coals (flameMat). Every fire gets the same set: tongues 0.42 tall (x1.17 wide), the tallest tip at TOP from the nominal base, each tongue sunk up to FIRE_SINK below it; SURGE = how far a cone may shoot up (0.9 = 1.9x its height) */
+    /* tongue(list, x, z, halfWidth, height, colBase, colTip, y0, lean, dir, spin, cone, amp, sink): a flameGeo leaf (or open cone) at (x, y0 - sink, z), tilted `lean` rad toward
+       heading `dir`, turned `spin` about its own axis, its own motion phase (golden-angle steps); a set based higher (fire B's full stack) burns shorter tongues, so its tips end at the same height */
+    const tongue = (list, x, z, w, h, cb, ct, y0 = 0.14, lean = 0, dir = 0, spin = 0, cone = false, amp = 1, sink = 0) => { const hh = h * FH * (TOP - y0) / (TOP - 0.14); _q1.setFromAxisAngle(_yv, dir).multiply(_q2.setFromAxisAngle(_xv, lean)).multiply(new THREE.Quaternion().setFromAxisAngle(_yv, spin)); list.push({ geo: flameGeo(w * FW, hh, cb, ct, cone), h: hh, amp, ph: ph0 + (tk++) * 2.39996, m: new THREE.Matrix4().compose(new THREE.Vector3(x, y0 - sink, z), _q1.clone(), new THREE.Vector3(1, 1, 1)) }); };
     const fireDraws = (n) => { const a = []; for (let i = 0; i < n; i++) a.push(rf()); return a; }; /* the tongues' rf() draws, taken up front in a fixed count so the embers after them never move */
     const FC = FS.core ? FLAME_CORE[FS.core] : FS.warm ? ['#ffd24a', '#ff9a34', '#ffc23e', '#ff8a2a', FL_CREAM, FL_YEL, '#ffb13a', '#ff7a26'] : [FL_RED, FL_YEL, FL_DEEP, FL_OR, FL_YEL, FL_CREAM, FL_RED, FL_OR]; /* base / tip of: the big cone, the small cones, the hot leaves, the licks */
-    const flameSet = (crownL, fr, y0) => { /* a big cone, five smaller cones round it (+ two in the fuller style), two hot leaves in the middle, six low licks over the coals */
-      tongue(crownL, 0, 0, 0.2, 1.05, FC[0], FC[1], y0, 0, 0, 0, true, 0.6); /* the tallest tongue stretches least, so the fire can stand as tall as the pot allows */
-      for (let i = 0; i < 5; i++) { const [x, z, d] = out(i / 5 * 6.283, 0.16); tongue(crownL, x, z, 0.14, 0.6 + 0.14 * fr[i], FC[2], FC[3], y0, 0.12, d, i * 1.3, true); }
-      for (let i = 0; i < FS.extra; i++) { const [x, z, d] = out(i * 3.14 + 0.63, 0.2); tongue(crownL, x, z, 0.1, 0.45, FC[2], FC[3], y0, 0.2, d, i * 2.2, true); }
-      tongue(inner, 0, 0, 0.13, 0.75, FC[4], FC[5], y0, 0, 0, 1.9, false, 0.7); tongue(inner, 0.05, 0.05, 0.09, 0.45, FC[4], FC[5], y0, 0.1, 0.8, 3.3, false, 0.8);
-      for (let i = 0; i < 6; i++) { const [x, z, d] = out(i / 6 * 6.283 + 0.9, 0.3); tongue(inner, x, z, 0.07, 0.16 + 0.1 * fr[5 + i], FC[6], FC[7], 0.08, 0.8, d, i, false, 1.2); } };
+    const flameSet = (crownL, fr, y0) => { /* a big cone, five smaller cones round it (+ two in the fuller style), two hot leaves in the middle. Each on its own base: the
+         small cones sink by fr[5..9] (the draws the old low licks used; the stream keeps its count), the big cone and the leaves by a mix of them. The small cones
+         carry the surge allowance (the big cone is the fire's height already; with the pot each allowance is cut so a surged tip stays under the pot's feet) */
+      const SK = (u) => FIRE_SINK * (y0 > 0.14 ? 1.4 : 1) * u, pk = (b, h, amp) => b + h * (1 + FIRE_FLICK * amp); /* a deeper sink on fire B's full stack; pk = a tongue's stretched tip */
+      tongue(crownL, 0, 0, 0.2, 1.05, FC[0], FC[1], y0, 0, 0, 0, true, 0.6, SK(0.4 + 0.3 * fr[6])); /* the tallest tongue stretches least, so the fire can stand as tall as the pot allows */
+      for (let i = 0; i < 5; i++) { const [x, z, d] = out(i / 5 * 6.283, 0.16); tongue(crownL, x, z, 0.14, 0.6 + 0.14 * fr[i], FC[2], FC[3], y0, 0.12, d, i * 1.3, true, 1, SK(fr[5 + i])); }
+      for (let i = 0; i < FS.extra; i++) { const [x, z, d] = out(i * 3.14 + 0.63, 0.2); tongue(crownL, x, z, 0.1, 0.45, FC[2], FC[3], y0, 0.2, d, i * 2.2, true, 1, SK(fr[5 + i])); }
+      tongue(inner, 0, 0, 0.13, 0.75, FC[4], FC[5], y0, 0, 0, 1.9, false, 0.7, SK(0.5 * (fr[7] + fr[9]))); tongue(inner, 0.05, 0.05, 0.09, 0.45, FC[4], FC[5], y0, 0.1, 0.8, 3.3, false, 0.8, SK(0.5 * (fr[5] + fr[8])));
+      let peak = 0; for (const T of crownL) peak = Math.max(peak, pk(T.m.elements[13], T.h, T.amp)); /* the set's stretched peak: the flicker loop scales the mesh so this lands at the cap (0.79 with the pot), so a tongue may surge to 1.03 x peak and still clear the pot's feet (0.815) */
+      for (let i = 1; i < crownL.length; i++) { const T = crownL[i], b = T.m.elements[13]; T.sg = POT ? Math.max(0, Math.min(SURGE, (1.03 * peak - b) / T.h - 1 - FIRE_FLICK * T.amp)) : SURGE; } };
     const emberAt = (list, x, z, big = false) => list.push({ geo: new THREE.OctahedronGeometry(big ? 0.05 : 0.03, 0), col: rf() < 0.4 ? '#ffd06a' : '#ff8a3a', m: new THREE.Matrix4().compose(new THREE.Vector3(x, 0.05, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(rf() * 2, rf() * 6, 0)), new THREE.Vector3(1, 0.6, 1)) });
     const out = (a, r) => [Math.cos(a) * r, Math.sin(a) * r, Math.atan2(Math.cos(a), Math.sin(a))]; /* a point on a ring and the heading that leans a tongue outward there */
     if (FIRE === 0) { /* A: a teepee of five leaning logs round the flame */
       for (let i = 0; i < 5; i++) { const a = i / 5 * 6.283 + 0.3; logP(Math.cos(a) * 0.4, 0.07, Math.sin(a) * 0.4, Math.cos(a) * 0.06, 0.8, Math.sin(a) * 0.06, 0.045, i % 2 ? '#5a3b26' : '#6b4a30'); }
       beamP(-0.42, 0.05, 0.3, 0.1, 0.05, 0.5, 0.025, '#6b4a30', 5); beamP(0.35, 0.05, -0.45, 0.5, 0.05, 0.05, 0.022, '#5a3b26', 5); /* kindling */
-      const fr = fireDraws(13); flameSet(outer, fr, 0.14); /* 5 cones, 6 licks (the last two draws unused) */
+      const fr = fireDraws(13); flameSet(outer, fr, 0.14); /* 5 cones + 2 leaves (the last three draws unused) */
       for (let i = 0; i < 8; i++) { const a = rf() * 6.283, r = 0.3 + rf() * 0.2; emberAt(low, Math.cos(a) * r, Math.sin(a) * r); }
-    } else if (FIRE === 1) { /* B: a log-cabin stack with the flame inside it, coals and embers round the base, a marshmallow stick */
+    } else if (FIRE === 1) { /* B: a log-cabin stack with the flame inside it, coals and embers round the base */
       for (const s of [-1, 1]) { logP(-0.4, 0.08, s * 0.28, 0.4, 0.08, s * 0.28, 0.075, '#5a3b26'); logP(s * 0.24, 0.21, -0.36, s * 0.24, 0.21, 0.36, 0.065, '#6b4a30'); if (!POT) { logP(-0.3, 0.32, s * 0.16, 0.3, 0.32, s * 0.16, 0.055, '#5a3b26'); logP(s * 0.1, 0.41, -0.24, s * 0.1, 0.41, 0.24, 0.045, '#6b4a30'); } }
       for (let i = 0; i < 6; i++) { const a = i / 6 * 6.283; emberAt(low, Math.cos(a) * 0.2, Math.sin(a) * 0.2, true); } /* glowing coals under the stack */
-      const fr = fireDraws(46); flameSet(outer, fr, POT ? 0.14 : 0.26); /* 5 cones, 6 licks (the other draws unused); on the full stack the tongues start higher and are shorter */
+      const fr = fireDraws(46); flameSet(outer, fr, POT ? 0.14 : 0.26); /* 5 cones + 2 leaves (the other draws unused); on the full stack the tongues start higher and are shorter */
       for (let i = 0; i < 10; i++) { const a = rf() * 6.283, r = 0.36 + rf() * 0.16; emberAt(low, Math.cos(a) * r, Math.sin(a) * r); }
-      { const tip = new THREE.Vector3(0.22, 0.42 * fy + 0.6 * fh, 0.1), hd = new THREE.Vector3(0.95, 0.14, -0.58), d = tip.clone().sub(hd).normalize(); beamP(hd.x, hd.y, hd.z, tip.x + d.x * 0.1, tip.y + d.y * 0.1, tip.z + d.z * 0.1, 0.012, '#8a6a4a', 4);
-        put(new THREE.BoxGeometry(0.07, 0.07, 0.07), '#f7efe2', tip.x, tip.y, tip.z, 0.4, 0.3, 0); put(new THREE.BoxGeometry(0.058, 0.058, 0.058), '#e8b865', tip.x + d.x * 0.075, tip.y + d.y * 0.075, tip.z + d.z * 0.075, 0.4, 0.3, 0); put(new THREE.DodecahedronGeometry(0.08, 0), '#7d7870', 0.98, 0.05, -0.62, 0.3, 1, 0, 1, 0.7, 1); } /* a marshmallow stick propped on a stone, its tip toasting */
     } else { /* C: radial logs with glowing tips and a slowly turning flame crown */
       for (let i = 0; i < 6; i++) { const a = i / 6 * 6.283 + 0.4, c = Math.cos(a), s = Math.sin(a); logP(c * 0.5, 0.075, s * 0.5, c * 0.09, 0.12, s * 0.09, 0.05, i % 2 ? '#5a3b26' : '#6b4a30'); low.push({ geo: new THREE.IcosahedronGeometry(0.045, 0), col: '#ff7a2a', m: new THREE.Matrix4().makeTranslation(c * 0.13, 0.13, s * 0.13) }); }
-      const fr = fireDraws(11), crownL = []; flameSet(crownL, fr, 0.14); /* 5 cones, 6 licks */
+      const fr = fireDraws(11), crownL = []; flameSet(crownL, fr, 0.14); /* 5 cones + 2 leaves */
       const crown = new THREE.Mesh(fireMesh(crownL), fireMat); crown.userData.fire = { peak: crown.geometry.userData.peak, ph: ph0 }; grp.add(crown); flames.push(crown); fx.crown = crown; /* rotates in animateCamps (its scale is the flicker's) */
       for (let i = 0; i < 8; i++) { const a = rf() * 6.283, r = 0.25 + rf() * 0.22; emberAt(low, Math.cos(a) * r, Math.sin(a) * r); }
     }
-    for (const L of [outer, inner]) if (L.length) { const m = new THREE.Mesh(fireMesh(L), fireMat); m.userData.fire = { peak: m.geometry.userData.peak, ph: ph0 }; if (L === inner) m.renderOrder = -1; grp.add(m); flames.push(m); } /* fire C: the crown, then the licks + core; the hot leaves and licks draw first so the see-through cones lie over them */
+    for (const L of [outer, inner]) if (L.length) { const m = new THREE.Mesh(fireMesh(L), fireMat); m.userData.fire = { peak: m.geometry.userData.peak, ph: ph0 }; if (L === inner) m.renderOrder = -1; grp.add(m); flames.push(m); } /* fire C: the crown, then the core; the hot leaves draw first so the see-through cones lie over them */
     if (low.length) { const m = new THREE.Mesh(mergeParts(low), flameMat); grp.add(m); flames.push(m); }
     for (const m of flames) if (m.parent === grp && m.userData.fire) m.userData.fire.cap = POT ? 0.79 : 0.85; /* the tallest stretched tip: under the pot's feet (0.815) with the pot, about the same without it, so the camp boost and the stoke fuel never blow a fire up */
     if (POT) { /* the dutch oven on a three-pole tripod, its chain and bail, three feet, a domed lid with a knob; it steams (animateCamps) */
@@ -56530,15 +56548,21 @@ function addCampMesh(cp) {
         const [wx, wz] = toW(lx, lz); let ld = 99; for (const [qx, qz] of cp.lane) ld = Math.min(ld, Math.hypot(qx - wx, qz - wz)); return (hi - lo) * RIDER_SCALE <= 0.09 && ld >= CAMP.laneW + 1.0; };
       let aS = a0, aE = Math.PI - a0; for (let t = 0; t < 15 && !postOK(aS); t++) aS += 0.04; for (let t = 0; t < 15 && !postOK(aE); t++) aE -= 0.04; if (aE - aS < 1.4) { aS = a0; aE = Math.PI - a0; } cp.fenceArc = [aS, aE];
       const flatAt = (lx, lz, rr0 = 0.4) => { let lo = 1e9, hi = -1e9; for (let q = 0; q <= 8; q++) { const b = q / 8 * 6.283, rr = q === 8 ? 0 : rr0, g = groundAt(lx + Math.cos(b) * rr, lz + Math.sin(b) * rr); lo = Math.min(lo, g); hi = Math.max(hi, g); } return (hi - lo) * RIDER_SCALE <= 0.09 * rr0 / 0.4; };
-      cp.fenceSkip = 0; cp.fenceStep = 0;
+      cp.fenceSkip = 0; cp.fenceStep = 0; cp.fenceTent = 0;
+      /* the tent's whole drawn footprint (fly + ground sheet + door mat + tie-out pegs: x -1.94..+2.0 along the ridge, z +-1.32, in the tent frame) against the posts and rails: a post inside TCLR (0.25 m of
+         clearance + the 0.07 post radius, in camp units) of it is left out, and so is any rail that comes that close, so the fence ends short of the tent instead of running through it (v0.33.1). Nothing is drawn
+         from rc() here, the per-post draws below are unchanged, and the tent does not move. */
+      const TR = cp.lane && cp.tentL ? cp.tentL : null, TCLR = 0.33, tca = TR ? Math.cos(TR[2]) : 1, tsa = TR ? Math.sin(TR[2]) : 0;
+      const tentGap = (x, z) => { if (!TR) return 99; const dx = x - TR[0], dz = z - TR[1], u = dx * tca - dz * tsa, v = dx * tsa + dz * tca; return Math.hypot(Math.max(-1.94 - u, u - 2.0, 0), Math.max(Math.abs(v) - 1.32, 0)); };
       for (let k = 0; k < NPOST; k++) { const a = aS + (aE - aS) * k / (NPOST - 1), jx = (rc() - 0.5) * 0.25, jz = (rc() - 0.5) * 0.25; let Rk = R, skip = false; /* a post still on a slope (a switchback leg below the camp, a stream bank) steps in toward the pad center, up to 2.4 m, onto flat ground clear of the props */
         if (!flatAt(Math.cos(a) * R, -1.9 + Math.sin(a) * R)) { let found = false; for (let r2 = R - 0.2; r2 >= R - 2.41; r2 -= 0.2) { const qx = Math.cos(a) * r2, qz = -1.9 + Math.sin(a) * r2; if (flatAt(qx, qz) && solFree(qx, qz, 0.3)) { Rk = r2; found = true; cp.fenceStep++; break; } }
           if (!found) { const ox = Math.cos(a) * (R + 1.5), oz = -1.9 + Math.sin(a) * (R + 1.5); if (groundAt(ox, oz) > -1.0) { skip = true; cp.fenceSkip++; } } } /* last resort: no real drop behind it (a shallow gully) -> this post and its rails are left out; a real drop keeps the post, sunk to its footprint's low side (never floating) */
         let lx = Math.cos(a) * Rk + jx, lz = -1.9 + Math.sin(a) * Rk + jz, g = groundAt(lx, lz);
         if (!skip && !flatAt(lx, lz, 0.07)) { for (let q = 0; q < 8; q++) { const b = q / 8 * 6.283; g = Math.min(g, groundAt(lx + Math.cos(b) * 0.07, lz + Math.sin(b) * 0.07)); } }
+        if (!skip && tentGap(lx, lz) < TCLR) { skip = true; cp.fenceTent++; }
         posts.push([lx, lz, g, skip]);
         const r1 = (rc() - 0.5) * 0.1, r2 = rc() * 6.28, r3 = (rc() - 0.5) * 0.1; if (!skip) put(new THREE.CylinderGeometry(0.055, 0.07, 1.0, 5), '#6b5238', lx, g + 0.5, lz, r1, r2, r3); }
-      for (let k = 0; k < NPOST - 1; k++) { const [ax, az, ag, sa] = posts[k], [bx, bz, bg, sb] = posts[k + 1]; if (sa || sb) continue; for (const [h, col] of [[0.42, '#7d6446'], [0.8, '#8a7050']]) limb(new THREE.Matrix4(), ax, ag + h, az, bx, bg + h, bz, 0.045, col);
+      for (let k = 0; k < NPOST - 1; k++) { const [ax, az, ag, sa] = posts[k], [bx, bz, bg, sb] = posts[k + 1]; if (sa || sb) continue; { let near = false; for (let q = 0; q <= 12 && !near; q++) near = tentGap(ax + (bx - ax) * q / 12, az + (bz - az) * q / 12) < TCLR; if (near) { cp.fenceTent++; continue; } } for (const [h, col] of [[0.42, '#7d6446'], [0.8, '#8a7050']]) limb(new THREE.Matrix4(), ax, ag + h, az, bx, bg + h, bz, 0.045, col);
         const [wax, waz] = toW(ax, az), [wbx, wbz] = toW(bx, bz); cp.fence.push([wax, waz, wbx, wbz, cp.y + Math.max(ag, bg) * RIDER_SCALE + 1.0]); solS(ax, az, bx, bz, 0.07, 1.0, 'Hit the fence', { fence: 1 }); }
     }
     for (const [bx0, bz0, bs, col, r1, r2, r3, r4] of bushes) { /* the low bushes: first nearby spot clear of the lane (LANE_CLR), the rails and the other props; none -> left out */
@@ -60177,7 +60201,7 @@ function quitToTitle() { S.paused = false; S.running = false; resetRun(); setScr
 $('btnStart').addEventListener('click', () => { if (S.paused) closePause(); else startRiding(); });
 $('btnNew').addEventListener('click', () => newMountain());
 $('bPause').addEventListener('click', () => { if (screen === null) openPause(); else if (screen === 'pause') closePause(); });
-function syncPauseMenu() { $('pmSeed').textContent = seedToCode(S.course.seed) + ' · bails ' + S.bails + ' · ' + fmtTime(S.t); }
+function syncPauseMenu() { syncSettings(); $('pmSeed').textContent = seedToCode(S.course.seed) + ' · bails ' + S.bails + ' · ' + fmtTime(S.t); }
 $('pmResume').addEventListener('click', closePause);
 $('pmRestart').addEventListener('click', () => { closePause(); resetRun(); });
 $('pmNew').addEventListener('click', () => { newMountain(); startRiding(); popup('New mountain', seedToCode(S.course.seed)); });
@@ -60365,7 +60389,9 @@ setBlood(bloodOn);
 $('bBlood').addEventListener('click', () => setBlood(!bloodOn));
 $('bClassic').addEventListener('click', () => { sfx.init(); sfx.classic(!sfx.classic()); syncSettings(); }); /* alt soundtrack (MusicClassic), remembered in holdon.classic, default off */
 $('bMiniAuto').addEventListener('click', () => { const on = !miniAutoOn(); try { localStorage.setItem('holdon.autofinish', on ? '1' : '0'); } catch (e) { } syncSettings(); }); /* 'Mini games auto-finish', default off; CampMini reads it at each game start */
-$('bHaptic').addEventListener('click', () => { UIO.haptics = !UIO.haptics; saveUIO(); syncSettings(); if (UIO.haptics) haptic(15); });
+const toggleHaptic = () => { UIO.haptics = !UIO.haptics; saveUIO(); syncSettings(); if (UIO.haptics) haptic(15); };
+$('bHaptic').addEventListener('click', toggleHaptic);
+if ($('pmHaptic')) $('pmHaptic').addEventListener('click', toggleHaptic); /* DEV copy of the same switch: one source of truth (UIO.haptics) */
 const SETTERS = {
   steer: (v) => setSteer(v === 'screen'),
   cam: (v) => { camPreset = +v; $('bCam').textContent = 'Cam: ' + CAM_PRESETS[camPreset].name; },
@@ -60379,11 +60405,13 @@ const SETTERS = {
   uiz: (v) => { const k = parseFloat(v); if (Number.isFinite(k) && k >= 0.5 && k <= 3) UIO.uiz = k; else delete UIO.uiz; saveUIO(); applyUIO(); },
   meal: (v) => { if (v === 'both' || v === 'xp' || v === 'off') { KITCHEN.mode = v; saveKitchen(); } }, /* 'Full Belly': On / Off (Dinner's XP bonus) */
 };
-$('bFps').addEventListener('click', () => { Q.showFps = !Q.showFps; try { localStorage.setItem('holdon.fps', Q.showFps ? '1' : '0'); } catch (e) { } syncSettings(); });
+const toggleFps = () => { Q.showFps = !Q.showFps; try { localStorage.setItem('holdon.fps', Q.showFps ? '1' : '0'); } catch (e) { } syncSettings(); };
+$('bFps').addEventListener('click', toggleFps);
+if ($('pmFps')) $('pmFps').addEventListener('click', toggleFps); /* DEV copy */
 $('setScr').addEventListener('click', e => { const b = e.target.closest('.seg button'); if (!b) return; const k = b.parentElement.dataset.set; if (SETTERS[k]) { SETTERS[k](b.dataset.v); syncSettings(); } });
 function syncSettings() {
   const vals = { steer: steerScreen ? 'screen' : 'bike', cam: String(camPreset), mode: S.mode, layout: zonesOn ? 'zones' : 'buttons', hand: UIO.hand, pedal: UIO.pedal, size: String(UIO.size), sens: sensShown(), quality: Q.mode, uiz: uizK() ? String(uizK()) : 'auto', meal: bellyOff() ? 'off' : 'xp' };
-  $('bFps').setAttribute('aria-checked', String(!!Q.showFps)); $('qNow').textContent = Q.mode === 'auto' ? 'auto · ' + Q_LEVELS[Q.level].name.toLowerCase() : Q_LEVELS[Q.level].name.toLowerCase();
+  $('bFps').setAttribute('aria-checked', String(!!Q.showFps)); if ($('pmFps')) $('pmFps').setAttribute('aria-checked', String(!!Q.showFps)); if ($('pmHaptic')) $('pmHaptic').setAttribute('aria-checked', String(!!UIO.haptics)); $('qNow').textContent = Q.mode === 'auto' ? 'auto · ' + Q_LEVELS[Q.level].name.toLowerCase() : Q_LEVELS[Q.level].name.toLowerCase();
   for (const g of document.querySelectorAll('#setScr .seg')) for (const b of g.children) b.setAttribute('aria-pressed', String(b.dataset.v === vals[g.dataset.set]));
   const snd = !sfx.isMuted(); $('bMute').setAttribute('aria-checked', String(snd)); $('mute').setAttribute('aria-checked', String(snd));
   $('bBlood').setAttribute('aria-checked', String(bloodOn)); $('bHaptic').setAttribute('aria-checked', String(!!UIO.haptics)); $('bClassic').setAttribute('aria-checked', String(!!sfx.classic())); $('bMiniAuto').setAttribute('aria-checked', String(miniAutoOn()));
@@ -63774,12 +63802,12 @@ const CampMini = (() => {
       adj = pts.map(() => []); E.forEach((e, i) => { adj[e.a].push(i); adj[e.b].push(i); });
       start = s.path[0]; lit = new Set([start]); drawn = []; tip = start; drag = null; aHeld = false; curInit = false;
       idle = 0; rt = 0; miss = 0; st = 'play'; newly = false; glow = 0; clockSeen = -1; clockShow(); G.cue('star', 0); hint(); }
-    /* Speed counts: a sky has a par time (PAR_BASE + PAR_LINK per link). At or under par the speed factor is 1; past it the factor falls 0.7 per par-length of extra time.
-       A sky scores accuracy (1 - 0.10 per wrong tap) x speed, never below 0.35 (a finished sky is always worth one star). Clean at par = 1.0; 3 stars (0.85) needs about
-       1.3 x par clean; 2 stars (0.6) about 1.9 x par. The clock runs only while a sky is being drawn (it stops on the name card). */
-    const PAR_BASE = 1.5, PAR_LINK = 0.75, parOf = () => PAR_BASE + PAR_LINK * E.length;
-    const speedOf = (tm) => { const pr = parOf(); return tm <= pr ? 1 : Math.max(0, 1 - 0.7 * (tm - pr) / pr); };
-    const roundScore = () => clamp((1 - 0.10 * miss) * speedOf(rt), 0.35, 1);
+    /* Speed counts: a sky has a par time (PAR_BASE + PAR_LINK per link). At or under par the speed factor is 1; past it the factor falls 0.9 per par-length of extra time.
+       A sky scores accuracy (1 - 0.14 per wrong tap) x speed, never below 0.35 (a finished sky is always worth one star). Clean at par = 1.0; 3 stars (0.85) needs about
+       1.17 x par clean; 2 stars (0.6) about 1.44 x par (v0.33.1: par 1.5 + 0.75 per link -> 1.3 + 0.65, falloff 0.7 -> 0.9, wrong tap 0.10 -> 0.14). The clock runs only while a sky is being drawn (it stops on the name card). */
+    const PAR_BASE = 1.3, PAR_LINK = 0.65, parOf = () => PAR_BASE + PAR_LINK * E.length;
+    const speedOf = (tm) => { const pr = parOf(); return tm <= pr ? 1 : Math.max(0, 1 - 0.9 * (tm - pr) / pr); };
+    const roundScore = () => clamp((1 - 0.14 * miss) * speedOf(rt), 0.35, 1);
     let clockSeen = -1; const clockShow = () => { const pr = parOf(); G.prog(`Sky ${r + 1} / ${N} · ${rt.toFixed(1)} / ${Math.round(pr)} s`, rt > pr); }; /* the running timer lives in the progress pill (turns amber past par) */
     function connect(ei, from) { const to = other(ei, from); E[ei].done = true; drawn.push({ e: ei, from, to }); lit.add(to); tip = to; idle = 0; G.buzz(8); G.cue('note', drawn.length - 1);
       if (drawn.length >= E.length) { st = 'shown'; stT = 0; const q = roundScore(); sc.push(q); newly = constMark(cur.id); G.cue(q > 0.8 ? 'success' : 'good', q > 0.95); G.buzz([20, 30, 20]); } else hint(); }
