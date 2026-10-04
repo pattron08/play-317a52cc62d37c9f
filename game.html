@@ -616,7 +616,7 @@
   </div>
   <div id="tapGo" role="status">Tap to start</div>
   <button class="ico" id="mute" role="switch" aria-checked="true" aria-label="Sound"><svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg><svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M17 9l5 6M22 9l-5 6"/></svg></button>
-  <div class="foot"><span id="verTag">v0.36.0</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span></div>
+  <div class="foot"><span id="verTag">v0.37.0</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span></div>
   <button id="btnNew" hidden>New mountain</button>
 </div>
 
@@ -55750,8 +55750,9 @@ const FLAG_PAL = { camp: '#F58A2E', bridge: '#3D8BFF', jump: '#E8452E', hairpin:
    flutU.a = 0 under prefers-reduced-motion (the flags hold their baked curl, still). */
 const flutU = { t: { value: 0 }, a: { value: 1 } };
 function flutterMat(mat, lift = 0) { /* lift (0..1, lit materials): how far the CLOTH (aFlD != 0) is pulled toward its unlit color so pennants read in shade like the unlit trail flags; posts / rope stay lit */
+  const uL = { value: +lift.toFixed(2) }; /* the lift is a per-material uniform, so every lit flag material shares ONE program */
   mat.onBeforeCompile = (sh) => { sh.uniforms.uFlT = flutU.t; sh.uniforms.uFlA = flutU.a;
-    if (lift > 0) sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying float vFlC;').replace('#include <opaque_fragment>', 'outgoingLight = mix(outgoingLight, diffuseColor.rgb, ' + lift.toFixed(2) + ' * vFlC);\n#include <opaque_fragment>');
+    if (lift > 0) { sh.uniforms.uFlL = uL; sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying float vFlC;\nuniform float uFlL;').replace('#include <opaque_fragment>', 'outgoingLight = mix(outgoingLight, diffuseColor.rgb, uFlL * vFlC);\n#include <opaque_fragment>'); }
     sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute vec3 aFl;\nattribute vec3 aFlD;\nuniform float uFlT;\nuniform float uFlA;\nvarying float vFlC;')
       .replace('#include <begin_vertex>', `#include <begin_vertex>
       { float ph = aFl.z;
@@ -55760,7 +55761,7 @@ function flutterMat(mat, lift = 0) { /* lift (0..1, lit materials): how far the 
         #endif
         float wv = sin(aFl.y - uFlT * 6.0 + ph) + 0.45 * sin(aFl.y * 1.9 - uFlT * 9.5 + ph * 1.7);
         transformed += aFlD * (uFlA * aFl.x * wv); vFlC = step(0.5, dot(aFlD, aFlD)); }`); };
-  mat.customProgramCacheKey = () => 'flut' + lift; return mat;
+  mat.customProgramCacheKey = () => lift > 0 ? 'flutL' : 'flut0'; return mat;
 }
 function flagLife(dt) { const still = reduceMotion.matches; flutU.a.value = still ? 0 : 1; if (!still) flutU.t.value += dt; }
 /* flag geometry builder: B = flagBuf(); flagGrid() adds a nu x nv cloth patch (place(u, v) -> [x, y, z], color, amp(u, v) m, wave(u, v) rad, phase,
@@ -58775,6 +58776,7 @@ function campCrashAt(x, z) { const cps = S.course && S.course.checkpoints; if (!
 function campRespawnPt(cp) { const L = cp.lane; if (!L) return null; for (let k = 0; k < L.length - 3; k++) { if (Math.hypot(L[k][0] - cp.x, L[k][1] - cp.z) > CAMP.fenceR - 1.5) continue; const dx = L[k + 3][0] - L[k][0], dz = L[k + 3][1] - L[k][1], l = Math.hypot(dx, dz) || 1; return { x: L[k][0], z: L[k][1], y: cp.padY, yaw: Math.atan2(-dz, dx), fx: dx / l, fz: dz / l }; } return null; }
 function respawn() { const cc = S.crashCamp; S.crashCamp = null; const P = cc && campRespawnPt(cc); if (P) spawnAt(cc, P); else spawnAt(S.cp); }
 function spawnAt(cp, at) {
+  S.steerSign = undefined; /* a reset or respawn re-reads the screen-steer sign */
   const P = at || S.course.pts[cp.idx];
   S.pos.set(P.x, S.surf(P.x, P.z)?.h ?? P.y, P.z);
   S.yaw = P.yaw; S.speed = 3; S.vel.set(P.fx * 3, 0, P.fz * 3);
@@ -59056,7 +59058,9 @@ const pad = (() => {
     T.held = held && !hard; T.hard = hard;
     out.held = held; out.hard = hard; out.hop = jump && !air;
   };
-  const clear = () => { sOut = 0; ptrs.clear(); steerId = rideId = null; stick.style.display = 'none'; flickUntil = 0; jumpOut = false; recompute(); visuals(true); };
+  /* letting go of the stick also drops the screen-steer sign latch, so the next touch reads the camera fresh and can never stay inverted */
+  const dropSteer = () => { steerId = null; sOut = 0; S.steerSign = undefined; };
+  const clear = () => { dropSteer(); ptrs.clear(); rideId = null; stick.style.display = 'none'; flickUntil = 0; jumpOut = false; recompute(); visuals(true); };
   Z.addEventListener('pointerdown', e => {
     e.preventDefault(); try { Z.setPointerCapture(e.pointerId); } catch (err) { }
     if (e.clientX < EDGE || e.clientX > innerWidth - EDGE) return; /* back / forward swipe strips: never a control */
@@ -59083,7 +59087,7 @@ const pad = (() => {
   const up = (e, cancel) => {
     const P = ptrs.get(e.pointerId); if (!P) return; ptrs.delete(e.pointerId);
     const t = e.timeStamp || now();
-    if (P.id === steerId) { steerId = null; const sp = [...ptrs.values()].find(q => q.role === 'spare'); if (sp) { sp.role = 'steer'; sp.ox = sp.x; sp.oy = sp.y; steerId = sp.id; sizeRing(); place(stick, sp.ox, sp.oy); knob(stick, 0, 0); } else stick.style.display = 'none'; }
+    if (P.id === steerId) { dropSteer(); const sp = [...ptrs.values()].find(q => q.role === 'spare'); if (sp) { sp.role = 'steer'; sp.ox = sp.x; sp.oy = sp.y; steerId = sp.id; sizeRing(); place(stick, sp.ox, sp.oy); knob(stick, 0, 0); } else stick.style.display = 'none'; }
     if (P.id === rideId) {
       rideId = null; const nx = [...ptrs.values()].find(q => q.role === 'right'); if (nx) { rideId = nx.id; nx.ox = nx.x; nx.oy = nx.y; nx.hop = nx.hard = false; }
       if (!cancel && t - P.t0 < TAP_MS && P.max < 14 && wasGround && S.running && !S.paused && !S.finished) { /* quick tap */
@@ -59131,6 +59135,7 @@ const pad = (() => {
     const T = touchState(); T.active = zonesOn && padUsed;
     if (!zonesOn) { if (ptrs.size) clear(); return; }
     if (S.running && !S.paused && !wasGround) airClock += dt;
+    if (steerId !== null && (ptrs.get(steerId) || {}).role !== 'steer') { dropSteer(); stick.style.display = 'none'; } /* stale stick pointer: an up / cancel that never arrived */
     recompute(dt); visuals();
   };
   const hideHints = () => coach.done(), showHints = () => coach.reset();
@@ -64331,6 +64336,9 @@ const CampMini = (() => {
     let n = 0, st = 'aim', stT = 0, ang = 8, pw = 0, yaw = 0, lx = 0, t = 0, sw = G.rng() * 6, s = null, cnt = 0, total = 0, drag = null, manual = 0, trail = [];
     const hl = () => G.side * L0 + lx, slide = (d) => { lx = clamp(lx + d, -LMAX, LMAX); }; /* the stone's lateral in hand; slide(d) moves it d m (screen-right positive) */
     const angP = 2.6 - 0.5 * G.d, pwP = 1.9 - 0.4 * G.d;
+    /* a glassy throw: about 1 in 10 loses less speed per skip (9-12 skips from a good throw). Rolled from its own stream seeded off sw, so the game's
+       rng sees no extra draws. A stone scores at most 1.25 of a full stone (SKF skips), so one legend throw offsets a weaker one */
+    const LUCK = mulberry32(Math.floor(sw * 1e6) ^ 0x51c9), SKF = 8.2, SKMAX = 1.25 * SKF; let glass = 0;
     const view = () => { const W = G.W, H = G.H, hor = H * 0.4, F = (H * 0.97 - hor) * D0 / CAMH, cx = CAM_DRIFT.x, cy = CAM_DRIFT.y, cz = CAM_DRIFT.push * D0 * 1.5; /* the lens drift (CAM_DRIFT): the overlay projects from the same camera the 3D scene uses */
       const S = (d) => F / (Math.max(-1.5, d) + D0 - cz); return { W, H, hor, S, P: (d, l, h) => { const ss = S(d); return [W / 2 + G.side * l * ss - cx * ss, hor + (CAMH + cy - (h || 0)) * ss, ss]; } }; };
     const lat = (d, sd, off) => cxd(d) + sd * (wd(d) + off); /* lateral of a thing `off` past the bank's edge (negative: in the water) */
@@ -64338,8 +64346,9 @@ const CampMini = (() => {
     const SV = [[-50, 0], [-36, -16], [-8, -24], [26, -18], [50, 0], [30, 18], [-2, 24], [-34, 16]], SH = [0.18, 0.1, 0.22, 0.05, -0.1, -0.2, -0.05, 0.08];
     let V3 = null; try { V3 = skipWorld({ side: G.side, cxd: cxdV, wd, wdr: wdrV, bk: RV && RV.bk, tint: RV && RV.tint, islands, cove: RV && RV.cove, lat: latV, CAMH, D0, XF, ph, ph3, SKY, HILLS, STONE, SV, SH, trees, rocks, pebbles, reeds, pads, flies, dfly, birds, campD, campSd, campOff, heronD, heronSd, heronOff }); MINI_VIEW = V3; } catch (e) { console.error('CampMini skip scene', e); V3 = null; }
     G.help.set(CHIPS.skip); G.prog(`Stone 1 / ${N}`);
-    function throwIt() { const v = 6 + 12 * pw, a = ang * Math.PI / 180, yw = yaw * Math.PI / 180; s = { x: 0, y: H0, l: hl(), vx: v * Math.cos(a) * Math.cos(yw), vl: v * Math.cos(a) * Math.sin(yw), vy: v * Math.sin(a), rot: 0, tilt: 0 }; cnt = 0; trail = []; st = 'fly'; G.cue('page'); G.buzz(10); G.help.hold(1, 0); }
-    function settle(msg, soft) { st = 'rest'; stT = 0; sc.push(cnt); total += cnt; G.float(msg, 0.5, 0.3, soft); if (cnt >= 5) G.cue('success', cnt >= 7); else if (cnt >= 2) G.cue('good'); if (cnt >= 3) G.kick(cnt / 8); }
+    function throwIt() { const v = 6 + 12 * pw, a = ang * Math.PI / 180, yw = yaw * Math.PI / 180; s = { x: 0, y: H0, l: hl(), vx: v * Math.cos(a) * Math.cos(yw), vl: v * Math.cos(a) * Math.sin(yw), vy: v * Math.sin(a), rot: 0, tilt: 0 }; cnt = 0; glass = LUCK() < 0.1 ? 0.06 : 0; trail = []; st = 'fly'; G.cue('page'); G.buzz(10); G.help.hold(1, 0); }
+    function settle(msg, soft) { st = 'rest'; stT = 0; sc.push(cnt); total += Math.min(cnt, SKMAX); const big = cnt >= 9; /* a big skip: its own banner, the top success cue, a bigger push-in */
+      G.float(big ? `River legend! ${cnt} skips` : msg, 0.5, 0.3, soft && !big); if (cnt >= 5) G.cue('success', cnt >= 7); else if (cnt >= 2) G.cue('good'); if (cnt >= 3) G.kick(big ? cnt / 6 : cnt / 8); if (big) G.buzz([20, 40, 30]); }
     function act() { if (st === 'aim') { st = 'power'; stT = 0; G.cue('tick', 0.5); G.buzz(6); } else if (st === 'power') throwIt(); }
     function sim(a0, p0, y0, out) { /* the preview: the same physics, every skip assumed, up to three splashes */
       const v = 6 + 12 * p0, a = a0 * Math.PI / 180, yw = y0 * Math.PI / 180; let x = 0, y = H0, l = hl(), vx = v * Math.cos(a) * Math.cos(yw), vl = v * Math.cos(a) * Math.sin(yw), vy = v * Math.sin(a), sp = 0; out.length = 0;
@@ -64356,7 +64365,7 @@ const CampMini = (() => {
           else if (drag.on) { pw = clamp(Math.hypot(dx, dy) / (Math.min(G.W, G.H) * 0.45), 0, 1); yaw = clamp(-G.side * dx / G.W * 50, -16, 16); } } /* a sling: pull back for power, sideways to aim */
         else if ((type === 'up' || type === 'cancel') && drag) { const d = drag; drag = null; if (d.on) throwIt(); else if (!d.mode && type === 'up' && st === 'aim') act(); } /* a plain tap locks the angle, as before */
       },
-      partial() { return clamp(total / (N * 8.2), 0, 1); },
+      partial() { return clamp(total / (N * SKF), 0, 1); },
       peek: () => ({ st, n, ang, pw, yaw, lx, total, side: G.side, cnt }),
       end() { if (!V3) return; if (MINI_VIEW === V3) MINI_VIEW = null; miniDispose(V3); V3 = null; }, /* the camp is drawn again from the next frame */
       update(dt) {
@@ -64369,7 +64378,7 @@ const CampMini = (() => {
             if (s.y <= 0 && s.x > 0.4) { const inc = Math.atan2(-s.vy, s.vx) * 180 / Math.PI;
               if (Math.abs(s.l - cxd(s.x)) > wd(s.x)) { s.y = 0; G.cue('tick', 0.3); G.buzz(8); settle(cnt ? `Onto the bank after ${cnt}` : 'Onto the bank!', true); break; } /* the far bank catches it */
               rip.push({ d: s.x, l: s.l, t: 0, big: 0 });
-              if (inc < 30 && s.vx > 2.6) { cnt++; G.cue('skip', cnt - 1); G.buzz(6); s.vy = -s.vy * 0.5 + 0.5; s.vx *= 0.88 - 0.009 * inc; s.vl *= 0.9; s.y = 0; }
+              if (inc < 30 && s.vx > 2.6) { cnt++; G.cue('skip', cnt - 1); G.buzz(6); s.vy = -s.vy * 0.5 + 0.5; s.vx *= Math.min(0.97, 0.88 - 0.009 * inc + glass); s.vl *= 0.9; s.y = 0; }
               else { rip[rip.length - 1].big = 1; G.cue('sink'); settle(cnt ? `${cnt} skip${cnt > 1 ? 's' : ''}!` : 'Plop!', cnt < 2); break; } }
             if (s.y < -2) { settle('Plop!', true); break; } }
           if (s && st === 'fly') trail.push([s.x, s.l, s.y]); if (trail.length > 26) trail.shift();
