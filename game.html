@@ -55,7 +55,7 @@
   .seg.gpf { border-radius: 12px; } .sw.gpf { outline-offset: 4px; } input[type=range].gpf { outline-offset: 6px; border-radius: 6px; }
   :root { --vh: calc(1vh / var(--uz, 1)); --vw: calc(1vw / var(--uz, 1)); } /* 1vh / 1vw as seen inside a zoomed UI container (zoom multiplies viewport units too) */
   /* desktop UI size: every UI container is laid out at phone size and magnified by --uz (set in applyUIO from the window height; stays 1 on phones) */
-  #bPause, #bCamp, #hud, .hud, #banner, #rfx, #toast, #fps, #err, .scr { zoom: var(--uz, 1); }
+  #bPause, #bCamp, #hud, .hud, #banner, #rfx, #toast, #fps, .scr { zoom: var(--uz, 1); }
   .hud { position: fixed; pointer-events: none; z-index: 2; }
   /* ---- one HUD for every input ---- */
   #hud { position: fixed; inset: 0; pointer-events: none; z-index: 2; text-shadow: 0 2px 6px rgba(0,0,0,.55); transition: opacity .3s; }
@@ -73,14 +73,14 @@
   #hScore.live { opacity: 1; transition: opacity .15s var(--ease-out); }
   #hScore.calm { opacity: .35; }
   #hScore small { display: block; font: 700 10px var(--f-ui); letter-spacing: .14em; color: var(--cream-70); margin-bottom: 2px; }
-  #hBuffs { position: absolute; right: var(--sr); top: calc(var(--st) + 50px); display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; max-width: 46vw; }
+  #hBuffs { position: absolute; left: calc(var(--sl) + 46px); top: calc(var(--st) + 9px); display: flex; flex-wrap: nowrap; justify-content: flex-start; gap: 3px; max-width: calc(100% - var(--sl) - var(--sr) - 46px - 150px); overflow: hidden; } /* one row right of the pause button, below the progress bar, clear of the score plate; the centre banner sits below this band */
   #hBuffs[hidden] { display: none; }
-  #hBuffs .bc { display: flex; align-items: center; gap: 3px; height: 20px; padding: 0 7px 0 2px; border-radius: 10px; background: rgba(21,16,12,.5); color: var(--cream); font: 700 11px/1 var(--f-ui); letter-spacing: .02em; font-variant-numeric: tabular-nums; }
-  #hBuffs .bc .rg { position: relative; width: 18px; height: 18px; flex: none; color: #f3c56b; }
-  #hBuffs .bc .rg svg { position: absolute; inset: 0; width: 18px; height: 18px; }
-  #hBuffs .bc .rg svg.i { inset: 4px; width: 10px; height: 10px; }
+  #hBuffs .bc { display: flex; align-items: center; gap: 2px; flex: none; height: 18px; padding: 0 5px 0 1px; border-radius: 9px; background: rgba(21,16,12,.5); color: var(--cream); font: 700 10px/1 var(--f-ui); letter-spacing: .02em; font-variant-numeric: tabular-nums; }
+  #hBuffs .bc .rg { position: relative; width: 16px; height: 16px; flex: none; color: #f3c56b; }
+  #hBuffs .bc .rg svg { position: absolute; inset: 0; width: 16px; height: 16px; }
+  #hBuffs .bc .rg svg.i { inset: 3px; width: 10px; height: 10px; }
   #hBuffs .bc .rg circle { fill: none; stroke-width: 2; } #hBuffs .bc .rg .t { stroke: rgba(255,240,210,.18); } #hBuffs .bc .rg .a { stroke: currentColor; stroke-linecap: round; }
-  #hBuffs .bc.low .rg { color: #ff9a6b; } #hBuffs .bc.fb { padding-left: 6px; gap: 4px; } #hBuffs .bc.fb > svg { width: 13px; height: 13px; color: #f3c56b; }
+  #hBuffs .bc.low .rg { color: #ff9a6b; } #hBuffs .bc.fb { padding-left: 5px; gap: 3px; } #hBuffs .bc.fb > svg { width: 13px; height: 13px; color: #f3c56b; }
   #hLimbs { position: absolute; left: var(--sl); bottom: var(--sb); display: flex; gap: 14px; font: 700 10px var(--f-ui); letter-spacing: .12em; color: var(--cream-70); align-items: center; }
   #hLimbs span { display: flex; align-items: center; gap: 6px; }
   #hLimbs i { display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: var(--acc1); border: 2px solid var(--acc1); box-sizing: border-box; }
@@ -96,7 +96,7 @@
   #progBg { position: fixed; z-index: 2; left: 0; right: 0; top: 0; height: 3px; background: rgba(253,248,234,.15); pointer-events: none; }
   body.onTitle #progBg, body.onTitle #banner, body.onTitle #pop, body.onTitle #rfx { display: none; }
   /* ---- camp / theme banner, trick points on the rider ---- */
-  #banner { position: fixed; z-index: 2; top: calc(12% + env(safe-area-inset-top, 0px)); left: 50%; transform: translate(-50%, -30px); opacity: 0; pointer-events: none;
+  #banner { position: fixed; z-index: 2; top: calc(var(--st) + 44px); left: 50%; transform: translate(-50%, -30px); opacity: 0; pointer-events: none;
     background: rgba(20,14,10,0.6); color: var(--cream); border: 1px solid rgba(245,138,52,0.45); border-radius: 12px; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); padding: 8px 20px 8px; text-align: center;
     transition: transform .35s var(--ease-pop), opacity .25s; }
   #banner.show { transform: translate(-50%, 0); opacity: 1; }
@@ -108,8 +108,6 @@
   #rfx .air { position: absolute; transform: translate(-50%, -100%); font: italic 800 18px var(--f-disp); color: var(--ink); text-shadow: 0 1px 3px rgba(0,0,0,0.6); }
   #rfx svg { position: absolute; width: 84px; height: 84px; margin: -42px 0 0 -42px; overflow: visible; }
   #rfx svg text { font: 700 11px var(--f-ui); fill: var(--accT); }
-  #err { position: fixed; inset: auto 12px 12px 12px; z-index: 9; background: #401414; color: #ffd9d9;
-    padding: 10px 12px; border-radius: 8px; font: 12px ui-monospace, monospace; white-space: pre-wrap; }
   /* ---- classic touch buttons (Settings > Touch layout: Buttons) ---- */
   #touch { position: fixed; z-index: 3; left: 0; right: 0; bottom: calc(34px + env(safe-area-inset-bottom, 0px));
     display: none; justify-content: space-between; padding-inline: var(--sl) var(--sr); pointer-events: none; }
@@ -230,6 +228,7 @@
   #pauseMenu .dsw[aria-checked="true"] .dk { background: var(--acc1); border-color: var(--acc1); } #pauseMenu .dsw[aria-checked="true"] .dk::after { transform: translateX(12px); background: var(--accInk); }
   #pauseMenu .sheet { max-height: 100%; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; } /* a short window scrolls the card instead of clipping the DEV row */
   #pauseMenu .pmAsk { display: none; gap: 10px; } #pauseMenu .askt { text-align: center; font: 600 14px/1.35 var(--f-ui); padding: 4px 4px 2px; }
+  #pauseMenu.askingFav .sheet > :not(h2):not(#pmAskFav) { display: none; } #pauseMenu.askingFav #pmAskFav { display: grid; }
   #pauseMenu .mb.bad { background: #b3382c; border-color: transparent; color: #fff; }
   #pauseMenu.asking .sheet > :not(h2):not(.pmAsk) { display: none; } #pauseMenu.asking .pmAsk { display: grid; }
   body.pauseCam #pauseMenu { justify-items: end; background: linear-gradient(270deg, rgba(20,14,10,.66) 0%, rgba(20,14,10,.5) 36%, rgba(20,14,10,0) 62%); } body.pauseCam.lefty #pauseMenu { justify-items: start; background: linear-gradient(90deg, rgba(20,14,10,.66) 0%, rgba(20,14,10,.5) 36%, rgba(20,14,10,0) 62%); } /* the rider stays in the clear on one side, the card on the other */
@@ -240,6 +239,7 @@
   #setScr .hd .ico { position: static; }
   .srow { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; border-top: 1px solid rgba(253,248,234,.1); }
   .srow > span { font: 500 14px var(--f-ui); } .srow > span small { display: block; font-size: 11px; opacity: .6; }
+  .progIn { display: flex; gap: 8px; align-items: center; } .progIn input { width: 150px; min-width: 0; font: 12px ui-monospace, monospace; padding: 6px 8px; border-radius: 6px; border: 1px solid rgba(253,248,234,.25); background: rgba(0,0,0,.25); color: inherit; }
   .sgrp { font: 700 10px var(--f-ui); letter-spacing: .16em; text-transform: uppercase; color: var(--acc1); padding: 12px 0 4px; }
   .seg { display: flex; gap: 0; border: 1px solid rgba(253,248,234,.22); border-radius: 12px; overflow: hidden; flex-shrink: 0; }
   .seg button { min-height: 40px; min-width: 56px; padding: 0 12px; border: 0; background: transparent; color: var(--cream); font: 600 13px var(--f-ui); cursor: pointer; }
@@ -279,6 +279,7 @@
   #endOv .acts { display: grid; grid-template-columns: 1.4fr 1fr; gap: 8px; margin-top: 18px; }
   #endOv .share { position: absolute; left: calc(var(--sl) + 31px); bottom: max(28px, var(--sb)); display: flex; gap: 10px; align-items: center; }
   #endOv .share .mb { width: 170px; }
+  #endOv .share .mb#btnFav { width: 44px; padding: 0; font-size: 20px; line-height: 1; } #endOv .share .mb#btnFav.on { color: var(--acc1); }
   #endOv .share small { font: 500 11px ui-monospace, Menlo, monospace; opacity: .7; }
   #endOv .skip { position: absolute; right: calc(var(--sr) + 31px); bottom: max(10px, var(--sb)); font: 500 11px var(--f-ui); opacity: .5; }
   #fps { position: fixed; z-index: 7; left: 50%; top: calc(var(--st) + 2px); transform: translateX(-50%); font: 500 11px ui-monospace, Menlo, monospace; color: var(--cream); background: rgba(20,14,10,.55); border-radius: 8px; padding: 2px 8px; pointer-events: none; letter-spacing: .04em; } /* Settings > FPS overlay */
@@ -300,14 +301,14 @@
   @keyframes rot { 0%, 20% { transform: rotate(0); } 60%, 100% { transform: rotate(-90deg); } }
   @media (orientation: portrait) and (pointer: coarse) and (max-width: 760px) { #rotate { display: flex; flex-direction: column; } }
   /* ---- campfire mode: the camp button (tap = save, hold = make camp), the camp screen (header, skill points, right-hand panel, tab bar), the fade ---- */
-  #bCamp { position: fixed; z-index: 4; right: var(--sr); top: calc(var(--st) + 108px); width: 64px; height: 64px; border-radius: 50%; padding: 0; cursor: pointer; touch-action: none; -webkit-user-select: none; user-select: none;
-    background: rgba(43,24,10,.78); border: 3px solid var(--warn); color: #ffd9a0; box-shadow: 0 0 18px 2px rgba(255,150,40,.35); display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity .25s; }
+  #bCamp { position: fixed; z-index: 4; right: var(--sr); top: calc(var(--st) + 108px); width: 88px; height: 88px; border-radius: 50%; padding: 0; cursor: pointer; touch-action: none; -webkit-user-select: none; user-select: none;
+    background: rgba(20,14,10,.78); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); border: 2px solid rgba(245,138,52,.7); color: #ffd9a0; box-shadow: 0 0 18px 2px rgba(255,150,40,.35); display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity .25s; }
   #bCamp.near { opacity: 1; pointer-events: auto; } body.scrOn #bCamp, body.onTitle #bCamp { opacity: 0 !important; pointer-events: none !important; }
-  #bCamp svg.fl { width: 24px; height: 24px; } #bCamp b { font: italic 800 12px/1 var(--f-disp); letter-spacing: .08em; margin-top: 1px; }
+  #bCamp svg.fl { width: 26px; height: 26px; color: var(--acc1); } #bCamp b { font: italic 800 15px/1 var(--f-disp); letter-spacing: .1em; margin-top: 3px; color: var(--acc1); } #bCamp.saved b { color: inherit; }
   #bCamp svg.rg { position: absolute; inset: -9px; width: calc(100% + 18px); height: calc(100% + 18px); transform: rotate(-90deg); pointer-events: none; overflow: visible; }
   #bCamp svg.rg circle { fill: none; stroke: #ffc857; stroke-width: 4; stroke-linecap: round; opacity: 0; transition: opacity .1s; filter: drop-shadow(0 0 4px rgba(255,190,70,.9)); }
   #bCamp.hold svg.rg circle { opacity: 1; }
-  #bCamp .hint { position: absolute; left: 50%; bottom: calc(100% + 13px); transform: translateX(-50%); text-align: center; white-space: nowrap; pointer-events: none; font: 700 10px/1.15 var(--f-ui); letter-spacing: .14em; color: var(--cream); text-shadow: 0 1px 4px rgba(0,0,0,.7), 0 0 2px rgba(0,0,0,.6); } /* the two-line 'HOLD TO / CAMP' label above the circle (the circle sits below the score and meal chip so the label clears them) */
+  #bCamp .ht { font: 700 10.5px/1 var(--f-ui); letter-spacing: .14em; color: var(--cream); margin-top: 3px; white-space: nowrap; } #bCamp.saved .ht { display: none; } /* 'HOLD TO' sits over the CAMP word inside the circle (one button, no floating label) */
   #bCamp.saved { background: var(--warn); color: #3a1e08; border-color: #ffe2a8; }
   #campFade { position: fixed; inset: 0; z-index: 7; background: #06090a; opacity: 0; pointer-events: none; transition: opacity .3s; } #campFade.on { opacity: 1; }
   body.campMirror canvas#game { transform: scaleX(-1); }
@@ -561,7 +562,7 @@
 <canvas id="game"></canvas>
 <div id="vig"></div>
 <button id="bPause" aria-label="Pause"><s></s><s></s></button>
-<button id="bCamp" aria-label="Camp: tap to save, hold to make camp"><span class="hint" aria-hidden="true">HOLD TO<br>CAMP</span><svg class="rg" viewBox="-50 -50 100 100" aria-hidden="true"><circle id="campRing" r="47" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100"/></svg><svg class="fl" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c1 3 4 5 4 9a4 4 0 0 1-8 0c0-1 .3-2 .8-2.8C9.2 9.6 10 11 11 11c0-3 .3-6 1-9zM8.5 15.5c.5 2.5 2 4 3.5 4s3-1.5 3.5-4c-1 1-2 1.5-3.5 1.5s-2.5-.5-3.5-1.5z"/></svg><b>CAMP</b></button>
+<button id="bCamp" aria-label="Camp: tap to save, hold to make camp"><svg class="rg" viewBox="-50 -50 100 100" aria-hidden="true"><circle id="campRing" r="47" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100"/></svg><svg class="fl" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c1 3 4 5 4 9a4 4 0 0 1-8 0c0-1 .3-2 .8-2.8C9.2 9.6 10 11 11 11c0-3 .3-6 1-9zM8.5 15.5c.5 2.5 2 4 3.5 4s3-1.5 3.5-4c-1 1-2 1.5-3.5 1.5s-2.5-.5-3.5-1.5z"/></svg><span class="ht" aria-hidden="true">HOLD TO</span><b>CAMP</b></button>
 <div id="campFade"></div>
 <div id="hud">
   <div id="hTime"><span id="tTime">0:00.0</span></div>
@@ -615,7 +616,7 @@
   </div>
   <div id="tapGo" role="status">Tap to start</div>
   <button class="ico" id="mute" role="switch" aria-checked="true" aria-label="Sound"><svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg><svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M17 9l5 6M22 9l-5 6"/></svg></button>
-  <div class="foot"><span id="verTag">v0.35.0</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span></div>
+  <div class="foot"><span id="verTag">v0.36.0</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span></div>
   <button id="btnNew" hidden>New mountain</button>
 </div>
 
@@ -624,8 +625,10 @@
   <div class="meta" id="pmSeed"></div>
   <button class="mb pri" id="pmResume">&#9654; Resume</button>
   <div class="two"><button class="mb sm" id="pmRestart">Restart run</button><button class="mb sm" id="pmSettings">Settings</button></div>
+  <button class="mb sm" id="pmFav" hidden>&#9733; Play favourite</button>
   <div class="two"><button class="mb sm" id="pmNew">New mountain</button><button class="mb sm" id="pmQuit">Quit to title</button></div>
   <div class="pmDev" id="pmDev"><div class="devh">DEV</div><button class="mb sm" id="pmReset">Reset game (new player)</button><div class="drow"><button class="mb sm dsw" id="pmHaptic" role="switch" aria-checked="true" aria-label="Haptics"><span>Haptics <small>Android</small></span><i class="dk"></i></button><button class="mb sm dsw" id="pmFps" role="switch" aria-checked="false" aria-label="FPS counter"><span>FPS counter</span><i class="dk"></i></button></div></div>
+  <div class="pmAsk" id="pmAskFav"><div class="askt" id="pmAskFavT">Leave this run and ride your favourite?</div><div class="two"><button class="mb sm" id="pmAskFavNo">Cancel</button><button class="mb sm bad" id="pmAskFavYes">Play</button></div></div>
   <div class="pmAsk" id="pmAsk"><div class="askt">Really erase everything? Cannot be undone.</div><div class="two"><button class="mb sm" id="pmAskNo">Cancel</button><button class="mb sm bad" id="pmAskYes">Erase</button></div></div>
 </div></div>
 
@@ -654,6 +657,10 @@
   <div class="srow tOnly"><span>Steering sensitivity <small>touch stick only</small></span><div class="seg" data-set="sens"><button data-v="orig">Original</button><button data-v="bal">Balanced</button><button data-v="calm">Calm</button></div></div>
   <div class="srow tOnly"><span>Haptics <small>Android</small></span><button class="sw" id="bHaptic" role="switch" aria-checked="true" aria-label="Haptics"></button></div>
   <div class="srow tOnly"><span>Touch hints</span><button class="mb sm" id="pmHints">Show again</button></div>
+  <div class="sgrp">Progress</div>
+  <div class="srow"><span>Save progress code <small>copy it to move to another device</small></span><button class="mb sm" id="progCopy">Copy</button></div>
+  <div class="srow"><span>Load progress code <small id="progMsg" role="status">paste a code, then Apply</small></span><div class="progIn"><input type="text" id="progIn" autocomplete="off" spellcheck="false" aria-label="Progress code"><button class="mb sm" id="progApply">Apply</button></div></div>
+  <div class="srow" id="progAsk" hidden><span>This replaces the progress on this device</span><div class="progIn"><button class="mb sm" id="progNo">Cancel</button><button class="mb sm" id="progYes">Replace</button></div></div>
   <div class="sgrp">About</div>
   <div class="about" id="about"><b>No Hander</b> <span id="verTag2"></span> &middot; a downhill game about letting go. Built with <a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> r160 (MIT license, &copy; 2010-2024 three.js authors).
     Type: <b>Barlow Condensed</b> (&copy; 2017 Jeremy Tribby) and <b>Rubik</b> (&copy; 2015 Hubert &amp; Fischer, Meir Sadan, Cyreal), both under the <a href="https://openfontlicense.org" target="_blank" rel="noopener">SIL Open Font License 1.1</a>, embedded as subsets. All art, sound and music are built by the game itself at runtime. No data leaves your device: your settings and best times are stored locally only.</div>
@@ -674,7 +681,7 @@
     <div class="rxp" id="eXpRow"><span id="eXpL">XP</span><b id="eXp">—</b></div>
     <div class="acts"><button class="mb pri" id="btnAgain">&#9654; Ride again</button><button class="mb sm" id="btnNew2">New mountain</button></div>
   </div>
-  <div class="share"><button class="mb sm" id="btnShare">Share code</button><small><code id="seedCode2">—</code></small></div>
+  <div class="share"><button class="mb sm" id="btnShare">Share code</button><button class="mb sm" id="btnFav" aria-pressed="false" aria-label="Favourite this mountain" title="Favourite this mountain">&#9734;</button><small><code id="seedCode2">—</code></small></div>
   <div class="skip" id="eSkip">tap to skip</div>
 </div>
 <div class="scr" id="campScr" hidden>
@@ -53751,10 +53758,12 @@ export { ACESFilmicToneMapping, AddEquation, AddOperation, AdditiveAnimationBlen
 <script type="module">
 import * as THREE from 'three';
 
-/* each distinct message shows once and at most 3 boxes ever, so an exception thrown every frame cannot flood the page */
-const errSeen = new Set();
-const errBox = (msg) => { if (errSeen.has(msg) || errSeen.size >= 3) return; errSeen.add(msg); const d = document.createElement('div'); d.id = 'err'; d.textContent = msg; document.body.appendChild(d); };
-window.addEventListener('error', e => errBox('Error: ' + e.message));
+/* errors go to the console only (no on-screen box); the browser already logs uncaught exceptions */
+/* mini-game worlds are disposed two frames after end() (never in the frame they were compiled in); a timer, pagehide and the next start flush any left over, each exactly once */
+const miniQ = [];
+function miniDispose(v) { if (!v) return; miniQ.push({ v, n: 2 }); setTimeout(() => miniFlush(true), 400); }
+function miniFlush(all) { for (let k = 0; k < miniQ.length;) { const e = miniQ[k]; if (all || --e.n <= 0) { miniQ.splice(k, 1); try { e.v.dispose(); } catch (x) { } } else k++; } }
+addEventListener('pagehide', () => miniFlush(true));
 /* small corner notice for graphics trouble; built on demand so the normal page carries nothing extra */
 const gfxNote = (on) => {
   let n = document.getElementById('gfxNote');
@@ -55732,7 +55741,8 @@ function herringboneKnobs(M, RT, RS = 6, TS = 14) { /* M, RT, RS, TS = the carca
 }
 /* the trail-flag palette. One place for the five colors: the trail flags (buildWorld), the notice board rows (BOARD_ROWS) and the
    start / finish bunting all read it. */
-const FLAG_PAL = { camp: '#48D17A', bridge: '#3D8BFF', jump: '#E8452E', hairpin: '#FFD23F', fork: '#E07BB8' };
+/* camp = ONE fixed orange (owner 2026-10-03, was green); hairpin nudged toward lemon so it stays apart from the orange */
+const FLAG_PAL = { camp: '#F58A2E', bridge: '#3D8BFF', jump: '#E8452E', hairpin: '#FFE03A', fork: '#E07BB8' };
 /* FLAG LIFE - a wind flutter in the vertex shader. Every flag mesh carries aFl = (amplitude m, wave coordinate rad, phase rad) and aFlD = the
    cloth's sideways direction in the mesh's own space; the shader pushes each vertex along aFlD by two sines traveling down the cloth. Zero CPU
    per flag and no extra draw calls: the trail pennants stay one InstancedMesh (each instance offsets the phase by its position), the start / finish
@@ -55767,11 +55777,14 @@ function flagGeo(B) { const g = new THREE.BufferGeometry(); g.setAttribute('posi
   g.setAttribute('aFl', new THREE.Float32BufferAttribute(B.F, 3)); g.setAttribute('aFlD', new THREE.Float32BufferAttribute(B.D, 3)); g.computeVertexNormals(); g.computeBoundingSphere(); return g; }
 /* the camp pole flag, a swallowtail: a deep V notch from 60 % of the length, two tails that flutter a little out of phase, a pale band near
    the hoist. Hoist at (x0, y0, z0) hanging DOWN from the pole top, length L along +x turned by yaw about y. */
-function swallowFlag(B, x0, y0, z0, yaw, L, H, main, stripe) {
+function swallowFlag(B, x0, y0, z0, yaw, L, H, main, stripe, tent) {
   const n = (u) => Math.max(0, (u - 0.6) / 0.4), cy = Math.cos(yaw), sy = Math.sin(yaw), dir = [sy, 0, cy], col = (u) => (u > 0.16 && u < 0.27) ? stripe : main;
   const at = (u, y) => [x0 + u * L * cy, y0 + y, z0 - u * L * sy], lerp = (a, b, t) => a + (b - a) * t;
   flagGrid(B, 12, 2, (u, v) => at(u, lerp(-H, -H / 2 - n(u) * H / 2, v)), col, (u) => u * L * 0.14, (u) => u * 1.7 * 6.283 - 0.8 * n(u), 0, dir); /* lower tail */
   flagGrid(B, 12, 2, (u, v) => at(u, lerp(-H / 2 + n(u) * H / 2, 0, v)), col, (u) => u * L * 0.14, (u) => u * 1.7 * 6.283 + 0.8 * n(u), 0, dir); /* upper tail: the tails drift out of phase past the notch (identical where they join) */
+  if (tent) { /* a tent glyph on the cloth (vertex colours, two thin triangles set 4 mm off each face; before the notch both tails move alike): a cream A-frame with a darker door */
+    const tri = (pts, col, off) => { _flc.set(col); for (const [u, y] of pts) { const p = at(u, y * H); B.P.push(p[0] + dir[0] * off, p[1], p[2] + dir[2] * off); B.C.push(_flc.r, _flc.g, _flc.b); B.F.push(u * L * 0.14, u * 1.7 * 6.283, 0); B.D.push(dir[0], dir[1], dir[2]); } };
+    for (const off of [0.004, -0.004]) { tri(off > 0 ? [[0.24, -0.78], [0.54, -0.78], [0.39, -0.2]] : [[0.54, -0.78], [0.24, -0.78], [0.39, -0.2]], '#fff1d6', off); tri(off > 0 ? [[0.35, -0.78], [0.43, -0.78], [0.39, -0.5]] : [[0.43, -0.78], [0.35, -0.78], [0.39, -0.5]], '#b4561a', off * 1.6); } }
 }
 function mergeParts(parts) {
   let n = 0; const gs = parts.map(P => { const g = (P.geo.index ? P.geo.toNonIndexed() : P.geo.clone()); g.applyMatrix4(P.m); n += g.attributes.position.count; return g; });
@@ -55782,9 +55795,10 @@ function mergeParts(parts) {
   if (parts.some(P => P.ma !== undefined)) { const ma = new Float32Array(n); let q = 0; gs.forEach((g, i) => { const k = g.attributes.position.count; ma.fill(parts[i].ma || 0, q, q + k); q += k; }); out.setAttribute('aMa', new THREE.BufferAttribute(ma, 1)); } /* the rock-top moss amount (rockVcMat) */ out.computeBoundingSphere(); if (ranges.length) out.userData.ranges = ranges;
   return out;
 }
+const ENAMEL = { body: '#f2f0e6', shade: '#d9d6c8', lit: '#ffffff', spout: '#e6e3d6', rim: '#2a56a8', fleck: '#2f5fb3' }; /* white enamel with blue flecks and a blue rim: the Dinner teapot and the camp kettle share it (owner 2026-10-03) */
 const campMat = new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true });
 const campFlutMat = flutterMat(new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true, side: THREE.DoubleSide }), 0.35); /* every camp's bunting + pole flag (flutter shader) */
-const SMK = {"rings": 13, "sides": 8, "cov": 0.8, "soft": 2.2, "rp": 1.1, "puff": 0.3, "dk": 0.8, "campK": 0.75, "t0": [0.76, 0.67, 0.57], "t1": [0.6, 0.62, 0.66], "lean": 0.42, "sway": 0.14, "lam": [4.4, 7.1], "v": 1.25, "bulge": 0.3, "wisp": 0.45, "near": [1.6, 4.2], "cap": 0.17, "top": 0.5, "base": 0.08, "camp": [7.0, 0.85], "lane": [12.5, 1.45], "ride": [40, 20, -15, -45, 190], "rideLean": 0.8, "rideYaw": 0.6, "rideTone": [0.93, 0.94, 0.96], "rideBoost": 0.9, "steam": [0.7, 0.11, 0.32, 0.3]}; /* the smoke column: rings x sides of the tube; cov = coverage at the base (0-1); soft = silhouette falloff power; t0 / t1 = tone at the fire / at the top;
+const SMK = {"rings": 13, "sides": 8, "cov": 0.6, "soft": 2.2, "rp": 1.1, "puff": 0.3, "dk": 0.8, "campK": 0.75, "t0": [0.76, 0.67, 0.57], "t1": [0.6, 0.62, 0.66], "lean": 0.42, "sway": 0.14, "lam": [4.4, 7.1], "v": 1.25, "bulge": 0.3, "wisp": 0.45, "near": [1.6, 4.2], "cap": 0.17, "top": 0.5, "base": 0.08, "camp": [7.0, 0.85], "lane": [12.5, 1.45], "ride": [40, 20, -15, -45, 190], "rideLean": 0.8, "rideYaw": 0.6, "rideTone": [0.93, 0.94, 0.96], "rideBoost": 0.9, "steam": [0.7, 0.11, 0.24, 0.3]}; /* the smoke column: rings x sides of the tube; cov = coverage at the base (0-1); soft = silhouette falloff power; t0 / t1 = tone at the fire / at the top;
    lean = downwind lean at the top (x height); sway = sway amplitude at the top (x height); lam = the two wavelengths (m) of the travelling sway; v = rise speed (m/s); bulge = radius pulse;
    wisp = fragment noise depth; near = [fade start, full] distance to the lens (m); cap = apparent half-width cap (share of the window's half height); top = where the top starts to dissolve (0-1);
    base = radius at the base (x the top radius); camp / lane = [height m, top radius m] of your own camp's column and of a course camp's plume; ride = [ramp-in start, ramp-in full] in trail meters
@@ -56139,16 +56153,16 @@ function addCampMesh(cp) {
        spout out of the lower body with a slanted mouth, and a wire bail on two hinge ears, arching over the lid with a coiled grip on top. Spout and bail share the
        local x-y plane, so at kyaw 0 the camp lens sees the profile. Built at the origin, then every part is moved by one frame; returns the spout mouth (steam). */
     const tx = 0, tz = 0, y0 = 0, p0 = parts.length, GS = Math.round(kyaw / (Math.PI * 2) * 14); let stm = null; /* GS: lathe columns the turn moves, so the glint stays on the side facing the camp lens */
-    const TB = '#223f92', RIM = '#141a2e', ST = '#c9d1d9', SEG = 14;
+    const TB = ENAMEL.body, RIM = ENAMEL.rim, ST = '#c9d1d9', SEG = 14;
     const body = [[0.111, 0.021], [0.116, 0.03], [0.116, 0.045], [0.111, 0.066], [0.1, 0.087], [0.084, 0.106], [0.068, 0.12], [0.058, 0.131], [0.055, 0.138], [0.055, 0.146]];
     put(latheP([[0, 0], [0.116, 0], [0.122, 0.004]], SEG), RIM, tx, y0, tz); put(latheP([[0.122, 0.004], [0.122, 0.018], [0.111, 0.021]], SEG), TB, tx, y0, tz); /* the foot: a dark lip at the bottom, the band, the step in to the body */
-    { const bg = latheP(body, SEG).toNonIndexed(), n = bg.attributes.position.count, bc = new Float32Array(n * 3), c0 = new THREE.Color(TB), c1 = new THREE.Color('#2a4aa3'), c2 = new THREE.Color('#5577cc'), NR = body.length - 1;
+    { const bg = latheP(body, SEG).toNonIndexed(), n = bg.attributes.position.count, bc = new Float32Array(n * 3), c0 = new THREE.Color(TB), c1 = new THREE.Color(ENAMEL.shade), c2 = new THREE.Color(ENAMEL.lit), NR = body.length - 1;
       for (let t = 0; t < n / 3; t++) { const qd = t >> 1, col = Math.floor(qd / NR), ring = qd % NR, gc = (col + GS) % SEG, c = (gc === 5 || gc === 6) && (ring === 4 || ring === 5) ? c2 : (Math.imul(col * 31 + ring * 17 + 5, 2654435761) >>> 0) % 7 === 0 ? c1 : c0; for (let v = t * 3; v < t * 3 + 3; v++) { bc[v * 3] = c.r; bc[v * 3 + 1] = c.g; bc[v * 3 + 2] = c.b; } }
       bg.setAttribute('color', new THREE.BufferAttribute(bc, 3)); put(bg, null, tx, y0, tz); } /* the body, open at the neck under the lid; a few facets a shade lighter, and a pale glint on the shoulder facing the camp lens, read as glossy enamel */
-    { const cf = Math.cos(Math.PI / SEG), fl = new THREE.CircleGeometry(0.0045, 3); for (let i = 0; i < 34; i++) { /* white speckles: tiny flecks laid flat on the body's facets (a fixed scatter, no random draws) */
+    { const cf = Math.cos(Math.PI / SEG), fl = new THREE.CircleGeometry(0.0045, 3); for (let i = 0; i < 34; i++) { /* blue flecks (were white speckles): tiny flecks laid flat on the body's facets (a fixed scatter, no random draws) */
         const j = 1 + (i * 5) % 6, k = (i * 9) % SEG, f = ((i * 7) % 10 + 0.5) / 10, [r1, ya] = body[j], [r2, yb] = body[j + 1], phi = (k + 0.5) / SEG * Math.PI * 2;
         const rr = (r1 + (r2 - r1) * f) * cf + 0.0007, yy = ya + (yb - ya) * f, nr = yb - ya, ny = -(r2 - r1) * cf, nl = Math.hypot(nr, ny), s = Math.sin(phi), c = Math.cos(phi);
-        parts.push({ geo: fl, col: '#eef2f6', m: new THREE.Matrix4().compose(V.set(tx + s * rr, y0 + yy, tz + c * rr), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), new THREE.Vector3(s * nr / nl, ny / nl, c * nr / nl)), Sc.set(1, 1, 1)) }); } }
+        parts.push({ geo: fl, col: ENAMEL.fleck, m: new THREE.Matrix4().compose(V.set(tx + s * rr, y0 + yy, tz + c * rr), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), new THREE.Vector3(s * nr / nl, ny / nl, c * nr / nl)), Sc.set(1, 1, 1)) }); } }
     put(latheP([[0.058, 0.142], [0.063, 0.145], [0.063, 0.152], [0.058, 0.154]], SEG), RIM, tx, y0, tz); put(latheP([[0.058, 0.153], [0.05, 0.16], [0.03, 0.166], [0, 0.168]], SEG), TB, tx, y0, tz); /* the lid: its dark rim ring seated on the neck, a low dome */
     put(new THREE.TorusGeometry(0.013, 0.0035, 3, 6, Math.PI), RIM, tx, y0 + 0.1665, tz); /* the loop knob, standing on the lid */
     { const ang = 0.66, L = 0.155, k = 0.7, cx = 0.075 + Math.cos(ang) * L / 2, cy = 0.035 + Math.sin(ang) * L / 2, rz = ang - Math.PI / 2;
@@ -56641,9 +56655,7 @@ function addCampMesh(cp) {
          nothing fits -> no tray. Fixed formulas and position hashes only, no random draws. */
       let trayP = null; cp.trayL = null;
       { const TWD = 1.3, THD = 0.85, TT = 0.05, SX = TWD / 2 - TT, SZ = THD / 2 - TT, HX = TWD / 2 + 0.14, HZ = THD / 2 + 0.14, MARG = 0.32, TR2 = cp.tentL;
-        const TCAND = [[-2.4, 3.6], [1.4, 3.2], [0.6, 3.6], [0.9, 3.0], [2.6, 3.4], [-2.2, 3.8], [3.2, 2.6], [-3.6, 2.8], [4.4, 2.4], [-4.2, 2.4], [-5.0, 1.2], [5.0, 1.4]]; /* the -x spots from the measured set (6 mountains x every camp x 9 variants; the 5th -x spot fits every layout); the +x spots are the lens's left between the seats and the board, often blocked by the board, the pole or the tent, taken when clear and in view */
-        const fX = CAMPCAM.look[0] - CAMPCAM.pos[0], fZ = CAMPCAM.look[2] - CAMPCAM.pos[2], fL = Math.hypot(fX, fZ), fx = fX / fL, fz = fZ / fL, tH = Math.tan(CAMPCAM.hfov * Math.PI / 360), PANEL = 0.52; /* the lens's forward (xz) and half-angle; the panel starts at ~60 % of the width, 0.52 keeps a margin for the fit's zoom (every -x spot estimates >= 0.58, the +x spots <= 0.4) */
-        const trayU = (x, z) => { const dx = x - CAMPCAM.pos[0], dz = z - CAMPCAM.pos[2], f = dx * fx + dz * fz, r = -dx * fz + dz * fx; if (f < 1) return 2; return 0.5 + 0.5 * (r / f) / tH - CAMPCAM.shift + 0.5 * (HX / f) / tH; }; /* the frame's right edge as a share of the width (screen-right = -x): center + half width, the picture slid left by `shift` */
+        const TCAND = [[-2.4, 3.6], [-2.2, 3.8], [-3.6, 2.8], [-4.2, 2.4], [-5.0, 1.2]]; for (let ka = 0; ka < 8; ka++) { const aa = 0.5 + ka * 0.14; TCAND.push([-Math.sin(aa) * 4.6, Math.cos(aa) * 4.6]); } /* owner 2026-10-03: ALWAYS the -x side (opposite the board, behind the fire, screen-right); the five measured spots, then a slide along the -x arc if a variant blocks them all; never the board side */
         const segD = (x, z, a, b, c, d) => { const ux = c - a, uz = d - b, L2 = ux * ux + uz * uz || 1e-9, t = Math.max(0, Math.min(1, ((x - a) * ux + (z - b) * uz) / L2)); return Math.hypot(x - a - ux * t, z - b - uz * t); };
         const tentD = (x, z) => { if (!TR2) return 99; const ca = Math.cos(TR2[2]), sa = Math.sin(TR2[2]), dx = x - TR2[0], dz = z - TR2[1], u = dx * ca - dz * sa, v = dx * sa + dz * ca; return Math.hypot(Math.max(-1.94 - u, u - 2.0, 0), Math.max(Math.abs(v) - 1.32, 0)); }; /* the tent's drawn footprint, as the fence measures it */
         for (const [tcx, tcz] of TCAND) { const yw = Math.atan2(CAMPCAM.pos[0] - tcx, CAMPCAM.pos[2] - tcz) + 0.2, co = Math.cos(yw), si = Math.sin(yw); let ok = true, lo = 1e9, hi = -1e9;
@@ -56651,7 +56663,7 @@ function addCampMesh(cp) {
             if (g < -0.35 || laneClr(x, z, 0) < LANE_CLR || tentD(x, z) < MARG / RS + 0.05 || segD(x, z, bx - px, bz - pz, bx + px, bz + pz) < MARG / RS + 0.1) { ok = false; break; }
             const [wx, wz] = toW(x, z); for (const o of SOL) if (ccDist(o, wx, wz) < MARG) { ok = false; break; } }
           if (!ok || hi - lo > 0.22) continue;
-          const vis = trayU(tcx, tcz) <= PANEL; if (vis || !trayP) trayP = { x: tcx, z: tcz, a: yw, lo, hi, co, si }; if (vis) break; } /* the first clear spot in view wins; else the first clear spot */
+          trayP = { x: tcx, z: tcz, a: yw, lo, hi, co, si }; break; } /* the first clear -x spot wins */
         if (trayP) { const { x: tcx, z: tcz, a: yw, lo, hi, co, si } = trayP, TM = new THREE.Matrix4().compose(V.set(tcx, 0, tcz), Q.setFromEuler(E.set(0, yw, 0)), Sc.set(1, 1, 1)); cp.trayL = [tcx, tcz, yw];
           const ys = hi + 0.07, yt = ys + 0.04, yb = lo - 0.08, hh = yt - yb; /* the sand sits 7 cm over the highest ground under the frame; the planks reach down below the lowest */
           const hsh = (a, b) => { const s = Math.sin(a * 12.9898 + b * 78.233) * 43758.5453; return s - Math.floor(s); };
@@ -56690,7 +56702,7 @@ function addCampMesh(cp) {
     const gm = glowMat.clone(); gm.vertexColors = true; gm.color.set('#ffffff'); gm.polygonOffset = true; gm.polygonOffsetFactor = -2; gm.polygonOffsetUnits = -2;
     fx.glow = new THREE.Mesh(gg, gm); fx.glow.renderOrder = 2; grp.add(fx.glow); fx.glowBase = cp.lane ? 0.42 : 0.2; }
   /* the pole flag is a swallowtail (0.9 x 0.5 at course camps, 0.75 x 0.4 at your own), hung from the pole top; it and the bunting flutter in the shader */
-  swallowFlag(flutB, poleP[0], poleY + poleH - 0.05, poleP[1], 0.2, cp.lane ? 0.9 : 0.75, cp.lane ? 0.5 : 0.4, cp.lane ? ACC : '#6fe0c4', '#f2ecdc');
+  swallowFlag(flutB, poleP[0], poleY + poleH - 0.05, poleP[1], 0.2, cp.lane ? 0.9 : 0.75, cp.lane ? 0.5 : 0.4, FLAG_PAL.camp, '#f2ecdc', true);
   fx.flag = new THREE.Mesh(flagGeo(flutB), campFlutMat); grp.add(fx.flag);
   fx.cp = cp; fx.wind = -Math.PI / 2 + (smkH(cp.idx * 0.731 + (S.course && S.course.seed ? (S.course.seed % 9973) * 0.013 : 0.37) + 0.5) - 0.5) * 4.36; /* the wind lean's direction (yaw of the column's +x), a hash of the camp and the mountain, so it differs per camp; centered on +z (away from the camp lens at -z), within 125 degrees of it */
   const eg = new THREE.BufferGeometry(); eg.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(14 * 3), 3));
@@ -58758,8 +58770,12 @@ const sfx = (() => {
   };
 })();
 
-function spawnAt(cp) {
-  const P = S.course.pts[cp.idx];
+/* a crash INSIDE a camp (within the fence ring CAMP.fenceR of its fire) respawns on that camp's own loop lane, on the entrance side, inside the ring but 6 m from the fire (so the 3.6 m 'found' trigger still only fires by riding in), facing the lane's exit; anywhere else: null = the plain spawnAt(S.cp) */
+function campCrashAt(x, z) { const cps = S.course && S.course.checkpoints; if (!cps) return null; let best = null, bd = CAMP.fenceR; for (const cp of cps) { if (!cp.lane || cp.x === undefined) continue; const d = Math.hypot(cp.x - x, cp.z - z); if (d < bd) { bd = d; best = cp; } } return best; }
+function campRespawnPt(cp) { const L = cp.lane; if (!L) return null; for (let k = 0; k < L.length - 3; k++) { if (Math.hypot(L[k][0] - cp.x, L[k][1] - cp.z) > CAMP.fenceR - 1.5) continue; const dx = L[k + 3][0] - L[k][0], dz = L[k + 3][1] - L[k][1], l = Math.hypot(dx, dz) || 1; return { x: L[k][0], z: L[k][1], y: cp.padY, yaw: Math.atan2(-dz, dx), fx: dx / l, fz: dz / l }; } return null; }
+function respawn() { const cc = S.crashCamp; S.crashCamp = null; const P = cc && campRespawnPt(cc); if (P) spawnAt(cc, P); else spawnAt(S.cp); }
+function spawnAt(cp, at) {
+  const P = at || S.course.pts[cp.idx];
   S.pos.set(P.x, S.surf(P.x, P.z)?.h ?? P.y, P.z);
   S.yaw = P.yaw; S.speed = 3; S.vel.set(P.fx * 3, 0, P.fz * 3);
   S.pitch = 0; S.pitchVel = 0; S.spin = 0; S.roll = 0; S.bankRoll = 0; S.onBerm = false; S.vP = 0; S.vPv = 0; S.vY = 0; S.vYv = 0; S.scrub = 0; S.ctN = 0; S.ctP = 0;
@@ -59380,6 +59396,7 @@ const bikeCrash = (() => {
 function hitNote(what, nx, nz) { S.hitT = S.t; S.hitMsg = what; S.hitNx = nx; S.hitNz = nz; } /* what the bike hit and the push-out direction (read by bikeCrash.start) */
 function bail(reason, manual = false) {
   if (S.crashed) return;
+  S.crashCamp = campCrashAt(S.pos.x, S.pos.z);
   S.crashed = true; S.crashT = manual ? 0.25 : 2.5; S.streak = 0; S.trickPts = 0; S.airT = 0;
   let kept = -1; if (!manual && buffOn('steady')) { kept = S.tPend; S.tBank += S.tPend; S.steadyKept = (S.steadyKept || 0) + S.tPend; buffEnd('steady'); } /* Steady Bail: this crash banks the pending points (once) */
   else S.tLost += S.tPend; S.tPend = 0; /* the rider goes back to the last camp: trick points earned since then are not banked */
@@ -59489,7 +59506,7 @@ function step(dt, inp) {
     S.crashT -= dt; S.vel.y -= G * dt; S.pos.addScaledVector(S.vel, dt); S.spin += S.pitchVel * dt;
     const s = S.surf(S.pos.x, S.pos.z);
     if (s && S.pos.y < s.h + 0.3) { S.pos.y = s.h + 0.3; S.vel.y = Math.abs(S.vel.y) * 0.3; S.vel.x *= 0.8; S.vel.z *= 0.8; S.pitchVel *= 0.7; }
-    visContact(dt); S.pedaling = false; S.braking = 0; S.coasting = false; if (S.crashT <= 0) spawnAt(S.cp);
+    visContact(dt); S.pedaling = false; S.braking = 0; S.coasting = false; if (S.crashT <= 0) respawn();
     return;
   }
   { const th = legsOn ? inp.thr || 0 : 0; S.pedaling = S.grounded && th > 0.05; S.braking = Math.max(Math.min(1, inp.brk || 0), (inp.sbrk || 0) / BRK); S.coasting = !S.pedaling && S.braking < 0.02; } /* read-only seam (see the state block) */
@@ -60278,16 +60295,25 @@ function rollSeed() { const prev = recentThemes().at(-1); let seed = Math.floor(
 function newMountain() { newRun(rollSeed()); if (screen === 'end') setScreen(null); }
 function openPause() { if (!S.running || S.finished || S.camp) return; keys.clear(); S.paused = true; syncPauseMenu(); setScreen('pause'); } /* not from camp mode (it has its own screen) */
 let pauseAsk = false; /* the Reset game confirmation is showing inside the pause card */
-function closePause() { if (pauseAsk) { devAsk(false); return; } setScreen(null); S.paused = false; } /* Back / Esc / Start while the confirmation shows only cancel it */
+let favAsking = false;
+function closePause() { if (pauseAsk) { if (favAsking) favAsk(false); else devAsk(false); return; } setScreen(null); S.paused = false; } /* Back / Esc / Start while the confirmation shows only cancel it */
 function toggleHelp() { if (S.camp) return; if (screen === 'pause' || (screen === 'settings' && setBack === 'pause')) closePause(); else if (screen === null) openPause(); }
 function openSettings(from) { setBack = from; syncSettings(); setScreen('settings'); }
 function quitToTitle() { S.paused = false; S.running = false; resetRun(); setScreen('title'); }
 $('btnStart').addEventListener('click', () => { if (S.paused) closePause(); else startRiding(); });
 $('btnNew').addEventListener('click', () => newMountain());
 $('bPause').addEventListener('click', () => { if (screen === null) openPause(); else if (screen === 'pause') closePause(); });
-function syncPauseMenu() { syncSettings(); $('pmSeed').textContent = seedToCode(S.course.seed) + ' · bails ' + S.bails + ' · ' + fmtTime(S.t); }
+function syncPauseMenu() { favAsk(false, true); favSync(); syncSettings(); $('pmSeed').textContent = seedToCode(S.course.seed) + ' · bails ' + S.bails + ' · ' + fmtTime(S.t); }
 $('pmResume').addEventListener('click', closePause);
 $('pmRestart').addEventListener('click', () => { closePause(); resetRun(); });
+/* ---- ONE favourite mountain (holdon.fav = {code, date, time, theme}): star on the finish card, 'Play favourite' in the pause card (confirm in-card, it abandons the run) ---- */
+function favLoad() { try { const o = JSON.parse(localStorage.getItem('holdon.fav')); if (!o || typeof o !== 'object' || typeof o.code !== 'string' || !/^MTN-[0-9A-Z]{1,7}$/.test(o.code)) return null; const sd = codeToSeed(o.code); if (sd === null || !Number.isFinite(sd)) return null; return { code: o.code, date: typeof o.date === 'string' ? o.date : '', time: Number.isFinite(o.time) ? o.time : 0, theme: typeof o.theme === 'string' ? o.theme : '' }; } catch (e) { return null; } }
+function favSync() { const f = favLoad(), on = !!(f && S.course && f.code === seedToCode(S.course.seed)), b = $('btnFav'), p = $('pmFav'); if (b) { b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); b.innerHTML = on ? '&#9733;' : '&#9734;'; } if (p) { p.hidden = !f; if (f) p.title = f.code; } }
+function favAsk(on, quiet) { on = !!on; if (!on && !favAsking) return; favAsking = on; pauseAsk = on; $('pauseMenu').classList.toggle('askingFav', on); if (quiet || screen !== 'pause') return; gpMenu.onScreen(); gpMenu.aim($(on ? 'pmAskFavNo' : 'pmFav')); }
+$('btnFav').addEventListener('click', () => { const code = seedToCode(S.course.seed), f = favLoad(); try { if (f && f.code === code) localStorage.removeItem('holdon.fav'); else localStorage.setItem('holdon.fav', JSON.stringify({ code, date: new Date().toISOString().slice(0, 10), time: S.t, theme: String(S.course.theme || '') })); } catch (e) { } favSync(); });
+$('pmFav').addEventListener('click', () => { if (favLoad()) favAsk(true); });
+$('pmAskFavNo').addEventListener('click', () => favAsk(false));
+$('pmAskFavYes').addEventListener('click', () => { const f = favLoad(); favAsk(false); if (!f) { favSync(); return; } newRun(codeToSeed(f.code)); startRiding(); popup('Favourite', seedToCode(S.course.seed)); });
 $('pmNew').addEventListener('click', () => { newMountain(); startRiding(); popup('New mountain', seedToCode(S.course.seed)); });
 $('pmSettings').addEventListener('click', () => openSettings('pause'));
 $('pmQuit').addEventListener('click', quitToTitle);
@@ -60309,6 +60335,38 @@ if (DEV_ON) {
 $('pmHints').addEventListener('click', () => { pad.showHints(); toast('Touch hints will show on the next ride'); });
 $('btnSettings').addEventListener('click', () => openSettings('title'));
 $('setClose').addEventListener('click', () => setScreen(setBack));
+/* ---- Settings > Progress: one base64 code of every 'holdon.*' key (JSON {v:1, keys, c}, c = FNV-1a checksum of the keys JSON). Load validates version, checksum, key prefix and
+   size, asks to confirm, writes the keys and reloads. Nothing outside holdon.* is read or written. ---- */
+const PROG_CAP = 200000;
+const progSum = (str) => { let h = 0x811c9dc5; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; } return h.toString(16).padStart(8, '0'); };
+const progB64 = (str) => { const b = new TextEncoder().encode(str); let t = ''; for (let i = 0; i < b.length; i += 8192) t += String.fromCharCode.apply(null, b.subarray(i, i + 8192)); return btoa(t); };
+const progUnB64 = (c) => { const t = atob(c.replace(/\s+/g, '')), b = new Uint8Array(t.length); for (let i = 0; i < t.length; i++) b[i] = t.charCodeAt(i); return new TextDecoder('utf-8', { fatal: true }).decode(b); };
+function progExport() { const keys = {}; for (const k of devKeys().sort()) { try { keys[k] = localStorage.getItem(k); } catch (e) { } } const ks = JSON.stringify(keys); return progB64(JSON.stringify({ v: 1, keys, c: progSum(ks) })); }
+function progParse(code) { /* returns { keys } or { err } */
+  let o; try { o = JSON.parse(progUnB64(String(code || '').trim())); } catch (e) { return { err: 'Not a progress code' }; }
+  if (!o || typeof o !== 'object' || o.v !== 1 || !o.keys || typeof o.keys !== 'object' || Array.isArray(o.keys)) return { err: 'Wrong version' };
+  const keys = {}; let size = 0;
+  for (const k of Object.keys(o.keys)) { const v = o.keys[k]; if (k.indexOf('holdon.') !== 0 || typeof v !== 'string') continue; size += k.length + v.length; keys[k] = v; } /* anything else is ignored */
+  if (progSum(JSON.stringify(o.keys)) !== o.c) return { err: 'Code is damaged' };
+  if (size > PROG_CAP) return { err: 'Code is too big' };
+  return { keys };
+}
+function progApply(keys) { try { localStorage.setItem('holdon.__prog', '1'); localStorage.removeItem('holdon.__prog'); } catch (e) { return false; }
+  try { for (const k of devKeys()) localStorage.removeItem(k); for (const k of Object.keys(keys)) localStorage.setItem(k, keys[k]); } catch (e) { return false; }
+  addEventListener('pagehide', () => { try { for (const k of devKeys()) localStorage.removeItem(k); for (const k of Object.keys(keys)) localStorage.setItem(k, keys[k]); } catch (e) { } }); /* nothing the page writes on its way out survives */
+  try { location.reload(); } catch (e) { } return true; }
+{ let pending = null; const msg = (t, bad) => { $('progMsg').textContent = t; $('progMsg').style.color = bad ? '#ff9b8a' : ''; }, ask = (on) => { $('progAsk').hidden = !on; if (!on) pending = null; if (on) gpMenu.onScreen(); };
+  $('progCopy').addEventListener('click', () => { const c = progExport();
+    if (c.length > PROG_CAP * 2) { msg('Progress is too big to copy', true); return; }
+    const fb = () => { const ta = document.createElement('textarea'); ta.value = c; ta.style.cssText = 'position:fixed;left:-9999px;top:0'; document.body.appendChild(ta); ta.select(); let ok = false; try { ok = document.execCommand('copy'); } catch (e) { } ta.remove(); if (!ok) { $('progIn').value = c; $('progIn').select(); } msg(ok ? 'Copied' : 'Select and copy the code in the box'); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(c).then(() => msg('Copied'), fb); else fb(); });
+  $('progApply').addEventListener('click', () => { const r = progParse($('progIn').value); if (r.err) { msg(r.err, true); ask(false); return; } pending = r.keys; msg('Code is good'); ask(true); });
+  $('progNo').addEventListener('click', () => { ask(false); msg('paste a code, then Apply'); });
+  $('progYes').addEventListener('click', () => { if (!pending) return; if (!progApply(pending)) msg('Could not write the progress', true); });
+  $('progIn').addEventListener('input', () => { ask(false); msg('paste a code, then Apply'); });
+  $('progIn').addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') $('progApply').click(); }); /* typing and Ctrl+V never reach the ride's keys */
+  if (DEBUG) window.__prog = { exp: progExport, parse: progParse };
+}
 /* ---- title: live flyover, PLAY / DAILY / ENTER CODE / SETTINGS, first tap unlocks audio ---- */
 /* 'Tap to start': the title opens on the same background with a prompt and no active buttons. The first tap, click, key or pad button (1) builds / resumes the audio context inside
    that gesture and starts the title music on the spot, (2) shows the normal title buttons, and (3) is swallowed, so it never also presses the button that appears under it. Audio
@@ -60505,6 +60563,7 @@ const bestKey = () => 'holdon.best.' + seedToCode(S.course.seed) + (statsActive(
 const numOf = (id) => +($(id).textContent || '0').replace(/[^0-9.-]/g, '') || 0;
 let endAnim = null;
 function openResults() {
+  favSync();
   const code = seedToCode(S.course.seed), t = S.t; let prev = null;
   try { const v = parseFloat(localStorage.getItem(bestKey())); if (Number.isFinite(v)) prev = v; if (prev === null || t < prev) localStorage.setItem(bestKey(), String(t)); } catch (e) { }
   const d = $('eDelta'); d.className = '';
@@ -61340,7 +61399,7 @@ const CAMP_ART = (() => {
     <rect y="100" width="200" height="100" fill="#8a5f3a"/><rect y="128" width="200" height="3" fill="rgba(30,18,10,.5)"/><rect y="160" width="200" height="4" fill="rgba(30,18,10,.5)"/>
     <ellipse cx="98" cy="150" rx="62" ry="24" fill="#d9cdb2"/><ellipse cx="98" cy="150" rx="50" ry="18" fill="#f2ead6"/><ellipse cx="98" cy="150" rx="58" ry="22" fill="none" stroke="#3d6fb0" stroke-width="2"/>
     <polygon points="62,148 82,140 86,156 66,160" fill="#a86a3a"/><polygon points="86,140 104,138 106,156 88,158" fill="#b0743c"/><polygon points="108,138 128,142 128,158 108,158" fill="#a86a3a"/><rect x="101" y="140" width="4" height="16" fill="#d06a70"/><rect x="124" y="143" width="4" height="14" fill="#d06a70"/>
-    <g transform="translate(150 70)"><polygon points="-16,22 -18,6 -14,-6 -6,-12 8,-12 14,-6 18,6 16,22" fill="#3d6fb0"/><polygon points="-16,22 -18,6 -14,-6 -6,-12 -2,-12 -6,10 -8,22" fill="#5d8ccc"/><polygon points="-8,-12 8,-12 5,-17 -5,-17" fill="#284a7a"/><polygon points="16,4 18,-2 34,-14 36,-10 20,8" fill="#2f5b9a"/><path d="M-16 -4 q-12 6 -1 18" fill="none" stroke="#1f3a66" stroke-width="3"/></g>
+    <g transform="translate(150 70)"><polygon points="-16,22 -18,6 -14,-6 -6,-12 8,-12 14,-6 18,6 16,22" fill="#f2f0e6"/><polygon points="-16,22 -18,6 -14,-6 -6,-12 -2,-12 -6,10 -8,22" fill="#ffffff"/><polygon points="-8,-12 8,-12 5,-17 -5,-17" fill="#d4d1c2"/><polygon points="16,4 18,-2 34,-14 36,-10 20,8" fill="#e6e3d6"/><path d="M-16 -4 q-12 6 -1 18" fill="none" stroke="#2a56a8" stroke-width="3"/></g>
     <rect x="160" y="112" width="18" height="24" fill="rgba(220,235,255,.2)" stroke="rgba(232,242,255,.8)" stroke-width="2"/><rect x="162" y="118" width="14" height="17" fill="#c47a2c"/>
     <g class="stm"><path d="M166 106 q-4 -8 0 -14 q4 -6 0 -12" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="2"/><path d="M173 108 q-4 -8 0 -14" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="2"/></g></svg>`; /* the plate of sliced steak, the blue enamel teapot, a glass of tea steaming */
   art.fly = (u) => { const F = [[46, 70, '#ffd35a', 0], [82, 50, '#b8ff6a', -0.8], [128, 64, '#a8e6ff', -1.6], [156, 96, '#ffd35a', -2.2], [64, 108, '#b8ff6a', -1.1], [118, 104, '#ffd35a', -0.4], [100, 34, '#a8e6ff', -2.6]];
@@ -61662,6 +61721,7 @@ function frame(now) {
   if (popT > 0) { popT -= dt; popEl.style.opacity = Math.min(1, popT * 2); } else popEl.style.opacity = 0;
   if (pauseCam.on) pauseCam.frame(); else updateCamera(dt, inp); contactBlob.update(); if (S.camp) campTick(dt); /* the camp scene overrides the ride camera / rider / bike after they are computed */ updateHud(); updateRiderFx(dt); sfx.update(dt);
   if (!noRender()) { updateMotes(dt); if (!pauseCam.on) fadeForeground(dt); cullChunks(); flagFade(); fadeU.cam.value.copy(camera.position); fadeU.rider.value.copy(S.crashed || S.camp ? rp[1] : S.pos); fadeU.rider.value.y += 0.7; renderer.render(MINI_VIEW ? MINI_VIEW.scene : scene, MINI_VIEW ? MINI_VIEW.cam : camera); }
+  if (miniQ.length) miniFlush(false);
 }
 requestAnimationFrame(frame);
 /* ==== camp mini games: CampMini ==================================================================================
@@ -62388,7 +62448,7 @@ const CampMini = (() => {
       ptr(type, x, y, ts) { if (type === 'down') tap(ts); },
       partial() { return clamp(logs.reduce((a, L) => a + (L.lq >= 0 ? L.lq : L.q.length ? L.q.reduce((s, b) => s + b, 0) / KIND[L.k].n : 0), 0) / N + bonus(), 0, 1); },
       peek: () => ({ st, i, k: logs[Math.min(i, N - 1)].k, strike, zc, zw, v, ph, tA, clock: G.clock, mk, q: logs.map((L) => L.lq), taps, best }),
-      end() { chips.length = 0; if (!V3) return; if (MINI_VIEW === V3) MINI_VIEW = null; V3.dispose(); V3 = null; }, /* the camp is drawn again from the next frame */
+      end() { chips.length = 0; if (!V3) return; if (MINI_VIEW === V3) MINI_VIEW = null; miniDispose(V3); V3 = null; }, /* the camp is drawn again from the next frame */
       update(dt) {
         t += dt; flash = Math.max(0, flash - dt * 0.9); shakeT = Math.max(0, shakeT - dt); CAM_DRIFT.tick(dt, !!V3, 0.5);
         for (let k = chips.length - 1; k >= 0; k--) { const p = chips[k]; p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 900 * dt; p.a += p.va * dt; if (p.t > p.l) chips.splice(k, 1); }
@@ -63283,7 +63343,7 @@ const CampMini = (() => {
       card() { const p = last || parts(); return { em: `${p.h} of ${N} stones  ·  steadiness ${Math.round(p.steady * 100)}%${toppled ? '  ·  toppled' : complete ? '  ·  complete' : ''}` }; },
       result() { const p = last || parts(); let img = null; try { img = picture(); } catch (e) { img = null; } return { h: p.h, N, score: p.s, steady: p.steady, toppled, complete, img }; },
       peek() { const p = parts(); return { st, n, N, cx, A, ph, om, hx: hx(0), ideal: st === 'hover' ? ideal() : null, ready: st === 'hover' && appear >= 1, clock: G.clock, idle, th: PH.th, live: PH.xs.length ? PH.live() : 1, margins: margins.slice(), h: p.h, steady: p.steady, score: p.s, toppled, complete, failK, xs: PH.xs.slice(), uz: G.uz, rm, drift: [CAM_DRIFT.x, CAM_DRIFT.y], view: !!V, calls: V ? 7 + V.stones.filter((m) => m.visible).length : 0 }; },
-      end() { if (!V) return; if (MINI_VIEW === V) MINI_VIEW = null; V.dispose(); V = null; shot = null; }, /* the camp is drawn again from the next frame */
+      end() { if (!V) return; if (MINI_VIEW === V) MINI_VIEW = null; miniDispose(V); V = null; shot = null; }, /* the camp is drawn again from the next frame */
       update(dt) {
         t += dt; stT += dt; CAM_DRIFT.tick(dt, !!V, 0.6);
         if (st === 'hover') { ph += om * dt; appear = Math.min(1, appear + dt / 0.35); idle += dt;
@@ -63363,11 +63423,16 @@ const CampMini = (() => {
     const keep = S3.keep, mk = (geo, mat) => { const m = new T.Mesh(geo, mat || campMat); m.frustumCulled = false; S3.scene.add(m); return m; }, mrg = (L) => { const g = mergeParts(L); for (const p of L) p.geo.dispose(); return g; }, at = (x, y, z, rx, ry, rz, s) => new T.Matrix4().compose(new T.Vector3(x, y, z), new T.Quaternion().setFromEuler(new T.Euler(rx || 0, ry || 0, rz || 0)), new T.Vector3(s || 1, s || 1, s || 1));
     const lathe = (pts, n) => new T.LatheGeometry(pts.map(([x, y]) => new T.Vector2(x, y)), n);
     /* the teapot, in the 2D frame's units (x = u, y = -v: the base at y -0.12, the spout's mouth at (1.82, 0.93), the handle pivot at (-1, 0.45)) */
-    const pot = new T.Group(), potM = mk(mrg([{ geo: lathe([[0, -0.12], [0.6, -0.12], [0.92, -0.02], [0.98, 0.36], [0.78, 0.72], [0.42, 0.9], [0, 0.9]], 12), col: '#3d6fb0', m: new T.Matrix4() },
-      { geo: lathe([[0, 0.89], [0.4, 0.89], [0.3, 1.03], [0.1, 1.08], [0.085, 1.18], [0, 1.2]], 12), col: '#284a7a', m: new T.Matrix4() },
-      { geo: lathe([[0, -0.13], [0.62, -0.13], [0.64, -0.06], [0.6, -0.04], [0, -0.04]], 12), col: '#1f3a66', m: new T.Matrix4() },
-      { geo: new T.CylinderGeometry(0.065, 0.16, Math.hypot(1.0, 0.65), 7), col: '#2f5b9a', m: at(1.32, 0.605, 0, 0, 0, -Math.atan2(1.0, 0.65)) },
-      { geo: new T.TorusGeometry(0.34, 0.07, 5, 12, Math.PI * 1.15), col: '#1f3a66', m: at(-0.98, 0.42, 0, 0, 0, Math.PI * 0.42) }]));
+    const pot = new T.Group(), EN = ENAMEL, potProf = [[0.6, -0.12], [0.92, -0.02], [0.98, 0.36], [0.78, 0.72], [0.42, 0.9]], potParts = [{ geo: lathe([[0, -0.12], ...potProf, [0, 0.9]], 12), col: EN.body, m: new T.Matrix4() },
+      { geo: lathe([[0, 0.89], [0.4, 0.89], [0.3, 1.03], [0.1, 1.08], [0.085, 1.18], [0, 1.2]], 12), col: EN.shade, m: new T.Matrix4() },
+      { geo: new T.TorusGeometry(0.4, 0.028, 4, 12), col: EN.rim, m: at(0, 0.895, 0, Math.PI / 2, 0, 0) },
+      { geo: lathe([[0, -0.13], [0.62, -0.13], [0.64, -0.06], [0.6, -0.04], [0, -0.04]], 12), col: EN.rim, m: new T.Matrix4() },
+      { geo: new T.CylinderGeometry(0.065, 0.16, Math.hypot(1.0, 0.65), 7), col: EN.spout, m: at(1.32, 0.605, 0, 0, 0, -Math.atan2(1.0, 0.65)) },
+      { geo: new T.TorusGeometry(0.34, 0.07, 5, 12, Math.PI * 1.15), col: EN.rim, m: at(-0.98, 0.42, 0, 0, 0, Math.PI * 0.42) }];
+    { const fl = new T.CircleGeometry(0.05, 3); for (let i = 0; i < 30; i++) { /* blue enamel flecks: tiny flat triangles laid on the body's profile (a fixed scatter, no random draws) */
+        const j = (i * 5) % 4, f = ((i * 7) % 10 + 0.5) / 10, [r1, y1] = potProf[j], [r2, y2] = potProf[j + 1], phi = ((i * 9) % 12 + 0.5) / 12 * TAU, rr = (r1 + (r2 - r1) * f) * Math.cos(Math.PI / 12) + 0.004, yy = y1 + (y2 - y1) * f, nr = y2 - y1, ny = -(r2 - r1), nl = Math.hypot(nr, ny), s = Math.sin(phi), c = Math.cos(phi);
+        potParts.push({ geo: fl, col: EN.fleck, m: new T.Matrix4().compose(new T.Vector3(s * rr, yy, c * rr), new T.Quaternion().setFromUnitVectors(new T.Vector3(0, 0, 1), new T.Vector3(s * nr / nl, ny / nl, c * nr / nl)), new T.Vector3(1, 1, 1)) }); } }
+    const potM = mk(mrg(potParts));
     S3.scene.remove(potM); pot.add(potM); potM.position.set(1.0, -0.45, 0); S3.scene.add(pot);
     /* the glass mug, in its own width (top radius 0.5, height 1.28): faint walls, a bright rim and foot, and the tea inside */
     const mug = new T.Group(), glassMat = keep(new T.MeshBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.42, depthWrite: false, side: T.DoubleSide, fog: false }));
@@ -63546,13 +63611,13 @@ const CampMini = (() => {
         draw(c, W, H) { const g = L(), mx = mugX(g), K = pot(g), s = K.s, T = K.T;
           /* the blue enamel teapot: a faceted bell body, lid and knob, a straight tapered spout toward the middle, the handle on the far side; it tips about the handle */
           const tp = (L2) => L2.map(([u, v]) => T(u, v));
-          if (!D3) { c.strokeStyle = '#1f3a66'; c.lineWidth = s * 0.16; c.lineCap = 'round'; c.beginPath(); { const a = T(-0.82, -0.7), b2 = T(-1.42, -0.42), d2 = T(-0.86, -0.08); c.moveTo(a[0], a[1]); c.quadraticCurveTo(b2[0], b2[1] - s * 0.1, d2[0], d2[1]); } c.stroke(); /* handle */
-          poly(c, tp([[0.78, -0.18], [0.86, -0.5], [1.72, -0.98], [1.84, -0.86], [1.0, -0.12]]), '#2f5b9a'); poly(c, tp([[0.86, -0.5], [1.72, -0.98], [1.78, -0.94], [0.95, -0.42]]), '#5d8ccc'); /* spout */
-          poly(c, tp([[-0.92, 0.02], [-0.98, -0.36], [-0.78, -0.72], [-0.42, -0.9], [0.42, -0.9], [0.78, -0.72], [0.98, -0.36], [0.92, 0.02], [0.6, 0.12], [-0.6, 0.12]]), '#3d6fb0');
-          poly(c, tp([[-0.92, 0.02], [-0.98, -0.36], [-0.78, -0.72], [-0.42, -0.9], [-0.1, -0.9], [-0.3, -0.4], [-0.45, 0.1], [-0.6, 0.12]]), '#5d8ccc'); poly(c, tp([[0.42, -0.9], [0.78, -0.72], [0.98, -0.36], [0.92, 0.02], [0.6, 0.12], [0.5, -0.3]]), '#284a7a'); /* lit and shaded facets */
-          poly(c, tp([[-0.5, -0.88], [0.5, -0.88], [0.34, -1.06], [-0.34, -1.06]]), '#284a7a'); poly(c, tp([[-0.12, -1.06], [0.12, -1.06], [0.08, -1.2], [-0.08, -1.2]]), '#1f3a66'); /* lid + knob */
-          c.fillStyle = 'rgba(255,255,255,0.75)'; for (const [u, v] of [[-0.5, -0.5], [0.2, -0.65], [0.55, -0.2], [-0.2, -0.15], [0.1, -0.4]]) { const p = T(u, v); c.fillRect(p[0] - 1, p[1] - 1, 2, 2); } /* enamel speckles */
-          poly(c, tp([[-0.92, 0.02], [0.92, 0.02], [0.6, 0.12], [-0.6, 0.12]]), '#1f3a66'); } /* the dark rim at the base (the 3D teapot replaces all this) */
+          if (!D3) { c.strokeStyle = '#2a56a8'; c.lineWidth = s * 0.16; c.lineCap = 'round'; c.beginPath(); { const a = T(-0.82, -0.7), b2 = T(-1.42, -0.42), d2 = T(-0.86, -0.08); c.moveTo(a[0], a[1]); c.quadraticCurveTo(b2[0], b2[1] - s * 0.1, d2[0], d2[1]); } c.stroke(); /* handle */
+          poly(c, tp([[0.78, -0.18], [0.86, -0.5], [1.72, -0.98], [1.84, -0.86], [1.0, -0.12]]), '#e6e3d6'); poly(c, tp([[0.86, -0.5], [1.72, -0.98], [1.78, -0.94], [0.95, -0.42]]), '#ffffff'); /* spout */
+          poly(c, tp([[-0.92, 0.02], [-0.98, -0.36], [-0.78, -0.72], [-0.42, -0.9], [0.42, -0.9], [0.78, -0.72], [0.98, -0.36], [0.92, 0.02], [0.6, 0.12], [-0.6, 0.12]]), '#f2f0e6');
+          poly(c, tp([[-0.92, 0.02], [-0.98, -0.36], [-0.78, -0.72], [-0.42, -0.9], [-0.1, -0.9], [-0.3, -0.4], [-0.45, 0.1], [-0.6, 0.12]]), '#ffffff'); poly(c, tp([[0.42, -0.9], [0.78, -0.72], [0.98, -0.36], [0.92, 0.02], [0.6, 0.12], [0.5, -0.3]]), '#d4d1c2'); /* lit and shaded facets */
+          poly(c, tp([[-0.5, -0.88], [0.5, -0.88], [0.34, -1.06], [-0.34, -1.06]]), '#d4d1c2'); poly(c, tp([[-0.12, -1.06], [0.12, -1.06], [0.08, -1.2], [-0.08, -1.2]]), '#2a56a8'); /* lid + knob */
+          c.fillStyle = 'rgba(47,95,179,0.85)'; for (const [u, v] of [[-0.5, -0.5], [0.2, -0.65], [0.55, -0.2], [-0.2, -0.15], [0.1, -0.4]]) { const p = T(u, v); c.fillRect(p[0] - 1, p[1] - 1, 2, 2); } /* enamel speckles */
+          poly(c, tp([[-0.92, 0.02], [0.92, 0.02], [0.6, 0.12], [-0.6, 0.12]]), '#2a56a8'); } /* the dark rim at the base (the 3D teapot replaces all this) */
           /* the stream: from the spout mouth straight down to the mug (or the table) */
           const mo = K.mo;
           if (P.flow > 0.02) { const yEnd = g.mugY - g.mh * (Math.abs(mx - mo[0]) < g.mw * 0.42 ? clamp(P.fill, 0, 1) * 0.86 : -0.05), wv = rm ? 0 : Math.sin(t * 31) * 1.2;
@@ -63795,7 +63860,7 @@ const CampMini = (() => {
         if (mode !== 'play' || !cur) return; if (cur.ptr) cur.ptr(type, x, y, ts === undefined ? G.clock : G.evT(ts)); else if (cur.act) { if (type === 'down') cur.act(true, ts === undefined ? G.clock : G.evT(ts)); else if (type === 'up' || type === 'cancel') cur.act(false, G.clock); } },
       partial() { return mode === 'play' && cur ? weighted(clamp(cur.partial(), 0, 1)) : weighted(); },
       peek() { return { mode, pi, sel, canSkip: canSkip(), scores: scores.slice(), phase: PH[pi] ? PH[pi].id : null, q: mode === 'play' && cur ? cur.peek() : null, uz: G.uz }; },
-      end() { if (MINI_VIEW === V) MINI_VIEW = null; bg = null; if (D3) { D3.dispose(); D3 = null; } },
+      end() { if (MINI_VIEW === V) MINI_VIEW = null; bg = null; if (D3) { miniDispose(D3); D3 = null; } },
       update(dt) { t += dt; modeT += dt; wordQ = Math.max(0, wordQ - dt * 0.4); CAM_DRIFT.tick(dt, !!D3, 0.5);
         if (mode === 'play' && cur) { cur.update(dt); if (cur.P.done) { const q = clamp(cur.P.q2 !== undefined ? cur.P.q2 : cur.P.q, 0, 1); scores[pi] = q; mode = 'outro'; modeT = 0; word = q >= 0.9 ? 'Delicious' : q >= 0.6 ? 'Tasty' : q >= 0.35 ? 'Edible' : 'Oops'; G.cue(q >= 0.6 ? 'good' : 'soft'); } }
         else if (mode === 'outro') { if (modeT > 1.3) next(); }
@@ -64293,7 +64358,7 @@ const CampMini = (() => {
       },
       partial() { return clamp(total / (N * 8.2), 0, 1); },
       peek: () => ({ st, n, ang, pw, yaw, lx, total, side: G.side, cnt }),
-      end() { if (!V3) return; if (MINI_VIEW === V3) MINI_VIEW = null; V3.dispose(); V3 = null; }, /* the camp is drawn again from the next frame */
+      end() { if (!V3) return; if (MINI_VIEW === V3) MINI_VIEW = null; miniDispose(V3); V3 = null; }, /* the camp is drawn again from the next frame */
       update(dt) {
         t += dt; stT += dt; CAM_DRIFT.tick(dt, !!V3, st === 'power' ? 0.35 : 1); /* calmer while the power is being set */
         if (st === 'aim') { manual -= dt; if (manual <= 0 && G.ay === 0) { sw += dt; ang = 15 + 21 * Math.sin(sw * TAU / angP); } else if (G.ay) { ang = clamp(ang - G.ay * dt * 25, -6, 36); manual = 2.5; } if (G.ax) slide(G.side * G.ax * dt * 2.4); }
