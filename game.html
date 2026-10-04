@@ -617,7 +617,7 @@
   </div>
   <div id="tapGo" role="status">Tap to start</div>
   <button class="ico" id="mute" role="switch" aria-checked="true" aria-label="Sound"><svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg><svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M17 9l5 6M22 9l-5 6"/></svg></button>
-  <div class="foot"><span id="verTag">v0.37.1</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span></div>
+  <div class="foot"><span id="verTag">v0.37.2</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span></div>
   <button id="btnNew" hidden>New mountain</button>
 </div>
 
@@ -58397,39 +58397,42 @@ const sfx = (() => {
   let fBank = null, fIdx = null, fMode = 'ambient', fModeK = 0, fI = FIRE.I0, fBoost = 0, fAct = 1, fActTo = 1, fActT = 0, fLvl = 0, fPanOv = null, fTok = 20, fN = 0;
   const slowN = (n, K) => { const pt = Array.from({ length: K }, () => rnd() * 2 - 1), d = new Float32Array(n); for (let i = 0; i < n; i++) { const u = i / n * K, k0 = Math.floor(u), f = u - k0, s = (1 - Math.cos(Math.PI * f)) / 2; d[i] = pt[k0 % K] * (1 - s) + pt[(k0 + 1) % K] * s; } return d; }; /* a periodic smooth random curve, K points per length */
   const rmsN = (d) => { let s = 1e-12; for (const x of d) s += x * x; return Math.sqrt(s / d.length); };
-  function bakeFire() {
-    if (fBank || !ctx) return; const sr = BR, parts = [], kinds = [];
+  function* fireGen() { /* the fire bake as a generator: same code, same order; it yields between sounds so idle slices can run it (prebakeFx) or bakeFire can run it whole */
+    const sr = BR, parts = [], kinds = [];
     const SOFT = { c: 3600, m: 3000, s: 3000, p: 5500, e: 4500 }; /* crackle grains lose their top end (phone speakers make 3-6 kHz harsh) and fade in over ~1.2 ms */
     const push = (k, d) => { if (SOFT[k]) bq(d, 'lp', SOFT[k], 0.6); parts.push(d); kinds.push(k); };
     const imp = (d, s0, tau, a) => { for (let i = s0; i < d.length; i++) { const e = Math.exp(-(i - s0) / tau); if (e < 1e-3) break; d[i] += a * e * (rnd() * 2 - 1); } }; /* a micro-fracture: a few samples of decaying noise */
     for (let k = 0; k < 30; k++) { const n = ((0.004 + rnd() * 0.016) * sr) | 0, d = new Float32Array(n), np = 1 + Math.floor(rnd() * 3); /* small crackles: 1-3 fractures, 4-20 ms, bright */
       for (let j = 0; j < np; j++) imp(d, j ? (rnd() * n * 0.7) | 0 : 0, (0.0002 + rnd() * 0.0012) * sr, j ? 0.3 + 0.6 * rnd() : 1);
-      bq(d, 'bp', 1200 + rnd() * 3000, 0.7 + rnd() * 0.8); if (rnd() < 0.3) ring(d, 0, 2200 + rnd() * 2500, 0.15, 900 + rnd() * 900, rnd() * 6); push('c', d); }
+      bq(d, 'bp', 1200 + rnd() * 3000, 0.7 + rnd() * 0.8); if (rnd() < 0.3) ring(d, 0, 2200 + rnd() * 2500, 0.15, 900 + rnd() * 900, rnd() * 6); push('c', d); yield; }
     for (let k = 0; k < 14; k++) { const n = ((0.015 + rnd() * 0.045) * sr) | 0, d = new Float32Array(n), np = 3 + Math.floor(rnd() * 7); /* mid cracks: clusters of 3-9 fractures with a little woody body */
       for (let j = 0; j < np; j++) imp(d, j ? (Math.pow(rnd(), 1.5) * n * 0.85) | 0 : 0, (0.0003 + rnd() * 0.0015) * sr, j ? 0.2 + 0.7 * rnd() : 1);
-      bq(d, 'bp', 700 + rnd() * 1900, 0.8 + rnd() * 0.6); const b = bq(noiseArr(Math.min(n, (0.012 * sr) | 0)), 'lp', 350 + rnd() * 250, 0.7); for (let i = 0; i < b.length; i++) d[i] += 0.5 * b[i] * Math.exp(-i / (0.003 * sr)); push('m', d); }
+      bq(d, 'bp', 700 + rnd() * 1900, 0.8 + rnd() * 0.6); const b = bq(noiseArr(Math.min(n, (0.012 * sr) | 0)), 'lp', 350 + rnd() * 250, 0.7); for (let i = 0; i < b.length; i++) d[i] += 0.5 * b[i] * Math.exp(-i / (0.003 * sr)); push('m', d); yield; }
     for (let k = 0; k < 6; k++) { const n = ((0.08 + rnd() * 0.07) * sr) | 0, d = new Float32Array(n), f = 900 + rnd() * 800; /* snaps: a sharp fracture, a short resonant wood ring, a low knock, a few trailing crackles */
       for (let i = 0; i < 0.0015 * sr; i++) d[i] += (rnd() * 2 - 1) * Math.exp(-i / (0.0005 * sr)) * 0.62 * Math.min(1, i / 5); /* the fracture's edge rounded */
       ring(d, 0, f, 0.45, 70 + rnd() * 40, rnd() * 6); ring(d, 0, f * (2.6 + rnd() * 0.4), 0.2, 160, rnd() * 6); ring(d, 0, 95 + rnd() * 40, 0.35, 35);
-      for (let j = 0; j < 3 + rnd() * 4; j++) imp(d, ((0.01 + rnd() * 0.06) * sr) | 0, (0.0003 + rnd() * 0.001) * sr, 0.15 + 0.35 * rnd()); bq(d, 'lp', 4300, 0.7); push('s', d); } /* soft snaps (fracture x0.57, lp 4.3 kHz) */
+      for (let j = 0; j < 3 + rnd() * 4; j++) imp(d, ((0.01 + rnd() * 0.06) * sr) | 0, (0.0003 + rnd() * 0.001) * sr, 0.15 + 0.35 * rnd()); bq(d, 'lp', 4300, 0.7); push('s', d); yield; } /* soft snaps (fracture x0.57, lp 4.3 kHz) */
     for (let k = 0; k < 4; k++) { const n = ((0.14 + rnd() * 0.2) * sr) | 0, d = bq(noiseArr(n), 'hp', 2400 + rnd() * 1800, 0.7), tau = 0.05 + rnd() * 0.06, fm = 25 + rnd() * 30; /* sap spits: a short fluttering hiss */
-      for (let i = 0; i < n; i++) { const t = i / sr; d[i] *= Math.min(1, t / 0.004) * Math.exp(-t / tau) * (0.55 + 0.45 * Math.sin(2 * Math.PI * fm * t + 3 * Math.sin(2 * Math.PI * 7 * t))); } bq(d, 'lp', 9000, 0.7); push('p', d); }
-    for (let k = 0; k < 10; k++) { const n = ((0.004 + rnd() * 0.006) * sr) | 0, d = new Float32Array(n); ring(d, 0, 3200 + rnd() * 3300, 1, 700 + rnd() * 600, rnd() * 6); for (let i = 0; i < 0.0008 * sr; i++) d[i] += 0.3 * (rnd() * 2 - 1) * Math.min(1, i / 4); push('e', d); } /* ember ticks: glassy, 3.2-6.5 kHz */
+      for (let i = 0; i < n; i++) { const t = i / sr; d[i] *= Math.min(1, t / 0.004) * Math.exp(-t / tau) * (0.55 + 0.45 * Math.sin(2 * Math.PI * fm * t + 3 * Math.sin(2 * Math.PI * 7 * t))); } bq(d, 'lp', 9000, 0.7); push('p', d); yield; }
+    for (let k = 0; k < 10; k++) { const n = ((0.004 + rnd() * 0.006) * sr) | 0, d = new Float32Array(n); ring(d, 0, 3200 + rnd() * 3300, 1, 700 + rnd() * 600, rnd() * 6); for (let i = 0; i < 0.0008 * sr; i++) d[i] += 0.3 * (rnd() * 2 - 1) * Math.min(1, i / 4); push('e', d); yield; } /* ember ticks: glassy, 3.2-6.5 kHz */
     for (let k = 0; k < 3; k++) { const n = ((0.8 + rnd() * 0.5) * sr) | 0, d = new Float32Array(n); let ph = 0; /* log settles: a soft thud, then charcoal crumbling down */
       for (let i = 0; i < 0.22 * sr; i++) { const t = i / sr; ph += 2 * Math.PI * (48 + 30 * Math.exp(-t / 0.05)) / sr; d[i] += 0.9 * Math.sin(ph) * Math.exp(-t / 0.07) * Math.min(1, t / 0.004); }
       { const b = bq(noiseArr((0.12 * sr) | 0), 'lp', 280, 0.7); for (let i = 0; i < b.length; i++) d[i] += 1.2 * b[i] * Math.exp(-i / (0.03 * sr)); }
       const nc = 10 + Math.floor(rnd() * 14); for (let j = 0; j < nc; j++) { const u = Math.pow(rnd(), 1.6), s0 = ((0.04 + u * (n / sr - 0.12)) * sr) | 0, L = ((0.004 + rnd() * 0.02) * sr) | 0, a = (1 - u) * (0.2 + 0.5 * rnd()), g = bq(noiseArr(L), 'bp', 700 + rnd() * 2200, 1 + rnd()); for (let i = 0; i < L && s0 + i < n; i++) d[s0 + i] += a * g[i] * Math.exp(-i / (L * 0.3)); }
-      bq(d, 'lp', 4500, 0.7); push('l', d); }
+      bq(d, 'lp', 4500, 0.7); push('l', d); yield; }
     for (let k = 0; k < 2; k++) { const n = (1.6 * sr) | 0, d = bq(noiseArr(n), 'bp', (i) => { const u = i / n; return 220 + 480 * Math.sin(Math.PI * Math.min(1, u * 1.6)) * (1 - 0.4 * u); }, 0.9); bq(d, 'lp', 1400, 0.7); /* stoke flares: the flames lift and settle */
-      for (let i = 0; i < n; i++) { const t = i / sr, e = t < 0.35 ? Math.pow(Math.sin(Math.PI / 2 * t / 0.35), 2) : Math.exp(-(t - 0.35) / 0.4); d[i] *= e * (0.75 + 0.25 * Math.sin(2 * Math.PI * (8 + 2 * Math.sin(t * 3)) * t)); } push('f', d); }
-    const gap = 64; let tot = 0; for (const d of parts) tot += d.length + gap; fBank = ctx.createBuffer(1, tot, sr); const o = fBank.getChannelData(0); fIdx = { c: [], m: [], s: [], p: [], e: [], l: [], f: [] }; let at = 0;
+      for (let i = 0; i < n; i++) { const t = i / sr, e = t < 0.35 ? Math.pow(Math.sin(Math.PI / 2 * t / 0.35), 2) : Math.exp(-(t - 0.35) / 0.4); d[i] *= e * (0.75 + 0.25 * Math.sin(2 * Math.PI * (8 + 2 * Math.sin(t * 3)) * t)); } push('f', d); yield; }
+    yield; const gap = 64; let tot = 0; for (const d of parts) tot += d.length + gap; const o = new Float32Array(tot), idx = { c: [], m: [], s: [], p: [], e: [], l: [], f: [] }; let at = 0;
     parts.forEach((d, j) => { let pk = 1e-9; for (const x of d) pk = Math.max(pk, Math.abs(x)); const n = d.length, fi = SOFT[kinds[j]] ? Math.min((0.0012 * sr) | 0, n >> 2) : 5, fo = Math.min(n >> 2, (0.0015 * sr) | 0);
-      for (let i = 0; i < n; i++) o[at + i] = d[i] / pk * (i < fi ? i / fi : 1) * (i >= n - fo ? (n - 1 - i) / fo : 1); fIdx[kinds[j]].push([at / sr, n / sr]); at += n + gap; });
-    { const n = (9.3 * sr) | 0; let br = 0; const rum = new Float32Array(n); for (let i = 0; i < n; i++) { br = 0.985 * br + 0.015 * (rnd() * 2 - 1); rum[i] = br; } bq(rum, 'lp', 190, 0.6); bq(rum, 'hp', 45, 0.6); /* the body */
-      const mid = bq(bq(noiseArr(n), 'bp', 260, 0.8), 'lp', 520, 0.6), fl = bq(bq(noiseArr(n), 'bp', 520, 0.9), 'lp', 1100, 0.6), e1 = slowN(n, 4), e2 = slowN(n, 13), fq = slowN(n, 84), d = new Float32Array(n);
-      const k1 = 1 / rmsN(rum), k2 = 0.42 / rmsN(mid), k3 = 0.2 / rmsN(fl);
+      for (let i = 0; i < n; i++) o[at + i] = d[i] / pk * (i < fi ? i / fi : 1) * (i >= n - fo ? (n - 1 - i) / fo : 1); idx[kinds[j]].push([at / sr, n / sr]); at += n + gap; });
+    yield; { const n = (9.3 * sr) | 0; let br = 0; const rum = new Float32Array(n); for (let i = 0; i < n; i++) { br = 0.985 * br + 0.015 * (rnd() * 2 - 1); rum[i] = br; } yield; bq(rum, 'lp', 190, 0.6); bq(rum, 'hp', 45, 0.6); yield; /* the body */
+      const bq1 = bq(noiseArr(n), 'bp', 260, 0.8); yield; const mid = bq(bq1, 'lp', 520, 0.6), bq2 = bq(noiseArr(n), 'bp', 520, 0.9); yield; const fl = bq(bq2, 'lp', 1100, 0.6); yield; const e1 = slowN(n, 4); yield; const e2 = slowN(n, 13); yield; const fq = slowN(n, 84); yield; const d = new Float32Array(n);
+      const k1 = 1 / rmsN(rum), k2 = 0.42 / rmsN(mid), k3 = 0.2 / rmsN(fl); yield;
       for (let i = 0; i < n; i++) { const breath = 0.78 + 0.22 * e1[i] + 0.1 * e2[i], flut = Math.max(0, 0.5 + 0.6 * fq[i]); d[i] = breath * (rum[i] * k1 + mid[i] * k2 * (0.8 + 0.2 * e2[i])) + flut * flut * fl[i] * k3; }
-      bodySrc = ctx.createBufferSource(); bodySrc.buffer = toBuf(d, 0.9, 0.4); bodySrc.loop = true; bodySrc.connect(bodyG); bodySrc.start(0, rnd() * 8); persist++; } }
+      yield; return { bank: o, idx, body: toRaw(d, 0.9, 0.4) }; } }
+  function bakeFire() { /* first fire in earshot: the samples are normally ready already (prebakeFx); only the buffers and the body source are built here */
+    if (fBank || !ctx) return; const R = getRaw('F'); fBank = ctx.createBuffer(1, R.bank.length, BR); fBank.getChannelData(0).set(R.bank); fIdx = R.idx;
+    bodySrc = ctx.createBufferSource(); bodySrc.buffer = rawBuf(R.body); bodySrc.loop = true; bodySrc.connect(bodyG); bodySrc.start(0, rnd() * 8); persist++; }
   function fGrain(k, at, a, rate) { /* one grain: source (a slice of the bank) + gain (+ a panner for the close camp spread) */
     const L = fIdx && fIdx[k]; if (!L || !L.length || muted) return; if (fTok < 1 || liveN > 44) return; fTok--; fN++;
     const [o, d] = L[Math.floor(rnd() * L.length)], s = ctx.createBufferSource(), g = ctx.createGain(), r = rate || (k === 'c' || k === 'm' || k === 'e' ? 0.86 + rnd() * 0.32 : 0.93 + rnd() * 0.14); s.buffer = fBank; s.playbackRate.value = r; g.gain.value = a * FIRE.grain; s.connect(g);
@@ -58493,22 +58496,23 @@ const sfx = (() => {
   const CUE = { level: 0.3, verb: 0.18, f0: { tine: 1046.5, felt: 523.25, spark: 2093, plink: 1046.5, chime: 440, chimeH: 1318.51 }, /* cue trim, reverb send, the baked notes' pitches (repitched by playbackRate) */
     starTop: 12 }; /* the stargazing ladder: 13 rising pentatonic steps (2.4 octaves, from G3..F#4 by key); past the top it folds back an octave and keeps rising */
   let starN = 0; /* the ladder position; the game caps its link argument at 9, so the ladder counts connects itself (star(0) = a new sky) */
-  function bakeCues() { if (cueB || !ctx) return; const sr = BR, mk = (sec, fn) => { const n = (sec * sr) | 0, d = new Float32Array(n); fn(d, n); return toBuf(d, 0.9); }, B = {};
+  function* cuesGen() { const sr = BR, mk = (sec, fn) => { const n = (sec * sr) | 0, d = new Float32Array(n); fn(d, n); return toRaw(d, 0.9); }, B = {};
     const add = (d, f, a, tau, att = 0.003) => { for (let i = 0; i < d.length; i++) { const t = i / sr, e = Math.exp(-t / tau); if (e < 1e-4) break; d[i] += a * e * Math.min(1, t / att) * Math.sin(2 * Math.PI * f * t); } };
-    B.tine = mk(1.4, (d) => { const f = CUE.f0.tine; add(d, f, 1, 0.5, 0.005); add(d, 2 * f, 0.12, 0.25, 0.005); add(d, 6.27 * f, 0.035, 0.04, 0.004); const z = bq(noiseArr(400), 'bp', 320, 4); for (let i = 0; i < 400; i++) d[i] += 0.22 * z[i] * Math.exp(-i / 60) * Math.min(1, i / 48); }); /* 5 ms attack, the 6.27x tine partial halved, a soft wood knock: rounder */
-    B.felt = mk(1.6, (d) => { const f = CUE.f0.felt; [1, 0.32, 0.1].forEach((g, k) => add(d, f * (k + 1), g, 1.0 * (1 - 0.12 * k), 0.008)); [0.14, 0.08, 0.05, 0.03].forEach((g, k) => add(d, f * (k + 4), g, 0.2, 0.006)); const z = bq(noiseArr(800), 'lp', 900, 0.7); for (let i = 0; i < 800; i++) d[i] += 0.12 * z[i] * Math.exp(-i / 200); });
-    B.tick = mk(0.07, (d) => { ring(d, 0, 1850, 0.8, 220, 0.3); ring(d, 0, 650, 0.5, 90, 1.1); const z = bq(bq(noiseArr(60), 'hp', 1500, 0.7), 'lp', 5000, 0.7); for (let i = 0; i < 60; i++) d[i] += 0.3 * z[i] * (1 - i / 60) * Math.min(1, i / 16); bq(d, 'lp', 6500, 0.6); }); /* the tick's noise edge rounded (0.5 ms rise, low-passed): a wood tick, not a click */
-    B.page = mk(0.55, (d, n) => { const z = bq(bq(noiseArr(n), 'bp', (i) => 2200 + 1400 * Math.sin(Math.PI * i / n), 0.7), 'lp', 4800, 0.7); for (let i = 0; i < n; i++) { const t = i / sr, e = Math.exp(-Math.pow((t - 0.16) / 0.08, 2)) + 0.7 * Math.exp(-Math.pow((t - 0.34) / 0.03, 2)); d[i] = z[i] * e; }
+    yield; B.tine = mk(1.4, (d) => { const f = CUE.f0.tine; add(d, f, 1, 0.5, 0.005); add(d, 2 * f, 0.12, 0.25, 0.005); add(d, 6.27 * f, 0.035, 0.04, 0.004); const z = bq(noiseArr(400), 'bp', 320, 4); for (let i = 0; i < 400; i++) d[i] += 0.22 * z[i] * Math.exp(-i / 60) * Math.min(1, i / 48); }); /* 5 ms attack, the 6.27x tine partial halved, a soft wood knock: rounder */
+    yield; { const n = (1.6 * sr) | 0, d = new Float32Array(n), f = CUE.f0.felt; add(d, f, 1, 1.0, 0.008); yield; [0.32, 0.1].forEach((g, k) => add(d, f * (k + 2), g, 1.0 * (1 - 0.12 * (k + 1)), 0.008)); [0.14, 0.08, 0.05, 0.03].forEach((g, k) => add(d, f * (k + 4), g, 0.2, 0.006)); const z = bq(noiseArr(800), 'lp', 900, 0.7); for (let i = 0; i < 800; i++) d[i] += 0.12 * z[i] * Math.exp(-i / 200); B.felt = toRaw(d, 0.9); }
+    yield; B.tick = mk(0.07, (d) => { ring(d, 0, 1850, 0.8, 220, 0.3); ring(d, 0, 650, 0.5, 90, 1.1); const z = bq(bq(noiseArr(60), 'hp', 1500, 0.7), 'lp', 5000, 0.7); for (let i = 0; i < 60; i++) d[i] += 0.3 * z[i] * (1 - i / 60) * Math.min(1, i / 16); bq(d, 'lp', 6500, 0.6); }); /* the tick's noise edge rounded (0.5 ms rise, low-passed): a wood tick, not a click */
+    yield; B.page = mk(0.55, (d, n) => { const z = bq(bq(noiseArr(n), 'bp', (i) => 2200 + 1400 * Math.sin(Math.PI * i / n), 0.7), 'lp', 4800, 0.7); for (let i = 0; i < n; i++) { const t = i / sr, e = Math.exp(-Math.pow((t - 0.16) / 0.08, 2)) + 0.7 * Math.exp(-Math.pow((t - 0.34) / 0.03, 2)); d[i] = z[i] * e; }
       for (let k = 0; k < 10; k++) { const s0 = ((0.05 + rnd() * 0.35) * sr) | 0, L = 40 + (rnd() * 80 | 0), g = bq(bq(noiseArr(L), 'hp', 2400, 0.8), 'lp', 5500, 0.7); for (let i = 0; i < L && s0 + i < n; i++) d[s0 + i] += 0.16 * g[i] * Math.exp(-i / 25) * Math.min(1, i / 12); } }); /* lift, flip and land, with a little paper crinkle: dark (lp 4.8 kHz), a soft crinkle with rounded onsets */
-    B.spark = mk(1.2, (d) => { const f = CUE.f0.spark; add(d, f, 1, 0.6, 0.006); add(d, 2.76 * f, 0.1, 0.22, 0.006); add(d, 5.4 * f, 0.02, 0.06, 0.004); }); /* the glass ping's upper partials halved, 6 ms attack */
-    { const bell = (f, sec, tau) => mk(sec, (d) => { add(d, f, 1, tau, 0.008); add(d, 2 * f, 0.1, tau * 0.45, 0.008); add(d, 3 * f, 0.03, tau * 0.2, 0.007); add(d, 4.2 * f, 0.012, tau * 0.08, 0.006); const z = bq(noiseArr(500), 'bp', 420, 3); for (let i = 0; i < 500; i++) d[i] += 0.05 * z[i] * Math.exp(-i / 90) * Math.min(1, i / 60); bq(d, 'lp', 4800, 0.6); });
-      B.chime = bell(CUE.f0.chime, 2.6, 1.15); B.chimeH = bell(CUE.f0.chimeH, 2.2, 0.85); } /* the star chimes, soft glass bells (harmonic, 8 ms attack, a long low-passed ring), one baked low (A4) and one high (E6) so no note is repitched far */
-    B.poke = mk(0.45, (d) => { ring(d, 0, 290 + rnd() * 30, 0.7, 34, 0.4); ring(d, 0, 760 + rnd() * 60, 0.35, 70, 1.3); ring(d, 0, 1580, 0.1, 150, 2.1); const z = bq(noiseArr(1200), 'lp', 900, 0.7); for (let i = 0; i < 1200; i++) d[i] += 0.5 * z[i] * Math.min(1, i / 180) * Math.exp(-i / 500); bq(d, 'lp', 3200, 0.6); }); /* the poke, a dull stick-on-log knock (4 ms rise) */
-    B.plink = mk(0.45, (d) => { const f = CUE.f0.plink; let ph = 0; for (let i = 0; i < d.length; i++) { const t = i / sr, e = Math.exp(-t / 0.07) * Math.min(1, t / 0.002); if (e < 1e-4) break; ph += 2 * Math.PI * f * (1 + 0.45 * (1 - Math.exp(-t / 0.018))) / sr; d[i] = e * (Math.sin(ph) + 0.12 * Math.sin(2 * ph)); }
+    yield; B.spark = mk(1.2, (d) => { const f = CUE.f0.spark; add(d, f, 1, 0.6, 0.006); add(d, 2.76 * f, 0.1, 0.22, 0.006); add(d, 5.4 * f, 0.02, 0.06, 0.004); }); /* the glass ping's upper partials halved, 6 ms attack */
+    yield; { const bell = (f, sec, tau) => mk(sec, (d) => { add(d, f, 1, tau, 0.008); add(d, 2 * f, 0.1, tau * 0.45, 0.008); add(d, 3 * f, 0.03, tau * 0.2, 0.007); add(d, 4.2 * f, 0.012, tau * 0.08, 0.006); const z = bq(noiseArr(500), 'bp', 420, 3); for (let i = 0; i < 500; i++) d[i] += 0.05 * z[i] * Math.exp(-i / 90) * Math.min(1, i / 60); bq(d, 'lp', 4800, 0.6); });
+      B.chime = bell(CUE.f0.chime, 2.6, 1.15); yield; B.chimeH = bell(CUE.f0.chimeH, 2.2, 0.85); } /* the star chimes, soft glass bells (harmonic, 8 ms attack, a long low-passed ring), one baked low (A4) and one high (E6) so no note is repitched far */
+    yield; B.poke = mk(0.45, (d) => { ring(d, 0, 290 + rnd() * 30, 0.7, 34, 0.4); ring(d, 0, 760 + rnd() * 60, 0.35, 70, 1.3); ring(d, 0, 1580, 0.1, 150, 2.1); const z = bq(noiseArr(1200), 'lp', 900, 0.7); for (let i = 0; i < 1200; i++) d[i] += 0.5 * z[i] * Math.min(1, i / 180) * Math.exp(-i / 500); bq(d, 'lp', 3200, 0.6); }); /* the poke, a dull stick-on-log knock (4 ms rise) */
+    yield; B.plink = mk(0.45, (d) => { const f = CUE.f0.plink; let ph = 0; for (let i = 0; i < d.length; i++) { const t = i / sr, e = Math.exp(-t / 0.07) * Math.min(1, t / 0.002); if (e < 1e-4) break; ph += 2 * Math.PI * f * (1 + 0.45 * (1 - Math.exp(-t / 0.018))) / sr; d[i] = e * (Math.sin(ph) + 0.12 * Math.sin(2 * ph)); }
       add(d, f * 2.2, 0.06, 0.03, 0.002); }); /* stone skip: a water droplet 'plink' (a short sine that bends up ~6 semitones as the cavity closes) */
-    B.sink = mk(0.7, (d, n) => { let ph = 0; for (let i = 0; i < n; i++) { const t = i / sr, e = Math.exp(-t / 0.16) * Math.min(1, t / 0.006); ph += 2 * Math.PI * (330 - 120 * Math.min(1, t / 0.25)) / sr; d[i] = e * Math.sin(ph); } const z = bq(bq(noiseArr(n), 'lp', 1100, 0.7), 'hp', 180, 0.7); for (let i = 0; i < n; i++) { const t = i / sr; d[i] += 0.35 * z[i] * Math.min(1, t / 0.01) * Math.exp(-t / 0.09); } }); /* a soft low 'bloop' as the stone goes under */
-    B.sizzle = mk(0.8, (d, n) => { const h = bq(noiseArr(n), 'hp', 2400, 0.7); for (let i = 0; i < n; i++) { const t = i / sr; d[i] = 0.35 * h[i] * Math.min(1, t / 0.05) * Math.exp(-t / 0.3); if (rnd() < 300 / sr) for (let j = 0; j < 30 && i + j < n; j++) d[i + j] += 0.7 * Math.pow(rnd(), 3) * (rnd() * 2 - 1) * Math.exp(-j / 5) * Math.exp(-t / 0.4) * Math.min(1, j / 3); } bq(d, 'lp', 6000, 0.7); }); /* warm (hp 2.4 kHz, lp 6 kHz), soft spits */
-    cueB = B; }
+    yield; B.sink = mk(0.7, (d, n) => { let ph = 0; for (let i = 0; i < n; i++) { const t = i / sr, e = Math.exp(-t / 0.16) * Math.min(1, t / 0.006); ph += 2 * Math.PI * (330 - 120 * Math.min(1, t / 0.25)) / sr; d[i] = e * Math.sin(ph); } const z = bq(bq(noiseArr(n), 'lp', 1100, 0.7), 'hp', 180, 0.7); for (let i = 0; i < n; i++) { const t = i / sr; d[i] += 0.35 * z[i] * Math.min(1, t / 0.01) * Math.exp(-t / 0.09); } }); /* a soft low 'bloop' as the stone goes under */
+    yield; B.sizzle = mk(0.8, (d, n) => { const h = bq(noiseArr(n), 'hp', 2400, 0.7); for (let i = 0; i < n; i++) { const t = i / sr; d[i] = 0.35 * h[i] * Math.min(1, t / 0.05) * Math.exp(-t / 0.3); if (rnd() < 300 / sr) for (let j = 0; j < 30 && i + j < n; j++) d[i + j] += 0.7 * Math.pow(rnd(), 3) * (rnd() * 2 - 1) * Math.exp(-j / 5) * Math.exp(-t / 0.4) * Math.min(1, j / 3); } bq(d, 'lp', 6000, 0.7); }); /* warm (hp 2.4 kHz, lp 6 kHz), soft spits */
+    return B; }
+  function bakeCues() { if (cueB || !ctx) return; const R = getRaw('C'), B = {}; for (const k in R) B[k] = rawBuf(R[k]); cueB = B; }
   /* the camp-kitchen cues (Firewood Chop, Dinner, Zen Garden, Cairn Stacking), baked on their first use so the older games' first bake is unchanged: an axe chop (a low thump, a wood
      knock, a short bright tick), a log splitting (a falling crackle), a tea-pour grain (band-passed water noise, re-triggered while pouring and pitched up as the
      cup fills), a salt / thyme shake (four quick rattles), a knife slice (a falling hiss), a munch (three soft crunches), a rake grain (a soft brush of sand), the rake set down (a thud and a puff) and a stone
@@ -58589,11 +58593,25 @@ const sfx = (() => {
       if (type === 'bp') { b0 = al / a0; b1 = 0; b2 = -al / a0; } else if (type === 'lp') { b0 = b2 = (1 - c) / 2 / a0; b1 = (1 - c) / a0; } else { b0 = b2 = (1 + c) / 2 / a0; b1 = -(1 + c) / a0; } a1 = -2 * c / a0; a2 = (1 - al) / a0; };
     for (let i = i0; i < i1; i++) { if ((i - i0) % 64 === 0) set(typeof f === 'function' ? f(i) : f); const x = d[i], y = b0 * x + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2; x2 = x1; x1 = x; y2 = y1; y1 = y; d[i] = y; } return d; }
   const noiseArr = (n) => { const d = new Float32Array(n); for (let i = 0; i < n; i++) d[i] = rnd() * 2 - 1; return d; };
-  function toBuf(d, peak, loopXf) { /* normalize to a peak (the relative level of the sound), optionally cross-fade the tail into the head for a seamless loop */
+  function toRaw(d, peak, loopXf) { /* normalize to a peak (the relative level of the sound), optionally cross-fade the tail into the head for a seamless loop */
     let n = d.length; if (loopXf) { const xf = (loopXf * BR) | 0; n -= xf; for (let i = 0; i < xf; i++) { const k = i / xf; d[i] = d[i] * Math.sqrt(k) + d[n + i] * Math.sqrt(1 - k); } }
-    let pk = 1e-9; for (let i = 0; i < n; i++) pk = Math.max(pk, Math.abs(d[i])); const b = ctx.createBuffer(1, n, BR), o = b.getChannelData(0); for (let i = 0; i < n; i++) o[i] = d[i] * peak / pk;
-    if (!loopXf) { const fo = Math.min(n, (0.01 * BR) | 0), fi = Math.min(n, (0.0015 * BR) | 0); for (let i = 0; i < fo; i++) o[n - 1 - i] *= i / fo; for (let i = 0; i < fi; i++) o[i] *= 0.5 - 0.5 * Math.cos(Math.PI * i / fi); } return b; } /* 1.5 ms fade-in, no onset clicks */
+    let pk = 1e-9; for (let i = 0; i < n; i++) pk = Math.max(pk, Math.abs(d[i])); const o = new Float32Array(n); for (let i = 0; i < n; i++) o[i] = d[i] * peak / pk;
+    if (!loopXf) { const fo = Math.min(n, (0.01 * BR) | 0), fi = Math.min(n, (0.0015 * BR) | 0); for (let i = 0; i < fo; i++) o[n - 1 - i] *= i / fo; for (let i = 0; i < fi; i++) o[i] *= 0.5 - 0.5 * Math.cos(Math.PI * i / fi); } return o; } /* 1.5 ms fade-in, no onset clicks; plain samples, so the camp bakes can run before the audio unlock */
+  const rawBuf = (o) => { const b = ctx.createBuffer(1, o.length, BR); b.getChannelData(0).set(o); return b; };
+  function toBuf(d, peak, loopXf) { return rawBuf(toRaw(d, peak, loopXf)); }
   const ring = (d, s0, f, a, dec, ph = 0) => { for (let i = s0; i < d.length; i++) { const t = (i - s0) / BR, e = Math.exp(-t * dec); if (e < 1e-4) break; d[i] += a * e * Math.sin(2 * Math.PI * f * t + ph); } };
+  /* v0.37.2: the campfire sound and the camp cues are synthesised in idle slices while the title is up (prebakeFx), as plain sample arrays, so neither the first fire in range
+     during a ride (~70 ms desktop / ~260 ms at phone speed) nor camp entry (~140 ms) has to bake anything: bakeFire / bakeCues only copy the samples into buffers.
+     Same generators, same code, same order, so the samples are the same; bakeFire / bakeCues still run a generator to the end themselves if they are called before it is done. */
+  const PRE = { F: null, C: null, FR: null, CR: null, ms: 0, max: 0, steps: 0 };
+  function getRaw(w) { const g = w === 'F' ? fireGen : cuesGen; if (!PRE[w + 'R']) { const it = PRE[w] || g(); let r; while (!(r = it.next()).done); PRE[w + 'R'] = r.value; } PRE[w] = null; const R = PRE[w + 'R']; PRE[w + 'R'] = null; return R; }
+  function prebakeFx() { /* title screen, idle time: one generator step (<= ~8 ms desktop) per idle slice, more only if it was under 1.5 ms, then yield to the page */
+    const later = (f) => { if (window.requestIdleCallback) requestIdleCallback(f, { timeout: 800 }); else setTimeout(f, 50); };
+    const slice = () => { const t0 = performance.now(); let w = null;
+      try { for (let first = true; first || performance.now() - t0 < 1.5; first = false) { w = !PRE.FR && !fBank ? 'F' : !PRE.CR && !cueB ? 'C' : null; if (!w) return; const it = PRE[w] || (PRE[w] = w === 'F' ? fireGen() : cuesGen()), t1 = performance.now(), r = it.next(); PRE.steps++; PRE.max = Math.max(PRE.max, performance.now() - t1); if (r.done) { PRE[w + 'R'] = r.value; PRE[w] = null; } } }
+      catch (e) { lastErr = String(e); if (w) { PRE[w] = null; PRE[w + 'R'] = null; } return; }
+      PRE.ms += performance.now() - t0; later(slice); };
+    setTimeout(() => later(slice), 1500); }
   function bakeCamp(kind) {
     if (campBufs[kind]) return campBufs[kind]; const B = {};
     if (kind === 0) { /* cook: fat sizzle (dense tiny spits + hiss, slow swell) loop, and a spoon / pan clink */
@@ -58741,7 +58759,7 @@ const sfx = (() => {
   return {
     init, update, setMap, mix: MIX,
     unlock: () => { init(); if (!ctx) return; resumeCtx(schedule); schedule(); }, /* the first tap / key / pad press: build or resume the context inside the gesture and start the title music on the spot (the 250 ms scheduler timer would add up to a quarter second) */
-    running: () => !!ctx && ctx.state === 'running', prebake: prebakeTitle,
+    running: () => !!ctx && ctx.state === 'running', prebake: () => { prebakeTitle(); prebakeFx(); }, fxProbe: (w, tm) => { const it = w === 'F' ? fireGen() : cuesGen(); let r, t = performance.now(); while (!(r = it.next()).done) { if (tm) { const t1 = performance.now(); tm.push(+(t1 - t).toFixed(1)); t = t1; } } return r.value; }, fxState: () => ({ F: !!PRE.FR, C: !!PRE.CR, max: +PRE.max.toFixed(2), steps: PRE.steps, ms: +PRE.ms.toFixed(1) }),
     title: (on) => { on = !!on; if (on === titleOn) return; titleOn = on; if (ctx && titleBus && !useClassic) { titleFade(on); if (on) queueWarm(true); } if (CLS && useClassic) CLS.title(on); }, /* title theme on / off (the screen switch calls it): the active soundtrack's theme */
     /* hooks: the fire engine, the dusk bed, the camp scene, mini-game cues, the alt soundtrack */
     fire,
