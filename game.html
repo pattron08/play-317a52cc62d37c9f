@@ -90,6 +90,7 @@
   body.zonesOn #hLimbs { display: none; } /* on touch the LEGS / ARMS buttons show the state */
   #pop { top: 22%; left: 0; right: 0; text-align: center; font: italic 900 clamp(22px, calc(4.2 * var(--vw)), 36px) var(--f-disp); letter-spacing: 0.03em; text-transform: uppercase;
     text-shadow: 0 2px 0 rgba(0,0,0,0.35); }
+  body:has(#banner.show) #pop { top: calc(var(--st) + 44px + 76px); } /* v0.37.1: the arrival banner (mountain name + code) and the 'New mountain' popup used to overlap; the popup now sits just under the banner while it shows */
   #pop .sub { display: block; font: 600 0.42em var(--f-ui); letter-spacing: .06em; text-transform: none; opacity: 0.9; margin-top: 4px; }
   #meter { display: none; }
   #prog { position: fixed; z-index: 2; left: 0; top: 0; height: 3px; background: var(--acc1); opacity: 0.85; pointer-events: none; display: block; }
@@ -616,7 +617,7 @@
   </div>
   <div id="tapGo" role="status">Tap to start</div>
   <button class="ico" id="mute" role="switch" aria-checked="true" aria-label="Sound"><svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg><svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M17 9l5 6M22 9l-5 6"/></svg></button>
-  <div class="foot"><span id="verTag">v0.37.0</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span></div>
+  <div class="foot"><span id="verTag">v0.37.1</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span></div>
   <button id="btnNew" hidden>New mountain</button>
 </div>
 
@@ -53883,6 +53884,8 @@ const statBuffOn = () => !PROF.classic && BUFF_KEYS.some(k => BUFF_DEF[k].stat &
 const statsActive = () => !PROF.classic && (SKILL.ids.some(id => PROF.pts[id] < SKILL.PIPS) || statBuffOn()); /* best times go on a separate key while any stat is below max or a stat buff is on */
 function buffGive(k) { PROF.buff[k] = 1; PROF.bt[k] = BUFF_T; if (BUFF_DEF[k].stat) recomputeMOD(); } /* earned (again): a full clock, never more */
 function buffEnd(k) { if (!PROF.buff[k]) return; delete PROF.buff[k]; delete PROF.bt[k]; if (BUFF_DEF[k].stat) recomputeMOD(); }
+function abandonRun() { /* v0.37.1: leaving a run through the pause menu (New mountain, favourite, dice, Restart, Quit) ends every timed buff; finishing a trail and riding on does NOT call this */
+  PROF.buff = {}; PROF.bt = {}; recomputeMOD(); saveProfile(); }
 function buffTick(dt) { /* step(): the riding clock. MOD is rebuilt only when a stat buff runs out */
   if (PROF.classic) return; let mod = false;
   for (const k of BUFF_KEYS) { if (!PROF.buff[k]) continue; if (BUFF_DEF[k].stat) S.bRun = true; const t = buffLeft(k) - dt; if (t > 0) PROF.bt[k] = t; else { delete PROF.buff[k]; delete PROF.bt[k]; if (BUFF_DEF[k].stat) mod = true; } }
@@ -58776,7 +58779,7 @@ function campCrashAt(x, z) { const cps = S.course && S.course.checkpoints; if (!
 function campRespawnPt(cp) { const L = cp.lane; if (!L) return null; for (let k = 0; k < L.length - 3; k++) { if (Math.hypot(L[k][0] - cp.x, L[k][1] - cp.z) > CAMP.fenceR - 1.5) continue; const dx = L[k + 3][0] - L[k][0], dz = L[k + 3][1] - L[k][1], l = Math.hypot(dx, dz) || 1; return { x: L[k][0], z: L[k][1], y: cp.padY, yaw: Math.atan2(-dz, dx), fx: dx / l, fz: dz / l }; } return null; }
 function respawn() { const cc = S.crashCamp; S.crashCamp = null; const P = cc && campRespawnPt(cc); if (P) spawnAt(cc, P); else spawnAt(S.cp); }
 function spawnAt(cp, at) {
-  S.steerSign = undefined; /* a reset or respawn re-reads the screen-steer sign */
+  S.steerSign = undefined; /* a run reset or respawn is the only place the screen-steer sign is re-read */
   const P = at || S.course.pts[cp.idx];
   S.pos.set(P.x, S.surf(P.x, P.z)?.h ?? P.y, P.z);
   S.yaw = P.yaw; S.speed = 3; S.vel.set(P.fx * 3, 0, P.fz * 3);
@@ -59058,8 +59061,8 @@ const pad = (() => {
     T.held = held && !hard; T.hard = hard;
     out.held = held; out.hard = hard; out.hop = jump && !air;
   };
-  /* letting go of the stick also drops the screen-steer sign latch, so the next touch reads the camera fresh and can never stay inverted */
-  const dropSteer = () => { steerId = null; sOut = 0; S.steerSign = undefined; };
+  /* letting go of the stick zeroes the release cap; the screen-steer sign is NOT touched here (v0.37.1: decided once per run, cleared only by spawnAt) */
+  const dropSteer = () => { steerId = null; sOut = 0; };
   const clear = () => { dropSteer(); ptrs.clear(); rideId = null; stick.style.display = 'none'; flickUntil = 0; jumpOut = false; recompute(); visuals(true); };
   Z.addEventListener('pointerdown', e => {
     e.preventDefault(); try { Z.setPointerCapture(e.pointerId); } catch (err) { }
@@ -59215,9 +59218,8 @@ function readInput() {
   if (steerScreen && !(DEBUG && window.__autoSteer) && inp.steer) {
     const cx = camLook.x - camPos.x, cz = camLook.z - camPos.z, rsx = -cz, rsz = cx; /* screen-right on the ground */
     /* decide the mapping from the TRAIL direction, not the bike's heading, and only while the stick or key is at rest: */
-    /* the sign is held for as long as you are steering, so a sharp bend that swings the lens past the trail cannot reverse the controls under your thumb, */
-    /* and it is read again after you let go (steerSm is the smoothed input, ~0.4 s to settle), so it is right after you spin round and ride back the right way */
-    if (S.steerSign === undefined || Math.abs(S.steerSm) < 0.05) {
+    /* the sign is held for the whole run (cleared only by spawnAt), so a bend or a hairpin can never reverse the controls under your thumb */
+    if (S.steerSign === undefined) { /* v0.37.1: decided once at the first steering input of a run, then held until spawnAt */
       const TY = (S.course.pts[S.segIdx] || S.course.pts[0]).yaw;
       const dot = (rsx * Math.sin(TY) + rsz * Math.cos(TY)) / (Math.hypot(cx, cz) || 1);
       if (dot < -0.2) S.steerSign = -1; else if (dot > 0.2) S.steerSign = 1;
@@ -60304,13 +60306,13 @@ let favAsking = false;
 function closePause() { if (pauseAsk) { if (favAsking) favAsk(false); else devAsk(false); return; } setScreen(null); S.paused = false; } /* Back / Esc / Start while the confirmation shows only cancel it */
 function toggleHelp() { if (S.camp) return; if (screen === 'pause' || (screen === 'settings' && setBack === 'pause')) closePause(); else if (screen === null) openPause(); }
 function openSettings(from) { setBack = from; syncSettings(); setScreen('settings'); }
-function quitToTitle() { S.paused = false; S.running = false; resetRun(); setScreen('title'); }
+function quitToTitle() { abandonRun(); S.paused = false; S.running = false; resetRun(); setScreen('title'); }
 $('btnStart').addEventListener('click', () => { if (S.paused) closePause(); else startRiding(); });
 $('btnNew').addEventListener('click', () => newMountain());
 $('bPause').addEventListener('click', () => { if (screen === null) openPause(); else if (screen === 'pause') closePause(); });
 function syncPauseMenu() { favAsk(false, true); favSync(); syncSettings(); $('pmSeed').textContent = seedToCode(S.course.seed) + ' · bails ' + S.bails + ' · ' + fmtTime(S.t); }
 $('pmResume').addEventListener('click', closePause);
-$('pmRestart').addEventListener('click', () => { closePause(); resetRun(); });
+$('pmRestart').addEventListener('click', () => { abandonRun(); closePause(); resetRun(); });
 /* ---- ONE favourite mountain (holdon.fav = {code, date, time, theme}): star on the finish card, 'Play favourite' in the pause card (confirm in-card, it abandons the run) ---- */
 function favLoad() { try { const o = JSON.parse(localStorage.getItem('holdon.fav')); if (!o || typeof o !== 'object' || typeof o.code !== 'string' || !/^MTN-[0-9A-Z]{1,7}$/.test(o.code)) return null; const sd = codeToSeed(o.code); if (sd === null || !Number.isFinite(sd)) return null; return { code: o.code, date: typeof o.date === 'string' ? o.date : '', time: Number.isFinite(o.time) ? o.time : 0, theme: typeof o.theme === 'string' ? o.theme : '' }; } catch (e) { return null; } }
 function favSync() { const f = favLoad(), on = !!(f && S.course && f.code === seedToCode(S.course.seed)), b = $('btnFav'), p = $('pmFav'); if (b) { b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); b.innerHTML = on ? '&#9733;' : '&#9734;'; } if (p) { p.hidden = !f; if (f) p.title = f.code; } }
@@ -60318,8 +60320,8 @@ function favAsk(on, quiet) { on = !!on; if (!on && !favAsking) return; favAsking
 $('btnFav').addEventListener('click', () => { const code = seedToCode(S.course.seed), f = favLoad(); try { if (f && f.code === code) localStorage.removeItem('holdon.fav'); else localStorage.setItem('holdon.fav', JSON.stringify({ code, date: new Date().toISOString().slice(0, 10), time: S.t, theme: String(S.course.theme || '') })); } catch (e) { } favSync(); });
 $('pmFav').addEventListener('click', () => { if (favLoad()) favAsk(true); });
 $('pmAskFavNo').addEventListener('click', () => favAsk(false));
-$('pmAskFavYes').addEventListener('click', () => { const f = favLoad(); favAsk(false); if (!f) { favSync(); return; } newRun(codeToSeed(f.code)); startRiding(); popup('Favourite', seedToCode(S.course.seed)); });
-$('pmNew').addEventListener('click', () => { newMountain(); startRiding(); popup('New mountain', seedToCode(S.course.seed)); });
+$('pmAskFavYes').addEventListener('click', () => { const f = favLoad(); favAsk(false); if (!f) { favSync(); return; } abandonRun(); newRun(codeToSeed(f.code)); startRiding(); popup('Favourite', seedToCode(S.course.seed)); });
+$('pmNew').addEventListener('click', () => { abandonRun(); newMountain(); startRiding(); popup('New mountain', seedToCode(S.course.seed)); });
 $('pmSettings').addEventListener('click', () => openSettings('pause'));
 $('pmQuit').addEventListener('click', quitToTitle);
 /* ---- DEV: Reset game (new player). Two steps inside the pause card: the button, then 'Really erase everything?' with Cancel and Erase. Erase clears every localStorage key this game
@@ -60526,7 +60528,7 @@ const setSteer = (v) => { steerScreen = v; syncSettings(); };
 addEventListener('keydown', (e) => { if (e.target && e.target.tagName === 'INPUT') return; if (e.key === 'v' || e.key === 'V') { setSteer(!steerScreen); popup('Steering: ' + (steerScreen ? 'screen' : 'bike')); } });
 const cycleCam = () => { camPreset = (camPreset + 1) % 3; $('bCam').textContent = 'Cam: ' + CAM_PRESETS[camPreset].name; syncSettings(); };
 addEventListener('keydown', (e) => { if (e.target && e.target.tagName === 'INPUT') return; if (e.key === 'g' || e.key === 'G') cycleCam(); });
-$('bDice').addEventListener('click', () => { newMountain(); if (setBack === 'pause') { startRiding(); popup('New mountain', seedToCode(S.course.seed)); } else setScreen('title'); });
+$('bDice').addEventListener('click', () => { if (setBack === 'pause') abandonRun(); newMountain(); if (setBack === 'pause') { startRiding(); popup('New mountain', seedToCode(S.course.seed)); } else setScreen('title'); });
 $('bMute').addEventListener('click', () => { sfx.init(); sfx.toggle(); syncSettings(); });
 $('pmVol').value = Math.round(sfx.vol() * 100); $('pmVol').addEventListener('input', () => { sfx.init(); sfx.vol($('pmVol').value / 100); });
 const rangeFill = () => { for (const r of document.querySelectorAll('.srow input[type=range]')) r.style.setProperty('--p', (100 * (r.value - r.min) / ((r.max - r.min) || 1)).toFixed(1) + '%'); }; addEventListener('input', (e) => { if (e.target.matches && e.target.matches('.srow input[type=range]')) rangeFill(); }); rangeFill(); /* the orange fill of the settings sliders */ /* volume + mute are remembered */
