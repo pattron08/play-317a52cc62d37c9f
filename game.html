@@ -118,8 +118,8 @@
   #tutPill b { color: var(--acc1); font-weight: 700; }
   #tutPill .dots { display: flex; gap: 3px; flex: none; } #tutPill .dots i { width: 6px; height: 6px; border-radius: 50%; background: rgba(253,248,234,.25); } #tutPill .dots i.d { background: var(--acc1); } #tutPill .dots i.c { background: var(--cream); }
   #tutPill .tx { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-  #tutPill .gl, #tutPill kbd { vertical-align: middle; margin: -3px 1px 0; }
-  #tutPill kbd { display: inline-block; min-width: 18px; padding: 1px 5px; border-radius: 5px; border: 1px solid rgba(253,248,234,.5); background: rgba(253,248,234,.1); font: 700 11px/1.3 var(--f-ui); text-align: center; color: var(--cream); }
+  #tutPill .gl, #tutPill kbd, #eTutTrick .gl, #eTutTrick kbd { vertical-align: middle; margin: -3px 1px 0; }
+  #tutPill kbd, #eTutTrick kbd { display: inline-block; min-width: 18px; padding: 1px 5px; border-radius: 5px; border: 1px solid rgba(253,248,234,.5); background: rgba(253,248,234,.1); font: 700 11px/1.3 var(--f-ui); text-align: center; color: var(--cream); }
   #tutPill.ok { background: rgba(32,60,30,.8); } #tutPill .ck { flex: none; color: #8fe08a; font-weight: 800; }
   #tutSkip { position: fixed; z-index: 4; left: calc(var(--sl) + 46px); top: calc(var(--st) + 2px); display: none; height: 32px; min-width: 64px; padding: 0 12px; border-radius: 16px; border: 1px solid rgba(253,248,234,.28); background: rgba(20,14,10,.55); color: var(--cream-70); font: 600 11px var(--f-ui); letter-spacing: .08em;
     text-transform: uppercase; white-space: nowrap; cursor: pointer; pointer-events: auto; touch-action: manipulation; -webkit-user-select: none; user-select: none; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
@@ -256,10 +256,22 @@
   #pauseMenu .dsw[aria-checked="true"] .dk { background: var(--acc1); border-color: var(--acc1); } #pauseMenu .dsw[aria-checked="true"] .dk::after { transform: translateX(12px); background: var(--accInk); }
   #pauseMenu .sheet { max-height: 100%; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; } /* a short window scrolls the card instead of clipping the DEV row */
   #pauseMenu .pmAsk { display: none; gap: 10px; } #pauseMenu .askt { text-align: center; font: 600 14px/1.35 var(--f-ui); padding: 4px 4px 2px; }
-  #pauseMenu.askingFav .sheet > :not(h2):not(#pmAskFav) { display: none; } #pauseMenu.askingFav #pmAskFav { display: grid; }
+  #pauseMenu.askingFav .sheet > :not(.ph):not(#pmAskFav) { display: none; } #pauseMenu.askingFav #pmAskFav { display: grid; }
   #pauseMenu .mb.bad { background: #b3382c; border-color: transparent; color: #fff; }
-  #pauseMenu.asking .sheet > :not(h2):not(.pmAsk) { display: none; } #pauseMenu.asking .pmAsk { display: grid; }
-  #pauseMenu .pmFl { display: none; gap: 6px; } #pauseMenu.favList .sheet > :not(h2):not(#pmFavL) { display: none; } #pauseMenu.favList #pmFavL { display: grid; }
+  #pauseMenu.asking .sheet > :not(.ph):not(.pmAsk) { display: none; } #pauseMenu.asking .pmAsk { display: grid; }
+  #pauseMenu .pmFl { display: none; gap: 6px; } #pauseMenu.favList .sheet > :not(.ph):not(#pmFavL) { display: none; } #pauseMenu.favList #pmFavL { display: grid; }
+  #pauseMenu.asking .ph .ico, #pauseMenu.askingFav .ph .ico, #pauseMenu.favList .ph .ico { display: none; } /* a confirmation or the favorites list keeps only the title */
+  /* pause header: the favorites star left of the title, the sound switch right of it (the title stays centered when the star is hidden) */
+  #pauseMenu .ph { display: grid; grid-template-columns: 40px 1fr 40px; align-items: center; }
+  #pauseMenu .ph h2 { grid-column: 2; }
+  #pauseMenu .ph .ico { position: static; width: 40px; height: 40px; } #pauseMenu .ph .ico svg { width: 20px; height: 20px; }
+  #pauseMenu .ph .fav { grid-column: 1; color: var(--acc1); font-size: 18px; } #pauseMenu .ph #pmSnd { grid-column: 3; }
+  #pauseMenu .pmDev .devT { width: 100%; min-height: 32px; justify-content: space-between; padding: 0 14px; }
+  #pauseMenu .pmDev .devT svg { width: 12px; height: 12px; transition: transform .15s var(--ease-out); } #pauseMenu .pmDev .devT[aria-expanded="true"] svg { transform: rotate(180deg); }
+  #pauseMenu .devB { display: grid; gap: 6px; } #pauseMenu .devB[hidden] { display: none; }
+  .mb.new { position: relative; } .mb .nb { position: absolute; top: -7px; right: 10px; font: 700 8px var(--f-ui); letter-spacing: .14em; background: var(--acc1); color: var(--accInk); border-radius: 99px; padding: 2px 6px; line-height: 1.2; pointer-events: none; }
+  .pmHint { display: flex; gap: 10px; justify-content: center; align-items: center; font: 500 10.5px var(--f-ui); color: var(--cream-70); } .pmHint[hidden] { display: none; }
+  .pmHint .pk { display: none; } body[data-dev="pad"] .pmHint .pk { display: inline-flex; align-items: center; gap: 3px; } body[data-dev="pad"] .pmHint .kk, body[data-dev="touch"] .pmHint { display: none; }
   /* favorite mountain rows (pause card, title card, finish-card replace chooser): the row rides / picks that mountain, x removes it */
   .fvl { display: grid; gap: 6px; }
   .fvr { display: grid; grid-template-columns: minmax(0, 1fr) 44px; gap: 6px; } .fvr.nx { grid-template-columns: minmax(0, 1fr); }
@@ -304,6 +316,80 @@
   .seg.pal button[aria-pressed="true"] { background: var(--c); box-shadow: inset 0 0 0 2px var(--acc1), inset 0 0 0 4px rgba(20,14,10,.85); }
   .seg.pal button + button { border-left: 1px solid rgba(20,14,10,.35); }
   body:not(.touchy) .tOnly { display: none; }
+  /* Settings: the Controls row at the top */
+  #setScr .ctlRow { display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 0 6px 0 12px; margin-bottom: 4px; border: 1px solid rgba(255,178,74,.45); border-radius: 14px; background: rgba(255,178,74,.07); }
+  #setScr .ctlRow > span:first-child { flex: 1; font: 500 14px var(--f-ui); } #setScr .ctlRow small { display: block; font-size: 11px; opacity: .6; }
+  #setScr .ctlRow .mini { display: flex; gap: 4px; align-items: center; } #setScr .ctlRow .mb { min-height: 40px; }
+  /* the Controls page (#ctlScr): device tabs, then a keyboard drawing, a controller drawing with leader lines or a small phone screen with the real touch controls.
+     Laid out at phone size (fits 812 x 370 at 844 x 390) and magnified by --uz like every .scr */
+  #ctlScr .sheet { width: min(760px, 100%); max-height: 100%; padding: 10px 14px 12px; gap: 8px; align-content: start; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+  #ctlScr .hd { display: flex; align-items: center; gap: 10px; min-height: 40px; }
+  #ctlScr .hd h2 { font-size: 30px; text-align: left; flex: none; }
+  #ctlScr .hd .grow { flex: 1; }
+  #ctlScr .hd .mb.sm { min-height: 36px; padding: 0 12px; font-size: 12px; }
+  #ctlScr .hd .ico { position: static; width: 40px; height: 40px; flex: none; } #ctlScr .hd .ico svg { width: 20px; height: 20px; }
+  #ctlScr .seg button { min-height: 36px; }
+  #ctlScr .gpk { display: none; } body[data-dev="pad"] #ctlScr .gpk { display: inline-flex; align-items: center; }
+  #ctlScr .cbody { display: grid; gap: 8px; }
+  #ctlScr kbd, .pmHint kbd { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 5px; box-sizing: border-box; border-radius: 5px; border: 1px solid rgba(253,248,234,.5); background: rgba(253,248,234,.1); font: 700 11px/1 var(--f-ui); color: var(--cream); vertical-align: middle; }
+  #ctlScr .gl { vertical-align: middle; flex: none; }
+  #ctlScr .lgd { display: flex; gap: 14px; font: 500 11.5px var(--f-ui); color: var(--cream-70); }
+  #ctlScr .lgd i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+  #ctlScr .c-ride { background: var(--accGrad); color: var(--accInk); border-color: transparent; }
+  #ctlScr .c-trick { background: rgba(20,14,10,.6); color: var(--acc1); border: 1.5px solid var(--acc1); box-shadow: 0 0 10px rgba(245,138,52,.35); }
+  #ctlScr .c-camp { background: rgba(253,248,234,.9); color: var(--accInk); border-color: transparent; }
+  #ctlScr .c-sys { background: rgba(253,248,234,.08); color: var(--cream); border: 1px solid rgba(253,248,234,.38); }
+  #ctlScr .c-off { background: rgba(253,248,234,.03); color: rgba(253,248,234,.22); border: 1px solid rgba(253,248,234,.10); }
+  #ctlScr .kb { position: relative; margin: 0 auto; }
+  #ctlScr .kb .k { position: absolute; box-sizing: border-box; border-radius: 7px; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1; }
+  #ctlScr .kb .k b { font: 700 14px var(--f-ui); }
+  #ctlScr .kb .k span { font: 700 8px var(--f-ui); letter-spacing: .06em; text-transform: uppercase; margin-top: 3px; white-space: nowrap; text-align: center; }
+  #ctlScr .kb .k.c-off b { font-weight: 500; font-size: 11px; }
+  #ctlScr .kb .k.two b { font-size: 11px; } #ctlScr .kb .k.two span { font-size: 6.5px; line-height: 1.05; margin-top: 2px; }
+  #ctlScr .ex { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px 18px; }
+  #ctlScr .ex > div { display: grid; grid-template-columns: auto 1fr; gap: 0 8px; align-items: center; min-height: 27px; padding: 1px 0; border-top: 1px solid rgba(253,248,234,.08); }
+  #ctlScr .ex .ch { display: flex; gap: 3px; align-items: center; min-width: 46px; }
+  #ctlScr .ex .ch kbd { min-width: 19px; height: 19px; font-size: 10.5px; } #ctlScr .ex .ch kbd.c-trick, #ctlScr .ex .ch kbd.c-sys { border-width: 1px; }
+  #ctlScr .ex .ch i { font: 600 11px var(--f-ui); font-style: normal; opacity: .7; }
+  #ctlScr .ex b { display: block; font: 600 14px/1.15 var(--f-ui); color: var(--cream); }
+  #ctlScr .ex small, #ctlScr .cl .tx small { display: block; font: 400 10.5px/1.25 var(--f-ui); color: var(--cream-70); }
+  #ctlScr .foot { font: 400 10.5px/1.3 var(--f-ui); color: var(--cream-70); text-align: center; display: flex; gap: 6px 14px; justify-content: center; flex-wrap: wrap; align-items: center; }
+  #ctlScr .foot.big { font-size: 12px; }
+  #ctlScr .foot b { color: var(--acc1); font-weight: 600; }
+  #ctlScr .foot kbd { height: 17px; min-width: 17px; font-size: 10px; }
+  #ctlScr .dia { position: relative; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 0 10px; }
+  #ctlScr .co { display: grid; gap: 6px; width: 100%; } #ctlScr .co.l { text-align: right; justify-items: end; } #ctlScr .co.r { justify-items: start; }
+  #ctlScr .co.l .cl { flex-direction: row-reverse; }
+  #ctlScr .cl { display: flex; align-items: center; gap: 7px; min-height: 30px; max-width: 230px; }
+  #ctlScr .cl .tx b { display: block; font: 600 14.5px/1.15 var(--f-ui); }
+  #ctlScr .cl .dot { flex: none; display: grid; place-items: center; }
+  #ctlScr .dia.ph .cl { max-width: 215px; } #ctlScr .dia.ph .cl .tx b { font-size: 14px; }
+  #ctlScr .dia.ph .cl .dot { width: 22px; height: 22px; border-radius: 50%; background: rgba(20,14,10,.7); border: 1.5px solid var(--acc1); color: var(--acc1); font: italic 800 10px var(--f-disp); box-sizing: border-box; }
+  #ctlScr .art { position: relative; }
+  #ctlScr svg.leads { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; }
+  #ctlScr .padArt { width: 330px; height: 223px; } #ctlScr .padArt svg { width: 100%; height: 100%; display: block; }
+  /* the small phone: an 844 x 390 screen at --s, control sizes and places from the touch CSS above */
+  #ctlScr .phone { --s: .48; width: calc(844px * var(--s)); height: calc(390px * var(--s)); position: relative; border-radius: 14px; overflow: hidden; box-sizing: border-box;
+    background: linear-gradient(200deg, #7f9270 0%, #8d8a62 38%, #a8794f 52%, #8e7550 64%, #6f8566 100%); border: 2px solid rgba(253,248,234,.35); box-shadow: 0 6px 20px rgba(0,0,0,.4); }
+  #ctlScr .phone::after { content: ""; position: absolute; inset: 0; background: rgba(20,14,10,.25); }
+  #ctlScr .phone > * { position: absolute; z-index: 1; box-sizing: border-box; }
+  #ctlScr .phone .mP { left: calc(16px * var(--s)); top: calc(8px * var(--s)); width: calc(36px * var(--s)); height: calc(36px * var(--s)); border-radius: 5px; background: rgba(20,14,10,.6); border: 1px solid rgba(253,248,234,.3); display: flex; gap: 2px; align-items: center; justify-content: center; }
+  #ctlScr .phone .mP s { width: 2px; height: 6px; background: var(--cream); border-radius: 1px; }
+  #ctlScr .phone .mC { right: calc(16px * var(--s)); top: calc(116px * var(--s)); width: calc(88px * var(--s)); height: calc(88px * var(--s)); border-radius: 50%; background: rgba(20,14,10,.78); border: 1.5px solid rgba(245,138,52,.8); color: #ffd9a0; display: grid; place-items: center; font: italic 800 9px var(--f-disp); box-shadow: 0 0 8px rgba(255,150,40,.4); }
+  #ctlScr .phone .mPd { bottom: calc(38px * var(--s)); width: calc(120px * var(--s)); height: calc(120px * var(--s)); border-radius: 50%; background: rgba(20,14,10,.6); border: 2px solid rgba(245,138,52,.85); display: grid; place-items: center; font: italic 800 11px var(--f-disp); color: var(--cream); }
+  #ctlScr .phone .mL { bottom: calc(38px * var(--s)); width: calc(68px * var(--s)); height: calc(68px * var(--s)); border-radius: 50%; background: rgba(20,14,10,.55); border: 1.5px dashed rgba(253,248,234,.7); display: grid; place-items: center; font: italic 800 8px var(--f-disp); color: var(--cream); }
+  #ctlScr .phone .mS { bottom: calc(48px * var(--s)); width: calc(112px * var(--s)); height: calc(112px * var(--s)); border-radius: 50%; border: 1.5px solid rgba(253,248,234,.7); background: rgba(20,14,10,.35); }
+  #ctlScr .phone .mS::after { content: ""; position: absolute; left: 50%; top: 50%; width: 18px; height: 18px; margin: -9px; border-radius: 50%; background: rgba(253,248,234,.6); border: 1.5px solid var(--cream); box-sizing: border-box; }
+  #ctlScr .phone .mZ { top: 0; bottom: 0; width: 50%; background: rgba(255,178,74,.06); border: 0 dashed rgba(255,178,74,.55); }
+  #ctlScr .phone .bt { bottom: calc(34px * var(--s)); width: calc(62px * var(--s)); height: calc(62px * var(--s)); border-radius: 50%; background: rgba(20,14,10,.55); border: 1px solid rgba(253,248,234,.35); color: var(--cream); display: grid; place-items: center; font: 800 6.5px var(--f-ui); }
+  #ctlScr .phone.btns .pp, #ctlScr .phone:not(.btns) .bt { display: none; }
+  #ctlScr .ges { display: flex; justify-content: space-between; gap: 6px; }
+  #ctlScr .ges > div { flex: 1 1 auto; white-space: nowrap; display: flex; gap: 5px; align-items: center; padding: 4px 6px; border-radius: 12px; background: rgba(253,248,234,.05); border: 1px solid rgba(253,248,234,.1); }
+  #ctlScr .ges svg { width: 20px; height: 20px; flex: none; }
+  #ctlScr .ges b { display: block; font: 600 12px/1.1 var(--f-ui); } #ctlScr .ges b span { color: var(--acc1); } #ctlScr .ges small { display: block; font: 400 10px/1.2 var(--f-ui); color: var(--cream-70); }
+  #ctlScr .gh { font: 700 10px var(--f-ui); letter-spacing: .16em; text-transform: uppercase; color: var(--acc1); display: flex; align-items: center; gap: 8px; }
+  #ctlScr .gh::after { content: ""; flex: 1; height: 1px; background: rgba(253,248,234,.12); }
+  #ctlScr .seg.small button { min-height: 28px; font-size: 11px; padding: 0 9px; min-width: 0; }
   /* results */
   #endOv { background: linear-gradient(90deg, rgba(20,14,10,.9), rgba(20,14,10,.72)); }
   #endOv .left { position: absolute; left: calc(var(--sl) + 31px); top: max(40px, calc(12 * var(--vh))); }
@@ -332,8 +418,11 @@
   #endOv .share small { font: 500 11px ui-monospace, Menlo, monospace; opacity: .7; }
   #endOv .skip { position: absolute; right: calc(var(--sr) + 31px); bottom: max(10px, var(--sb)); font: 500 11px var(--f-ui); opacity: .5; }
   /* the tutorial's end card (body.tutEnd): no time, score or XP rows, no favorite star; one hint line; 'Ride a real mountain' on top with the next code under it */
-  #eTutHint { display: none; font: 500 14px/1.4 var(--f-ui); opacity: .82; padding: 2px 0 0; }
-  body.tutEnd #eTutHint { display: block; }
+  #eTutHint, #eTutTrick { display: none; }
+  /* TUT_TRICK_NOTE: the hint reads as the card's one tip (accent, a size up, a soft rise after the title), the device-worded let-go / flip line quieter under it */
+  body.tutEnd #eTutHint { display: block; font: italic 800 18px/1.25 var(--f-disp); letter-spacing: .02em; color: var(--acc1); padding: 8px 0 0; animation: upIn .35s var(--ease-out) .25s both; }
+  body.tutEnd #eTutTrick { display: block; font: 500 13px/1.45 var(--f-ui); opacity: .8; padding: 3px 0 0; animation: upIn .35s var(--ease-out) .4s both; }
+  body.tutEnd.tutOld #eTutHint { font: 500 14px/1.4 var(--f-ui); letter-spacing: 0; color: inherit; opacity: .82; padding: 2px 0 0; animation: none; } body.tutEnd.tutOld #eTutTrick { display: none; }
   body.tutEnd #eTime, body.tutEnd #endOv .rrow, body.tutEnd #endOv .rtot, body.tutEnd #eXpRow, body.tutEnd #btnFav { display: none; }
   body.tutEnd #endOv .acts { grid-template-columns: 1fr; margin-top: 14px; } body.tutEnd #btnNew2 { order: -1; flex-direction: column; gap: 0; line-height: 1.05; padding: 6px 16px; }
   #btnNew2 small { font: 500 11px ui-monospace, Menlo, monospace; letter-spacing: .04em; text-transform: none; opacity: .75; }
@@ -687,18 +776,19 @@
   <div class="favCard" id="tFavs" hidden><div class="fvh">Favorites</div><div class="fvl" id="tFavList"></div><button class="mb sm" id="tFavClose">Close</button></div>
   <div id="tapGo" role="status">Tap to start</div>
   <button class="ico" id="mute" role="switch" aria-checked="true" aria-label="Sound"><svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg><svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M17 9l5 6M22 9l-5 6"/></svg></button>
-  <div class="foot"><span id="verTag">v0.42.0</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span></div>
+  <div class="foot"><span id="verTag">v0.43.0</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span></div>
   <button id="btnNew" hidden>New mountain</button>
 </div>
 
 <div class="scr modal" id="pauseMenu" hidden><div class="sheet">
-  <h2>Paused</h2>
+  <div class="ph"><button class="ico fav" id="pmFavs" hidden aria-label="Favorites" title="Favorites">&#9733;</button><h2>Paused</h2><button class="ico" id="pmSnd" role="switch" aria-checked="true" aria-label="Sound" title="Sound (M)"><svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg><svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M17 9l5 6M22 9l-5 6"/></svg></button></div>
   <div class="meta" id="pmSeed"></div>
   <button class="mb pri" id="pmResume">&#9654; Resume</button>
-  <div class="two"><button class="mb sm" id="pmRestart">Restart run</button><button class="mb sm" id="pmSettings">Settings</button></div>
-  <button class="mb sm" id="pmFavs" hidden>&#9733; Favorites</button>
-  <div class="two"><button class="mb sm" id="pmNew">New mountain</button><button class="mb sm" id="pmQuit">Quit to title</button></div>
-  <div class="pmDev" id="pmDev"><div class="devh">DEV</div><button class="mb sm" id="pmReset">Reset game (new player)</button><div class="drow"><button class="mb sm dsw" id="pmHaptic" role="switch" aria-checked="true" aria-label="Haptics"><span>Haptics <small>Android</small></span><i class="dk"></i></button><button class="mb sm dsw" id="pmFps" role="switch" aria-checked="false" aria-label="FPS counter"><span>FPS counter</span><i class="dk"></i></button></div></div>
+  <div class="two"><button class="mb sm new" id="pmBack" data-ctl="back">Back to camp</button><button class="mb sm" id="pmRestart" data-ctl="restart">Restart</button></div>
+  <div class="two"><button class="mb sm new" id="pmCtl" data-ctl="ctl">Controls</button><button class="mb sm" id="pmSettings">Settings</button></div>
+  <div class="two"><button class="mb sm" id="pmNew">New mountain</button><button class="mb sm" id="pmQuit" data-ctl="quit">Quit</button></div>
+  <div class="pmDev" id="pmDev"><button class="mb sm devT" id="pmDevT" type="button" aria-expanded="false" aria-controls="pmDevB"><span data-ctl="dev">DEV</span><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5l4 4 4-4"/></svg></button><div class="devB" id="pmDevB" hidden><button class="mb sm" id="pmReset">Reset game (new player)</button><div class="drow"><button class="mb sm dsw" id="pmHaptic" role="switch" aria-checked="true" aria-label="Haptics"><span>Haptics <small>Android</small></span><i class="dk"></i></button><button class="mb sm dsw" id="pmFps" role="switch" aria-checked="false" aria-label="FPS counter"><span>FPS counter</span><i class="dk"></i></button></div></div></div>
+  <div class="pmHint" id="pmHint" hidden></div>
   <div class="pmFl" id="pmFavL"><div class="fvl" id="pmFavList"></div><button class="mb sm" id="pmFavBack">Back</button></div>
   <div class="pmAsk" id="pmAskFav"><div class="askt" id="pmAskFavT">Leave this run and ride your favorite?</div><div class="two"><button class="mb sm" id="pmAskFavNo">Cancel</button><button class="mb sm bad" id="pmAskFavYes">Play</button></div></div>
   <div class="pmAsk" id="pmAsk"><div class="askt">Really erase everything? Cannot be undone.</div><div class="two"><button class="mb sm" id="pmAskNo">Cancel</button><button class="mb sm bad" id="pmAskYes">Erase</button></div></div>
@@ -706,6 +796,7 @@
 
 <div class="scr modal" id="setScr" hidden><div class="sheet">
   <div class="hd"><h2>Settings</h2><button class="ico" id="setClose" aria-label="Close settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <div class="ctlRow"><span id="setCtlT">Controls</span><span class="mini" id="setCtlM"></span><button class="mb sm" id="setCtl" data-ctl="show">Show</button></div>
   <div class="sgs" data-sec="sound"><button class="sgrp sgh" type="button" aria-expanded="true" aria-controls="sb_sound"><span>Sound</span><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5l4 4 4-4"/></svg></button><div class="sgb" id="sb_sound">
   <div class="srow"><span>Sound <small class="kk">M</small></span><button class="sw" id="bMute" role="switch" aria-checked="true" aria-label="Sound"></button></div>
   <div class="srow"><span>Volume <small class="kk">[ and ]</small></span><input type="range" id="pmVol" min="0" max="100" step="5" value="80" aria-label="Volume"></div>
@@ -747,6 +838,11 @@
   <div class="about" id="about"><b>No Hander</b> <span id="verTag2"></span> &middot; a downhill game about letting go. Built with <a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> r160 (MIT license, &copy; 2010-2024 three.js authors).
     Type: <b>Barlow Condensed</b> (&copy; 2017 Jeremy Tribby) and <b>Rubik</b> (&copy; 2015 Hubert &amp; Fischer, Meir Sadan, Cyreal), both under the <a href="https://openfontlicense.org" target="_blank" rel="noopener">SIL Open Font License 1.1</a>, embedded as subsets. All art, sound and music are built by the game itself at runtime. No data leaves your device: your settings and best times are stored locally only.</div>
 </div></div>
+<div class="scr modal" id="ctlScr" hidden><div class="sheet">
+  <div class="hd"><h2 data-ctl="title">Controls</h2><span class="gpk" data-g="LB" aria-hidden="true"></span><div class="seg" id="ctlTabs" data-nowrap><button data-v="key" data-ctl="tabKey">Keyboard</button><button data-v="pad" data-ctl="tabPad">Controller</button><button data-v="touch" data-ctl="tabTouch">Touch</button></div><span class="gpk" data-g="RB" aria-hidden="true"></span><i class="grow"></i><button class="mb sm" id="ctlTut" data-ctl="tut">Tutorial</button><button class="ico" id="ctlClose" aria-label="Close controls"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <div class="cbody" id="ctlBody"></div>
+  <div class="foot" id="ctlLayRow" hidden><span data-ctl="layShow">Layout</span><div class="seg small" id="ctlLay" data-nowrap><button data-v="pp" data-ctl="layPad">Pedal pad</button><button data-v="btns" data-ctl="layBtns">Buttons</button></div><span id="ctlLayL"></span></div>
+</div></div>
 
 
 <div class="scr" id="endOv" hidden>
@@ -761,7 +857,7 @@
     <div class="rrow"><span>Bails</span><b id="eBails">—</b></div>
     <div class="rtot"><span>TOTAL</span><b id="eTotal" class="gtx">—</b></div>
     <div class="rxp" id="eXpRow"><span id="eXpL">XP</span><b id="eXp">—</b></div>
-    <div id="eTutHint">Psst. Try letting go in the air.</div>
+    <div id="eTutHint">Psst. Try letting go in the air.</div><div id="eTutTrick"></div>
     <div class="acts"><button class="mb pri" id="btnAgain">&#9654; Ride again</button><button class="mb sm" id="btnNew2">New mountain</button></div>
   </div>
   <div class="share"><button class="mb sm" id="btnShare">Share code</button><button class="mb sm" id="btnFav" aria-pressed="false" aria-label="Favorite this mountain" title="Favorite this mountain">&#9734;</button><small><code id="seedCode2">—</code></small></div>
@@ -53928,6 +54024,13 @@ const OCEAN_FAR = 1, OCEAN_R = 2400, OCEAN_DUSK = '#b48aa6';
    The glitter path also narrows toward the horizon, wobbles, breaks into streaks and is gone SEA_GLINT_FAR m out (before the visible sea ends),
    so it reads as a reflection path, not a patch cut flat at the horizon. 0 = the plain open sea look (the sea covers the ring below its edge). */
 const VISTA_DEPTH_FIX = 1, SEA_GLINT_FAR = 400;
+/* the full camp vista. With VISTA_FULL on, the camp sky ring grows along the course: hill faces get forest belts (and snow on the high far layer at the
+   first camps), a far sea arc opens behind the ridges (narrow and off to one side at the first camp, wide with the sun setting into it at the last one,
+   whose ridges are pressed flatter inside the arc), a lake sliver now and then at the middle camps, a village on a ridge over the sea at the later camps
+   (warm windows at dusk). Where the lens sits just above the open sea (the tutorial camp, low last camps) the ring adds a coast instead: a far coastal
+   range with snow, a headland on each side with forest and rock, a village at the foot of the near one and a lighthouse on the other. All of it is in
+   the same sky mesh (no new draw call or program), seeded from its own streams (seed + 7423 / 7424), so no older stream changes a draw. 0 = the old ring. */
+const VISTA_FULL = 1;
 const OCEAN = { uSea: { value: new THREE.Vector4() }, uSeaC: { value: new THREE.Color() }, uSeaS: { value: new THREE.Color() }, uSeaD: { value: new THREE.Vector2(-0.447, -0.894) }, uSeaL: { value: new THREE.Color() } };
 /* shared by the water program and the camp sky (its ground edge): sn = the unit view ray, sr = the distance along it */
 const OCEAN_GLSL = 'uniform vec4 uSea; uniform vec3 uSeaC; uniform vec3 uSeaS; uniform vec2 uSeaD;\n' +
@@ -62441,10 +62544,11 @@ addEventListener('keydown', e => {
   if (k === '[' || k === ']') { const v = Math.round((sfx.vol() + (k === ']' ? 0.1 : -0.1)) * 10) / 10; sfx.vol(v); popup('Volume ' + Math.round(sfx.vol() * 100) + '%'); $('pmVol').value = Math.round(sfx.vol() * 100); }
   if (k === 't') { S.mode = S.mode === 'hold' ? 'tap' : 'hold'; syncSettings(); popup('Release mode: ' + S.mode); }
   if (S.camp) { if (k === 'escape' || k === 'backspace') { e.preventDefault(); campUI.back(); } else if (k === 'q') campUI.tabStep(-1); else if (k === 'e') campUI.tabStep(1); return; } /* camp mode keys (the gpMenu handler took the arrows / Enter already) */
-  if (k === 'enter') { if (!S.running || S.finished) startRiding(); else resetRun(); }
+  if (screen === 'controls') { if (k === 'backspace') { e.preventDefault(); ctlClose(); } return; } /* Backspace steps back like Esc; nothing rides or restarts under the page */
+  if (k === 'enter') { if (!S.running || S.finished) startRiding(); else if (screen === null && !S.paused && !e.repeat) restartKey(); } /* never under a menu card; mid-ride it asks for a second press */
   if (k === 'n' && (!S.running || S.finished)) newMountain();
-  if (k === 'r' && S.running && !S.finished) retry();
-  if ((k === 'c' || k === 'y') && !e.repeat) campHold.down('key'); /* C / Y tap = save, hold 0.8 s = make camp (see campHold) */
+  if (k === 'r' && S.running && !S.finished && !S.paused) retry(); /* R and C do nothing while the pause card (or a screen opened from it) is up */
+  if ((k === 'c' || k === 'y') && !e.repeat && !S.paused) campHold.down('key'); /* C / Y tap = save, hold 0.8 s = make camp (see campHold) */
 });
 /* camp mode, ahead of the menu's capture listener: a fresh key / tap during the walk-in skips to seated; the arrow keys (no panel control focused) swing the camp lens (campCam) */
 addEventListener('keydown', (e) => { const C = S.camp; if (!C || (e.target && e.target.tagName === 'INPUT')) return; if (C.walk) { if (!e.repeat && C.orb.skipArmed) { campSnap(C); e.preventDefault(); e.stopImmediatePropagation(); } return; } if (campCam.key(e, true)) { e.preventDefault(); e.stopImmediatePropagation(); return; }
@@ -62717,7 +62821,11 @@ const TUT_TXT = {
   rest: { tz: 'Slow down. <b>Hold</b> the flame to rest', tb: 'Slow down. <b>Hold</b> the flame to rest', key: 'Slow down. Hold {C} to rest by the fire', pad: 'Slow down. Hold {Y} to rest by the fire' },
   final: { all: 'Put it together. Ride to the finish' },
   acts: { all: 'Activities available in full game.' }, /* not a stage: the note under the grayed-out activity cards at the tutorial camp */
+  trick: { tz: 'In the air, <b>LEGS</b> / <b>ARMS</b> let go. Both + drag = flip', tb: 'In the air, <b>LEGS</b> / <b>ARMS</b> let go. Both + ◀ ▶ = flip', key: 'Air: {Q} feet / {E} hands let go. Both + steer = flip', pad: 'Air: {LB} feet / {RB} hands let go. Both + steer = flip' }, /* not a stage: the end card's second hint line (TUT_TRICK_NOTE) */
 };
+/* TUT_TRICK_NOTE: 1 = the end card's 'Psst' hint stands out (accent, larger) with a smaller second line under it naming the real let-go keys per device and
+   that both off + steer flips (TUT_TXT.trick, follows the device while the card is up); 0 = the old single quiet line. Text only: no stage, no timing, nothing the ride reads. */
+const TUT_TRICK_NOTE = 1;
 /* the director. Reads only ride state (S.segIdx, S.grounded, S.speed, S.pedaling / S.thrIn, S.steerIn, S.onBerm, S.crashed, the camp's found flag) and
    course.tut; the one thing it writes is S.cp: entering a stage, and each bail, move the respawn point forward (never backward) to the stage's latest
    respawn (its respawns list) at or behind the rider, else the stage's start, so a bail costs at most one gap.
@@ -62783,6 +62891,7 @@ const tut = (() => {
       if (pill.classList.contains('on') !== (vis && up)) pill.classList.toggle('on', vis && up);
     },
     state: () => ({ on, fin, k, key, done, vis, hops, gapN, id: k >= 0 && stages() ? stages()[k].id : null }),
+    hint: () => text('trick', variant()), /* the end card's trick line in the active device's words */
   };
 })();
 bindTouch('bLeft', 'left'); bindTouch('bRight', 'right'); bindTouch('bGas', 'gas'); bindTouch('bBrake', 'brake'); bindTouch('bLegs', 'legs'); bindTouch('bArms', 'arms'); bindTouch('bJump', 'jump');
@@ -64064,13 +64173,16 @@ const pauseCam = (() => {
 })();
 
 /* ---------- overlays ---------- */
-/* one screen at a time: 'title' | 'pause' | 'settings' | 'end' | null (riding). S.paused is true on pause / settings-from-pause. */
-let screen = null, setBack = 'title';
-const SCREENS = [['title', 'titleScr'], ['pause', 'pauseMenu'], ['settings', 'setScr'], ['end', 'endOv'], ['camp', 'campScr']];
+/* one screen at a time: 'title' | 'pause' | 'settings' | 'controls' | 'end' | null (riding). S.paused is true on pause / settings-from-pause / controls-from-pause.
+   ctlBack = where the Controls page steps back to: 'pause' | 'settings' (which keeps its own setBack). */
+let screen = null, setBack = 'title', ctlBack = 'pause';
+const SCREENS = [['title', 'titleScr'], ['pause', 'pauseMenu'], ['settings', 'setScr'], ['controls', 'ctlScr'], ['end', 'endOv'], ['camp', 'campScr']];
+/* the title flyover keeps running under Settings (and Controls) opened from the title */
+const titleUnder = () => screen === 'title' || ((screen === 'settings' || (screen === 'controls' && ctlBack === 'settings')) && setBack === 'title');
 function setScreen(name) {
   for (const [n, id] of SCREENS) { const el = $(id), on = n === name; if (on && el.hidden) { el.hidden = false; el.classList.remove('enter'); void el.offsetWidth; el.classList.add('enter'); } else if (!on && !el.hidden) el.hidden = true; }
   if (name !== 'end' && document.body.classList.contains('tutEnd')) tutCard(false); /* the results card gets its normal texts back */
-  screen = name; document.body.classList.toggle('scrOn', !!name); document.body.classList.toggle('onTitle', name === 'title' || (name === 'settings' && setBack === 'title'));
+  screen = name; document.body.classList.toggle('scrOn', !!name); document.body.classList.toggle('onTitle', titleUnder());
   if (name === 'pause') pauseCam.enter(); else { pauseCam.leave(); if (pauseAsk) { if (favAsking) favAsk(false, true); else devAsk(false); } } /* the pause card cuts the lens in close on the rider; any other screen (or none) puts the ride lens back */
   sfx.title(document.body.classList.contains('onTitle')); /* title theme */
   pad.clear();
@@ -64090,15 +64202,22 @@ function openPause() { if (!S.running || S.finished || S.camp) return; keys.clea
 let pauseAsk = false; /* the Reset game confirmation is showing inside the pause card */
 let favAsking = false; /* false | 'list' | 'ask': the favorites list, or its 'leave this run?' confirm, shows inside the pause card */
 function closePause() { if (pauseAsk) { if (favAsking) favBack(); else devAsk(false); return; } setScreen(null); S.paused = false; } /* Back / Esc / Start while the confirmation shows only cancel it (the favorites confirm steps back to the list, the list back to the card) */
-function toggleHelp() { if (S.camp) return; if (favEsc()) return; if (screen === 'pause' || (screen === 'settings' && setBack === 'pause')) closePause(); else if (screen === null) openPause(); }
+function toggleHelp() { if (S.camp) return; if (favEsc()) return; if (screen === 'controls') { ctlClose(); return; } /* Esc / H on the Controls page steps back one screen, like pad B */ if (screen === 'pause' || (screen === 'settings' && setBack === 'pause')) closePause(); else if (screen === null) openPause(); }
 function openSettings(from) { setBack = from; syncSettings(); setScreen('settings'); }
 function quitToTitle() { abandonRun(); S.paused = false; S.running = false; resetRun(); if (isTut()) newRun(rollSeed()); /* leaving the tutorial: the title shows a real mountain and Play rides it */ setScreen('title'); }
 $('btnStart').addEventListener('click', () => { if (S.paused) closePause(); else startRiding(); });
 $('btnNew').addEventListener('click', () => newMountain());
 $('bPause').addEventListener('click', () => { if (screen === null) openPause(); else if (screen === 'pause') closePause(); });
-function syncPauseMenu() { favAsk(false, true); favSync(); syncSettings(); $('pmSeed').textContent = seedToCode(S.course.seed) + ' · bails ' + S.bails + ' · ' + fmtTime(S.t); }
+function syncPauseMenu() { favAsk(false, true); favSync(); syncSettings(); devFold(false); $('pmSeed').textContent = seedToCode(S.course.seed) + ' · bails ' + S.bails + ' · ' + fmtTime(S.t); }
 $('pmResume').addEventListener('click', closePause);
 $('pmRestart').addEventListener('click', () => { abandonRun(); closePause(); resetRun(); });
+/* Back to camp: the same bail as R / pad B (unbanked trick points are lost, the rider respawns at the last saved camp) */
+$('pmBack').addEventListener('click', () => { if (!S.running || S.finished || pauseAsk) return; closePause(); retry(); });
+$('pmCtl').addEventListener('click', () => openControls('pause'));
+$('pmSnd').addEventListener('click', () => { sfx.init(); sfx.toggle(); syncSettings(); }); /* the M switch */
+/* the DEV block folds to one row; it opens in place and closes again each time the card opens */
+function devFold(on) { const t = $('pmDevT'), b = $('pmDevB'); if (!t || !b) return; on = !!on; t.setAttribute('aria-expanded', String(on)); b.hidden = !on; }
+if ($('pmDevT')) $('pmDevT').addEventListener('click', () => devFold($('pmDevB').hidden));
 /* ---- favorite mountains: up to FAV_MAX entries {code, date, time, theme} in holdon.favs, newest first. The star on the finish card adds or removes the
    mountain (a full list asks which one to replace); 'Favorites' in the pause card and on the title lists them (code, theme, best time, date): a row rides
    that mountain (the pause card confirms first, it abandons the run), x removes it. time = the finish time when starred, lowered by a better finish later
@@ -64187,6 +64306,175 @@ if (DEV_ON) {
 $('pmHints').addEventListener('click', () => { pad.showHints(); toast('Touch hints will show on the next ride'); });
 $('btnSettings').addEventListener('click', () => openSettings('title'));
 $('setClose').addEventListener('click', () => setScreen(setBack));
+/* ---- Controls page (#ctlScr): where every button is, for keyboard, controller and touch. Reached from the pause card (Controls) and from Settings (the row at
+   the top; the title reaches it through Settings). It opens on the device in use (inDev) and steps back to where it came from (ctlBack). Every word on it, on the
+   new pause buttons and the Settings row comes from CTL: [short label, long label, long sub text]; CTL_LONG picks the wording (short is the default). The
+   bindings drawn here are the ones readInput, the ride keydown and gpMenu use (CTL_KEYS / CTL_PAD list them): change them together. ---- */
+const CTL_LONG = false; /* false = short labels only; true = the longer wording with one line of help under each label */
+const CTL_NEW = true; /* a small NEW badge on Back to camp and Controls in the pause card */
+const RESTART_ARM = 1.5; /* s: Enter restarts a run in progress only when pressed again within this time */
+const CTL = {
+  title: ['Controls'], tabKey: ['Keyboard'], tabPad: ['Controller'], tabTouch: ['Touch'], tut: ['Tutorial', 'Try the tutorial'], tutAsk: ['Leave run?', 'Leave this run?'],
+  back: ['Back to camp'], restart: ['Restart', 'Restart run'], ctl: ['Controls'], quit: ['Quit', 'Quit to title'], dev: ['DEV', 'DEV &middot; Reset game, Haptics, FPS'], nb: ['NEW'],
+  rsAsk: ['Press Enter again to restart'], show: ['Show'], setRow: ['Controls', 'Controls', 'Where every button is, for keyboard, controller and touch'],
+  hintKey: ['', '<span class="kk"><kbd>Esc</kbd> resume</span><span class="kk"><kbd>&#8593;</kbd><kbd>&#8595;</kbd> move</span><span class="kk"><kbd>Enter</kbd> select</span>'],
+  hintPad: ['', '<span class="pk">{A} select</span><span class="pk">{B} or {start} resume</span><span class="pk">{dpad4} move</span>'],
+  /* keyboard */
+  k_pedal: ['Pedal', 'Pedal', 'Hold to pedal, release to coast.'], k_hop: ['Hop: hold, release', 'Hop', 'Hold to load, release to pop.'], k_flip: ['Flip', 'Flip', 'Both off in the air, then steer A / D.'],
+  k_brake: ['Brake', 'Brake', 'Hold to slow down or stop.'], k_legs: ['Let go: feet', 'Legs off', 'In the air: feet off the pedals.'], k_camp: ['Camp: tap / hold', 'Camp', 'Tap: save. Hold: sit by the fire.'],
+  k_steer: ['Steer', 'Steer', 'In the air it turns the bike too.'], k_arms: ['Let go: hands', 'Arms off', 'In the air: hands off the bars.'], k_back: ['Back to camp', 'Back to camp', 'Respawn at your last camp.'],
+  k_foot: ['<span><kbd>V</kbd> steering</span><span><kbd>T</kbd> let go mode</span><span><kbd>G</kbd> camera</span><span><kbd>Enter</kbd> restart</span>',
+    '<span><kbd>V</kbd> steering: screen / bike</span><span><kbd>T</kbd> let go: hold / toggle</span><span><kbd>G</kbd> camera: Tele / Side / Classic</span><span><kbd>Enter</kbd> twice restarts the run</span>'],
+  k_mouse: ['Mouse: menus', 'Mouse: menus only'], k_capT: ['mode', 'let go|mode'], k_capV: ['mode', 'steer|mode'], k_capSp: ['hop', 'hop: hold, release'],
+  k_lgRide: ['Ride'], k_lgLet: ['Let go'], k_lgCamp: ['Camp &amp; camera'], k_lgMenu: ['Menu', 'Menu &amp; modes'],
+  /* controller */
+  p_LT: ['Brake', 'Brake', 'Squeeze to slow down or stop.'], p_LB: ['Let go: feet', 'Legs off', 'Hold in the air: feet off the pedals.'], p_LS: ['Steer', 'Steer', 'Lean into turns. In the air it turns the bike.'],
+  p_DP: ['Menus', 'Menus', 'Move around menus (the stick works too).'], p_ST: ['Pause', 'Pause', 'Pause and resume the ride.'], p_RT: ['Pedal', 'Pedal', 'Squeeze to pedal, release to coast.'],
+  p_RB: ['Let go: hands', 'Arms off', 'Hold in the air: hands off the bars.'], p_Y: ['Camp: tap / hold', 'Camp', 'Tap: save here. Hold: sit down by the fire.'], p_B: ['Back to camp', 'Back to camp', 'Respawn at the last camp you saved.'],
+  p_A: ['Hop', 'Hop', 'Hold to load, release to pop.'], p_RS: ['Camera', 'Camera', 'Nudge the view left or right.'],
+  p_flip: ['<span><b>Flip</b> {LB} + {RB}, then {lstick}</span>', '<span><b>Flip</b> hold {LB} + {RB} in the air, then push {lstick} to spin. Let go in time to grab back.</span>'],
+  p_menu: ['<span>Menus: {A} select &middot; {B} back</span>', '<span>In menus: {A} select &middot; {B} back &middot; {start} resume &middot; {LB}{RB} switch tabs</span><span>PlayStation pads: &#10005; = A, &#9675; = B</span>'],
+  /* touch */
+  t_pause: ['Pause', 'Pause', 'Menu, settings, back to camp.'], t_stick: ['Steer: drag', 'Steer', 'Drag anywhere on your steering half.'], t_legs: ['Let go: feet', 'LEGS', 'Hold in the air: feet off.'],
+  t_camp: ['Camp: tap / hold', 'Camp', 'Near a camp: tap = save, hold = sit.'], t_arms: ['Let go: hands', 'ARMS', 'Hold in the air: hands off.'], t_pedal: ['Pedal', 'PEDAL', 'Your pedal thumb. Gestures below.'],
+  t_bSteer: ['Steer', 'Steer left / right', 'Hold. In the air it turns the bike.'], t_bLet: ['Let go: feet / hands', 'LEGS / ARMS', 'Hold in the air: feet / hands off.'], t_bHop: ['Hop', 'HOP', 'Hold to load, let go to pop.'],
+  t_bGas: ['Pedal / brake', 'GAS / BRK', 'Hold to pedal / to brake.'],
+  t_gh: ['', 'Pedal pad gestures'],
+  g_hold: ['Hold|pedal'], g_rel: ['Let go|brake', 'Let go|soft brake'], g_tap: ['Tap|coast', 'Tap|coast 1.5 s'], g_up: ['Swipe &#8593;|hop'], g_dn: ['Swipe &#8595;|hard brake', 'Swipe &#8595;|hold: hard brake'],
+  g_latch: ['Tap|pedal on / off'], g_auto: ['Auto|pedals for you'],
+  t_flipP: ['<b>Flip</b> LEGS + ARMS, then drag', '<b>Flip</b> hold LEGS + ARMS in the air, then drag the stick to spin. Let go in time to grab back.'],
+  t_flipB: ['<b>Flip</b> LEGS + ARMS, then &#9664; &#9654;', '<b>Flip</b> hold LEGS + ARMS in the air, then hold &#9664; or &#9654; to spin. Let go in time to grab back.'],
+  layShow: ['Layout', 'Show layout'], layPad: ['Pedal pad'], layBtns: ['Buttons'], layLeft: ['', 'Left-handed? Settings &gt; Touch &gt; Hand mirrors all of this.'],
+};
+/* the bindings the page draws (checked against readInput / the key handlers by the test suite) */
+const CTL_KEYS = { pedal: ['w', 'arrowup'], brake: ['s', 'arrowdown'], steer: ['a', 'd', 'arrowleft', 'arrowright'], hop: [' ', 'l'], legs: ['q', 'j'], arms: ['e', 'k'], cam: ['z', 'x'], camp: ['c', 'y'], back: ['r'],
+  pause: ['escape', 'h'], letMode: ['t'], steerMode: ['v'], view: ['g'], sound: ['m'], vol: ['[', ']'], newMtn: ['n'], restart: ['enter'] };
+const CTL_PAD = { pedal: 7, brake: 6, legs: 4, arms: 5, hop: 0, back: 1, camp: 3, pause: 9, steer: 'axis 0', cam: 'axis 2' };
+const ctlT = (k) => { const e = CTL[k]; return e ? (CTL_LONG ? e[1] || e[0] : e[0]) : ''; };
+const ctlS = (k) => { const e = CTL[k]; return e && CTL_LONG ? e[2] || '' : ''; };
+const ctlG = (s, sz) => s.replace(/\{(\w+)\}/g, (m, g) => padGlyph(g, sz || 16)); /* {A} {LB} {lstick} ... -> the pad glyphs */
+for (const el of document.querySelectorAll('[data-ctl]')) { const k = el.dataset.ctl; if (CTL[k]) el.innerHTML = ctlT(k) + (CTL_NEW && el.classList.contains('new') ? `<span class="nb">${ctlT('nb')}</span>` : ''); }
+{ const h = ctlT('hintKey') + ctlG(ctlT('hintPad')); if (h) { $('pmHint').innerHTML = h; $('pmHint').hidden = false; }
+  if (ctlS('setRow')) { $('setCtlT').innerHTML = ctlT('setRow') + `<small>${ctlS('setRow')}</small>`; $('setCtlM').innerHTML = '<kbd>W</kbd>' + padGlyph('RT', 18); } }
+let ctlDev = 'key', ctlLay = 'pp', ctlTutArm = 0;
+const ctlRow = (k) => { const s = ctlS(k); return `<b>${ctlT(k)}</b>${s ? `<small>${s}</small>` : ''}`; };
+/* keyboard: a key map with every used key lit by group; [label, column, row, width, group, cap] in 33 px units */
+function ctlKeyboard() {
+  const U = 33, G = 3, cT = ctlT('k_capT'), cV = ctlT('k_capV');
+  const K = [['Esc', 0, 0, 1.3, 'sys', 'pause'],
+    ['Q', 1, 1, 1, 'trick', 'feet'], ['W', 2, 1, 1, 'ride', 'pedal'], ['E', 3, 1, 1, 'trick', 'hands'], ['R', 4, 1, 1, 'camp', 'back'], ['T', 5, 1, 1, 'sys', cT], ['Y', 6, 1, 1, 'camp', 'camp'],
+    ['U', 7, 1, 1, 'off'], ['I', 8, 1, 1, 'off'], ['O', 9, 1, 1, 'off'], ['P', 10, 1, 1, 'off'], ['[', 11, 1, 1, 'sys', 'vol -'], [']', 12, 1, 1, 'sys', 'vol +'],
+    ['A', 1.3, 2, 1, 'ride', 'steer'], ['S', 2.3, 2, 1, 'ride', 'brake'], ['D', 3.3, 2, 1, 'ride', 'steer'], ['F', 4.3, 2, 1, 'off'], ['G', 5.3, 2, 1, 'camp', 'view'], ['H', 6.3, 2, 1, 'sys', 'pause'],
+    ['J', 7.3, 2, 1, 'trick', 'feet'], ['K', 8.3, 2, 1, 'trick', 'hands'], ['L', 9.3, 2, 1, 'ride', 'hop'], [';', 10.3, 2, 1, 'off'], ['\'', 11.3, 2, 1, 'off'], ['Enter', 12.3, 2, 1.7, 'sys', 'restart'],
+    ['Z', 1.8, 3, 1, 'camp', 'cam &#9664;'], ['X', 2.8, 3, 1, 'camp', 'cam &#9654;'], ['C', 3.8, 3, 1, 'camp', 'camp'], ['V', 4.8, 3, 1, 'sys', cV], ['B', 5.8, 3, 1, 'off'], ['N', 6.8, 3, 1, 'sys', 'new'],
+    ['M', 7.8, 3, 1, 'sys', 'sound'], [',', 8.8, 3, 1, 'off'], ['.', 9.8, 3, 1, 'off'], ['/', 10.8, 3, 1, 'off'],
+    ['Space', 3.6, 4, 6.2, 'ride', ctlT('k_capSp')],
+    ['&#8593;', 15.4, 3, 1, 'ride', 'pedal'], ['&#8592;', 14.4, 4, 1, 'ride', 'steer'], ['&#8595;', 15.4, 4, 1, 'ride', 'brake'], ['&#8594;', 16.4, 4, 1, 'ride', 'steer']];
+  let w = 0, h = '';
+  for (const [lab, c, r, kw, g, cap] of K) { const two = !!cap && cap.includes('|'); w = Math.max(w, (c + kw) * U);
+    h += `<div class="k c-${g}${two ? ' two' : ''}" style="left:${c * U}px;top:${r * U}px;width:${kw * U - G}px;height:${U - G}px"><b>${lab}</b>${cap ? `<span>${cap.split('|').join('<br>')}</span>` : ''}</div>`; }
+  h += `<div class="lgd" style="position:absolute;left:${1.8 * U}px;top:${U * 0.5 - 7}px;right:0"><span><i class="c-ride"></i>${ctlT('k_lgRide')}</span><span><i class="c-trick"></i>${ctlT('k_lgLet')}</span><span><i class="c-camp"></i>${ctlT('k_lgCamp')}</span><span><i class="c-sys"></i>${ctlT('k_lgMenu')}</span><span style="margin-left:auto;opacity:.75">${ctlT('k_mouse')}</span></div>`;
+  const kb = (g, ...ks) => ks.map(k => `<kbd class="c-${g}">${k}</kbd>`).join('');
+  const rows = [[kb('ride', 'W', '&#8593;'), 'k_pedal'], [kb('ride', 'Space'), 'k_hop'], [kb('trick', 'Q', 'E') + '<i>+</i>' + kb('ride', 'A', 'D'), 'k_flip'],
+    [kb('ride', 'S', '&#8595;'), 'k_brake'], [kb('trick', 'Q', 'J'), 'k_legs'], [kb('camp', 'C'), 'k_camp'],
+    [kb('ride', 'A', 'D'), 'k_steer'], [kb('trick', 'E', 'K'), 'k_arms'], [kb('camp', 'R'), 'k_back']];
+  return `<div class="kb" style="width:${w}px;height:${5 * U}px">${h}</div><div class="ex">${rows.map(([ch, k]) => `<div><span class="ch">${ch}</span><span>${ctlRow(k)}</span></div>`).join('')}</div><div class="foot">${ctlT('k_foot')}</div>`;
+}
+/* controller: a pad drawing with leader lines to the labelled callouts */
+const CTL_PADART = `<svg viewBox="0 0 260 176" aria-hidden="true"><defs><linearGradient id="ctlPb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a2d24"/><stop offset="1" stop-color="#1c1510"/></linearGradient></defs>
+<rect id="cgLT" x="38" y="6" width="44" height="18" rx="7" fill="#15100c" stroke="#d9c7aa" stroke-width="1.4"/><text x="60" y="19" text-anchor="middle" font-family="Rubik, sans-serif" font-weight="700" font-size="10" fill="#efe3cc">LT</text>
+<rect id="cgRT" x="178" y="6" width="44" height="18" rx="7" fill="#15100c" stroke="#d9c7aa" stroke-width="1.4"/><text x="200" y="19" text-anchor="middle" font-family="Rubik, sans-serif" font-weight="700" font-size="10" fill="#efe3cc">RT</text>
+<rect id="cgLB" x="30" y="28" width="62" height="14" rx="7" fill="#15100c" stroke="#ffb24a" stroke-width="1.4"/><text x="61" y="38.5" text-anchor="middle" font-family="Rubik, sans-serif" font-weight="700" font-size="9" fill="#ffb24a">LB</text>
+<rect id="cgRB" x="168" y="28" width="62" height="14" rx="7" fill="#15100c" stroke="#ffb24a" stroke-width="1.4"/><text x="199" y="38.5" text-anchor="middle" font-family="Rubik, sans-serif" font-weight="700" font-size="9" fill="#ffb24a">RB</text>
+<path d="M58 44 C30 44 18 60 12 92 C4 132 8 168 30 170 C48 172 58 150 72 132 C82 120 96 116 130 116 C164 116 178 120 188 132 C202 150 212 172 230 170 C252 168 256 132 248 92 C242 60 230 44 202 44 Z" fill="url(#ctlPb)" stroke="rgba(253,248,234,.28)" stroke-width="1.4"/>
+<g id="cgLS"><circle cx="64" cy="76" r="19" fill="#120d0a" stroke="rgba(253,248,234,.35)"/><circle cx="64" cy="76" r="12" fill="#d9c7aa"/><text x="64" y="79.5" text-anchor="middle" font-family="Rubik, sans-serif" font-weight="700" font-size="9" fill="#15100c">L</text></g>
+<g id="cgDP" transform="translate(96 112)"><path d="M-5 -16h10v11h11v10h-11v11h-10v-11h-11v-10h11z" fill="#120d0a" stroke="rgba(253,248,234,.35)"/></g>
+<circle cx="112" cy="70" r="6" fill="#120d0a" stroke="rgba(253,248,234,.28)"/>
+<g id="cgST"><circle cx="148" cy="70" r="7" fill="#120d0a" stroke="#d9c7aa"/><path d="M144 67.5h8M144 70h8M144 72.5h8" stroke="#efe3cc" stroke-width="1.2" stroke-linecap="round"/></g>
+<g id="cgRS"><circle cx="164" cy="112" r="16" fill="#120d0a" stroke="rgba(253,248,234,.35)"/><circle cx="164" cy="112" r="10" fill="#d9c7aa"/><text x="164" y="115.5" text-anchor="middle" font-family="Rubik, sans-serif" font-weight="700" font-size="9" fill="#15100c">R</text></g>
+<g id="cgY"><circle cx="200" cy="58" r="10" fill="#15100c" stroke="#efc24a" stroke-width="1.6"/><text x="200" y="62" text-anchor="middle" font-family="Rubik, sans-serif" font-weight="700" font-size="11" fill="#efc24a">Y</text></g>
+<circle cx="180" cy="77" r="10" fill="#15100c" stroke="rgba(90,160,238,.45)" stroke-width="1.4"/><text x="180" y="81" text-anchor="middle" font-family="Rubik, sans-serif" font-weight="700" font-size="11" fill="rgba(90,160,238,.5)">X</text>
+<g id="cgB"><circle cx="220" cy="77" r="10" fill="#15100c" stroke="#ef6b5f" stroke-width="1.6"/><text x="220" y="81" text-anchor="middle" font-family="Rubik, sans-serif" font-weight="700" font-size="11" fill="#ef6b5f">B</text></g>
+<g id="cgA"><circle cx="200" cy="96" r="10" fill="#15100c" stroke="#6fcf86" stroke-width="1.6"/><text x="200" y="100" text-anchor="middle" font-family="Rubik, sans-serif" font-weight="700" font-size="11" fill="#6fcf86">A</text></g></svg>`;
+const ctlCo = (side, list, dot) => `<div class="co ${side}">${list.map(([to, d, k, un]) => `<div class="cl" data-to="${to}"${un ? ' data-under="1"' : ''}><span class="dot">${dot(d)}</span><span class="tx">${ctlRow(k)}</span></div>`).join('')}</div>`;
+function ctlPad() {
+  const g = (d) => padGlyph(d, 20);
+  return `<div class="dia">${ctlCo('l', [['cgLT', 'LT', 'p_LT'], ['cgLB', 'LB', 'p_LB'], ['cgLS', 'lstick', 'p_LS'], ['cgDP', 'dpad4', 'p_DP'], ['cgST', 'start', 'p_ST']], g)}<div class="art padArt">${CTL_PADART}</div>`
+    + `${ctlCo('r', [['cgRT', 'RT', 'p_RT'], ['cgRB', 'RB', 'p_RB'], ['cgY', 'Y', 'p_Y'], ['cgB', 'B', 'p_B'], ['cgA', 'A', 'p_A'], ['cgRS', 'rstick', 'p_RS']], g)}</div>`
+    + `<div class="foot big">${ctlG(ctlT('p_flip'))}</div><div class="foot big">${ctlG(ctlT('p_menu'))}</div>`;
+}
+/* touch: a small phone screen with the real control places (the touch CSS sizes at --s), mirrored for a left hand; the pedal pad gestures follow Settings > Touch > Pedal */
+const CTL_GI = { hold: '<svg viewBox="0 0 26 26"><circle cx="13" cy="13" r="10" fill="none" stroke="#ffb24a" stroke-width="2"/><circle cx="13" cy="13" r="5" fill="#ffb24a"/></svg>',
+  rel: '<svg viewBox="0 0 26 26"><circle cx="13" cy="13" r="10" fill="none" stroke="#ffd166" stroke-width="2"/><path d="M13 9v8M9.5 13.5L13 17l3.5-3.5" stroke="#ffd166" stroke-width="2" fill="none" stroke-linecap="round" transform="rotate(180 13 13)"/></svg>',
+  tap: '<svg viewBox="0 0 26 26"><circle cx="13" cy="13" r="10" fill="none" stroke="#fdf8ea" stroke-width="2" stroke-dasharray="3 2.5"/><circle cx="13" cy="13" r="2.6" fill="#fdf8ea"/></svg>',
+  up: '<svg viewBox="0 0 26 26"><circle cx="13" cy="17" r="7" fill="none" stroke="#ffb24a" stroke-width="2"/><path d="M8 8l5-5 5 5M8 12l5-5 5 5" stroke="#ffe9c0" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  dn: '<svg viewBox="0 0 26 26"><circle cx="13" cy="9" r="7" fill="rgba(255,180,84,.9)" stroke="#ffe0b0" stroke-width="1.5"/><path d="M8 18l5 5 5-5" stroke="#ffd166" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>' };
+function ctlTouch() {
+  const lh = UIO.hand === 'left', A = lh ? 'left' : 'right', Z = lh ? 'right' : 'left', at = (side, px) => `${side}:calc(${px}px * var(--s))`;
+  const phone = `<div class="phone${ctlLay === 'btns' ? ' btns' : ''}" id="cxPh">`
+    + `<div class="mZ pp" style="${Z}:0;border-${A}-width:1px"></div><div class="mP" id="cxP"><s></s><s></s></div>`
+    + `<div class="mS pp" id="cxS" style="${Z}:calc(22% - 56px * var(--s))"></div>`
+    + `<div class="mL pp" id="cxLg" style="${at(A, 36 + 120 + 68 + 20)}">LEGS</div><div class="mL pp" id="cxAr" style="${at(A, 36 + 120 + 10)}">ARMS</div><div class="mPd pp" id="cxPd" style="${at(A, 36)}">PEDAL</div>`
+    + `<div class="mC" id="cxC">CAMP</div>`
+    + `<div class="bt" id="cxbL" style="${at('left', 16)}">&#9664;</div><div class="bt" style="${at('left', 86)}">&#9654;</div>`
+    + `<div class="bt" style="${at('right', 16 + 4 * 70)}">LEGS</div><div class="bt" id="cxbA" style="${at('right', 16 + 3 * 70)}">ARMS</div><div class="bt" style="${at('right', 16 + 2 * 70)}">BRK</div>`
+    + `<div class="bt" id="cxbH" style="${at('right', 16 + 70)}">HOP</div><div class="bt" id="cxbG" style="${at('right', 16)}">GAS</div></div>`;
+  const dot = (d) => d;
+  let L, R, below = '';
+  if (ctlLay === 'btns') { L = [['cxP', 'II', 't_pause'], ['cxbL', '&#9664;', 't_bSteer']]; R = [['cxC', '&#9650;', 't_camp'], ['cxbA', 'L', 't_bLet'], ['cxbH', 'H', 't_bHop'], ['cxbG', 'G', 't_bGas']];
+    below = `<div class="foot"><span>${ctlT('t_flipB')}</span></div>`; }
+  else {
+    const steer = ['cxS', '&#9680;', 't_stick'], legs = ['cxLg', 'L', 't_legs', true], arms = ['cxAr', 'A', 't_arms'], ped = ['cxPd', 'P', 't_pedal'];
+    if (lh) { L = [['cxP', 'II', 't_pause'], arms, ped]; R = [['cxC', '&#9650;', 't_camp'], steer, legs]; } else { L = [['cxP', 'II', 't_pause'], steer, legs]; R = [['cxC', '&#9650;', 't_camp'], arms, ped]; }
+    const G = UIO.pedal === 'latch' ? [['tap', 'g_latch'], ['hold', 'g_hold'], ['up', 'g_up'], ['dn', 'g_dn']] : UIO.pedal === 'auto' ? [['hold', 'g_auto'], ['up', 'g_up'], ['dn', 'g_dn']]
+      : [['hold', 'g_hold'], ['rel', 'g_rel'], ['tap', 'g_tap'], ['up', 'g_up'], ['dn', 'g_dn']];
+    below = (ctlT('t_gh') ? `<div class="gh">${ctlT('t_gh')}</div>` : '') + `<div class="ges">${G.map(([i, k]) => { const [a, b] = ctlT(k).split('|'); return `<div>${CTL_GI[i]}<span>${CTL_LONG ? `<b>${a}</b><small>${b}</small>` : `<b>${a}: <span>${b}</span></b>`}</span></div>`; }).join('')}</div>`
+      + `<div class="foot"><span>${ctlT('t_flipP')}</span></div>`;
+  }
+  return `<div class="dia ph">${ctlCo('l', L, dot)}<div class="art">${phone}</div>${ctlCo('r', R, dot)}</div>${below}`;
+}
+/* leader lines: from each callout's dot to its target (or under the phone and up to it), in the diagram's own (unzoomed) units */
+function ctlLeads() {
+  const dia = screen === 'controls' ? $('ctlBody').querySelector('.dia') : null; if (!dia) return; const old = dia.querySelector('svg.leads'); if (old) old.remove();
+  const box = dia.getBoundingClientRect(), W = dia.offsetWidth, H = dia.offsetHeight; if (!W || !box.width) return; const k = box.width / W;
+  const X = (v) => ((v - box.left) / k).toFixed(1), Y = (v) => ((v - box.top) / k).toFixed(1), ph = dia.querySelector('.phone'); let s = '';
+  for (const c of dia.querySelectorAll('.cl[data-to]')) { const t = $(c.dataset.to); if (!t) continue;
+    const d = (c.querySelector('.dot') || c).getBoundingClientRect(), r = t.getBoundingClientRect(), left = c.parentElement.classList.contains('l');
+    const x1 = left ? d.right + 3 : d.left - 3, y1 = (d.top + d.bottom) / 2, mx = x1 + (left ? 14 : -14) * k, cx = (r.left + r.right) / 2;
+    let p, e;
+    if (c.dataset.under && ph) { const yb = ph.getBoundingClientRect().bottom + 6 * k; p = `M${X(x1)} ${Y(y1)}H${X(mx)}V${Y(yb)}H${X(cx)}V${Y(r.bottom + 1)}`; e = [X(cx), Y(r.bottom + 1)]; }
+    else { const ex = left ? r.left - 1 : r.right + 1, cy = (r.top + r.bottom) / 2; p = `M${X(x1)} ${Y(y1)}H${X(mx)}L${X(ex)} ${Y(cy)}`; e = [X(ex), Y(cy)]; } /* the line stops at the near edge of its target so the label on it stays readable */
+    s += `<path d="${p}" fill="none" stroke="rgba(255,178,74,.75)" stroke-width="1.2"/><circle cx="${e[0]}" cy="${e[1]}" r="2.4" fill="#ffb24a" stroke="#15100c" stroke-width="1"/>`; }
+  dia.insertAdjacentHTML('beforeend', `<svg class="leads" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" aria-hidden="true">${s}</svg>`);
+}
+const ctlLater = () => requestAnimationFrame(() => requestAnimationFrame(ctlLeads)); /* after layout (and the web fonts) settle */
+function ctlTab(v) {
+  ctlDev = v === 'pad' || v === 'touch' ? v : 'key'; for (const b of $('ctlTabs').children) b.setAttribute('aria-pressed', String(b.dataset.v === ctlDev));
+  $('ctlBody').innerHTML = ctlDev === 'pad' ? ctlPad() : ctlDev === 'touch' ? ctlTouch() : ctlKeyboard();
+  $('ctlLayRow').hidden = ctlDev !== 'touch'; for (const b of $('ctlLay').children) b.setAttribute('aria-pressed', String(b.dataset.v === ctlLay));
+  ctlLater();
+}
+const ctlStep = (d) => { const o = ['key', 'pad', 'touch'], i = Math.max(0, Math.min(2, o.indexOf(ctlDev) + d)); if (o[i] !== ctlDev) ctlTab(o[i]); };
+const ctlTutSet = (on) => { ctlTutArm = on ? performance.now() : 0; $('ctlTut').innerHTML = ctlT(on ? 'tutAsk' : 'tut'); };
+function openControls(from) {
+  ctlBack = from === 'settings' ? 'settings' : 'pause'; ctlTutSet(false);
+  const d = inDev.dev; ctlLay = ZONES_OK && !zonesOn ? 'btns' : 'pp'; /* opens on the device in use, and on the touch layout in use */
+  setScreen('controls'); ctlTab(d === 'pad' ? 'pad' : d === 'touch' || (d === 'ptr' && ZONES_OK) ? 'touch' : 'key');
+}
+function ctlClose() { if (screen !== 'controls') return; if (ctlBack === 'settings') { syncSettings(); setScreen('settings'); } else setScreen('pause'); }
+$('ctlTabs').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) ctlTab(b.dataset.v); });
+$('ctlLay').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b || b.dataset.v === ctlLay) return; ctlLay = b.dataset.v; if (ctlDev === 'touch') ctlTab('touch'); }); /* a preview only: the real layout stays a Settings choice */
+$('ctlClose').addEventListener('click', ctlClose);
+$('setCtl').addEventListener('click', () => openControls('settings'));
+/* Try the tutorial: from a run in progress the first press asks (the button reads 'Leave run?' for 3 s), the second leaves the run */
+$('ctlTut').addEventListener('click', () => { const inRun = S.running && !S.finished;
+  if (inRun && !(ctlTutArm && performance.now() - ctlTutArm < 3000)) { ctlTutSet(true); setTimeout(() => { if (ctlTutArm && performance.now() - ctlTutArm >= 2900) ctlTutSet(false); }, 3000); return; }
+  ctlTutSet(false); if (inRun) abandonRun(); newRun(TUT_SEED); startRiding(); });
+addEventListener('resize', () => { if (screen === 'controls') ctlLater(); });
+{ const L = $('ctlLayL'); if (L) L.innerHTML = ctlT('layLeft'); for (const el of document.querySelectorAll('#ctlScr .gpk')) el.innerHTML = padGlyph(el.dataset.g, 16); }
+/* Enter mid-ride: the first press only asks (a toast), a second one within RESTART_ARM s restarts; a run that has not started yet restarts at once */
+let restartAt = -1e9;
+function restartKey() { const t = performance.now(); if (S.t <= 0 || t - restartAt < RESTART_ARM * 1000) { restartAt = -1e9; $('toast').classList.remove('on'); resetRun(); return; } restartAt = t; toast(ctlT('rsAsk')); }
 /* ---- Settings > Progress: one base64 code of every 'holdon.*' key (JSON {v:1, keys, c}, c = FNV-1a checksum of the keys JSON). Load validates version, checksum, key prefix and
    size, asks to confirm, writes the keys and reloads. Nothing outside holdon.* is read or written. ---- */
 const PROG_CAP = 200000;
@@ -64417,7 +64705,7 @@ function syncSettings() {
   const vals = { steer: steerScreen ? 'screen' : 'bike', cam: String(camPreset), mode: S.mode, layout: zonesOn ? 'zones' : 'buttons', hand: UIO.hand, pedal: UIO.pedal, size: String(UIO.size), sens: sensShown(), quality: Q.mode, uiz: uizK() ? String(uizK()) : 'auto', meal: bellyOff() ? 'off' : 'xp', instr: instrMode(), trains: TRAINS.mode };
   $('bFps').setAttribute('aria-checked', String(!!Q.showFps)); if ($('pmFps')) $('pmFps').setAttribute('aria-checked', String(!!Q.showFps)); if ($('pmHaptic')) $('pmHaptic').setAttribute('aria-checked', String(!!UIO.haptics)); $('qNow').textContent = Q.mode === 'auto' ? 'auto · ' + Q_LEVELS[Q.level].name.toLowerCase() : Q_LEVELS[Q.level].name.toLowerCase();
   for (const g of document.querySelectorAll('#setScr .seg')) for (const b of g.children) b.setAttribute('aria-pressed', String(b.dataset.v === vals[g.dataset.set]));
-  const snd = !sfx.isMuted(); $('bMute').setAttribute('aria-checked', String(snd)); $('mute').setAttribute('aria-checked', String(snd));
+  const snd = !sfx.isMuted(); $('bMute').setAttribute('aria-checked', String(snd)); $('mute').setAttribute('aria-checked', String(snd)); $('pmSnd').setAttribute('aria-checked', String(snd));
   $('bBlood').setAttribute('aria-checked', String(bloodOn)); $('bHaptic').setAttribute('aria-checked', String(!!UIO.haptics)); $('bClassic').setAttribute('aria-checked', String(!!sfx.classic())); $('bMiniAuto').setAttribute('aria-checked', String(miniAutoOn()));
 }
 /* ---- results: staged count-ups, best time per mountain, share code ---- */
@@ -64447,7 +64735,7 @@ function tutCard(on) {
   const h = $('endOv').querySelector('h1'), a = $('btnAgain'), n = $('btnNew2'), d = $('eDelta');
   if (!tutH1) tutH1 = h.innerHTML;
   document.body.classList.toggle('tutEnd', on);
-  if (on) { tut.finish(); tutNext = rollSeed(); h.innerHTML = 'You’re<br><span class="gtx">ready</span>'; d.className = 'first'; d.textContent = 'TUTORIAL DONE';
+  if (on) { tut.finish(); tutNext = rollSeed(); document.body.classList.toggle('tutOld', !TUT_TRICK_NOTE); if (TUT_TRICK_NOTE) $('eTutTrick').innerHTML = tut.hint(); h.innerHTML = 'You’re<br><span class="gtx">ready</span>'; d.className = 'first'; d.textContent = 'TUTORIAL DONE';
     a.className = 'mb sm'; a.textContent = 'Replay tutorial'; n.className = 'mb pri'; n.innerHTML = 'Ride a real mountain<small>' + seedToCode(tutNext) + '</small>'; }
   else { tutNext = null; h.innerHTML = tutH1; a.className = 'mb pri'; a.innerHTML = '&#9654; Ride again'; n.className = 'mb sm'; n.textContent = 'New mountain'; }
 }
@@ -64479,7 +64767,7 @@ let prevG = true, prevCrash = false, prevBerm = false, airAcc = 0;
 function uiTick(dt) {
   if (S.finished && screen !== 'end' && !$('endOv').hidden) openResults();
   if (screen === 'end') stepResults();
-  if (screen === 'title' || (screen === 'settings' && setBack === 'title')) { refreshTitle(); titleCam(dt); titleSky(dt, true); } else { titleAway = true; titleSky(dt, false); } /* the next flyover frame glides out of the ride camera */
+  if (titleUnder()) { refreshTitle(); titleCam(dt); titleSky(dt, true); } else { titleAway = true; titleSky(dt, false); } /* the next flyover frame glides out of the ride camera */
   if (S.running && !S.paused) {
     if (!S.grounded) airAcc += dt;
     if (S.grounded && !prevG && !S.crashed && airAcc > 0.25) haptic(Math.round(15 + 25 * Math.min(1, airAcc / 1.2))); /* landing, scaled by airtime */
@@ -64520,6 +64808,7 @@ const devWord = (k) => { const pd = inDev.pad;
     case 'cont': return pd ? `Press ${padA()} to continue` : 'Tap to continue'; } return ''; };
 /* the static prompts follow the active device (the mini games and the overlays subscribe in their own code) */
 inDev.on(() => { const a = $('tapGo'), b = $('eSkip'); if (a) a.textContent = devWord('start'); if (b) b.textContent = devWord('skip'); });
+inDev.on(() => { if (TUT_TRICK_NOTE && document.body.classList.contains('tutEnd')) $('eTutTrick').innerHTML = tut.hint(); }); /* the end card's trick line follows the device */
 /* PAD_HINTS: 1 = while a gamepad is the active input, keyboard letters on screen (.kk: the HUD's LEGS Q / ARMS E, the settings shortcut keys) hide and the HUD
    limb readout shows the pad's LB / RB glyphs instead (.pk); a key press or a real mouse move brings the letters back. Pure CSS on body[data-dev], no per-frame work. 0 = letters always */
 const PAD_HINTS = 1;
@@ -64574,13 +64863,14 @@ const gpMenu = (() => {
     const was = screen; el.click(); if (screen !== was) swallowUntil = true; };
   const back = () => { const was = screen; show(true);
     if (screen === 'settings') setScreen(setBack);
+    else if (screen === 'controls') ctlClose();
     else if ((screen === 'title' || screen === 'end') && favEsc()) { /* the favorites card / replace chooser closed */ }
     else if (screen === 'title') { const r = $('codeRow'); if (!r.hidden) { r.hidden = true; $('codeIn').blur(); if (cur === $('codeIn') || cur === $('codeGo')) ring($('btnCode')); } }
     else if (screen === 'pause') closePause();
     else if (screen === 'camp') campUI.back(); /* B leaves a running mini game, else leaves camp */
     if (screen !== was) swallowUntil = true; };
-  const start = () => { const was = screen; if (screen === 'camp') { leaveCamp(); swallowUntil = true; return; } if (screen === 'pause') closePause(); else if (screen === 'settings' && setBack === 'pause') closePause(); else if (screen === 'title' || screen === 'end') $(screen === 'end' ? 'btnAgain' : 'btnStart').click(); if (screen !== was) swallowUntil = true; };
-  const ACT = { 12: (r) => move(0, -1, r), 13: (r) => move(0, 1, r), 14: (r) => move(-1, 0, r), 15: (r) => move(1, 0, r), 0: confirm, 1: back, 9: start, 4: () => { if (screen === 'camp') { show(true); campUI.tabStep(-1); } }, 5: () => { if (screen === 'camp') { show(true); campUI.tabStep(1); } } }; /* LB / RB = camp tabs */
+  const start = () => { const was = screen; if (screen === 'camp') { leaveCamp(); swallowUntil = true; return; } if (screen === 'pause') closePause(); else if ((screen === 'settings' || (screen === 'controls' && ctlBack === 'settings')) && setBack === 'pause') closePause(); else if (screen === 'controls' && ctlBack === 'pause') closePause(); else if (screen === 'title' || screen === 'end') $(screen === 'end' ? 'btnAgain' : 'btnStart').click(); if (screen !== was) swallowUntil = true; };
+  const ACT = { 12: (r) => move(0, -1, r), 13: (r) => move(0, 1, r), 14: (r) => move(-1, 0, r), 15: (r) => move(1, 0, r), 0: confirm, 1: back, 9: start, 4: () => { if (screen === 'camp') { show(true); campUI.tabStep(-1); } else if (screen === 'controls') { show(true); ctlStep(-1); } }, 5: () => { if (screen === 'camp') { show(true); campUI.tabStep(1); } else if (screen === 'controls') { show(true); ctlStep(1); } } }; /* LB / RB = camp tabs, Controls device tabs */
   const fire = (k, now, held) => { const H = hold[k]; if (held) { if (!H) { hold[k] = { t: now + REP0, n: 0 }; if (ACT[k]) ACT[k](false); } else if (++H.n >= 3 && now >= H.t && k >= 12) { H.t = now + REP; ACT[k](true); } } else delete hold[k]; }; /* repeat: after REP0 and at least 3 polls (a slow frame never doubles a tap) */
   const poll = () => {
     const pads = getPads(); let gp = null; for (const g of pads) if (g) { gp = g; break; }
@@ -64880,8 +65170,8 @@ const campSky = (() => {
   if (VISTA_EDGE_FIX && VISTA_DEPTH_FIX) mat.extensions = { fragDepth: true };
   mat.onBeforeCompile = (sh) => { Object.assign(sh.uniforms, U);
     if (VISTA_EDGE_FIX && VISTA_DEPTH_FIX) { Object.assign(sh.uniforms, UE, OCEAN, UD, { uSeaT: waterT });
-      sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vSkyW; varying float vLand;').replace('#include <project_vertex>', '#include <project_vertex>\nvSkyW = (modelMatrix * vec4(transformed, 1.0)).xyz - cameraPosition; vLand = step(aMove.z, -0.5);');
-      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec3 vSkyW; varying float vLand; uniform vec4 uEdgeR; uniform float uEdgeY; uniform float uEdgeF; uniform float uEdgeOn; uniform float uSeaT; uniform vec3 uDepthP;\n' + OCEAN_GLSL)
+      sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vSkyW; varying float vLand;' + (VISTA_FULL ? ' varying float vCoast;' : '')).replace('#include <project_vertex>', '#include <project_vertex>\nvSkyW = (modelMatrix * vec4(transformed, 1.0)).xyz - cameraPosition; vLand = step(aMove.z, -0.5);' + (VISTA_FULL ? ' vCoast = step(aMove.z, -1.5);' : ''));
+      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec3 vSkyW; varying float vLand;' + (VISTA_FULL ? ' varying float vCoast;' : '') + ' uniform vec4 uEdgeR; uniform float uEdgeY; uniform float uEdgeF; uniform float uEdgeOn; uniform float uSeaT; uniform vec3 uDepthP;\n' + OCEAN_GLSL)
         .replace('#include <fog_fragment>', `#ifdef USE_FOG
         { float kE = 0.0, hE = cameraPosition.y - uEdgeY, rE = length(vSkyW), tS = 1e5, dZ = gl_FragCoord.z; vec3 dE = vSkyW / max(rE, 1e-3);
           if (uEdgeOn > 0.5 && hE > 0.0 && dE.y < 0.0) { /* as below; tS = the sea's range along this sight line */
@@ -64891,8 +65181,12 @@ const campSky = (() => {
             /* the sea lies past the fully fogged near world (uDepthP.z) and inside the ring: the ring's depth is scaled by tS / R (its order kept), so it
                all lands in front of the sea; only the sky behind a land piece (past tS, under the sea anyway) keeps its depth */
             if (tS >= uDepthP.z && tS < ${CAMP_SKY.R.toFixed(1)} && tS * length(dE.xz) < D && (vLand > 0.5 || rE <= tS))
-              dZ = uDepthP.x * (1.0 - uDepthP.y / max(-(viewMatrix * vec4(vSkyW, 0.0)).z * tS / ${CAMP_SKY.R.toFixed(1)}, 1e-3));
-            if (vLand > 0.5) eB = min(eB, -asin(min(1.0, hE / uDepthP.z))); /* a land piece melts into the sea haze where the sea comes nearer than that */
+              dZ = uDepthP.x * (1.0 - uDepthP.y / max(-(viewMatrix * vec4(vSkyW, 0.0)).z * tS / ${CAMP_SKY.R.toFixed(1)}, 1e-3));${VISTA_FULL ? `
+            /* a coast piece (aMove.z = -2: the coast seen from just above the sea) stands on the water: at half to six tenths of the sea's range along
+               its ray (by its own ring radius, so the coast keeps its order), in front of the sea, the clouds and every other ring piece, behind anything
+               nearer; its shore haze is in its own colors, so the ground edge blend leaves it alone */
+            if (vCoast > 0.5 && tS * length(dE.xz) < D) { dZ = uDepthP.x * (1.0 - uDepthP.y / max(-(viewMatrix * vec4(vSkyW, 0.0)).z * min(tS, ${CAMP_SKY.R.toFixed(1)}) * (0.5 + 0.1 * clamp((rE - 385.0) / ${(CAMP_SKY.R - 385).toFixed(1)}, 0.0, 1.0)) / rE, 1e-3)); eB = -1.6; }` : ''}
+            if (vLand > 0.5${VISTA_FULL ? ' && vCoast < 0.5' : ''}) eB = min(eB, -asin(min(1.0, hE / uDepthP.z))); /* a land piece melts into the sea haze where the sea comes nearer than that */
             kE = 1.0 - smoothstep(eB, eB + uEdgeF, asin(clamp(dE.y, -1.0, 1.0))); kE *= kE; }
           gl_FragColor.rgb = mix(gl_FragColor.rgb, seaHaze(fogColor, dE) + seaGlit(dE, tS, uSeaT), kE); gl_FragDepthEXT = dZ; }
         #endif`); }
@@ -64950,6 +65244,8 @@ const campSky = (() => {
     const ER = [-90, -40, -26, -18, -14, -12, -10.5, -9, -7.5, -6, -4.5, -3, -1.5, 0, 2, 5, 9, 14, 22, 32, 46, 64, 90], NA = 48;
     for (let i = 0; i < ER.length - 1; i++) for (let j = 0; j < NA; j++) quad(CAMP_SKY.R, ER[i], j * 360 / NA - 180, ER[i + 1], (j + 1) * 360 / NA - 180, skyFn);
     /* far ridges: two faceted silhouettes all the way round, the far one paler (air), the near one darker; their feet are the fog color */
+    /* VISTA_FULL: the first camps sit high, so the far ridges' higher peaks carry snow caps there (snF: 1 at the first camp, gone by six tenths of the course) */
+    const lanesF = VISTA_FULL && S.course ? S.course.checkpoints.filter(c => c.lane) : [], liF = lanesF.indexOf(cp), snF = VISTA_FULL ? Math.max(0, 1 - (lanesF.length > 1 && liF >= 0 ? liF / (lanesF.length - 1) : 1) / 0.6) : 0;
     yield; for (const L of [{ r: 582, lo: -12.2, hi: -9.0, n: 96, aer: 0.62, dN: '#a3aebb', dD: '#7d6890' }, { r: 556, lo: -14.0, hi: -10.4, n: 72, aer: 0.34, dN: '#8e9bab', dD: '#5e4d75' }]) {
       const ph = [rnd() * 6.3, rnd() * 6.3, rnd() * 6.3], H = [], tn = col(L.dN), td = col(L.dD);
       for (let j = 0; j <= L.n; j++) { const a = j / L.n * 6.2832; const s = 0.5 + 0.22 * Math.sin(a * 2 + ph[0]) + 0.17 * Math.sin(a * 5 + ph[1]) + 0.11 * Math.sin(a * 11 + ph[2]) + (j % L.n ? (rnd() - 0.5) * 0.18 : 0); H.push(L.lo + (L.hi - L.lo) * Math.max(0, Math.min(1, s))); }
@@ -64961,7 +65257,12 @@ const campSky = (() => {
         const T0 = [], T1 = [], F0 = [], F1 = [];
         top(H[j], a0, cA, cB); T0.push(dir(H[j], a0, L.r, new THREE.Vector3()), cA.clone(), cB.clone()); top(H[j + 1], a1, cA, cB); T1.push(dir(H[j + 1], a1, L.r, new THREE.Vector3()), cA.clone(), cB.clone());
         foot(0, 0, cA, cB); F0.push(dir(CAMP_SKY.ridgeBase, a0, L.r, new THREE.Vector3()), cA.clone(), cB.clone()); F1.push(dir(CAMP_SKY.ridgeBase, a1, L.r, new THREE.Vector3()), cA.clone(), cB.clone());
-        for (const q of [T0, T1, F1, T0, F1, F0]) put(q[0], q[1], q[2], LAND); } }
+        if (snF > 0) { const sD = col(VFULL.snow[0]), sK = col(VFULL.snow[1]), cap = (e, a, x, y, k) => { top(e, a, x, y); const w = k * snF * Math.max(0, Math.min(1, (e + 0.5 - (L.lo + 0.42 * (L.hi - L.lo))) / 0.7)) * (1 - L.aer * 0.45); x.lerp(sD, w); y.lerp(sK, w); };
+          const R4 = [[H[j], H[j + 1], 1], [H[j] - 0.5, H[j + 1] - 0.5, 1], [H[j] - 0.56, H[j + 1] - 0.56, 0]].map(([e0, e1, k]) => { const p0 = T0[0].clone().lerp(F0[0], 1 - (e0 - CAMP_SKY.ridgeBase) / (H[j] - CAMP_SKY.ridgeBase)), p1 = T1[0].clone().lerp(F1[0], 1 - (e1 - CAMP_SKY.ridgeBase) / (H[j + 1] - CAMP_SKY.ridgeBase));
+            cap(H[j], a0, cA, cB, k); const c0 = [cA.clone(), cB.clone()]; cap(H[j + 1], a1, cA, cB, k); return [[p0, c0[0], c0[1]], [p1, cA.clone(), cB.clone()]]; });
+          R4.push([F0, F1]);
+          for (let k = 0; k < 3; k++) { const [A0, A1] = R4[k], [B0, B1] = R4[k + 1]; for (const q of [A0, A1, B1, A0, B1, B0]) put(q[0], q[1], q[2], LAND); } }
+        else for (const q of [T0, T1, F1, T0, F1, F0]) put(q[0], q[1], q[2], LAND); } }
     yield; /* the sun (low, sitting on the glow) and its halo: rings fading into the sky's own color */
     { const sE = CAMP_SKY.sunEl, sA = CAMP_SKY.sunAz, ring = (rho, f) => { const out = []; for (let k = 0; k <= 28; k++) { const t = k / 28 * 6.2832, e = sE + rho * Math.sin(t), a = sA + rho * Math.cos(t) / Math.cos(e * D2R); out.push([e, a]); } return out; };
       const RH = [CAMP_SKY.sunR * 1.02, 2.6, 4.2, 6.4, CAMP_SKY.haloR], gD = col('#fff1d6'), gK = col('#ffd29a');
@@ -65036,11 +65337,26 @@ const campSky = (() => {
         hz = Math.max(hz, Math.atan2(G.Hg[iz * G.NX + ix] - p.y, d) / D2R); }
       n++; o += Math.max(0, Math.min(1, (VISTA.top - hz) / VISTA.band)); }
     return n ? o / n : 1; }
+  /* the full vista's frame for one camp (VISTA_FULL): the lens height over the sea, whether the open sea fills the band (coast), and the far sea arc
+     (center ac, half-width aw, its horizon eh just under the sun's middle). Inside the arc the hill layers are pressed down toward cap (flat), harder
+     at the later camps. Draws only from its own stream Q (seed + 7423); the forest belts' phases come from it too. */
+  const VFULL = { coastSin: 0.156, coastE: [-5.2, -6.6, -8.4], belt: ['#3f5f49', '#3a2e50'], snow: ['#eef1f4', '#f3c2b8'] };
+  function vistaFx(cp, ord) {
+    const seed = S.course ? S.course.seed : 0, Q = mulberry32(((seed + 7423) ^ Math.imul(cp.idx + 1, 0x632BE5AB)) | 0);
+    const p = campFrame(cp)(CAMPCAM.pos[0], CAMPCAM.pos[1], CAMPCAM.pos[2], new THREE.Vector3()), D = (S.course && S.course.dial) || {};
+    const T = 250 * (D.fogK || 1) * CAMP_SKY.R / 385, h = S.course ? p.y - S.course.WATER : 1e3, coast = h < T * VFULL.coastSin;
+    const eh = CAMP_SKY.sunEl - 0.75, aw = 16 + 56 * ord + Q() * 8, ac = CAMP_SKY.sunAz + (Q() < 0.5 ? -1 : 1) * (1 - ord) * (aw + 6 + Q() * 12) + (Q() - 0.5) * 8, cap = eh - 0.9 - 2.4 * ord;
+    const ph = []; for (let k = 0; k < 9; k++) ph.push(Q() * 6.2832);
+    const wA = (az) => { const d = Math.abs(wrapD(az - ac)) / aw; if (d >= 1) return 0; if (d <= 0.55) return 1; const t = (1 - d) / 0.45; return t * t * (3 - 2 * t); };
+    const flat = (az, hh) => { const w = wA(az); return w > 0 ? hh + (Math.min(hh, cap) - hh) * w : hh; };
+    const belt = (az, li) => { const a = az * D2R; return Math.max(0, Math.min(1, 0.55 + 0.45 * Math.sin(a * 3 + ph[li]) + 0.3 * Math.sin(a * 7 + ph[li + 3]) + 0.2 * Math.sin(a * 13 + ph[li + 6]))); };
+    return { Q, h, T, coast, eh, aw, ac, cap, wA, flat, belt, ord }; }
   function* vistaGen(cp, put) {
     const seed = S.course ? S.course.seed : 0, R = mulberry32(((seed + 7601) ^ Math.imul(cp.idx + 1, 0x9E3779B1)) | 0), V = mulberry32((base ^ 0x2545F491) + cp.idx * 7919 | 0);
     const lanes = S.course ? S.course.checkpoints.filter(c => c.lane) : [], li = lanes.indexOf(cp), ord = lanes.length > 1 && li >= 0 ? li / (lanes.length - 1) : 1;
     const open = vistaOpen(cp), sv = Math.max(VISTA.sMin, VISTA.kOpen * Math.max(0, Math.min(1, (open - VISTA.open0) / VISTA.open1)) + (1 - VISTA.kOpen) * ord), s = li === lanes.length - 1 ? Math.max(sv, VISTA.sLast) : sv, fam = Math.floor(R() * 4); /* 0 mountain range, 1 rolling hills, 2 forest line, 3 valley with a lake sliver */
     vistaInfo = { open: +open.toFixed(3), s: +s.toFixed(3), fam };
+    const FX = VISTA_FULL ? vistaFx(cp, ord) : null; if (FX) Object.assign(vistaInfo, { h: +FX.h.toFixed(1), coast: FX.coast, ord: +ord.toFixed(2), sea: [+FX.ac.toFixed(1), +FX.aw.toFixed(1)] });
     const v = new THREE.Vector3(), cA = new THREE.Color(), cB = new THREE.Color(), warm = col('#ff9e7a'), STILL = LAND, rot = (V() - 0.5) * 40, hv = 0.88 + V() * 0.24, sunCap = CAMP_SKY.sunEl - CAMP_SKY.sunR - 1.2;
     const LAYERS = [
       { r: 540, lo: -11.0, hi: fam === 0 ? -3.6 : -5.2, n: 120, aer: 0.56 - 0.3 * s, dN: '#8597ad', dD: '#6f5a86', peak: fam === 0 ? 1 : 0.45 },
@@ -65056,7 +65372,18 @@ const campSky = (() => {
        chord from the ridge top down to ridgeBase, so it bulges toward the lens below the top. Overlapping trees of a layer get different depth slots (the
        lower one in front: further down the face is nearer), and the three tiers of a tree step DZ toward the lens inside its slot. Only depths change:
        every tree keeps its place on screen (the lens sits at the ring's center). */
-    const DZ = 0.8, NS = 6;
+    const DZ = 0.8, NS = 6, fA = new THREE.Color(), fB = new THREE.Color();
+    /* a hill face in rows (VISTA_FULL): the ridge (snow on the far layer at the high camps), a thin step into the forest belt, the belt, then down to the
+       fogged foot. Every row point lies on the face's own flat chord (top to ridgeBase), so the surface, and every depth placed against it, stays the same. */
+    const faceRows = (L, li, top, fN, fD, ends) => { const B = CAMP_SKY.ridgeBase, rt = li === 0 ? 0.35 : 0.1, snK = li === 0 ? Math.max(0, 1 - FX.ord / 0.6) : 0;
+      const fc = col(VFULL.belt[0]), fk = col(VFULL.belt[1]), sD = col(VFULL.snow[0]), sK = col(VFULL.snow[1]);
+      const C = ends.map(([a, e]) => { const T = dir(e, a, L.r, new THREE.Vector3()), F = dir(B, a, L.r, new THREE.Vector3()), bf = FX.belt(a, li), e1 = e - rt, e2 = e1 - 0.06, e3 = e2 - (1.4 + 2.4 * bf) * (1 + 0.35 * li);
+        const at = (ee) => T.clone().lerp(F, Math.min(1, (e - ee) / (e - B)));
+        const ridge = (ee) => { top(ee, a, cA, cB); const sn = snK * Math.max(0, Math.min(1, (ee - (L.lo + (L.hi - L.lo) * (0.6 + 0.4 * s) * 0.6)) / 0.9)); if (sn > 0) { cA.lerp(sD, sn * (1 - L.aer * 0.6)); cB.lerp(sK, sn * (1 - L.aer * 0.6)); } return [cA.clone(), cB.clone()]; };
+        const forest = (ee, k) => { top(ee, a, cA, cB); skyAt(ee, a, 0, fA).lerp(fc, 1 - L.aer * 0.5); skyAt(ee, a, 1, fB).lerp(fk, 1 - L.aer * 0.5); cA.lerp(fA, bf * k); cB.lerp(fB, bf * k); return [cA.clone(), cB.clone()]; };
+        return [[T, ridge(e)], [at(e1), ridge(e1)], [at(e2), forest(e2, 1)], [at(e3), forest(e3, 0.75)], [F, [fN, fD]]]; });
+      for (let k = 0; k < 4; k++) { const [p0, c0] = C[0][k], [p1, c1] = C[1][k], [q1, d1] = C[1][k + 1], [q0, d0] = C[0][k + 1];
+        for (const [p, c] of [[p0, c0], [p1, c1], [q1, d1], [p0, c0], [q1, d1], [q0, d0]]) put(p, c[0], c[1], STILL); } };
     const faceAt = (L, H, e, az) => { const Ht = hAt(H, L.n, az), B = CAMP_SKY.ridgeBase; /* the depth of a ridge face at (e, az): the vertical chord from the top down to ridgeBase, less the segment's own sag */
       return Math.min(L.r, L.r * Math.cos((Ht - B) * D2R / 2) / Math.cos((Math.min(e, Ht) - (Ht + B) / 2) * D2R)) - L.r * (1 - Math.cos(Math.PI / L.n)); };
     const plant = () => { TREES.sort((a, b) => b.e0 - a.e0);
@@ -65072,11 +65399,12 @@ const campSky = (() => {
       for (let j = 0; j <= L.n; j++) { const a = j / L.n * 6.2832 + rot * D2R;
         const sm = 0.5 + 0.24 * Math.sin(a * 2 + ph[0]) + 0.16 * Math.sin(a * 5 + ph[1]) + 0.08 * Math.sin(a * 9 + ph[2]), pk = 1 - Math.abs(Math.sin(a * 7 + ph[3]));
         const u = Math.max(0, Math.min(1, (sm * (1 - L.peak) + pk * pk * L.peak) * hv + (j % L.n ? (R() - 0.5) * 0.08 : 0)));
-        let h = L.lo + (L.hi - L.lo) * u * (0.6 + 0.4 * s); const az = j * 360 / L.n - 180; if (Math.abs(wrapD(az - CAMP_SKY.sunAz)) < 14) h = Math.min(h, sunCap); H.push(h); }
+        let h = L.lo + (L.hi - L.lo) * u * (0.6 + 0.4 * s); const az = j * 360 / L.n - 180; if (FX && !FX.coast) h = FX.flat(az, h); if (Math.abs(wrapD(az - CAMP_SKY.sunAz)) < 14) h = Math.min(h, sunCap); H.push(h); }
       H[L.n] = H[0]; tops.push(H);
       for (let j = 0; j < L.n; j++) { const a0 = j * 360 / L.n - 180, a1 = (j + 1) * 360 / L.n - 180, sl = H[j + 1] - H[j], am = (a0 + a1) / 2;
         const lit = 1 + Math.max(-1, Math.min(1, sl * 1.6 * Math.sign(wrapD(CAMP_SKY.sunAz - am) || 1))) * 0.08;
         const top = (e, a, x, y) => { skyAt(e, a, 0, x).lerp(tn, 1 - L.aer).multiplyScalar(lit); skyAt(e, a, 1, y).lerp(td, 1 - L.aer).lerp(warm, 0.2 * sunW(e, a)).multiplyScalar(lit); };
+        if (FX) { faceRows(L, li2, top, fN, fD, [[a0, H[j]], [a1, H[j + 1]]]); continue; }
         const q = [[H[j], a0, 0], [H[j + 1], a1, 0], [CAMP_SKY.ridgeBase, a1, 1], [H[j], a0, 0], [CAMP_SKY.ridgeBase, a1, 1], [CAMP_SKY.ridgeBase, a0, 1]];
         for (const [e, a, f] of q) { if (f) { cA.copy(fN); cB.copy(fD); } else top(e, a, cA, cB); put(dir(e, a, L.r, v), cA, cB, STILL); } }
       if (L.trees) { yield; const nT = Math.round((60 + 160 * s) * L.trees);
@@ -65163,7 +65491,126 @@ const campSky = (() => {
       if (VISTA_ROCK[1]) { const K2 = mulberry32(((seed + 7403) ^ Math.imul(cp.idx + 1, 0x27D4EB2F)) | 0), nR2 = Math.min(4, Math.max(2, nR + (K2() < 0.5 ? 1 : 0))); /* the top-up: at least 2, at most 4 rocks a ring */
         for (let at = 0; at < 10 && RC.length < nR2; at++) tryRock(K2); }
       dg.dispose(); }
-    yield; plant(); }
+    if (FX) yield* vistaMore();
+    yield; plant();
+    /* ---- the full vista's added pieces (VISTA_FULL), all land pieces of the same mesh. Own stream Q2 (seed + 7424) for the villages, the lake and
+       the coast. Depths: the far sea arc at 586 (behind the far ridges at 582 and the massif, in front of the halo at 591, so the sun sets into it);
+       a village stands on its ridge like the trees (in front of the face, the lower houses nearer); the coast's pieces at 482 / 452 / 420 (nearer
+       than every hill layer) with their trees and houses 1.2 m and more in front of their own face, drawn on the water by the sky shader. ---- */
+    function* vistaMore() {
+      const Q2 = mulberry32(((seed + 7424) ^ Math.imul(cp.idx + 1, 0x7FEB352D)) | 0), cN = new THREE.Color(), cD = new THREE.Color(), t1 = new THREE.Color(), t2 = new THREE.Color();
+      const white = col('#ffffff'), gold = col('#ffc890'), glow = col('#ffc65c'), sunA = CAMP_SKY.sunAz, MK = FX.coast && STILL[2] ? [0, 0, -2] : STILL; /* the coast's pieces carry their own kind (see the sky shader) */
+      const paint = (e, az, hN, hD, aer, k, lit) => { skyAt(e, az, 0, cA).lerp(cN.set(hN), 1 - aer).multiplyScalar(k); skyAt(e, az, 1, cB).lerp(cD.set(hD), 1 - aer).multiplyScalar(k); if (lit) cB.lerp(warm, lit * 0.3 * sunW(e, az)); };
+      const quad = (r, e0, a0, e1, a1) => { for (const [e, a] of [[e0, a0], [e0, a1], [e1, a1], [e0, a0], [e1, a1], [e1, a0]]) put(dir(e, a, r, v), cA, cB, MK); };
+      const tri = (r, P3) => { for (const [e, a] of P3) put(dir(e, a, r, v), cA, cB, MK); };
+      /* a house: a wall, a gable roof and one or two windows (dark by day, warm at dusk), sizes in degrees at radius r; az grows to the left */
+      const PAL = [['#efe6d2', '#86707e', '#a4513f', '#4a2a3c'], ['#e8d7b0', '#82696e', '#7c4a3c', '#3e2536'], ['#f4f1ea', '#8c7889', '#5f6670', '#2f2a44'], ['#d9c49c', '#7c6668', '#9a5a3a', '#472a3e'], ['#dfe4e6', '#837590', '#86493f', '#3d2437']];
+      const house = (H, r, aer) => { const { az, eb, w, hW, hR, pal, tower } = H, a0 = az - w / 2, a1 = az + w / 2, ov = w * 0.08;
+        paint(eb + hW / 2, az, pal[0], pal[1], aer, 1, 1); quad(r, eb, a0, eb + hW, a1);
+        paint(eb + hW, az, pal[2], pal[3], aer, 1, 0.5); tri(r, [[eb + hW, a0 - ov], [eb + hW, a1 + ov], [eb + hW + hR, az]]);
+        const nW = tower ? 1 : w > 0.62 ? 2 : 1, ww = Math.min(0.2, w * 0.26), wh = Math.min(0.2, hW * 0.42);
+        for (let k = 0; k < nW; k++) { const wa = nW > 1 ? az + (k ? 1 : -1) * w * 0.24 : az, we = tower ? eb + hW * 0.78 : eb + hW * 0.36, lit = Q2() < 0.8;
+          paint(we, wa, pal[0], pal[1], aer, 0.58, 0); if (lit) { skyAt(we, wa, 1, t2); cB.copy(glow).lerp(t2, aer * 0.2); }
+          quad(r - 1.0, we, wa - ww / 2, we + wh, wa + ww / 2); } };
+      /* a village: n houses and a church tower spread over span degrees around az0 on baseE, a few stepping down the slope; overlapping houses get
+         their own depth (the lower one nearer), every one in front of the ground by depthAt */
+      const village = (az0, span, n, baseE, depthAt, aer, sc, dnK) => { const HS = [];
+        for (let k = 0; k < n; k++) { const az = az0 + (n > 1 ? k / (n - 1) - 0.5 : 0) * span + (Q2() - 0.5) * span / n * 0.6, dn = Q2() < 0.45 ? Q2() * 0.7 * sc * dnK : 0;
+          HS.push({ az, w: (0.42 + Q2() * 0.36) * sc, hW: (0.24 + Q2() * 0.14) * sc, hR: (0.16 + Q2() * 0.12) * sc, pal: PAL[Math.floor(Q2() * PAL.length)], dn }); }
+        const ct = Math.floor(Q2() * n); HS.push({ az: HS[ct].az + (Q2() < 0.5 ? -1 : 1) * 0.5 * sc, w: 0.2 * sc, hW: 0.95 * sc, hR: 0.55 * sc, pal: ['#f1ece2', '#97818f', '#6a6f7a', '#332c48'], dn: 0, tower: 1 });
+        for (const H of HS) H.eb = baseE(H.az) - 0.06 * sc - H.dn;
+        HS.sort((a, b) => b.eb - a.eb);
+        for (let i = 0; i < HS.length; i++) { let hi = -1; for (let j = 0; j < i; j++) { const U = HS[j]; if (Math.abs(U.az - HS[i].az) < (U.w + HS[i].w) / 2 + 0.2 && HS[i].eb + HS[i].hW + HS[i].hR > U.eb) hi = Math.max(hi, U.k); } HS[i].k = hi + 1; }
+        for (const H of HS) house(H, depthAt(H.az, H.eb) - H.k * 2.4, aer); };
+      if (!FX.coast) {
+        /* tree texture on the hill faces: conifers scattered down the forest belts (planted with the ridge trees, so they share the depth slots) */
+        for (let li = 0; li < tops.length; li++) { const L = LAYERS[li], H = tops[li], tn = col(L.dN), td = col(L.dD), n = Math.round((34 + 56 * s) * (li === 2 ? 0.6 : 1)); yield;
+          for (let t = 0; t < n; t++) { const az = FX.Q() * 160 - 80, u = FX.Q(), dn = FX.Q(), th = (0.42 + FX.Q() * 0.45) * (0.7 + 0.3 * s) * [1, 1.1, 1.25][li], jit = 0.82 + FX.Q() * 0.16;
+            const bf = FX.belt(az, li), e0 = hAt(H, L.n, az) - 0.45 - dn * (1.2 + 2.2 * bf) * (1 + 0.35 * li);
+            if (u > bf || e0 + th * 0.5 < nearMax(li, az) || (Math.abs(wrapD(az - CAMP_SKY.sunAz)) < 12 && e0 + th > sunCap)) continue;
+            conifer(az, e0, th, th * 0.3, L, H, tn, td, L.aer, jit, 0); } }
+        yield; /* the far sea arc: a band from its horizon eh down behind the far ridges, the sky above mirrored in it, a glitter path under the sun, faded into the sky at both ends */
+        const r = 586, A = [], lo = FX.ac - FX.aw - 3, hi = FX.ac + FX.aw + 3, RW = [0, 0.12, 0.5, 1.3, 2.6, 4.6, 8.4], sN = col('#5c86a8'), sD = col('#5a4680');
+        for (let a = lo; a < hi; a += Math.abs(wrapD(a - sunA)) < 7 ? 0.4 : 1.2) A.push(a); A.push(hi);
+        const sea = (e, az) => { const dE = FX.eh - e, wT = Math.max(0, Math.min(1, (FX.aw + 3 - Math.abs(wrapD(az - FX.ac))) / 9)), m = 0.5 + 0.3 * Math.min(1, dE / 3);
+          skyAt(FX.eh + 0.5 + dE * 0.7, az, 0, cA).multiplyScalar(0.92).lerp(sN, m); skyAt(FX.eh + 0.5 + dE * 0.7, az, 1, cB).multiplyScalar(0.9).lerp(sD, m);
+          const g = Math.exp(-Math.pow(wrapD(az - sunA) / (0.7 + 0.5 * dE), 2)) * Math.exp(-dE / 6); cA.lerp(white, 0.45 * g); cB.lerp(gold, 0.9 * g);
+          skyAt(e, az, 0, t1); skyAt(e, az, 1, t2); const hz = 0.55 * Math.exp(-dE / 0.12); cA.lerp(t1, Math.max(hz, 1 - wT)); cB.lerp(t2, Math.max(hz, 1 - wT)); };
+        for (let i = 0; i < A.length - 1; i++) for (let k = 0; k < RW.length - 1; k++) { const e0 = FX.eh - RW[k], e1 = FX.eh - RW[k + 1];
+          for (const [e, a] of [[e0, A[i]], [e0, A[i + 1]], [e1, A[i + 1]], [e0, A[i]], [e1, A[i + 1]], [e1, A[i]]]) { sea(e, a); put(dir(e, a, r, v), cA, cB, STILL); } }
+        /* a lake sliver at a middle camp: still water between two hill layers, lying on the nearer one's ridge */
+        if (FX.ord > 0.15 && FX.ord < 0.9 && fam !== 3 && tops.length > 1) { yield;
+          for (let at = 0; at < 10; at++) { const li = tops.length > 2 && Q2() < 0.5 ? 1 : 0, az0 = (Q2() - 0.5) * 70, span = 7 + Q2() * 9; let eL = -90, ok = true;
+            for (let a = az0 - span / 2; a <= az0 + span / 2; a += 1) eL = Math.max(eL, nearMax(li, a));
+            for (let a = az0 - span / 2; a <= az0 + span / 2 && ok; a += 1) if (hAt(tops[li], LAYERS[li].n, a) < eL + 0.9) ok = false;
+            if (!ok || Math.abs(wrapD(az0 - sunA)) < 8 + span / 2) continue;
+            const N = 14, rr = LAYERS[li].r - 18;
+            for (let k = 0; k < N; k++) { const u0 = az0 - span / 2 + span * k / N, u1 = az0 - span / 2 + span * (k + 1) / N, b = eL - 0.5, f0 = eL + 0.05 + 0.32 * Math.sin(Math.PI * k / N), f1 = eL + 0.05 + 0.32 * Math.sin(Math.PI * (k + 1) / N);
+              for (const [e, a] of [[b, u0], [b, u1], [f1, u1], [b, u0], [f1, u1], [f0, u0]]) { skyAt(-1.5 + (e - eL) * 2, a + 180, 0, cA).lerp(fogN, 0.25); skyAt(-1.5 + (e - eL) * 2, a + 180, 1, cB).lerp(fogD, 0.2); put(dir(e, a, rr, v), cA, cB, STILL); } }
+            vistaInfo.lake = [li, +az0.toFixed(1)]; break; } }
+        /* villages on a ridge over the sea at the later camps (two at the last one) */
+        const nV = FX.ord >= 0.99 ? 2 : FX.ord >= 0.45 ? 1 : 0, sites = []; vistaInfo.towns = [];
+        for (let k = 0; k < nV; k++) { yield; const cand = [];
+          for (const li of [1, 2, 0]) { if (!tops[li]) continue;
+            for (let az = -36; az <= 36; az++) { if (Math.abs(wrapD(az - sunA)) < 9 || (massif !== null && Math.abs(wrapD(az - massif)) < 12) || sites.some(o => Math.abs(o - az) < 16) || (vistaInfo.rocks || []).some(o => o[0] === li && Math.abs(o[1] - az) < 6)) continue;
+              const e0 = hAt(tops[li], LAYERS[li].n, az); let ok = true;
+              for (let d = -4; d <= 4 && ok; d++) { const e = hAt(tops[li], LAYERS[li].n, az + d); if (e - nearMax(li, az + d) < 0.8 || Math.abs(e - e0) > 0.9) ok = false; }
+              if (ok) cand.push([li, az]); }
+            if (cand.length) break; }
+          if (!cand.length) break;
+          const [li, az0] = cand[Math.floor(Q2() * cand.length)], L = LAYERS[li], H = tops[li], span = 6 + Q2() * 3, sc = [1.1, 1.25, 1.4][li]; sites.push(az0); vistaInfo.towns.push([li, az0]);
+          for (let i = TREES.length - 1; i >= 0; i--) if (TREES[i].L === L && Math.abs(wrapD(TREES[i].az - az0)) < span / 2 + 1.4) TREES.splice(i, 1);
+          village(az0, span, 7 + Math.floor(Q2() * 5), (a) => hAt(H, L.n, a), (a, e) => faceAt(L, H, e, a) - 1.5, L.aer * 0.9, sc, 1); } }
+      else {
+        /* the coast: the lens sits just above the open sea, which fills the band to its horizon. A far coastal range on both sides of the sunset's open
+           water, a headland on each side (forest belt, rock, the near one with a village on its shelf, the other with a lighthouse), seen from above the beach. */
+        const gap = 9 + Q2() * 7, MT = [], EC = VFULL.coastE; /* the shores sit in the camp lens' sky band (EC: far, side, near), the sun in the open water between them */
+        const HL = [{ r: 482, a0: sunA + gap * 0.7 + Q2() * 3, dir: 1, sh: EC[0], top: EC[0] + 6 + Q2() * 2, aer: 0.5, rise: 6, step: 1.5, far: 1 },
+          { r: 482, a0: sunA - gap * 0.8 - Q2() * 4, dir: -1, sh: EC[0], top: EC[0] + 5.5 + Q2() * 2, aer: 0.5, rise: 6, step: 1.5, far: 1 },
+          { r: 452, a0: sunA - gap * 0.6 - 4 - Q2() * 3, dir: -1, sh: EC[1], top: EC[1] + 6 + Q2(), aer: 0.3, rise: 6, step: 1, light: 1 },
+          { r: 420, a0: sunA + gap * 0.5 + 2 + Q2() * 2, dir: 1, sh: EC[2], top: EC[2] + 12 + Q2() * 2, aer: 0.1, rise: 14, step: 1, shelf: 8 + Q2() * 2, near: 1 }];
+        for (const L of HL) { yield; const ph = [Q2() * 6.3, Q2() * 6.3, Q2() * 6.3], span = 125 - Math.abs(L.a0), n = Math.ceil(span / L.step), E = [], B = [], az = [];
+          for (let j = 0; j <= n; j++) { const d = j * span / n, a = L.a0 + L.dir * d; az.push(a);
+            let u = L.shelf ? (d < L.shelf ? 0.03 : Math.min(1, (d - L.shelf) / L.rise)) : Math.min(1, d / L.rise); u = u * u * (3 - 2 * u);
+            const bump = L.far ? 0.55 + 0.25 * Math.sin(d * 0.19 + ph[0]) + 0.2 * Math.sin(d * 0.47 + ph[1]) : 0.8 + 0.12 * Math.sin(d * 0.23 + ph[0]) + 0.08 * Math.sin(d * 0.61 + ph[1]);
+            const top = L.sh + (L.top - L.sh) * u * Math.max(0.15, Math.min(1.1, bump)) + (j && j < n ? (Q2() - 0.5) * 0.08 * (L.top - L.sh) / 4 : 0);
+            E.push(Math.max(L.sh + 0.04, top)); B.push(L.sh + (E[j] - L.sh) * (L.far ? 0.3 : 0.5 + 0.3 * (0.5 + 0.5 * Math.sin(d * 0.31 + ph[2])))); }
+          const snowE = L.sh + (L.top - L.sh) * 0.66, sand = L.far ? 0 : L.near ? 0.07 : 0.035;
+          const fog = (e) => L.aer + (1 - L.aer) * 0.12 * Math.max(0, 1 - (e - L.sh) / 1.4), mist = (e) => 0.45 * Math.max(0, 1 - (e - L.sh) / 0.9);
+          for (let j = 0; j < n; j++) { const a0 = az[j], a1 = az[j + 1], lit = 1 + Math.max(-1, Math.min(1, (E[j + 1] - E[j]) * L.dir * 1.6 * Math.sign(wrapD(sunA - (a0 + a1) / 2) || 1))) * 0.09;
+            const band = (eA0, eA1, eB0, eB1, hN, hD, kb) => { const P4 = [[eA0, a0], [eA1, a1], [eB1, a1], [eA0, a0], [eB1, a1], [eB0, a0]];
+              for (const [e, a] of P4) { paint(e, a, hN, hD, fog(e), lit * kb, 0.6); cA.lerp(fogN, mist(e)); cB.lerp(fogD, mist(e)); put(dir(e, a, L.r, v), cA, cB, MK); } };
+            if (sand) band(L.sh, L.sh, L.sh + sand, L.sh + sand, '#d9cfae', '#c2948e', 1);
+            band(L.sh + sand, L.sh + sand, B[j], B[j + 1], L.far ? '#566e5e' : L.near ? '#33553d' : '#41614d', L.far ? '#40355a' : L.near ? '#241c38' : '#2e2644', 1);
+            const hiN = L.far ? '#8d97a8' : '#7f8a68', hiD = L.far ? '#6a5a88' : L.near ? '#4d3c5c' : '#56446a';
+            if (L.far && (E[j] > snowE || E[j + 1] > snowE)) { const m0 = Math.min(E[j], Math.max(B[j], snowE)), m1 = Math.min(E[j + 1], Math.max(B[j + 1], snowE));
+              band(B[j], B[j + 1], m0, m1, hiN, hiD, 1); band(m0, m1, E[j], E[j + 1], VFULL.snow[0], VFULL.snow[1], 1); }
+            else band(B[j], B[j + 1], E[j], E[j + 1], hiN, hiD, 1);
+            /* trees: along the ridge where the forest reaches up, and a scatter in the belt */
+            if (!L.far && Q2() < (E[j] - B[j] < 1.4 ? 0.95 : 0.4)) { const a = a0 + (a1 - a0) * Q2(), th = (0.35 + Q2() * 0.35) * (L.near ? 1.4 : 0.9); MT.push({ az: a, e0: E[j] + (E[j + 1] - E[j]) * Math.abs(a - a0) / Math.abs(a1 - a0 || 1) - 0.08, th, hw: th * 0.3, L, k: 0 }); }
+            if (!L.far) for (let t = 0; t < (L.near ? 7 : 4); t++) if (Q2() < 0.8) { const f = Q2(), a = a0 + (a1 - a0) * Q2(), lo = L.sh + sand + 0.05, e = lo + (B[j] + (B[j + 1] - B[j]) * f - lo) * Math.pow(Q2(), 0.7), th = (0.26 + Q2() * 0.3) * (L.near ? 1.4 : 0.9);
+              if (e + th * 0.4 < B[j] + (B[j + 1] - B[j]) * f) MT.push({ az: a, e0: e, th, hw: th * 0.32, L, k: 0, hs: Q2() < 0.15 ? 0.04 : 0 }); } }
+          if (L.shelf) { /* the village on the near headland's shelf, the beach below it */
+            const hA = (a) => { const d = (a - L.a0) * L.dir, x = d / span * n, i = Math.max(0, Math.min(n - 1, Math.floor(x))); return E[i] + (E[i + 1] - E[i]) * (x - i); };
+            const az0 = L.a0 + L.dir * (L.shelf * 0.55 + 0.6), sp = L.shelf * 0.85;
+            for (let i = MT.length - 1; i >= 0; i--) if (MT[i].L === L && Math.abs(MT[i].az - az0) < sp / 2 + 1) MT.splice(i, 1);
+            village(az0, sp, 8 + Math.floor(Q2() * 4), hA, () => L.r - 1.5, L.aer, 1.5, 0); vistaInfo.towns = [[3, +az0.toFixed(1)]];
+            paint(L.sh, az0, '#4a3b34', '#33263a', L.aer, 1, 0); const pa = az0 - L.dir * sp * 0.3; quad(L.r - 1.2, L.sh - 0.28, pa - 0.05, L.sh + 0.02, pa + 0.05); }
+          if (L.light) { /* a lighthouse near the headland's tip: white with a red band, its lamp lit at dusk */
+            const j = 2, a = az[j], eb = E[j] - 0.05, w = 0.2, hT = 1.0, r = L.r - 1.5;
+            for (let i = MT.length - 1; i >= 0; i--) if (MT[i].L === L && Math.abs(MT[i].az - a) < 1.2) MT.splice(i, 1);
+            paint(eb + 0.3, a, '#f3f1ec', '#c9b3bd', L.aer, 1, 1); quad(r, eb, a - w / 2, eb + hT * 0.55, a + w / 2); quad(r, eb + hT * 0.72, a - w * 0.42, eb + hT, a + w * 0.42);
+            paint(eb + 0.6, a, '#b8443a', '#7a3446', L.aer, 1, 0.5); quad(r, eb + hT * 0.55, a - w * 0.46, eb + hT * 0.72, a + w * 0.46);
+            paint(eb + hT, a, '#fff6d8', '#fff0b0', 0, 1, 0); skyAt(eb + hT, a, 0, cA).lerp(cN.set('#e9e4d4'), 0.8); quad(r - 1.0, eb + hT, a - w * 0.3, eb + hT + 0.14, a + w * 0.3);
+            paint(eb + hT, a, '#4a4f5a', '#3a3046', L.aer, 1, 0); tri(r, [[eb + hT + 0.14, a - w * 0.42], [eb + hT + 0.14, a + w * 0.42], [eb + hT + 0.3, a]]); vistaInfo.light = +a.toFixed(1); } }
+        /* the coast's trees: two tiers, lit / shaded halves; overlapping trees of a headland get their own depth (the lower one nearer) */
+        yield; MT.sort((a, b) => b.e0 - a.e0);
+        for (let i = 0; i < MT.length; i++) { const T = MT[i], used = []; let hi = -1; for (let j = 0; j < i; j++) { const U = MT[j]; if (U.L === T.L && T.e0 + T.th > U.e0 && Math.abs(U.az - T.az) < U.hw + T.hw) { hi = Math.max(hi, U.k); used.push(U.k); } } T.k = hi + 1; if (T.k > 7) { T.k = 7; for (let k = 0; k < 8; k++) if (!used.includes(k)) { T.k = k; break; } } }
+        for (const T of MT) { const sg = sunSide(T.az), r0 = T.L.r - 1.2 - T.k * 1.8, fN = T.L.near ? '#2f4f39' : '#456150', fD = T.L.near ? '#1d1630' : '#2c2442';
+          for (let i = 0; i < 2; i++) { const eb = T.e0 + T.th * (i ? 0.38 : 0), et = T.e0 + T.th * (i ? 1 : 0.7), w = T.hw * (i ? 0.66 : 1);
+            for (const side of [1, -1]) { paint(et, T.az, fN, fD, T.L.aer * 0.9, side === sg ? 1.12 : 0.8, side === sg ? 0.8 : 0); if (T.hs) { cA.offsetHSL(T.hs, 0, 0); cB.offsetHSL(T.hs, 0, 0); }
+              tri(r0 - i * 0.6, [[eb, T.az], [eb, T.az + side * w], [et, T.az]]); } } } } }
+    }
   function build(cp) { const it = buildGen(cp); let r; while (!(r = it.next()).done); return r.value; }
   /* ---- this visit's birds. Screen space decides the lanes: where the camp lens actually looks (the fit changes with the camp, the window and the panel), so most
      flights keep to the sky left of the camp panel, under the header plate and above the fence, and only now and then one crosses the whole width. ---- */
@@ -65626,6 +66073,8 @@ function padGlyph(k, sz = 22) {
   if (col[k]) return `<svg class="gl" width="${sz}" height="${sz}" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.6" fill="#15100c" stroke="${col[k]}" stroke-width="1.8"/><text x="12" y="16.7" text-anchor="middle" font-family="Rubik, sans-serif" font-weight="700" font-size="13" fill="${col[k]}">${k}</text></svg>`;
   if (k === 'LB' || k === 'RB' || k === 'LT' || k === 'RT') return `<svg class="gl" width="${Math.round(sz * 1.5)}" height="${sz}" viewBox="0 0 36 24" aria-hidden="true"><rect x="1.5" y="3.5" width="33" height="17" rx="8" fill="#15100c" stroke="#d9c7aa" stroke-width="1.6"/><text x="18" y="16.3" text-anchor="middle" font-family="Rubik, sans-serif" font-weight="700" font-size="11.5" fill="#efe3cc">${k}</text></svg>`;
   if (k === 'stick') return `<svg class="gl" width="${sz}" height="${sz}" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.6" fill="#15100c" stroke="#d9c7aa" stroke-width="1.6"/><circle cx="12" cy="12" r="5" fill="#d9c7aa"/><path d="M12 2.6l2 2.4h-4zM12 21.4l2-2.4h-4zM2.6 12l2.4-2v4zM21.4 12L19 10v4z" fill="#ffb24a"/></svg>`;
+  if (k === 'lstick' || k === 'rstick') return `<svg class="gl" width="${sz}" height="${sz}" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.6" fill="#15100c" stroke="#d9c7aa" stroke-width="1.6"/><circle cx="12" cy="12" r="5" fill="#d9c7aa"/><text x="12" y="14.6" text-anchor="middle" font-family="Rubik, sans-serif" font-weight="700" font-size="7" fill="#15100c">${k === 'rstick' ? 'R' : 'L'}</text><path d="M12 2.6l2 2.4h-4zM12 21.4l2-2.4h-4zM2.6 12l2.4-2v4zM21.4 12L19 10v4z" fill="#ffb24a"/></svg>`; /* the stick with its letter (Controls page) */
+  if (k === 'start') return `<svg class="gl" width="${sz}" height="${sz}" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.6" fill="#15100c" stroke="#d9c7aa" stroke-width="1.6"/><path d="M7 8.5h10M7 12h10M7 15.5h10" stroke="#efe3cc" stroke-width="1.8" stroke-linecap="round"/></svg>`; /* the menu (Start / Options) button */
   if (k.startsWith('dpad')) { const on = k === 'dpadH' ? 'lr' : k === 'dpadV' ? 'ud' : 'udlr', c = (d) => on.includes(d) ? '#ffb24a' : '#75674f';
     return `<svg class="gl" width="${sz}" height="${sz}" viewBox="0 0 24 24" aria-hidden="true"><rect x="0.8" y="0.8" width="22.4" height="22.4" rx="6" fill="#15100c" stroke="#3b3125"/><path d="M9.5 3.5h5v6l-2.5 2.5-2.5-2.5z" fill="${c('u')}"/><path d="M9.5 20.5h5v-6L12 12l-2.5 2.5z" fill="${c('d')}"/><path d="M3.5 9.5v5h6L12 12 9.5 9.5z" fill="${c('l')}"/><path d="M20.5 9.5v5h-6L12 12l2.5-2.5z" fill="${c('r')}"/></svg>`; }
   return ''; }
@@ -65913,7 +66362,7 @@ function frame(now) {
   frameStamp = now; const rawMs = now - last; let dt = Math.min(0.05, rawMs / 1000); last = now;
   governor(rawMs, (screen === null || screen === 'camp') && S.running && !S.paused && !document.hidden); /* adaptive quality */
   inDev.poll(); gpMenu.poll(); /* menus first (every frame, before the flyover's frame skip), so a press that closes a screen is swallowed before readInput sees it */
-  if (screen === 'title' || (screen === 'settings' && setBack === 'title')) { titleSkip = !titleSkip; if (titleSkip) { skipAcc += dt; return; } dt += skipAcc; skipAcc = 0; } else skipAcc = 0; /* the flyover renders at half rate (the skipped frame's time is carried over): the menu is DOM, nothing on it moves faster */
+  if (titleUnder()) { titleSkip = !titleSkip; if (titleSkip) { skipAcc += dt; return; } dt += skipAcc; skipAcc = 0; } else skipAcc = 0; /* the flyover renders at half rate (the skipped frame's time is carried over): the menu is DOM, nothing on it moves faster */
   const inp = readInput(); campHold.tick(dt); /* the save / make-camp hold */
   if (S.running && !S.finished && !S.paused && !S.camp) { applyLimbInput(inp); acc += dt; while (acc >= DT) { step(DT, inp); stepRider(DT); acc -= DT; } }
   else if (!S.camp && !pauseCam.on) stepRider(DT); /* the pause close-up keeps the rider exactly as he was at the pause */ /* in camp the rider sits (campTick writes the points), so the ragdoll is not stepped */
@@ -69375,6 +69824,7 @@ if (DEBUG) {
   window.__jumpLog = JLOG; /* tests: per-jump take-off / landing log (see jlogStart) */
   window.__bail = bail; window.__ui = { riderPop, showBanner, get zonesOn() { return zonesOn; } };
   window.__campMode = campModeDebug; window.__gpMenu = gpMenu; window.CampMini = CampMini; window.CampHelp = CampHelp;
+  window.__ctl = { CTL, keys: CTL_KEYS, pad: CTL_PAD, open: openControls, close: ctlClose, tab: ctlTab, step: ctlStep, get dev() { return ctlDev; }, get back() { return ctlBack; }, get lay() { return ctlLay; }, long: CTL_LONG, arm: RESTART_ARM }; /* tests: the Controls page */
   window.__tut = { state: () => tut.state(), TXT: TUT_TXT, card: () => document.body.classList.contains('tutEnd'), next: () => tutNext }; /* tests: the tutorial director's stage / prompt state and the prompt table */
   window.__kitchenReset = () => { bellyClear(); }; /* tests: clear Full Belly and the per-camp dinner locks */
   window.__mini = (id, extra) => { if (!S.camp) campModeDebug(0, true); campUI.setTab('act'); window.__kitchenReset(); campUI.startGame(id, extra || {}); }; /* jump straight into a camp game, e.g. __mini('dinner', { phase: 'cut' }) */
