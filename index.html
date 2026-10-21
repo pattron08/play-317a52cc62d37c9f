@@ -1,0 +1,66 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>No Hander</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#181a1b">
+<style>
+  html,body{margin:0;height:100%;background:#181a1b;color:#e8e6e3;font-family:system-ui,sans-serif}
+  #launch{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center;padding:24px}
+  h1{margin:0;font-size:clamp(40px,8vw,88px);font-style:italic;letter-spacing:-.01em;text-transform:uppercase}
+  p{margin:0;opacity:.7}
+  button,a.alt{font:600 18px system-ui,sans-serif;border:0;border-radius:12px;padding:14px 28px;cursor:pointer}
+  button{background:#ff8a2b;color:#2a1200}
+  button.sec{background:none;color:#e8e6e3;border:1px solid rgba(255,255,255,.35);font-size:16px;padding:10px 22px}
+  #steps{display:none;max-width:420px;text-align:left;background:rgba(255,255,255,.07);border-radius:12px;padding:14px 18px;font-size:14px;line-height:1.5}
+  a.alt{color:#e8e6e3;opacity:.7;font-size:15px;background:none;text-decoration:underline}
+  #stage{position:fixed;inset:0;background:#000;display:none}
+  #stage iframe{width:100%;height:100%;border:0;display:block}
+</style>
+<div id="launch">
+  <h1>No Hander</h1>
+  <p>Private preview build. Landscape works best.</p>
+  <button id="go">Play fullscreen</button>
+  <button id="inst" class="sec" style="display:none">Install for fullscreen</button>
+  <a class="alt" id="win" href="game.html" onclick="this.href='game.html?v='+Date.now()+location.hash">Play in this window</a>
+  <div id="steps"></div>
+  <p id="tip" style="max-width:420px;font-size:14px"></p>
+</div>
+<div id="stage"><iframe id="frame" allow="fullscreen; autoplay; gamepad" allowfullscreen></iframe></div>
+<script>
+  (function(){var tip=document.getElementById("tip");var ua=navigator.userAgent;var standalone=window.matchMedia("(display-mode: fullscreen), (display-mode: standalone)").matches||navigator.standalone;if(standalone){tip.textContent="";return;}
+    if(/iPhone|iPad|iPod/.test(ua)){tip.textContent="On iPhone/iPad the browser bars can't be hidden in a tab. Tap Share, then Add to Home Screen, and open No Hander from your home screen for true fullscreen.";}
+    else if(/Android/.test(ua)){tip.textContent="For no address bar: tap the browser menu, then Add to Home screen (or Install app), and open it from your home screen.";}})();
+  var stage=document.getElementById('stage'), frame=document.getElementById('frame');
+  document.getElementById('go').addEventListener('click', function(){
+    frame.src='game.html?v=' + Date.now() + location.hash;
+    stage.style.display='block';
+    document.getElementById('launch').style.display='none';
+    var r=document.documentElement.requestFullscreen||document.documentElement.webkitRequestFullscreen;
+    if(r){ try{ var p=r.call(document.documentElement); if(p&&p.catch)p.catch(function(){}); }catch(e){} }
+    if(screen.orientation&&screen.orientation.lock){ screen.orientation.lock('landscape').catch(function(){}); }
+  });
+  document.addEventListener('fullscreenchange', function(){
+    if(!document.fullscreenElement){ stage.style.display='none'; frame.src='about:blank'; document.getElementById('launch').style.display='flex'; }
+  });
+  (function(){
+    var inst=document.getElementById('inst'),steps=document.getElementById('steps'),dp=null;
+    var ua=navigator.userAgent,ios=/iPhone|iPad|iPod/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+    var standalone=window.matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches||navigator.standalone;
+    if(standalone)return;
+    inst.style.display='inline-block';
+    window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();dp=e;});
+    inst.addEventListener('click',function(){
+      if(dp){dp.prompt();dp.userChoice.then(function(){dp=null;});return;}
+      steps.style.display='block';
+      steps.innerHTML=ios
+        ?'<b>iPhone / iPad</b><br>1. Tap the Share button (square with an arrow) in Safari.<br>2. Scroll and tap <b>Add to Home Screen</b>.<br>3. Tap Add, then open <b>No Hander</b> from your home screen. No address bar.'
+        :'<b>Add to your home screen</b><br>1. Open your browser menu (three dots).<br>2. Tap <b>Install app</b> or <b>Add to Home screen</b>.<br>3. Open <b>No Hander</b> from your home screen. No address bar.';
+    });
+  })();
+</script>
