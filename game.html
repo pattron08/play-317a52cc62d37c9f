@@ -253,6 +253,7 @@
   #setScr .sheet { width: min(560px, 100%); gap: 0; padding-bottom: 10px; }
   #pauseMenu .pmDev { margin-top: 2px; padding-top: 8px; border-top: 1px dashed rgba(253,248,234,.2); display: grid; gap: 6px; }
   #pauseMenu .devh { text-align: center; font: 700 9px var(--f-ui); letter-spacing: .24em; opacity: .5; }
+  #pauseMenu .devi { text-align: center; font: 600 10px/1.4 var(--f-ui); letter-spacing: .04em; opacity: .8; padding: 2px 8px; }
   #pauseMenu .pmDev .mb { min-height: 34px; font-size: 11px; background: transparent; border-style: dashed; color: rgba(253,248,234,.7); }
   #pauseMenu .pmDev .drow { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   #pauseMenu .pmDev .dsw { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 0 8px; text-align: left; }
@@ -801,7 +802,7 @@
   <div class="favCard" id="tFavs" hidden><div class="fvh">Favorites</div><div class="fvl" id="tFavList"></div><button class="mb sm" id="tFavClose">Close</button></div>
   <div id="tapGo" role="status">Tap to start</div>
   <button class="ico" id="mute" role="switch" aria-checked="true" aria-label="Sound"><svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg><svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M17 9l5 6M22 9l-5 6"/></svg></button>
-  <div class="foot"><span id="verTag">v0.48.0</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span></div>
+  <div class="foot"><span id="verTag">v0.48.1</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span></div>
   <button id="btnNew" hidden>New mountain</button>
 </div>
 
@@ -54384,6 +54385,14 @@ const petsOn = () => !!COMPANIONS_ON && petsLive && !PROF.classic && !isTut();
 const DEV_L10 = 1; /* 1 = the DEV section has a 'Test: level 10' switch (needs the DEV section; inert without it); 0 = no switch and no override */
 let devL10 = null; /* the test-level override {on, xp: XP before, b: the boosted XP}; read from holdon.devl10 only while the DEV section is on, so a shipped page ignores it */
 const devL10On = () => !!(DEV_L10 && devL10 && devL10.on);
+const DEV_KIT = 1; /* 1 = the DEV Companion row says what the companions do on this map (a status line, clearer toasts) and has test helpers: Rebuild map, Go to the find, Quick peeks, Board note; 0 = the row as before */
+let devPeekFast = false; /* DEV Quick peeks: a peek every few seconds at camp (needs an animal that may peek on this mountain) */
+const PETS_SCRAP_MAP = 1; /* 1 = the basket notes on the board (states 1-3) show only on a map that really has the stump; 0 = whenever the story runs and the basket is out */
+const DEV_GIVE = 1; /* 1 = the DEV 'Give animal' leaves the basket as it was (the stump and the board note still come), with its own Give basket, Equip and Give + seat now buttons, and Test: level 10 says how to place the find; 0 = Give also marks the basket found */
+const PEEK_MORE = 1; /* 1 = extra peek spots from the finished camp that the lens nearly always shows (by the board kiosk's legs, the free end of the rider's log, the fence posts beside the board, the tent door), a spot in sight only when the head-and-shoulders box clears the camp UI and the parked bike, a larger peeking head (PEEK_SC) and a first peek 10-35 s after sitting down; 0 = the old spots and one-point test */
+const PEEK_SC = PEEK_MORE ? 1.35 : 1; /* the peek mesh's scale */
+const PETS_SEAT_BOX = 1; /* 1 = a seat is in view only when the animal's whole body box (not one head point) clears the camp UI, the bike, the figures and the board kiosk; 0 = the two-point test */
+const SCRAP_BIG = 1; /* 1 = the board's basket note is drawn ~1.6 x larger in heavier charcoal, fitted between the flag words and the sheet's right edge; 0 = the small scrap */
 const petsStory = () => petsOn() && (!!PETS.force || devL10On() || (levelOfXp(PROF.xp) >= PET_START_LVL && Object.keys(PROF.mtn).length >= PET_START_MAPS));
 const petsCode = () => (S.course ? seedToCode(S.course.seed) : '');
 const petsRider = () => (COMPANIONS_ON && PETS.basket && PETS.basketOn && PETS.chosen && PETS.owned.includes(PETS.chosen) ? PETS.chosen : null);
@@ -54398,7 +54407,7 @@ function petsOnFind(fn) { if (typeof fn === 'function') petsFindFns.push(fn); }
 const petsFire = (id) => { for (const fn of petsFindFns) { try { fn(id); } catch (e) { console.error('Companion find', e); } } };
 const petsMark = () => { PETS.lastFindLvl = levelOfXp(PROF.xp); PETS.lastFindMaps = PETS.mapsDone; PETS.lastCode = petsCode(); PETS.force = 0; };
 function petsBikeSync() { if (!COMPANIONS_ON) return; RIG.basketOn(!!(PETS.basket && PETS.basketOn)); if (RIG.petMode) RIG.petMode(petsRider()); }
-function petsBasketFound() { if (!COMPANIONS_ON || PETS.basket) return false; PETS.basket = 1; PETS.basketOn = 1; PETS.tries.basket = 0; if (PETS_MISS_CODE) PETS.missCode = ''; petsMark(); petsSave(); petsBikeSync(); recomputeMOD(); petsFire('basket'); return true; } /* no XP for the basket */
+function petsBasketFound() { if (!COMPANIONS_ON || PETS.basket) return false; if (DEV_GIVE) lsDel('holdon.devnb'); PETS.basket = 1; PETS.basketOn = 1; PETS.tries.basket = 0; if (PETS_MISS_CODE) PETS.missCode = ''; petsMark(); petsSave(); petsBikeSync(); recomputeMOD(); petsFire('basket'); return true; } /* no XP for the basket */
 function petsGive(id, where) { if (!COMPANIONS_ON) return false; if (id === 'basket') return petsBasketFound(); if (!PET_IDS.includes(id) || PETS.owned.includes(id)) return false;
   if (!PETS.basket) { PETS.basket = 1; PETS.basketOn = 1; }
   const w = where && typeof where === 'object' ? where : {}; PETS.owned.push(id); if (PETS.next === id) PETS.next = null; PETS.tries.bush = 0; if (PETS_MISS_CODE) PETS.missCode = '';
@@ -54409,7 +54418,7 @@ function petsSnakeRoll() { PETS.snake = PET_SKILLS[Math.min(PET_SKILLS.length - 
 function petsEquip(id) { if (!COMPANIONS_ON || !S.camp || !PETS.basket) return false; if (id !== null && !PETS.owned.includes(id)) return false; /* at camp only, never on the ride */
   PETS.chosen = id; if (id !== null) PETS.basketOn = 1; if (id === 'snake' && !PETS.snake) petsSnakeRoll(); recomputeMOD(); petsBikeSync(); petsSave(); return true; }
 function petsBasketToggle(on) { if (!COMPANIONS_ON || !S.camp || !PETS.basket) return false; PETS.basketOn = (on === undefined ? !PETS.basketOn : !!on) ? 1 : 0; recomputeMOD(); petsBikeSync(); petsSave(); return true; }
-function petsReset() { if (!COMPANIONS_ON) return; Object.assign(PETS, petBlank()); petsSave(); recomputeMOD(); petsBikeSync(); }
+function petsReset() { if (!COMPANIONS_ON) return; if (DEV_GIVE) lsDel('holdon.devnb'); Object.assign(PETS, petBlank()); petsSave(); recomputeMOD(); petsBikeSync(); }
 function petsRunStart() { if (!COMPANIONS_ON) return; petsLive = true; recomputeMOD(); petsBikeSync(); } /* newRun: the tutorial / Classic switch of the perk */
 function petsCampIn(cp) { if (!COMPANIONS_ON) return; const r = petsRider(); if (r && petsOn()) { const b = PETS.bond[r] || (PETS.bond[r] = { f: 0, c: 0 }); b.c = Math.min(1e6, b.c + 1); } petsSave(); }
 function petsCampOut(cp) { if (!COMPANIONS_ON) return; if (petsRider() === 'snake' && petsOn()) { petsSnakeRoll(); recomputeMOD(); } petsSave(); } /* the snake picks a new skill for every ride out of camp */
@@ -61899,7 +61908,7 @@ function peekGeo(id, kind) { /* the peek mesh's geometry for one animal: 'head' 
   peekGeoC.set(key, geo); return geo; }
 const PK = { m: null, on: null, next: -1, cp: null, n: 0, last: null, force: null };
 function petsPeekWho(theme) { return petsHab(theme).filter(id => !PETS.owned.includes(id)); } /* the animals that may peek on this mountain */
-function petsPeekGap() { const n = PETS.owned.length, r = petPeekRate(levelOfXp(PROF.xp), n, PET_IDS.length); if (r <= 0 || !petsPeekWho(S.course && S.course.theme).length) return Infinity; return PET_PEEK.gap / r * (0.45 + 1.1 * Math.random()); }
+function petsPeekGap() { const n = PETS.owned.length, r = petPeekRate(levelOfXp(PROF.xp), n, PET_IDS.length); if (DEV_KIT && devPeekFast && petsPeekWho(S.course && S.course.theme).length) return 3 + 3 * Math.random(); if (r <= 0 || !petsPeekWho(S.course && S.course.theme).length) return Infinity; if (PEEK_MORE && PK.first) return 10 + 25 * Math.random(); /* the first peek of a camp stay comes soon after sitting down */ return PET_PEEK.gap / r * (0.45 + 1.1 * Math.random()); }
 function petsPeekOk() { const C = S.camp; return !!(COMPANIONS_ON && petsOn() && C && C.ready && !C.walk && C.phase !== 'out' && !C.gcam && !C.camNudge && !CampMini.running && !MINI_VIEW && !S.paused && screen === 'camp'); }
 const _pkV = new THREE.Vector3(), _pkW = new THREE.Vector3();
 function petsPeekSpots(cp) { /* camp units: { kind: 'side' (round the tent corner) | 'rise' (behind a post or the log), vis / hid [x, y, z], yaw, tail } */
@@ -61911,11 +61920,26 @@ function petsPeekSpots(cp) { /* camp units: { kind: 'side' (round the tent corne
     const [ax, az] = away(tx, tz), lx = az, lz = -ax; /* the lateral axis across the lens ray at the tent */
     for (const sd of [-1, 1]) { const Q = C4.map(([x, z]) => ({ x, z, lat: ((x - tx) * lx + (z - tz) * lz) * sd, dep: (x - tx) * ax + (z - tz) * az })), mx = Math.max(...Q.map(q => q.lat)), best = Q.filter(q => q.lat > mx - 0.3).sort((a, b) => b.dep - a.dep)[0]; /* the far one of the silhouette corners on this side */
       if (!best) continue; const vx = best.x + lx * sd * 0.34 + ax * 0.12, vz = best.z + lz * sd * 0.34 + az * 0.12, hx = vx - lx * sd * 0.55, hz = vz - lz * sd * 0.55, g = gy(vx, vz);
-      out.push({ kind: 'side', what: 'tent', vis: [vx, g + PEEK_R * 1.1, vz], hid: [hx, g + PEEK_R * 1.1, hz], yaw: face(vx, vz), tail: false }); } }
+      out.push({ kind: 'side', what: 'tent', vis: [vx, g + PEEK_R * PEEK_SC * 1.1, vz], hid: [hx, g + PEEK_R * PEEK_SC * 1.1, hz], yaw: face(vx, vz), tail: false }); } }
   (cp.peekPosts || []).forEach(([px, pz, pg], i) => { const [ax, az] = away(px, pz), sd = i % 2 ? 1 : -1, x = px + ax * 0.3 + az * sd * 0.26, z = pz + az * 0.3 - ax * sd * 0.26, g = pg; /* just behind the post and to one side of it */ out.push({ kind: 'rise', what: 'fence', vis: [x, g + 0.6, z], hid: [x, g - 0.7, z], yaw: face(x, z), tail: true, root: g - 0.65, rootTop: g + 0.02 }); });
   for (const [bx, bz, bg, bs] of cp.peekBush || []) { const [ax, az] = away(bx, bz), x = bx + ax * bs * 0.75, z = bz + az * bs * 0.75, top = bg + bs * 1.2; out.push({ kind: 'rise', what: 'bush', vis: [x, top + 0.02, z], hid: [x, bg - 0.5, z], yaw: face(x, z), tail: true, root: bg - 0.6, rootTop: top - 0.3 }); }
   if (cp.peekWood) { const [wx, wz] = cp.peekWood, [ax, az] = away(wx, wz), x = wx + ax * 0.5, z = wz + az * 0.5, g = gy(x, z); out.push({ kind: 'rise', what: 'woodpile', vis: [x, g + 0.44, z], hid: [x, g - 0.6, z], yaw: face(x, z), tail: true, root: g - 0.6, rootTop: g + 0.08 }); }
   if (cp.log3) { const [lx0, lz0] = cp.log3, [ax, az] = away(lx0, lz0), x = lx0 + ax * 0.42, z = lz0 + az * 0.42, g = gy(x, z); out.push({ kind: 'rise', what: 'log', vis: [x, g + 0.4, z], hid: [x, g - 0.6, z], yaw: face(x, z), tail: true, root: g - 0.6, rootTop: g + 0.05 }); }
+  if (PEEK_MORE) { /* spots the camp lens nearly always shows (the free rectangle beside the panel holds the kiosk, the logs by the fire and the tent's door end): rising behind a leg of the board kiosk, behind either end of the
+       seat logs, behind the fence posts nearest the board, and stepping out of the tent door. Fixed offsets from the finished camp, no random draws */
+    const rise = (what, x, z, y, h) => { const g = gy(x, z); out.push({ kind: 'rise', what, vis: [x, g + y, z], hid: [x, g - 0.6, z], yaw: face(x, z), tail: true, root: g - 0.6, rootTop: g + h }); };
+    const G = cp.board && cp.board.grp; let kb = null;
+    if (G) { const ya = G.rotation.y, s = G.scale.x, c = Math.cos(ya), sn = Math.sin(ya), at = (u, w) => [G.position.x + u * c + w * sn, G.position.z - u * sn + w * c]; kb = [G.position.x, G.position.z, 0.9 * s]; /* the kiosk faces the lens along its local +x; its legs stand at local z = +-0.9 */
+      for (const e of [-1, 1]) { const [x, z] = at(-0.32, e * (0.9 * s + (e < 0 ? 0.62 : 0.34))); rise('kiosk', x, z, 0.5, 0.1); }
+      for (const e of [-0.45, 0.1]) { const [x, z] = at(-0.36, e * s); rise('kiosk', x, z, 0.46, 0.1); } } /* and under the sheet, between the legs */
+    const logEnds = (x0, z0, len) => { const th = Math.atan2(-x0, -z0), ax = -Math.cos(th) * len / 2, az = Math.sin(th) * len / 2;
+      for (const e of [-1, 1]) { const ex = x0 + ax * e * 1.08, ez = z0 + az * e * 1.08, [bx, bz] = away(ex, ez); rise('seat', ex + bx * 0.36, ez + bz * 0.36, 0.52, 0.31); } }; /* behind the log's end, over its top */
+    logEnds(1.3, 1.4, 1.2); logEnds(-0.6, 1.7, 1.4); if (cp.log3) logEnds(cp.log3[0], cp.log3[1], 1.3);
+    if (kb) { const near = (cp.peekPosts || []).map(([px, pz, pg]) => ({ px, pz, pg, d: Math.hypot(px - kb[0], pz - kb[1]) })).filter((q) => q.d > kb[2] + 0.5 && q.d < 5.6).sort((a, b) => a.d - b.d).slice(0, 6);
+      for (const q of near) for (const sd of [1, -1]) { const [ax, az] = away(q.px, q.pz), ox = q.px - kb[0], oz = q.pz - kb[1], ol = Math.hypot(ox, oz) || 1, x = q.px + ax * 0.3 + ox / ol * 0.24 * sd, z = q.pz + az * 0.3 + oz / ol * 0.24 * sd; /* behind the post, on either side of it */
+        out.push({ kind: 'rise', what: 'post', vis: [x, q.pg + 0.6, z], hid: [x, q.pg - 0.7, z], yaw: face(x, z), tail: true, root: q.pg - 0.65, rootTop: q.pg + 0.02 }); } }
+    if (cp.tentL) { const [tx, tz, ta] = cp.tentL, c = Math.cos(ta), sn = Math.sin(ta), at = (u, v) => [tx + u * c + v * sn, tz - u * sn + v * c]; /* the door end of the tent (its mat side, +u) */
+      for (const v of [-0.5, 0.5]) { const [vx, vz] = at(1.5, v), [hx, hz] = at(1.0, v), g = gy(vx, vz), y = g + PEEK_R * PEEK_SC * 1.1; out.push({ kind: 'side', what: 'door', vis: [vx, y, vz], hid: [hx, y, hz], yaw: face(vx, vz), tail: false }); } } }
   return out; }
 const _pkRay = new THREE.Raycaster(), _pkHits = [], _pkBox = new THREE.Box3(), _pkU = new THREE.Vector3();
 const PEEK_RAY_VIS = 1; /* 1: the sight ray only walks the visible scene roots and the visible world blocks (a hidden far tile can never be cover: its hits were dropped anyway); 0 = every scene child */
@@ -61924,16 +61948,34 @@ function petsPeekRoots() { _pkRoots.length = 0; for (const c of scene.children) 
 function petsPeekSeen(cp, p) { /* the spot is in the lens, clear of the camp panel, away from the parked bike, and nothing solid stands between the lens and the eyes */
   PK.why = 'bike'; if (Math.hypot(p[0] - CAMP_BIKE[0], p[2] - CAMP_BIKE[1]) < 1.8) return false; /* never beside the bike: it would read as the basket's animal */
   cp.mesh.updateMatrixWorld(); _pkV.set(p[0], p[1] + PEEK_R * 0.2, p[2]); cp.mesh.localToWorld(_pkV); const d = _pkV.distanceTo(camera.position); _pkW.copy(_pkV); _pkV.project(camera);
+  if (PEEK_MORE) { if (!petsPeekFits(cp, p, d)) return false; } else {
   PK.why = 'lens'; if (!(_pkV.z < 1) || Math.abs(_pkV.x) > 0.82 || _pkV.y < -0.75 || _pkV.y > 0.72 || d > 40) return false;
   PK.why = 'panel'; const el = document.getElementById('campPn'), sx = (_pkV.x + 1) / 2 * innerWidth, sy = (1 - _pkV.y) / 2 * innerHeight;
   if (el && el.offsetParent !== null) { const r = el.getBoundingClientRect(); if (sx > r.left - 20 && sx < r.right + 20 && sy > r.top - 20 && sy < r.bottom + 20) return false; }
   { _pkBox.setFromObject(bikeGroup); let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; const b = _pkBox; /* nowhere over the parked bike on screen: a head by the basket would read as the basket's own animal */
     for (const X of [b.min.x, b.max.x]) for (const Y of [b.min.y, b.max.y]) for (const Z of [b.min.z, b.max.z]) { _pkU.set(X, Y, Z).project(camera); const u = (_pkU.x + 1) / 2 * innerWidth, v = (1 - _pkU.y) / 2 * innerHeight; x0 = Math.min(x0, u); x1 = Math.max(x1, u); y0 = Math.min(y0, v); y1 = Math.max(y1, v); }
-    PK.why = 'bike2'; if (sx > x0 - 40 && sx < x1 + 40 && sy > y0 - 40 && sy < y1 + 30) return false; }
+    PK.why = 'bike2'; if (sx > x0 - 40 && sx < x1 + 40 && sy > y0 - 40 && sy < y1 + 30) return false; } }
   _pkRay.set(camera.position, _pkW.sub(camera.position).normalize()); _pkRay.near = 2; _pkRay.far = d - 0.45; _pkHits.length = 0; _pkRay.intersectObjects(PEEK_RAY_VIS ? petsPeekRoots() : scene.children, true, _pkHits); /* once per peek: the props, campers, trees and the bike in the way (cover within 0.45 m of the head is its hiding place; the lens's own close props are skipped) */
   for (const h of _pkHits) { const o = h.object, m = o.material; if (o === PK.m || o.userData.peek || !o.visible || o.isPoints || o.isSprite || o.isLine || (o.isInstancedMesh && !o.userData.tree) || !m || (Array.isArray(m) ? m.some(q => q.transparent) : m.transparent)) continue;
     let v = true; for (let q = o; q; q = q.parent) if (!q.visible) { v = false; break; } if (v) { PK.why = 'hid ' + (o.geometry ? o.geometry.attributes.position.count : 0) + ' @' + h.distance.toFixed(1) + '/' + d.toFixed(1); return false; } }
   PK.why = ''; return true; }
+function petsPeekFits(cp, p, d) { /* the whole head-and-shoulders box on screen (ears to shoulders, PEEK_SC) lies inside the rectangle the camp UI leaves free and clear of the parked bike's box */
+  const R = PEEK_R * PEEK_SC, w = innerWidth, h = innerHeight; let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; PK.why = 'lens'; if (d > 40) return false;
+  for (const ex of [-1.3, 1.3]) for (const ey of [-1.7, 1.5]) for (const ez of [-1.3, 1.3]) { _pkU.set(p[0] + ex * R, p[1] + ey * R, p[2] + ez * R); cp.mesh.localToWorld(_pkU); _pkU.project(camera); if (!(_pkU.z < 1)) return false;
+    const u = (_pkU.x + 1) / 2 * w, v = (1 - _pkU.y) / 2 * h; x0 = Math.min(x0, u); x1 = Math.max(x1, u); y0 = Math.min(y0, v); y1 = Math.max(y1, v); }
+  const FR = S.camp ? campFree(S.camp, w, h) : null;
+  if (FR) { PK.why = 'panel'; if (x0 < FR.L + 4 || x1 > FR.R - 4 || y0 < FR.T + 4 || y1 > FR.B - 4) return false; } /* beside the panel, under the header, over the tab bar (mirrored with the canvas) */
+  else { if (x0 < 8 || x1 > w - 8 || y0 < 8 || y1 > h - 8) return false; PK.why = 'panel'; const el = document.getElementById('campPn'); if (el && el.offsetParent !== null) { const r = el.getBoundingClientRect(); if (x1 > r.left - 12 && x0 < r.right + 12 && y1 > r.top - 12 && y0 < r.bottom + 12) return false; } }
+  let b0 = 1e9, c0 = 1e9, b1 = -1e9, c1 = -1e9; const bx = CAMP_BIKE[0], bz = CAMP_BIKE[1]; /* the parked bike's own box in the camp frame (petsSlots uses the same one): its world box would also hold whatever hangs on the group */
+  for (const X of [bx - 1.0, bx + 1.0]) for (const Y of [0, 1.25]) for (const Z of [bz - 0.35, bz + 0.45]) { _pkU.set(X, Y, Z); cp.mesh.localToWorld(_pkU); _pkU.project(camera); const u = (_pkU.x + 1) / 2 * w, v = (1 - _pkU.y) / 2 * h; b0 = Math.min(b0, u); b1 = Math.max(b1, u); c0 = Math.min(c0, v); c1 = Math.max(c1, v); }
+  PK.why = 'bike2'; if (x1 > b0 - 16 && x0 < b1 + 16 && y1 > c0 - 16 && y0 < c1 + 12) return false; /* nowhere over the parked bike: a head by the basket would read as the basket's own animal */
+  if (S.camp && Math.hypot(p[0] - 1.3, p[2] - 1.4) < 1.2) { const fa = S.camp.yaw - (cp.yaw || 0), c = Math.cos(fa), sn = Math.sin(fa); b0 = 1e9; c0 = 1e9; b1 = -1e9; c1 = -1e9; /* a spot by the rider's own log clears the seated rider (seat B, as petsSlots places him): a head over his back would read as sitting on him */
+    for (const k of SEAT_KEYS) { const q = SEATED[k]; _pkU.set(1.3 + q[0] * c + q[2] * sn, q[1] + (k === 'hd' ? 0.45 : 0), 1.4 - q[0] * sn + q[2] * c); cp.mesh.localToWorld(_pkU); _pkU.project(camera); const u = (_pkU.x + 1) / 2 * w, v = (1 - _pkU.y) / 2 * h; b0 = Math.min(b0, u); b1 = Math.max(b1, u); c0 = Math.min(c0, v); c1 = Math.max(c1, v); }
+    PK.why = 'rider'; if (x1 > b0 - 6 && x0 < b1 + 6 && y1 > c0 - 6 && y0 < c1 + 6) return false; }
+  if (Math.hypot(p[0] + 0.6, p[2] - 1.7) < 1.2) { const OT = CAMP_OTHER[cp.variant] || CAMP_OTHER[0]; b0 = 1e9; c0 = 1e9; b1 = -1e9; c1 = -1e9; /* by the camper's log: clear of the camper and his things (seated, lying on a mat, at the table) */
+    for (const q of OT) for (const y of [0, Math.max(q[1], 0.9)]) { _pkU.set(q[0], y, q[2]); cp.mesh.localToWorld(_pkU); _pkU.project(camera); const u = (_pkU.x + 1) / 2 * w, v = (1 - _pkU.y) / 2 * h; b0 = Math.min(b0, u); b1 = Math.max(b1, u); c0 = Math.min(c0, v); c1 = Math.max(c1, v); }
+    PK.why = 'camper'; if (x1 > b0 - 6 && x0 < b1 + 6 && y1 > c0 - 6 && y0 < c1 + 6) return false; }
+  return true; }
 function petsPeekClear() { if (PK.m && PK.m.parent) PK.m.parent.remove(PK.m); PK.on = null; }
 function petsPeekStart(o = {}) { /* begins one peek now (o.id / o.kind / o.what pin a choice, for the debug hook); false when nothing fits */
   const C = S.camp; if (!C || !C.cp.mesh) return false; const cp = C.cp, who = o.id ? [o.id] : petsPeekWho(S.course && S.course.theme); if (!who.length) return false;
@@ -61947,7 +61989,7 @@ function petsPeekStart(o = {}) { /* begins one peek now (o.id / o.kind / o.what 
   if (!PK.m) { PK.m = new THREE.Mesh(geo, campMat); PK.m.userData.peek = true; } else PK.m.geometry = geo;
   if (PK.m.parent !== cp.mesh) { if (PK.m.parent) PK.m.parent.remove(PK.m); cp.mesh.add(PK.m); }
   PK.on = { cp, id, kind, sp, t: 0, hold: PET_PEEK.hold[0] + Math.random() * (PET_PEEK.hold[1] - PET_PEEK.hold[0]), ph: Math.random() * 6.28, tick: false }; PK.n++; PK.last = { id, kind, what: sp.what };
-  petsPeekPose(0); return true; }
+  if (PEEK_MORE) { PK.first = false; PK.m.scale.setScalar(PEEK_SC); } petsPeekPose(0); return true; }
 function petsPeekPose(dt) { const P = PK.on, m = PK.m, sp = P.sp, rm = reduceMotion.matches; P.t += dt; const t = P.t, T1 = PET_PEEK.up, T2 = T1 + P.hold, T3 = T2 + PET_PEEK.down;
   if (t >= T3) { petsPeekClear(); return; }
   const k = t < T1 ? t / T1 : t < T2 ? 1 : 1 - (t - T2) / PET_PEEK.down, e = k * k * (3 - 2 * k), lk = t > T1 && t < T2 && !rm ? 1 : 0;
@@ -61966,9 +62008,51 @@ function petsPeekTick(dt) {
 let boardScrapK = 0, boardRedraw = null, boardScrapForce = null;
 function petsScrapState() { /* 0 none, 1 'between the fires', 2 the sharper hint (misses), 3 the basket waits at a camp, 4 'all found' */
   if (boardScrapForce !== null) return boardScrapForce; if (!COMPANIONS_ON || !petsOn()) return 0; if (PETS.done) return 4;
-  if (!PETS.basket && petsStory()) { const n = (PETS.tries && PETS.tries.basket) | 0; return n >= 10 ? 3 : n >= 3 ? 2 : 1; } return 0; }
+  if (!PETS.basket && petsStory()) { if (PETS_SCRAP_MAP) { const W = S.course && S.course.petsW; if (!W || !W.basket || W.basket.got) return 0; } /* no stump on this map: no clue that sends the rider looking for one */
+    const n = (PETS.tries && PETS.tries.basket) | 0; return n >= 10 ? 3 : n >= 3 ? 2 : 1; } return 0; }
+function petsDevInfo(short) { /* DEV status: whether the companions run on this map and what waits on it */
+  if (!COMPANIONS_ON || !S.course) return ''; if (isTut()) return 'Tutorial: companions are off here'; if (PROF.classic) return 'Classic feel is on: companions are off';
+  const st = petsStory(), L = levelOfXp(PROF.xp), maps = Object.keys(PROF.mtn).length, W = S.course.petsW, B = W && W.basket, R = W && W.bush;
+  const why = st ? (PETS.force ? 'find due' : devL10On() ? 'test level 10' : 'level ' + L + ', ' + maps + ' maps') : 'needs level 10 and 3 finished maps, now ' + L + ' and ' + maps;
+  const camps = (i) => S.course.checkpoints.filter((c) => c.lane && c.idx < i).length;
+  let map = 'nothing';
+  if (B) map = B.got ? 'basket taken' : PETS.basket ? 'stump (the basket is yours already)' : B.camp ? 'stump at camp ' + camps(B.camp + 1) : 'stump, side path after camp ' + camps(B.mi);
+  else if (R) map = R.got ? PET_NAME[R.id] + ' caught' : PET_NAME[R.id] + ' bush' + (R.mode === 'camp' ? ' at the first camp way in' : '');
+  else if (st && !PETS.done) map = petsDue() ? 'nothing yet (Rebuild map or New mountain)' : 'nothing (next find on another map)';
+  const what = 'This map: ' + map; if (short) return what;
+  return 'Story ' + (st ? 'ON' : 'off') + ' (' + why + ') · basket ' + (PETS.basket ? 'found' : 'not found') + ' · ' + what + ' · animals ' + PETS.owned.length + ' of ' + PET_IDS.length + ', ' + petsAtCamp().length + ' sit at camp'; }
 function petsBoardSync() { const k = petsScrapState(); if (k === boardScrapK) return; boardScrapK = k; if (boardRedraw) boardRedraw(); } /* the shared sheet is redrawn once per state change */
+function petsScrapBig(g, k) { /* the large note: a tall torn scrap over the dotted leaders, from just right of the longest flag word to the sheet's edge (~1.6 x the small one), heavy charcoal, words fitted to its width */
+  g.save(); g.font = 'bold ' + BOARD_TEX.word + 'px "Barlow Condensed", "Rubik", sans-serif'; let wr = 0; for (const r of BOARD_ROWS) wr = Math.max(wr, g.measureText(r[2]).width);
+  const R = BOARD_TEX.w - 9, L = Math.min(R - 150, Math.max(184 + wr + 10, R - 240)), T = 56, B = BOARD_TEX.h - 9, hw = (R - L) / 2, hh = (B - T) / 2, ink = 'rgba(24,19,15,0.97)', jit = (i, a) => Math.sin(i * 12.9898 + a * 78.233) * 0.5;
+  g.translate((L + R) / 2, (T + B) / 2); g.rotate(-0.03); const edge = [];
+  for (let i = 0; i <= 8; i++) edge.push([-hw + i * hw / 4, -hh + jit(i, 1) * 4]); for (let i = 1; i <= 8; i++) edge.push([hw + jit(i, 2) * 5, -hh + i * hh / 4]);
+  for (let i = 1; i <= 8; i++) edge.push([hw - i * hw / 4, hh + jit(i, 3) * 6]); for (let i = 1; i < 8; i++) edge.push([-hw + jit(i, 4) * 5, hh - i * hh / 4]);
+  const poly = (dx, dy) => { g.beginPath(); edge.forEach(([x, y], i) => (i ? g.lineTo(x + dx, y + dy) : g.moveTo(x + dx, y + dy))); g.closePath(); };
+  poly(4, 5); g.fillStyle = 'rgba(40,25,10,0.26)'; g.fill(); poly(0, 0); g.fillStyle = '#efe6cf'; g.fill(); g.strokeStyle = 'rgba(110,85,52,0.55)'; g.lineWidth = 2; g.stroke();
+  g.fillStyle = 'rgba(150,120,70,0.08)'; for (let i = 0; i < 7; i++) g.fillRect(-hw + 8, -hh + 26 + i * 40, 2 * hw - 16, 2); /* faint ruled lines */
+  g.strokeStyle = ink; g.fillStyle = ink; g.lineCap = 'round'; g.lineJoin = 'round';
+  const line = (pts, lw = 3.6) => { g.lineWidth = lw; g.beginPath(); pts.forEach(([x, y], i) => { const xx = x + jit(i, x) * 1.1, yy = y + jit(i, y) * 1.1; if (i) g.lineTo(xx, yy); else g.moveTo(xx, yy); }); g.stroke(); };
+  const word = (t, y, px) => { g.font = 'bold ' + px + 'px "Barlow Condensed", "Rubik", sans-serif'; const m = g.measureText(t).width, f = Math.min(1, (2 * hw - 22) / Math.max(1, m)); if (f < 1) g.font = 'bold ' + Math.floor(px * f) + 'px "Barlow Condensed", "Rubik", sans-serif';
+    g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineWidth = 1.2; g.strokeText(t, 0, y); g.fillText(t, 0, y); };
+  const basket = (x, y, s) => { const tw = 34 * s, bw = 25 * s, bh = 22 * s; line([[x - tw, y], [x + tw, y], [x + bw, y + bh], [x - bw, y + bh], [x - tw, y]], 4);
+    for (let i = 1; i < 5; i++) { const u = i / 5; line([[x - tw + 2 * tw * u, y], [x - bw + 2 * bw * u, y + bh]], 2.4); } line([[x - tw * 0.95, y + bh * 0.5], [x + tw * 0.95, y + bh * 0.5]], 2.4);
+    g.lineWidth = 3.4; g.beginPath(); g.ellipse(x, y, tw * 0.9, 20 * s, 0, Math.PI, 0); g.stroke(); };
+  const fire = (x, y, s = 1.5) => { line([[x - 8 * s, y + 8 * s], [x + 8 * s, y + 2 * s]], 3.4); line([[x - 8 * s, y + 2 * s], [x + 8 * s, y + 8 * s]], 3.4); line([[x - 6 * s, y + 2 * s], [x - 2 * s, y - 9 * s], [x, y - 3 * s], [x + 3 * s, y - 13 * s], [x + 6 * s, y + 2 * s]], 3); };
+  const stones = (x, y, s) => { for (const [u, v, r] of [[-7, 4, 6], [6, 4, 6], [0, -5, 5], [0, -12, 3.5]]) { g.lineWidth = 2.8; g.beginPath(); g.ellipse(x + u * s, y + v * s, r * 1.25 * s, r * 0.85 * s, 0, 0, 6.283); g.stroke(); } };
+  const dots = (x0, x1, y) => { for (let x = x0; x <= x1; x += 9) { g.beginPath(); g.arc(x, y, 2, 0, 6.283); g.fill(); } };
+  const bs = Math.min(1.55, (2 * hw - 30) / 70), fx = Math.min(hw - 26, 70);
+  if (k === 1) { basket(0, -hh + 76, bs); word('between', -4, 40); word('the fires', 40, 40); fire(-fx, hh - 40); fire(fx, hh - 40); dots(-fx + 18, fx - 18, hh - 40); line([[-7, hh - 54], [7, hh - 40]], 3.2); line([[7, hh - 54], [-7, hh - 40]], 3.2); }
+  else if (k === 2) { basket(-hw * 0.32, -hh + 58, bs * 0.62); stones(hw * 0.45, -hh + 56, 1.3); word('between', -50, 32); word('the fires', -16, 32); word('a faint track', 20, 30); word('by the stones', 54, 30);
+    fire(-fx, hh - 34); fire(fx, hh - 34); dots(-fx + 18, fx - 18, hh - 34); line([[0, hh - 36], [6, hh - 50], [16, hh - 58], [28, hh - 63]], 2.8); line([[22, hh - 70], [36, hh - 58]], 3.4); line([[36, hh - 70], [22, hh - 58]], 3.4); }
+  else if (k === 3) { basket(0, -hh + 76, bs); word('it waits', 0, 42); word('by a camp', 44, 42); fire(0, hh - 38, 1.8); }
+  else if (k === 4) { { const s = 1.5, y0 = -hh + 64; g.beginPath(); g.ellipse(0, y0, 11 * s, 9 * s, 0, 0, 6.283); g.fill(); for (const [u, v] of [[-13, -15], [-5, -21], [5, -21], [13, -15]]) { g.beginPath(); g.ellipse(u * s, y0 + v * s, 4 * s, 5 * s, 0, 0, 6.283); g.fill(); } } /* a paw print */
+    word('all found', -12, 42); for (const gx of [-46, 10]) { for (let i = 0; i < 4; i++) line([[gx + i * 10, 24], [gx + i * 10, 62]], 3.4); line([[gx - 6, 56], [gx + 36, 30]], 3.4); } /* two gates of five tallies: ten */
+    g.textAlign = 'right'; g.font = 'bold 28px "Barlow Condensed", "Rubik", sans-serif'; g.fillText('- K.', hw - 16, hh - 26); }
+  g.fillStyle = '#5a7d9a'; g.beginPath(); g.arc(0, -hh + 11, 6.5, 0, 6.283); g.fill(); g.fillStyle = 'rgba(255,255,255,0.5)'; g.beginPath(); g.arc(-2, -hh + 9, 2.3, 0, 6.283); g.fill(); /* the pin */
+  g.restore(); }
 function petsScrapDraw(g, k) { /* a torn scrap of paper pinned over the flag sheet's lower right corner (over the dotted leaders), charcoal lines and words */
+  if (SCRAP_BIG) { petsScrapBig(g, k); return; }
   const ink = 'rgba(40,33,28,0.9)', jit = (i, a) => Math.sin(i * 12.9898 + a * 78.233) * 0.5;
   g.save(); g.translate(426, 252); g.rotate(-0.05); const w = 74, h = 92, edge = [];
   for (let i = 0; i <= 8; i++) edge.push([-w + i * w / 4, -h + jit(i, 1) * 3]); for (let i = 1; i <= 8; i++) edge.push([w + jit(i, 2) * 4, -h + i * h / 4]);
@@ -62038,7 +62122,7 @@ function petsBushMesh(kind) { /* one bush on the shared sway material (the tufts
   const uni = { uT: { value: 0 }, uW: { value: 0 } }, mat = CampMini.sway(uni), m = new THREE.InstancedMesh(bushGeo(kind), mat, 1);
   m.setMatrixAt(0, new THREE.Matrix4()); m.setColorAt(0, new THREE.Color(1, 1, 1)); m.userData.rustle = (dt, a) => { uni.uT.value += dt * (reduceMotion.matches ? 2.5 : 7.5); uni.uW.value = (reduceMotion.matches ? 0.3 : 1) * Math.max(0, a); }; return m; }
 /* ---- camp hooks ---- */
-function petsFxCampIn(cp) { petsPeekClear(); PK.next = -1; petsBoardSync(); }
+function petsFxCampIn(cp) { petsPeekClear(); PK.next = -1; PK.first = !!PEEK_MORE; petsBoardSync(); }
 function petsFxTick(dt) { petsPeekTick(dt); if (COMPANIONS_ON && sfx.pets) sfx.pets.tick(); if (PK.bush) { PK.bush.userData.rustle(dt, PK.bushA); if (!S.camp) petsBushDrop(); } }
 function petsBushDrop() { if (!PK.bush) return; if (PK.bush.parent) PK.bush.parent.remove(PK.bush); PK.bush.material.dispose(); PK.bush.dispose(); PK.bush = null; }
 if (COMPANIONS_ON) petsOnFind((id) => { try { if (sfx.pets) { if (id === 'basket') sfx.pets.basket(); else sfx.pets.find(id); } } catch (e) { /* no audio */ } if (S.camp) petsBoardSync(); }); /* every find: its cue, and the board's scrap follows the state */
@@ -62876,7 +62960,7 @@ function petsSync() { /* the seated set follows petsAtCamp() (a find, a new bask
     const fi = PV.fresh.indexOf(id); if (fi >= 0) PV.fresh.splice(fi, 1);
     const s = { id, g, body, head, piv: E.piv, at: null, ph: Math.random() * 6.283, hop: fi >= 0 || PV.placed ? 0 : -1, ly: 0, lt: 0, ln: 1 + Math.random() * 2, fl: 1 + Math.random() * 2, fk: 9 };
     PV.seats.push(s); if (PV.placed) petsAssign(s); } }
-const _pvV = new THREE.Vector3(), _pvW = new THREE.Vector3(), _pvM = new THREE.Matrix4(), _pvI = new THREE.Matrix4();
+const _pvV = new THREE.Vector3(), _pvW = new THREE.Vector3(), _pvM = new THREE.Matrix4(), _pvI = new THREE.Matrix4(), _pvB = new THREE.Box3();
 function petsTops(cp) { /* the highest surface of the camp's own props over each 0.1 unit cell (camp units), from every opaque triangle that comes lower than 0.9 (a prop an
      animal could stand in: a kit box on a log, a mat, a table, a camper) - the animals and anything hanging higher (bunting, flags) left out; f(x, z, r) = the top within r */
   const N = 180, C0 = -9, CS = 0.1, T = new Float32Array(N * N).fill(-9), a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3(); cp.mesh.updateMatrixWorld(true); _pvI.copy(cp.mesh.matrixWorld).invert();
@@ -62918,7 +63002,14 @@ function petsSlots(C) { /* candidate spots in camp units { x, y, z, yaw, vis, ki
   { const L = []; for (const x of [bx - 1.0, bx + 1.0]) for (const y of [0, 1.25]) for (const z of [bz - 0.35, bz + 0.45]) L.push([x, y, z]); occBox(L); } /* the parked bike */
   { const c = Math.cos(fa), sn = Math.sin(fa), L = [[1.3, 0, 1.4]]; for (const k of SEAT_KEYS) { const q = SEATED[k]; L.push([1.3 + q[0] * c + q[2] * sn, q[1] + (k === 'hd' ? 0.45 : 0), 1.4 - q[0] * sn + q[2] * c]); } occBox(L); } /* the seated rider */
   occBox(OT.map((q) => [q[0], Math.max(q[1], 0.9), q[2]]).concat(OT.map((q) => [q[0], 0, q[2]]))); /* the camper */
-  const vis = (x, y, z) => { const a = scr(x, y + 0.14, z), t = scr(x, y + 0.36, z); if (a[2] > 1 || a[2] < -1) return 0;
+  if (PETS_SEAT_BOX) { const G = cp.board && cp.board.grp; if (G) { G.updateMatrixWorld(true); _pvB.setFromObject(G); const o = [1e9, 1e9, -1e9, -1e9, 9], b = _pvB; /* the board kiosk: an animal behind it is hidden */
+    for (const X of [b.min.x, b.max.x]) for (const Y of [b.min.y, b.max.y]) for (const Z of [b.min.z, b.max.z]) { _pvW.set(X, Y, Z).project(camera); const u = (_pvW.x + 1) / 2 * w, v = (1 - _pvW.y) / 2 * h; o[0] = Math.min(o[0], u); o[1] = Math.min(o[1], v); o[2] = Math.max(o[2], u); o[3] = Math.max(o[3], v); o[4] = Math.min(o[4], _pvW.z); }
+    occ.push(o); } }
+  const visBox = (x, y, z) => { let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9, z0 = 9; /* the animal's whole body box (0.6 x 0.6 footprint, 0.62 tall) on screen */
+    for (const u of [-0.3, 0.3]) for (const v of [0, 0.62]) for (const q of [-0.3, 0.3]) { const a = scr(x + u, y + v, z + q); if (a[2] > 1 || a[2] < -1) return 0; x0 = Math.min(x0, a[0]); x1 = Math.max(x1, a[0]); y0 = Math.min(y0, a[1]); y1 = Math.max(y1, a[1]); z0 = Math.min(z0, a[2]); }
+    for (const o of occ) if (x1 > o[0] - 4 && x0 < o[2] + 4 && y1 > o[1] - 4 && y0 < o[3] + 4 && z0 > o[4]) return 0; /* behind a figure, the bike or the kiosk */
+    return FR ? (x0 > FR.L + 10 && x1 < FR.R - 10 && y0 > FR.T + 10 && y1 < FR.B - 8 ? 1 : 0) : (x0 > w * 0.05 && x1 < w * 0.95 && y0 > h * 0.05 && y1 < h * 0.95 ? 1 : 0); }; /* wholly beside the panel, under the header, over the tab bar */
+  const vis = (x, y, z) => { if (PETS_SEAT_BOX) return visBox(x, y, z); const a = scr(x, y + 0.14, z), t = scr(x, y + 0.36, z); if (a[2] > 1 || a[2] < -1) return 0;
     for (const o of occ) for (const q of [a, t]) if (q[0] > o[0] - 6 && q[0] < o[2] + 6 && q[1] > o[1] - 6 && q[1] < o[3] + 6 && q[2] > o[4]) return 0; /* behind a figure or the bike */
     return FR ? (t[0] > FR.L + 14 && t[0] < FR.R - 14 && t[1] > FR.T + 14 && a[1] < FR.B - 10 ? 1 : 0) : (Math.abs(a[0] / w * 2 - 1) < 0.9 && Math.abs(a[1] / h * 2 - 1) < 0.9 ? 1 : 0); };
   const face = (x, z) => { const cx = CAMPCAM.pos[0] - x, cz = CAMPCAM.pos[2] - z, cl = Math.hypot(cx, cz) || 1, fx = -x, fz = -z, fl = Math.hypot(fx, fz) || 1, dx = 0.62 * cx / cl + 0.38 * fx / fl, dz = 0.62 * cz / cl + 0.38 * fz / fl;
@@ -67248,11 +67339,31 @@ if (DEV_ON) {
   addEventListener('pagehide', () => { if (devResetting) devWipe(); }); /* nothing written between the wipe and the unload survives */
   addEventListener('keydown', (e) => { if (pauseAsk && e.key === 'Enter' && !gpMenu.shown) { e.preventDefault(); e.stopImmediatePropagation(); gpMenu.confirm(); } }, true); /* Enter presses the focused button; the ride's own Enter (restart) must not fire under the confirmation */
   if (COMPANIONS_ON && $('pmDevB')) { /* the Companion row: pick an animal and give it, the basket found or not, a find due now, wipe the companions */
-    let pick = 0; $('pmDevB').insertAdjacentHTML('beforeend', `<div class="devh">COMPANION</div><div class="drow"><button class="mb sm" id="pmPetPick" type="button"></button><button class="mb sm" id="pmPetGive" type="button">Give</button></div>
-      <div class="drow"><button class="mb sm dsw" id="pmPetBk" role="switch" aria-checked="false" type="button"><span>Basket found</span><i class="dk"></i></button><button class="mb sm" id="pmPetDue" type="button">Find due now</button></div><button class="mb sm" id="pmPetReset" type="button">Reset companions</button>${DEV_L10 ? '<button class="mb sm dsw" id="pmL10" role="switch" aria-checked="false" type="button" aria-label="Test: level 10"><span>Test: level 10 <small>companion start</small></span><i class="dk"></i></button>' : ''}`);
-    const sync = () => { $('pmPetPick').textContent = 'Animal: ' + PET_NAME[PET_IDS[pick]] + (PETS.owned.includes(PET_IDS[pick]) ? ' ✓' : ''); $('pmPetBk').setAttribute('aria-checked', String(!!PETS.basket)); $('pmPetDue').textContent = PETS.force ? 'Find due: on' : 'Find due now'; };
+    let pick = 0; $('pmDevB').insertAdjacentHTML('beforeend', `<div class="devh">COMPANION</div><div class="drow"><button class="mb sm" id="pmPetPick" type="button"></button><button class="mb sm" id="pmPetGive" type="button">${DEV_GIVE ? 'Give animal' : 'Give'}</button></div>${DEV_GIVE ? '<div class="drow"><button class="mb sm" id="pmPetGB" type="button">Give basket</button><button class="mb sm" id="pmPetEq" type="button">Equip</button></div><button class="mb sm" id="pmPetSeat" type="button">Give + seat now</button>' : ''}
+      <div class="drow"><button class="mb sm dsw" id="pmPetBk" role="switch" aria-checked="false" type="button"><span>Basket found</span><i class="dk"></i></button><button class="mb sm" id="pmPetDue" type="button">Find due now</button></div><button class="mb sm" id="pmPetReset" type="button">Reset companions</button>${DEV_L10 ? '<button class="mb sm dsw" id="pmL10" role="switch" aria-checked="false" type="button" aria-label="Test: level 10"><span>Test: level 10 <small>companion start</small></span><i class="dk"></i></button>' : ''}${DEV_KIT ? '<div class="drow"><button class="mb sm" id="pmPetMap" type="button">Rebuild map</button><button class="mb sm" id="pmPetGo" type="button">Go to the find</button></div><div class="drow"><button class="mb sm dsw" id="pmPetPk" role="switch" aria-checked="false" type="button"><span>Quick peeks</span><i class="dk"></i></button><button class="mb sm" id="pmPetNote" type="button">Board note: auto</button></div><div class="devi" id="pmPetInfo"></div>' : ''}`);
+    let sync = () => { $('pmPetPick').textContent = 'Animal: ' + PET_NAME[PET_IDS[pick]] + (PETS.owned.includes(PET_IDS[pick]) ? ' ✓' : ''); $('pmPetBk').setAttribute('aria-checked', String(!!PETS.basket)); $('pmPetDue').textContent = PETS.force ? 'Find due: on' : 'Find due now';
+      if (DEV_KIT && $('pmPetInfo')) { $('pmPetInfo').textContent = petsDevInfo(); $('pmPetPk').setAttribute('aria-checked', String(devPeekFast)); $('pmPetNote').textContent = 'Board note: ' + (boardScrapForce === null ? 'auto' : boardScrapForce); } };
     $('pmPetPick').addEventListener('click', () => { pick = (pick + 1) % PET_IDS.length; sync(); });
-    $('pmPetGive').addEventListener('click', () => { const id = PET_IDS[pick]; toast(petsGive(id) ? PET_NAME[id] + ' found' : PET_NAME[id] + ' is already yours'); sync(); });
+    if (DEV_GIVE) { /* Give animal leaves the basket alone (the stump stays on the map, the note on the board); the basket, the basket rider and a seat at once are their own buttons */
+      if (lsGet('holdon.devnb') && PETS.basket && PETS.owned.length) { PETS.basket = 0; petsBikeSync(); recomputeMOD(); } /* a given animal saved without the basket (the save itself always pairs them) */
+      const giveDev = (id) => { const hadB = PETS.basket, lc = PETS.lastCode, fo = PETS.force; if (!petsGive(id)) return false; if (!hadB) { PETS.basket = 0; PETS.basketOn = 1; PETS.lastCode = lc; PETS.force = fo; lsSet('holdon.devnb', '1'); petsSave(); petsBikeSync(); recomputeMOD(); } return true; }; /* a gift is not a find on this map: the basket stays due here */
+      const said = (id) => PET_NAME[id] + ' found' + (PETS.basket ? '' : ' · the basket is still out there') + (S.camp ? ' · it hops in now' : ' · it sits at the next camp');
+      const seatSync = (old) => { old(); const id = PET_IDS[pick]; $('pmPetGB').textContent = PETS.basket ? 'Basket: found ✓' : 'Give basket'; $('pmPetEq').textContent = petsRider() === id ? 'Unequip ' + PET_NAME[id] : 'Equip ' + PET_NAME[id]; };
+      const old = sync; sync = () => seatSync(old);
+      $('pmPetGive').addEventListener('click', () => { const id = PET_IDS[pick]; toast(giveDev(id) ? said(id) : PET_NAME[id] + ' is already yours'); sync(); });
+      $('pmPetGB').addEventListener('click', () => { toast(petsBasketFound() ? 'Basket found and on the bike · Equip puts an animal in it' : 'The basket is yours already'); sync(); });
+      $('pmPetEq').addEventListener('click', () => { const id = PET_IDS[pick];
+        if (!PETS.basket) { toast('Give basket first'); return; } if (!PETS.owned.includes(id)) { toast('Give ' + PET_NAME[id] + ' first'); return; }
+        const on = petsRider() !== id; PETS.chosen = on ? id : null; PETS.basketOn = 1; if (on && id === 'snake' && !PETS.snake) petsSnakeRoll(); recomputeMOD(); petsBikeSync(); petsSave(); if (S.camp && screen === 'camp') campUI.petsPaint();
+        toast(on ? PET_NAME[id] + ' rides in the bike basket' : PET_NAME[id] + ' sits at camp again'); sync(); });
+      $('pmPetSeat').addEventListener('click', () => { const id = PET_IDS[pick]; if (!S.course || isTut()) { toast('Not in the tutorial'); return; } if (!petsOn()) { toast(petsDevInfo(true) || 'Companions are off here'); return; }
+        const had = PETS.owned.includes(id); if (!had) giveDev(id);
+        if (!S.camp) { const cps = S.course.checkpoints.filter((c) => c.lane), cp = cps.find((c) => c.idx >= S.segIdx) || cps[cps.length - 1]; if (!cp) { toast('No camp on this map'); return; }
+          closePause(); if (!S.running) startRiding(); const px = cp.x + 2, pz = cp.z + 2; S.pos.set(px, S.surf(px, pz)?.h ?? cp.y, pz); S.speed = 0; S.vel.set(0, 0, 0); S.segIdx = cp.idx; reseedRider(); enterCamp(cp); } /* to the next camp ahead, where it sits */
+        else closePause();
+        toast((had ? PET_NAME[id] + ' is yours already' : said(id)) + (petsRider() === id ? ' · it rides in the basket (Equip to seat it)' : '')); sync(); });
+    } else
+    $('pmPetGive').addEventListener('click', () => { const id = PET_IDS[pick], hadB = PETS.basket; toast(petsGive(id) ? PET_NAME[id] + ' found' + (DEV_KIT ? (hadB ? '' : ' · basket marked found, no stump now') + ' · sits at the next camp' : '') : PET_NAME[id] + ' is already yours'); sync(); });
     $('pmPetBk').addEventListener('click', () => { if (PETS.basket) { if (PETS.owned.length) { toast('Reset companions to lose the basket'); return; } PETS.basket = 0; petsSave(); petsBikeSync(); recomputeMOD(); } else petsBasketFound(); sync(); });
     $('pmPetDue').addEventListener('click', () => { PETS.force = PETS.force ? 0 : 1; PETS.lastCode = ''; petsSave(); toast(PETS.force ? 'A find is due from the next mountain' : 'Normal pace'); sync(); });
     $('pmPetReset').addEventListener('click', () => { petsReset(); toast('Companions reset'); sync(); });
@@ -67262,10 +67373,19 @@ if (DEV_ON) {
       const l10Fit = () => { const tot = pointsAtLevel(levelOfXp(PROF.xp)); if (SKILL.ids.reduce((q, id) => q + PROF.pts[id], 0) > tot) for (const id of SKILL.ids) PROF.pts[id] = 0; }; /* points spent beyond a lower level are refunded */
       $('pmL10').addEventListener('click', () => {
         if (!devL10On()) { const prev = PROF.xp, b = Math.max(prev, xpForLevel(10)); devL10 = { on: 1, xp: prev, b }; try { lsSet('holdon.devl10', JSON.stringify(devL10)); } catch (e) { }
-          PROF.xp = b; recomputeMOD(); saveProfile(); toast('Test: level 10 on'); }
+          PROF.xp = b; recomputeMOD(); saveProfile();
+          if (DEV_GIVE) { const W = S.course && S.course.petsW; toast(W && (W.basket || W.bush) ? 'Companions on · ' + petsDevInfo(true) : 'Companions on: start a New mountain or tap Rebuild map to place the find'); } /* the find is placed when a map is built: this one was built before the switch */
+          else toast('Test: level 10 on' + (DEV_KIT && S.course && !S.course.petsW ? ' · Rebuild map or New mountain to place the find' : '')); }
         else { if (PROF.xp === devL10.b) PROF.xp = devL10.xp; devL10 = null; lsDel('holdon.devl10'); l10Fit(); recomputeMOD(); saveProfile(); toast('Test: level 10 off'); }
-        l10Sync(); });
+        l10Sync(); sync(); });
       $('pmDevT').addEventListener('click', l10Sync); l10Sync(); }
+    if (DEV_KIT && $('pmPetInfo')) { /* test helpers: the same mountain again with the companion world placed, a jump to the find, fast peeks, a pinned board note */
+      $('pmPetMap').addEventListener('click', () => { if (!S.course || isTut()) { toast('Not in the tutorial'); return; } const sd = S.course.seed; abandonRun(); newRun(sd, { chosen: true }); startRiding(); toast('Rebuilt · ' + petsDevInfo(true)); });
+      $('pmPetGo').addEventListener('click', () => { const W = S.course && S.course.petsW, B = W && W.basket && !W.basket.got ? W.basket : null, R = W && W.bush && !W.bush.got ? W.bush : null;
+        const i = B ? (B.camp ? B.camp : B.mi) : R ? R.i : -1; if (i < 0) { toast('Nothing to find on this map · ' + petsDevInfo(true)); return; }
+        spawnAt({ idx: Math.max(0, i - 40) }); closePause(); toast(B ? (B.camp ? 'The stump waits at the camp ahead' : 'Side path ahead, by a small stone pile') : PET_NAME[R.id] + ' bush ahead (it rustles)'); });
+      $('pmPetPk').addEventListener('click', () => { devPeekFast = !devPeekFast; PK.next = -1; toast(devPeekFast ? 'Quick peeks on: sit at a camp' : 'Quick peeks off'); sync(); });
+      $('pmPetNote').addEventListener('click', () => { const L = [null, 1, 2, 3, 4], k = L[(L.indexOf(boardScrapForce) + 1) % L.length]; boardScrapForce = k; petsBoardSync(); toast(k === null ? 'Board note: auto' : 'Board note ' + k + ' at the next camp'); sync(); }); }
     $('pmDevT').addEventListener('click', sync); sync(); }
 } else { $('pmDev').remove(); $('pmAsk').remove(); }
 $('pmHints').addEventListener('click', () => { pad.showHints(); toast('Touch hints will show on the next ride'); });
