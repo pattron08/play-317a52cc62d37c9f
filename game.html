@@ -103,6 +103,7 @@
   body.popClear.lefty:has(#campScr:not([hidden])) #pop { left: calc(min(40 * var(--vw), 360px) + var(--sl) + 14px); right: var(--sr); }
   body.popCenter #pop.secret { top: 50% !important; left: 0 !important; right: 0 !important; transform: translateY(-50%); z-index: 120; font-size: clamp(36px, calc(6.8 * var(--vw)), 58px); line-height: 1.05; text-shadow: 0 2px 0 rgba(0,0,0,0.5), 0 0 14px rgba(0,0,0,0.75), 0 0 34px rgba(0,0,0,0.55); } /* POP_CENTER: the washers find is large, centered on the window and above the camp panel, tab bar and toasts; it never takes input (.hud is pointer-events none) */
   body:has(#banner.show) #pop { top: calc(var(--st) + 44px + 76px); } /* the arrival banner (mountain name + code) and the 'New mountain' popup used to overlap; the popup now sits just under the banner while it shows */
+  #pop.petFind { top: calc(var(--st, 0px) + 7%); text-shadow: 0 2px 0 rgba(0,0,0,0.5), 0 0 12px rgba(0,0,0,0.55); } #pop.petFind .pfImg svg { width: 1.4em; height: 1.4em; vertical-align: -0.32em; margin-right: 0.22em; filter: drop-shadow(0 2px 1px rgba(0,0,0,0.45)); } /* a companion find on the ride (FIND_FX) */
   #pop .sub { display: block; font: 600 0.42em var(--f-ui); letter-spacing: .06em; text-transform: none; opacity: 0.9; margin-top: 4px; }
   #meter { display: none; }
   #prog { position: fixed; z-index: 2; left: 0; top: 0; height: 3px; background: var(--acc1); opacity: 0.85; pointer-events: none; display: block; }
@@ -296,6 +297,28 @@
   #titleScr.favOpen .menu, body.tapWait #tFavs { display: none; }
   #favRep { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(320px, calc(100% - 32px)); max-height: calc(100% - 24px); z-index: 1; }
   #endOv.repOn > :not(#favRep) { visibility: hidden; }
+  /* share codes (SHARE_V1): the one Share button, the share panel, the code box Save, the incoming-link card, the favorites counts */
+  .mb.shB svg { width: 16px; height: 16px; flex-shrink: 0; }
+  .fvr.sh { grid-template-columns: minmax(0, 1fr) 44px 44px; }
+  .fvs { min-height: 44px; padding: 0; border-radius: 12px; background: transparent; border: 1px solid rgba(253,248,234,.3); color: var(--acc1); cursor: pointer; display: grid; place-items: center; } .fvs svg { width: 18px; height: 18px; }
+  .favCard .fvh.shHd { display: grid; grid-template-columns: 40px 1fr 40px; align-items: center; padding: 0; } .fvh.shHd > span { grid-column: 2; } .fvh.shHd small { grid-column: 2; grid-row: 2; font: 600 10px var(--f-ui); letter-spacing: .08em; color: var(--cream); opacity: .7; text-transform: none; }
+  .fvh.shHd .shH { grid-column: 3; grid-row: 1 / span 2; position: static; width: 40px; height: 40px; color: var(--acc1); } .fvh.shHd .shH svg { width: 18px; height: 18px; }
+  #pauseMenu .fvh.shCnt { font: 700 11px var(--f-ui); letter-spacing: .12em; text-transform: uppercase; color: var(--acc1); text-align: center; padding: 2px 0; } #pmFavN { color: var(--cream); opacity: .75; letter-spacing: .04em; text-transform: none; }
+  #pauseMenu .pmShRow { display: flex; align-items: center; justify-content: center; gap: 8px; margin: -2px 0 2px; } #pauseMenu .pmShRow .meta { margin: 0; } #pauseMenu .pmShRow .mb { min-height: 32px; padding: 0 10px; font-size: 12px; border-radius: 10px; gap: 5px; } #pauseMenu .pmShRow .mb svg { width: 14px; height: 14px; }
+  #codeRow.shSave { grid-template-columns: minmax(0, 1fr) auto auto; } #codeRow.shSave #codeMsg { grid-column: 1 / -1; } #codeMsg.ok { color: var(--acc1); }
+  #eBeat { display: block; margin-top: 4px; font: 600 13px var(--f-ui); letter-spacing: .04em; opacity: .85; } #eBeat[hidden] { display: none; }
+  .shOpen > :not(.shPan) { visibility: hidden; }
+  .shPan { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(560px, calc(100% - 32px)); max-height: calc(100% - 24px); z-index: 3; }
+  .shPw { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; align-items: start; } .shPl, .shPr { display: grid; gap: 6px; }
+  .shPl img { width: 100%; aspect-ratio: 1200 / 630; border-radius: 10px; background: rgba(20,14,10,.6); display: block; object-fit: cover; -webkit-touch-callout: default; }
+  .shCd { text-align: center; font: 700 15px ui-monospace, Menlo, monospace; color: var(--acc1); letter-spacing: .04em; -webkit-user-select: text; user-select: text; }
+  #shTxt { box-sizing: border-box; width: 100%; resize: none; min-height: 64px; border-radius: 10px; border: 1px solid rgba(253,248,234,.3); background: rgba(20,14,10,.7); color: var(--cream); font: 500 12px/1.35 var(--f-ui); padding: 6px 8px; -webkit-user-select: text; user-select: text; }
+  #shMsg { font: 500 11px var(--f-ui); opacity: .8; min-height: 14px; } .shPan .two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  #shRep, #shIn { position: absolute; right: calc(var(--sr) + 31px); top: 50%; transform: translateY(-50%); width: 300px; max-height: calc(100% - 24px); }
+  #titleScr.shRepOpen .menu, #titleScr.shInOpen .menu, #titleScr.shRepOpen #shIn, body.tapWait #shRep, body.tapWait #shIn { display: none; }
+  #shIn .shBig { text-align: center; font: 700 30px ui-monospace, Menlo, monospace; color: var(--acc1); letter-spacing: .04em; -webkit-user-select: text; user-select: text; } #shIn .shSub { text-align: center; font: 500 13px var(--f-ui); opacity: .8; }
+  #shIn .shBeat { text-align: center; font: 600 14px var(--f-ui); padding: 2px 0; } #shIn .shBeat[hidden] { display: none; } #shInMsg { text-align: center; font: 500 12px var(--f-ui); color: var(--acc1); min-height: 0; } #shIn .two { display: grid; grid-template-columns: 1fr 1.3fr; gap: 8px; }
+  @media (max-width: 640px) and (orientation: portrait) { .shPw { grid-template-columns: 1fr; } #shRep, #shIn { right: 50%; transform: translate(50%, -50%); width: min(300px, calc(100% - 32px)); } }
   body.pauseCam #pauseMenu { justify-items: end; background: linear-gradient(270deg, rgba(20,14,10,.66) 0%, rgba(20,14,10,.5) 36%, rgba(20,14,10,0) 62%); } body.pauseCam.lefty #pauseMenu { justify-items: start; background: linear-gradient(90deg, rgba(20,14,10,.66) 0%, rgba(20,14,10,.5) 36%, rgba(20,14,10,0) 62%); } /* the rider stays in the clear on one side, the card on the other */
   body.pauseCam #rfx { display: none; }
   .about { font: 400 11px/1.5 var(--f-ui); opacity: .72; padding: 6px 2px 4px; } .about a { color: var(--acc1); text-decoration: none; } .about b { font-weight: 700; } /* credits + license notices (three.js MIT, fonts SIL OFL) */
@@ -617,6 +640,7 @@
   #campPn .pinfo { flex: none; min-height: 32px; display: flex; flex-direction: column; justify-content: center; gap: 2px; }
   #campPn .pinfo b { font: 700 13px/1.1 var(--f-ui); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } #campPn .pinfo b em { font: 500 11px var(--f-ui); color: var(--acc1); margin-left: 8px; font-style: normal; }
   #campPn .pinfo span { font: 400 10.5px/1.2 var(--f-ui); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #campPn .pinfo.fit { gap: 1px; } #campPn .pinfo.fit span { line-height: 1.15; } /* COMP_INFO_FIT: two short lines */
   #campPn .pfoot { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 6px; flex: none; } #campPn .pfoot .mb { min-height: 30px; padding: 0 6px; font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   #campPn .pfoot .mb.dis { opacity: .45; }
   #campPn .lr { display: flex; align-items: center; gap: 8px; flex: none; } #campPn .lr > span { width: 52px; flex: none; font: 600 10.5px var(--f-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
@@ -817,7 +841,7 @@
   <div class="favCard" id="tFavs" hidden><div class="fvh">Favorites</div><div class="fvl" id="tFavList"></div><button class="mb sm" id="tFavClose">Close</button></div>
   <div id="tapGo" role="status">Tap to start</div>
   <button class="ico" id="mute" role="switch" aria-checked="true" aria-label="Sound"><svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg><svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M17 9l5 6M22 9l-5 6"/></svg></button>
-  <div class="foot"><span id="verTag">v0.49.0</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span></div>
+  <div class="foot"><span id="verTag">v0.50.0</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span></div>
   <button id="btnNew" hidden>New mountain</button>
 </div>
 
@@ -54011,6 +54035,13 @@ const gfxNote = (on) => {
 const DEBUG = /[?&]debug\b/.test(location.search);
 const DEV_UI = true; /* the DEV section at the bottom of the pause card (Reset game, Haptics, FPS counter, Classic feel). false keeps it out of a shipped page; ?dev (or ?debug) brings it back, ?nodev hides it for one visit */
 const noRender = () => DEBUG && !!window.__norender;
+/* share codes: the switch and its state live up here because setScreen / favSync can run before the share block further down (see SHARE_V1 there) */
+const SHARE_V1 = 1;
+const PUBLIC_URL = 'https://example.itch.io/no-hander'; /* the public game page every share link points to (never the address of the frame the game runs in) */
+let shShot = null, shShotCode = '', shShotWant = false, shPre = null; const _shV = new THREE.Vector3();
+let shBusy = false, shCur = null;
+let shUrl = '';
+let shRepP = null, shInP = null, shBeat = null;
 const camOv = () => (DEBUG ? window.__camOverride : null) || null; /* a debug screenshot can pin the lens */
 
 /* ---------- seeded noise ---------- */
@@ -54206,7 +54237,7 @@ const JUMPS_EXTRA_ON = 1, JX_MIN_ON = 1, JX_MIN = [3, 6], JX_ADD_MIN = 1, JX_SEP
    The same goes for every berm's exit (bend berms, hairpin walls, banked sweepers): from its apex to BERM_CLEAR samples past the end of its
    run-out taper (0 = berms left out). JUMP_CLEAR_ON = 0 places everything as before. */
 const ROCK_GARDEN_THIN = 1; /* 1: a rock-garden stone that owns a hit circle (r >= 0.42) is judged by the circle's reach too, and one the fast strip or a jump corridor would strip of its circle is not drawn; 0: such stones stay drawn without it */
-const JUMP_CLEAR_ON = 1, JUMP_CLEAR_SIDE = 1.0, JUMP_CLEAR_UP = 12, JUMP_CLEAR_OUT = 20, JUMP_CLEAR_PIT = 2, BERM_CLEAR = 10;
+const JUMP_CLEAR_ON = 1, JUMP_CLEAR_SIDE = 1.0, JUMP_CLEAR_UP = 12, JUMP_CLEAR_OUT = 20, JUMP_CLEAR_PIT = 2, BERM_CLEAR = 10, BERM_CLEAR_V2 = 1; /* BERM_CLEAR_V2: 1 reaches the berm exit lane 4 samples further (14) so no trail tree stands on the tread just past the old end; 0 = BERM_CLEAR as is */
 /* rock-free lines (rockLanes / rockOut, built once in buildWorld as soon as the ramps are known; the post passes after that and the clearRocks pass in
    newRun consult it). JUMP_CLEAR_ALL: on every jump, table, drop, ravine, double, drop-in, hop-log series, micro table / double and crossing kicker lane,
    from JUMP_ALL_UP samples before the kicker to JUMP_ALL_OUT samples past the landing, no rock of any kind (scatter, boulders, rock-garden and set-piece
@@ -54411,6 +54442,12 @@ const DEV_GIVE = 1; /* 1 = the DEV 'Give animal' leaves the basket as it was (th
 const PEEK_MORE = 1; /* 1 = extra peek spots from the finished camp that the lens nearly always shows (by the board kiosk's legs, the free end of the rider's log, the fence posts beside the board, the tent door), a spot in sight only when the head-and-shoulders box clears the camp UI and the parked bike, a larger peeking head (PEEK_SC) and a first peek 10-35 s after sitting down; 0 = the old spots and one-point test */
 const PEEK_SC = PEEK_MORE ? 1.35 : 1; /* the peek mesh's scale */
 const PETS_SEAT_BOX = 1; /* 1 = a seat is in view only when the animal's whole body box (not one head point) clears the camp UI, the bike, the figures and the board kiosk; 0 = the two-point test */
+const FIND_FX = 1; /* 1 = a find on the ride shows '<Animal> found!' with its tile picture high on the screen (popup, 1.6 s) and a gold sparkle bursts from the bush (the ride's own GRIT and DUST particle pools: no draw call, no program); 0 = the find is heard only */
+const COMP_INFO_FIT = 1; /* 1 = the Companion page's info line is two short lines (where it was found, with the camp number; then flips and camps together) that fit the panel; a ride find keeps the number of the camp it sits at first; 0 = one line cut with an ellipsis */
+const PETS_SEAT_VIEW = 1; /* 1 = when no seat passes the in-view box test, the animal takes the free spot whose center is on screen in the camp's free area, nearest the fire; 0 = the first spot in the list */
+const PETS_CAMP_SCALE = 1.25; /* the seated camp animals' size (their spot test, spacing and body box grow with it); 1 = the old size */
+const PETS_BASKET_VIS = 1; /* 1 = the basket animal is drawn PETS_BASKET_K larger and a little brighter with a thin light rim (a reversed shell in the same steering mesh: no draw call), the bike's hull still built from the plain pose; 0 = as before */
+const PETS_BASKET_K = 1.25, PETS_BASKET_RIM = 0.03, PETS_BASKET_LIFT = 1.12; /* the size, the rim's width (m) and the brighter tint (x color) */
 const SCRAP_BIG = 1; /* 1 = the board's basket note is drawn ~1.6 x larger in heavier charcoal, fitted between the flag words and the sheet's right edge; 0 = the small scrap */
 const petsStory = () => petsOn() && (!!PETS.force || devL10On() || (levelOfXp(PROF.xp) >= PET_START_LVL && Object.keys(PROF.mtn).length >= PET_START_MAPS));
 const petsCode = () => (S.course ? seedToCode(S.course.seed) : '');
@@ -55029,7 +55066,15 @@ function petsWorldCamp(cp) { const W = S.course && S.course.petsW, B = W && W.ba
 function petwGot(W) { const B = W.basket; if (!B || B.got) return; B.got = 1; W.flare = 0; if (PETW.near) { PETW.near = false; petwCue('near', false); }
   if (B.glow) { const tile = world.children.find(o => o.isMesh && o.userData.terr), ca = tile && tile.geometry.attributes.color; if (ca) { if (B.torch) ca.clearUpdateRanges(); /* a whole upload: a flicker range left from this frame would narrow it */ for (const [k, r, g, b] of B.glow) { ca.array[k * 3] = r; ca.array[k * 3 + 1] = g; ca.array[k * 3 + 2] = b; } ca.needsUpdate = true; } B.glow = null; }
   try { if (navigator.vibrate) navigator.vibrate([10, 30, 14]); } catch (e) { /* no haptics */ } petsBasketFound(); }
-function petwCatch(W) { const R = W.bush; if (!R || R.got) return; R.got = 1; W.shake = 0; try { if (navigator.vibrate) navigator.vibrate([12, 40, 18]); } catch (e) { /* no haptics */ } petsGive(R.id); }
+function petwCatch(W) { const R = W.bush; if (!R || R.got) return; R.got = 1; W.shake = 0; try { if (navigator.vibrate) navigator.vibrate([12, 40, 18]); } catch (e) { /* no haptics */ }
+  let where; if (COMP_INFO_FIT) { let camp = 0; if (S.camp) camp = campNo(S.camp.cp); else { const L = S.course.checkpoints.filter((c) => c.lane), k = L.findIndex((c) => c.idx > S.segIdx); camp = k >= 0 ? k + 1 : 0; } where = { camp }; } /* the camp it sits at first */
+  const got = petsGive(R.id, where); if (got && FIND_FX) petwFindFx(R); }
+const FIND_GOLD = [new THREE.Color('#ffd34a'), new THREE.Color('#fff0a8'), new THREE.Color('#ffb52e')];
+function petwFindFx(R) { /* the find: a banner with the animal's name and tile picture, a gold sparkle out of the bush (pool particles: emitOne thins them with the quality level) */
+  try { const svg = campUI.petSvg ? campUI.petSvg(R.id, true, 44) : ''; popup(`<span class="pfImg">${svg}</span>${PET_NAME[R.id]} found!`, 'A new companion', '#ffe27a', 'petFind'); } catch (e) { console.error('Companion find banner', e); }
+  if (noRender()) return; const y = R.y + 0.7;
+  for (let i = 0; i < 44; i++) { const a = Math.random() * 6.283, sp = 1.4 + Math.random() * 2.8; emitOne(GRIT, R.x + Math.cos(a) * 0.35, y + Math.random() * 0.4, R.z + Math.sin(a) * 0.35, Math.cos(a) * sp, 3.6 + Math.random() * 3.6, Math.sin(a) * sp, FIND_GOLD[i % 3]); }
+  for (let i = 0; i < 14; i++) { const a = Math.random() * 6.283; emitOne(DUST, R.x + Math.cos(a) * 0.4, y, R.z + Math.sin(a) * 0.4, Math.cos(a) * 0.8, 0.9 + Math.random() * 0.6, Math.sin(a) * 0.8, FIND_GOLD[i % 2 ? 0 : 2]); } }
 function petwAnim(W, dt) { /* the lantern's flare (0.6 s, then the basket and lantern go), the real bush's rustle (now and then, while near) and its shake at the catch */
   const B = W.basket; if (B && B.got && W.flare >= 0) { W.flare += dt; const t = W.flare; if (t < 0.6) petwLamp(B, 1 + 2.2 * Math.sin(Math.min(1, t / 0.6) * Math.PI)); else { petwHide(B.G.bk); petwHide(B.G.gl); W.flare = -1; } }
   if (B && B.G && B.G.tf && B.G.tf.c0 && !S.camp && Math.hypot(S.pos.x - B.torch.x, S.pos.z - B.torch.z) < 90) { const t = PETW.t, am = reduceMotion.matches ? 0.3 : 1; /* the torch flickers while the rider is near (its own few colors uploaded) */
@@ -60043,7 +60088,7 @@ function jumpLanes(course) { /* [{ a, b }] trail sample ranges and [{ R }] cross
   for (const J of course.jumps) L.push({ a: Math.max(0, (J.rampA ?? J.lip - (J.kl || 6)) - JUMP_CLEAR_UP), b: Math.min(n - 1, (J.rampB ?? J.land) + JUMP_CLEAR_OUT) });
   for (const R of course.setPieces) if (R.kind === 'double' || R.kind === 'logHop' || (R.kind === 'whoops' && R.ledge)) L.push({ a: Math.max(0, R.a - JUMP_CLEAR_UP), b: Math.min(n - 1, R.b + JUMP_CLEAR_OUT) });
   if (course.trains) for (const R of course.trains.ramps) L.push({ R });
-  if (BERM_CLEAR) for (const B of course.berms || []) L.push({ a: Math.max(0, B.apex), b: Math.min(n - 1, B.b + BERM_CLEAR) }); /* a berm's exit: from its apex to BERM_CLEAR samples past its run-out */
+  if (BERM_CLEAR) for (const B of course.berms || []) L.push({ a: Math.max(0, B.apex), b: Math.min(n - 1, B.b + BERM_CLEAR + (BERM_CLEAR_V2 ? 4 : 0)) }); /* a berm's exit: from its apex to BERM_CLEAR samples past its run-out */
   return L; }
 function inJumpLane(course, L, x, z, r) { /* the corridor sample it reaches into, else -1 */
   const P = course.pts, rr = r + 0.35;
@@ -62509,6 +62554,11 @@ const RIDER_ALWAYS_HELMET = 1;
    five bright) with the old palette ids and the old preset colors mapped onto them. 0 = the eight styles and six colors before it */
 const RIDER_HAIR_V3 = 1;
 const HAIR_V3 = !!(RIDER_LOOK_V2 && RIDER_ALWAYS_HELMET && RIDER_HAIR_V3);
+/* with HAIR_V3, the hair under the trail and full-face shells too: 1 = every style shows under all four helmets (the top tucked under the shell; a fringe,
+   sideburns and the nape show below the rim, long styles, tails, braids and buns come out below or behind it); the Look page's hair row is never dimmed.
+   0 = those two shells hide the hair and the hair row is dimmed with a note and a switch to the open helmet */
+const HAIR_ALL_HELMETS = 1;
+const HAIR_LOW = (L) => HAIR_V3 && HAIR_ALL_HELMETS && (L.headwear === 'helmet' || L.headwear === 'full'); /* hair under a low shell (trail, full face) */
 /* the camp Look > Rider > Style page with the twelve hair styles and the Build row: 1 = its padding, gaps and row heights close up (rows 25 px, hair 22 px,
    toggles 24 px) so the whole page and the pad hint fit inside the panel at 844 x 390; 0 = the earlier spacing (the hint ran past the panel's bottom there) */
 const LOOK_FIT = 1;
@@ -62523,7 +62573,7 @@ const LOOK_DEF ={ v: 1, bikeFrame: 'ember', bikeAccent: 'cream', bikeRims: 'char
 const LOOK_OPT = { hairStyle: RIDER_LOOK_V2 ? ['short', 'medium', 'ponytail', 'long', 'bun', 'braids', 'curly', 'buzz', ...(HAIR_V3 ? ['mop', 'bob', 'pigtails', 'afro'] : [])] : ['short', 'medium', 'ponytail', 'long'], /* normLook maps a saved unknown style to the default 'short'; new styles are appended, so an old save keeps its meaning */ legwear: ['pants', 'shorts'], sleeves: ['short', 'long'], glasses: ['none', 'clear', 'sun', 'goggles'], ...(RIDER_LOOK_V2 ? { headwear: RIDER_ALWAYS_HELMET ? ['helmet', 'cap', 'beanie', 'full'] : ['helmet', 'cap', 'beanie', 'none'] } : {}) };
 const LOOK_COL = { bikeFrame: 'c', bikeAccent: 'c', bikeRims: 'c', bikeSaddle: 'c', jersey: 'c', jersey2: 'c', pants: 'c', socks: 'c', helmet: 'c', helmet2: 'c', gloves: 'c', pack: 'c', skin: 'skin', hair: 'hair', ...(RIDER_LOOK_V2 ? { shoes: 'c' } : {}) }; /* shoes: 'auto' (the default) = the saddle's dark shade, as before the slot existed */
 const LOOK = Object.assign({}, LOOK_DEF); let buildRider, buildHead;
-const hairHidden = (L) => RIDER_LOOK_V2 && RIDER_ALWAYS_HELMET && (L.headwear === 'helmet' || L.headwear === 'full'); /* the trail and full-face shells cover the hair */
+const hairHidden = (L) => RIDER_LOOK_V2 && RIDER_ALWAYS_HELMET && !(HAIR_V3 && HAIR_ALL_HELMETS) && (L.headwear === 'helmet' || L.headwear === 'full'); /* the trail and full-face shells cover the hair (unless HAIR_ALL_HELMETS) */
 const LOOK_OWN = 1; /* 1: a saved palette id must be an own key of its palette (a name like 'constructor' is ignored); 0: any truthy lookup passes */
 const palHas = (P, v) => LOOK_OWN ? (typeof v === 'string' && v !== 'ids' && Object.prototype.hasOwnProperty.call(P, v)) : (v !== 'ids' && !!P[v]);
 function normLook(src) { /* unknown ids / options fall back to the default, so a stale or hand-edited save can never break the build */
@@ -62654,8 +62704,9 @@ function mountBike(R, roleC) {
   R.steerSplit = { mesh: steerM, nSteer }; /* the steering mesh's vertices: [0, nSteer) bars, fork and front brake, then the basket and the ride cat */
   if (COMPANIONS_ON) { /* the companion in the basket (or none): the steering mesh is rebuilt once with the animal's basket pose as its tail, at camp or a run start
        (never on the ride), so it turns and flips with the bars at no draw call of its own and shows the same in the camp (no camp cat). cut = it tumbled out on a bail */
-    R.petMode = (id) => { id = id || null; if (pet && pet.id === id) return; const g0 = steerM.geometry, A = petBasketGeo(id), na = A ? A.attributes.position.count : 0, g = new THREE.BufferGeometry();
+    R.petMode = (id) => { id = id || null; if (pet && pet.id === id) return; const g0 = steerM.geometry, A0 = petBasketGeo(id), A = PETS_BASKET_VIS && A0 ? petBasketVis(A0) : A0, na = A ? A.attributes.position.count : 0, g = new THREE.BufferGeometry();
       for (const k of ['position', 'normal', 'color']) { const arr = new Float32Array((nBasket + na) * 3); arr.set(g0.attributes[k].array.subarray(0, nBasket * 3)); if (A) arr.set(A.attributes[k].array, nBasket * 3); g.setAttribute(k, new THREE.BufferAttribute(arr, 3)); }
+      if (A !== A0) { const h = new Float32Array((nBasket + na) * 3); h.set(g.attributes.position.array.subarray(0, nBasket * 3)); const p0 = A0.attributes.position.array, n0 = p0.length; for (let o = 0; o < na * 3; o += n0) h.set(p0.subarray(0, Math.min(n0, na * 3 - o)), nBasket * 3 + o); g.userData.hullPos = new THREE.BufferAttribute(h, 3); A0.dispose(); } /* the hull reads the plain pose (the shell's slots repeat it) */
       g.userData.ranges = g0.userData.ranges; g.computeBoundingSphere(); steerM.geometry = g; g0.dispose(); if (A) A.dispose(); pet = { id, cut: !!(pet && pet.cut) }; R.hullStale = true; bkRange(); };
     R.petCut = (on) => { if (!pet || pet.cut === !!on) return; pet.cut = !!on; bkRange(); };
     R.petId = () => (pet && !pet.cut && bkOn ? pet.id : null); }
@@ -63272,6 +63323,16 @@ function petSplit(g) { /* a camp geometry -> { body, head, piv }: the head's tri
   return { body: geo(B), head: geo(H), piv: pv }; }
 const PET_MESH = {}; /* id -> { whole, body, head, piv }: the camp pose whole (the tumble) and split (a seat); kept for the session */
 function petCampGeo(id) { let E = PET_MESH[id]; if (!E) { const g = petGeo(id, 'camp'); E = PET_MESH[id] = Object.assign({ whole: g }, petSplit(g)); } return E; }
+function petBasketVis(A) { /* PETS_BASKET_VIS: the basket animal PETS_BASKET_K larger about the middle of its base, then a light rim: the same triangles a little larger about the
+     animal's center with the winding reversed, so only the shell's far side draws and shows round the edges (vertex colors in the steering mesh: no draw call) */
+  const pa = A.attributes.position.array, na = A.attributes.normal.array, ca = A.attributes.color.array, n = pa.length / 3; let x0 = 1e9, y0 = 1e9, z0 = 1e9, x1 = -1e9, y1 = -1e9, z1 = -1e9;
+  for (let i = 0; i < n; i++) { const x = pa[i * 3], y = pa[i * 3 + 1], z = pa[i * 3 + 2]; x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); z0 = Math.min(z0, z); z1 = Math.max(z1, z); }
+  const bx = (x0 + x1) / 2, bz = (z0 + z1) / 2, cy = (y0 + y1) / 2, K = PETS_BASKET_K, E = 1 + PETS_BASKET_RIM / Math.max(0.05, (y1 - y0) * K * 0.5), P = new Float32Array(n * 6), N = new Float32Array(n * 6), C = new Float32Array(n * 6), rim = new THREE.Color('#fff3d6');
+  const cyK = y0 + (cy - y0) * K;
+  for (let i = 0; i < n; i++) { const o = i * 3; P[o] = bx + (pa[o] - bx) * K; P[o + 1] = y0 + (pa[o + 1] - y0) * K; P[o + 2] = bz + (pa[o + 2] - bz) * K; N[o] = na[o]; N[o + 1] = na[o + 1]; N[o + 2] = na[o + 2]; C[o] = Math.min(1, ca[o] * PETS_BASKET_LIFT + 0.03); C[o + 1] = Math.min(1, ca[o + 1] * PETS_BASKET_LIFT + 0.03); C[o + 2] = Math.min(1, ca[o + 2] * PETS_BASKET_LIFT + 0.03); }
+  for (let t = 0; t < n / 3; t++) for (let k = 0; k < 3; k++) { const src = (t * 3 + [0, 2, 1][k]) * 3, dst = (n + t * 3 + k) * 3; /* reversed winding */
+    P[dst] = bx + (P[src] - bx) * E; P[dst + 1] = cyK + (P[src + 1] - cyK) * E; P[dst + 2] = bz + (P[src + 2] - bz) * E; N[dst] = -N[src]; N[dst + 1] = -N[src + 1]; N[dst + 2] = -N[src + 2]; C[dst] = rim.r; C[dst + 1] = rim.g; C[dst + 2] = rim.b; }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(P, 3)); g.setAttribute('normal', new THREE.BufferAttribute(N, 3)); g.setAttribute('color', new THREE.BufferAttribute(C, 3)); return g; }
 function petBasketGeo(id) { /* the basket pose in the steering group's rest frame (as mountBike places the basket) */
   if (!id) return null; const g = petGeo(id, 'basket'), sc = BK_P.scale, M = new THREE.Matrix4().compose(bkV(...BK_P.org), new THREE.Quaternion().setFromAxisAngle(bkV(0, 0, 1), -BK_P.tilt * Math.PI / 180), bkV(sc, sc, sc)).premultiply(STEER_INV);
   const out = mergeParts([{ geo: g, col: null, m: M }]); g.dispose(); return out; }
@@ -63311,7 +63372,7 @@ function petsSlots(C) { /* candidate spots in camp units { x, y, z, yaw, vis, ki
      the fire, the rider, his walk-in and the parked bike (and the ground the bike hides from the lens), the camper and his things, the board and the Trail Build pieces
      by it, the tent, the Zen tray, every collider (the loop lane is free: nobody rides it in camp mode), rocks and trunks, slopes, the fence, and any prop standing on the spot (petsTops: a kit box,
      the washers set); vis = 1 where the camp lens shows it outside the camp UI and no figure stands in front of it. Shuffled from a hash of the session's camp look */
-  const cp = C.cp, W = campFrame(cp), RS = RIDER_SCALE, out = [], rnd = mulberry32(((Math.imul(((S.campLook || 0) >>> 0) ^ 0x2c1b3c6d, 2654435761) >>> 0) ^ (cp.idx * 69069 + 1013)) >>> 0), top = petsTops(cp);
+  const cp = C.cp, W = campFrame(cp), RS = RIDER_SCALE, out = [], PK = PETS_CAMP_SCALE, rnd = mulberry32(((Math.imul(((S.campLook || 0) >>> 0) ^ 0x2c1b3c6d, 2654435761) >>> 0) ^ (cp.idx * 69069 + 1013)) >>> 0), top = petsTops(cp);
   const SA = [-0.6, 1.7], bx = CAMP_BIKE[0], bz = CAMP_BIKE[1], fa = C.yaw - (cp.yaw || 0), p2 = [1.3 + 0.55 * Math.cos(fa), 1.4 - 0.55 * Math.sin(fa)], OT = CAMP_OTHER[cp.variant] || CAMP_OTHER[0], seatA = OT === CAMP_OTHER[0];
   const circ = [[0, 0, 1.0], [1.3, 1.4, 0.85], [p2[0], p2[1], 0.55], [bx + CAMP_STUMP.dx, bz + CAMP_STUMP.dz, 0.65]];
   const caps = [[bx - 1.3, bz, bx + 3.1, bz, 0.62], [bx - 1.2, bz + 0.75, bx + 1.0, bz + 0.75, 0.6]], walk = [[bx + 3.0, bz - 0.62, bx + 0.1, bz - 0.62, 0.5], [bx + 0.1, bz - 0.62, bx - 1.35, bz - 0.55, 0.5], [bx - 1.35, bz - 0.55, p2[0], p2[1], 0.5]]; /* the bike's line in and the ground behind it; the rider's walk round its front to the log (a spot there is taken once he sits: late) */
@@ -63341,7 +63402,7 @@ function petsSlots(C) { /* candidate spots in camp units { x, y, z, yaw, vis, ki
     for (const X of [b.min.x, b.max.x]) for (const Y of [b.min.y, b.max.y]) for (const Z of [b.min.z, b.max.z]) { _pvW.set(X, Y, Z).project(camera); const u = (_pvW.x + 1) / 2 * w, v = (1 - _pvW.y) / 2 * h; o[0] = Math.min(o[0], u); o[1] = Math.min(o[1], v); o[2] = Math.max(o[2], u); o[3] = Math.max(o[3], v); o[4] = Math.min(o[4], _pvW.z); }
     occ.push(o); } }
   const visBox = (x, y, z) => { let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9, z0 = 9; /* the animal's whole body box (0.6 x 0.6 footprint, 0.62 tall) on screen */
-    for (const u of [-0.3, 0.3]) for (const v of [0, 0.62]) for (const q of [-0.3, 0.3]) { const a = scr(x + u, y + v, z + q); if (a[2] > 1 || a[2] < -1) return 0; x0 = Math.min(x0, a[0]); x1 = Math.max(x1, a[0]); y0 = Math.min(y0, a[1]); y1 = Math.max(y1, a[1]); z0 = Math.min(z0, a[2]); }
+    for (const u of [-0.3 * PK, 0.3 * PK]) for (const v of [0, 0.62 * PK]) for (const q of [-0.3 * PK, 0.3 * PK]) { const a = scr(x + u, y + v, z + q); if (a[2] > 1 || a[2] < -1) return 0; x0 = Math.min(x0, a[0]); x1 = Math.max(x1, a[0]); y0 = Math.min(y0, a[1]); y1 = Math.max(y1, a[1]); z0 = Math.min(z0, a[2]); }
     for (const o of occ) if (x1 > o[0] - 4 && x0 < o[2] + 4 && y1 > o[1] - 4 && y0 < o[3] + 4 && z0 > o[4]) return 0; /* behind a figure, the bike or the kiosk */
     return FR ? (x0 > FR.L + 10 && x1 < FR.R - 10 && y0 > FR.T + 10 && y1 < FR.B - 8 ? 1 : 0) : (x0 > w * 0.05 && x1 < w * 0.95 && y0 > h * 0.05 && y1 < h * 0.95 ? 1 : 0); }; /* wholly beside the panel, under the header, over the tab bar */
   const vis = (x, y, z) => { if (PETS_SEAT_BOX) return visBox(x, y, z); const a = scr(x, y + 0.14, z), t = scr(x, y + 0.36, z); if (a[2] > 1 || a[2] < -1) return 0;
@@ -63349,18 +63410,20 @@ function petsSlots(C) { /* candidate spots in camp units { x, y, z, yaw, vis, ki
     return FR ? (t[0] > FR.L + 14 && t[0] < FR.R - 14 && t[1] > FR.T + 14 && a[1] < FR.B - 10 ? 1 : 0) : (Math.abs(a[0] / w * 2 - 1) < 0.9 && Math.abs(a[1] / h * 2 - 1) < 0.9 ? 1 : 0); };
   const face = (x, z) => { const cx = CAMPCAM.pos[0] - x, cz = CAMPCAM.pos[2] - z, cl = Math.hypot(cx, cz) || 1, fx = -x, fz = -z, fl = Math.hypot(fx, fz) || 1, dx = 0.62 * cx / cl + 0.38 * fx / fl, dz = 0.62 * cz / cl + 0.38 * fz / fl;
     return Math.atan2(-dz, dx) + (rnd() - 0.5) * 0.7; }; /* toward the lens and the fire, a little turned */
-  const put = (x, y, z, kind, key) => out.push({ x, y, z, yaw: face(x, z), vis: vis(x, y, z), kind, key, used: null, late: inCap(x, z, 0.15, walk) });
+  const soft = (x, y, z) => { if (!PETS_SEAT_VIEW) return 0; const a = scr(x, y + 0.3 * PK, z); if (a[2] > 1 || a[2] < -1) return 0; for (const o of occ) if (a[0] > o[0] && a[0] < o[2] && a[1] > o[1] && a[1] < o[3] && a[2] > o[4]) return 0; return FR ? (a[0] > FR.L + 6 && a[0] < FR.R - 6 && a[1] > FR.T + 6 && a[1] < FR.B - 4 ? 1 : 0) : (a[0] > 0 && a[0] < w && a[1] > 0 && a[1] < h ? 1 : 0); }; /* the spot's center on screen in the free area and not behind a figure, the bike or the kiosk (their edges may cover part of it) */
+  const put = (x, y, z, kind, key) => { const v = vis(x, y, z); out.push({ x, y, z, yaw: face(x, z), vis: v, soft: v ? 1 : soft(x, y, z), kind, key, used: null, late: inCap(x, z, 0.15, walk) }); };
   for (const r of [1.35, 1.7, 2.1, 2.5, 2.9, 3.35, 3.8, 4.3, 4.8, 5.3]) { const n = Math.round(r * 6.283 / 0.45), a0 = rnd() * 6.283; /* rings round the fire, ~0.45 apart */
-    for (let i = 0; i < n; i++) { const a = a0 + i / n * 6.283, x = Math.cos(a) * r, z = Math.sin(a) * r; if (busy(x, z, 0.2)) continue; const y = ground(x, z, 0.24); if (y !== null) put(x, y, z, 'ground', rnd() + 0.15); } }
+    for (let i = 0; i < n; i++) { const a = a0 + i / n * 6.283, x = Math.cos(a) * r, z = Math.sin(a) * r; if (busy(x, z, 0.2 * PK)) continue; const y = ground(x, z, 0.24 * PK); if (y !== null) put(x, y, z, 'ground', rnd() + 0.15); } }
   { const L = 2.6, ex = L / 2 + 0.42, x = tent[0] + ex * tca, z = tent[1] - ex * tsa; W(x, 0, z, _pvV); const sf = S.surf ? S.surf(_pvV.x, _pvV.z) : null, y = sf ? (sf.h - cp.y) / RS + 0.03 : null; /* on the mat at the tent door */
     if (y !== null && !circ.some(([cx, cz, cr]) => Math.hypot(x - cx, z - cz) < cr + 0.15) && !inCap(x, z, 0.15) && top(x, z, 0.15) < y + 0.06) put(x, y, z, 'mat', rnd() * 0.6); }
   const logs = []; if (!seatA) logs.push([SA[0], SA[1], 1.4]); if (cp.log3) logs.push([cp.log3[0], cp.log3[1], 1.3]);
   for (const [x0, z0, len] of logs) { const th = Math.atan2(-x0, -z0), ax = -Math.cos(th) * len / 2, az = Math.sin(th) * len / 2; /* a log with nobody on it (seatAt's axis): its ends and its middle, where nothing stands on it */
     for (const f of [-0.62, 0, 0.62]) { const x = x0 + ax * f, z = z0 + az * f; if (inCap(x, z, 0.15) || inCap(x, z, 0.15, walk) || top(x, z, 0.12) > 0.36) continue; put(x, 0.325, z, 'log', rnd() * 0.6); } }
-  out.sort((a, b) => (b.vis - a.vis) || (a.key - b.key)); return out; }
+  if (PETS_SEAT_VIEW) out.sort((a, b) => (b.vis - a.vis) || (b.soft - a.soft) || (a.vis || b.vis ? a.key - b.key : Math.hypot(a.x, a.z) - Math.hypot(b.x, b.z)));
+  else out.sort((a, b) => (b.vis - a.vis) || (a.key - b.key)); return out; }
 function petsAssign(s) { /* the next free spot, at least 0.6 from every animal already sitting */
-  if (!PV.cands) return; for (const c of PV.cands) { if (c.used) continue; if (PV.cands.some((o) => o.used && Math.hypot(o.x - c.x, o.z - c.z) < 0.6)) continue;
-    c.used = s.id; s.at = c; s.came = !c.late; s.g.position.set(c.x, c.y, c.z); s.g.rotation.set(0, c.yaw, 0); return; } }
+  if (!PV.cands) return; for (const c of PV.cands) { if (c.used) continue; if (PV.cands.some((o) => o.used && Math.hypot(o.x - c.x, o.z - c.z) < 0.6 * PETS_CAMP_SCALE)) continue;
+    c.used = s.id; s.at = c; s.came = !c.late; s.g.position.set(c.x, c.y, c.z); s.g.rotation.set(0, c.yaw, 0); s.g.scale.setScalar(PETS_CAMP_SCALE); return; } }
 function petsIdleTick(dt) { /* camp mode: place the seated animals once the lens is up, then their small motions; hidden while a game lens is up */
   const C = S.camp; if (!PV.cp || !C || C.cp !== PV.cp) return; petsSync(); PV.t += dt;
   if (!PV.placed) { if (!((C.k >= 1 || C.ready) && !C.hold && C.phase !== 'out') || ++PV.wait < 3) return; PV.cands = petsSlots(C); PV.placed = true; for (const s of PV.seats) petsAssign(s); }
@@ -63368,7 +63431,7 @@ function petsIdleTick(dt) { /* camp mode: place the seated animals once the lens
   for (const s of PV.seats) { const g = s.g; g.visible = !!s.at && !game && (!s.at.late || C.ready); if (!g.visible) continue; if (s.at.late && !s.came) { s.came = true; s.hop = 0; } /* a spot on the walk-in: the animal comes over once the rider sits */ const D = PET_IDLE[s.id] || PET_IDLE.cat, P = s.piv, c = s.at;
     if (s.hop >= 0) { s.hop += dt; const u = Math.min(1, s.hop / 0.7), bk = 1 - u, e = 1 - bk * bk; /* the hop in: from 0.9 m behind, an arc, a little squash on landing */
       g.position.set(c.x - Math.cos(c.yaw) * 0.9 * bk, c.y + 0.42 * Math.sin(Math.PI * Math.min(1, u * 1.15)) - 0.2 * bk * bk, c.z + Math.sin(c.yaw) * 0.9 * bk); const sq = u > 0.85 ? 1 - 0.18 * Math.sin((u - 0.85) / 0.15 * Math.PI) : 1;
-      g.scale.set(1, sq, 1); s.body.rotation.set(0, 0, -0.35 * Math.sin(Math.PI * u)); s.head.rotation.set(0, 0, 0); s.head.position.fromArray(P); if (u >= 1) { s.hop = -1; g.position.set(c.x, c.y, c.z); g.scale.set(1, 1, 1); } continue; }
+      g.scale.set(PETS_CAMP_SCALE, sq * PETS_CAMP_SCALE, PETS_CAMP_SCALE); s.body.rotation.set(0, 0, -0.35 * Math.sin(Math.PI * u)); s.head.rotation.set(0, 0, 0); s.head.position.fromArray(P); if (u >= 1) { s.hop = -1; g.position.set(c.x, c.y, c.z); g.scale.setScalar(PETS_CAMP_SCALE); } continue; }
     if (rm) { s.body.rotation.set(0, 0, 0); s.body.position.y = 0; s.body.scale.set(1, 1, 1); s.head.rotation.set(0, 0, 0); s.head.scale.set(1, 1, 1); s.head.position.fromArray(P); continue; }
     const t = PV.t + s.ph; let hy, hp = 0, hr = 0, by = 0, bp = 0, dy = 0, hs = 1;
     s.ln -= dt; if (s.ln <= 0) { s.lt = (Math.random() * 2 - 1) * D.look; s.ln = D.every[0] + Math.random() * (D.every[1] - D.every[0]); } s.ly += (s.lt - s.ly) * (1 - Math.exp(-dt * D.lk)); hy = s.ly;
@@ -63839,7 +63902,23 @@ const head = new THREE.Group(); scene.add(head); head.scale.setScalar(1.06);
       for (let v = r.o; v < r.o + r.n; v++) { if (n) { const t = (hi - P[v * 3 + 1]) / d * n, k = Math.min(n - 1, Math.floor(t)); c.copy(T[g[k]]).lerp(T[g[k + 1]], t - k); } else c.copy(T[g[0]]); C[v * 3] = c.r; C[v * 3 + 1] = c.g; C[v * 3 + 2] = c.b; } } };
   /* every hair vertex is kept inside the open / skate shell above its rim (an ellipsoid; the skate shell is tipped back) and inside the goggle strap's band, easing
      out above and below it: the hair comes out from under the rim and the strap lies on it, nothing pokes through either */
-  const hairFit = (G, L) => { const R = G.userData.ranges; if (!R) return; const P = G.attributes.position.array, op = L.headwear === 'cap', gog = L.glasses === 'goggles';
+  /* the trail and full-face shells (HAIR_ALL_HELMETS): every hair vertex above the shell's lower edge stays inside it (the trail: one ellipsoid, its edge at
+     the brow in front and low over the ears and the back; the full face: the dome, then the skirt's inner wall down to its bottom edge, the eye port left
+     open); just below the edge the allowed radius eases out, so the hair comes out from under the rim and never through it */
+  const hairFitLow = (G, L) => { const R = G.userData.ranges, P = G.attributes.position.array, ff = L.headwear === 'full', gog = L.glasses === 'goggles' && !ff;
+    const cy = 0.02, ax = ff ? 0.215 * 1.08 : 0.205 * 1.08, ay = ff ? 0.215 : 0.205, az = ff ? 0.215 * 1.06 : 0.205 * 0.98, tY = cy + Math.cos(1.32) * 0.215, yB = -0.132, sx = 0.215 * 1.1, sz = 0.215;
+    const PR = [[tY, Math.sin(1.32) * 0.215 - 0.018], [-0.03, 0.198], [-0.098, 0.188], [yB, 0.172]], rin = (y) => { for (let k = 1; k < PR.length; k++) if (y >= PR[k][0]) { const [y0, r0] = PR[k - 1], [y1, r1] = PR[k]; return r0 + (r1 - r0) * (y - y0) / (y1 - y0); } return PR[PR.length - 1][1]; };
+    for (const r of R) { if (!r.role.hg && !r.role.hf) continue;
+      for (let v = r.o; v < r.o + r.n; v++) { const i = v * 3; let x = P[i], y = P[i + 1], z = P[i + 2]; const a = Math.abs(Math.atan2(z / az, x / ax));
+        if (!ff) { const yE = a >= 1.1 ? cy + Math.cos(1.95) * 0.205 : cy + Math.cos(1.45) * 0.205, ly = y - cy, d = Math.hypot(x / ax, ly / ay, z / az);
+          if (y > yE - 0.012) { if (d > 0.965) { const k = 0.965 / d; x *= k; y = cy + ly * k; z *= k; } }
+          else if (y > yE - 0.03) { const lim = 0.965 + (yE - 0.012 - y) * 10, h = Math.hypot(x / ax, z / az), e = ly / ay; if (d > lim && h > 1e-6) { const k = Math.sqrt(Math.max(0, lim * lim - e * e)) / h; x *= k; z *= k; } } }
+        else if (y > tY) { const ly = y - cy, d = Math.hypot(x / ax, ly / ay, z / az); if (d > 0.965) { const k = 0.965 / d; x *= k; y = cy + ly * k; z *= k; } }
+        else if (a >= 0.56 && y > yB - 0.03) { const lim = y > yB - 0.012 ? 0.96 : 0.96 + (yB - 0.012 - y) * 10, rr = rin(Math.max(yB, y)), e = Math.hypot(x / (rr * 1.08), z / (rr * 1.06)); if (e > lim) { const k = lim / e; x *= k; z *= k; } }
+        if (gog && Math.abs(Math.atan2(z, x)) > 0.6) { const out = Math.max(0, 0.0025 - y, y - 0.0375), e = Math.hypot(x / sx, z / sz), lim = 0.955 + out * 5; if (e > lim) { const k = lim / e; x *= k; z *= k; } }
+        P[i] = x; P[i + 1] = y; P[i + 2] = z; } }
+    G.computeVertexNormals(); G.computeBoundingSphere(); };
+  const hairFit = (G, L) => { const R = G.userData.ranges; if (!R) return; if (HAIR_LOW(L)) return hairFitLow(G, L); const P = G.attributes.position.array, op = L.headwear === 'cap', gog = L.glasses === 'goggles';
     const cy = op ? 0.022 : 0.014, ax = op ? 0.212 * 1.08 : 0.208 * 1.04, ay = op ? 0.212 : 0.208 * 1.05, az = op ? 0.212 * 0.98 : 0.208, tz = op ? 0 : 0.18, yc = op ? Math.cos(1.36) * 0.212 : Math.cos(1.58) * 0.208 * 1.05;
     const cs = Math.cos(tz), sn = Math.sin(tz), gR = op ? 0.93 : 1, sx = 0.215 * 1.1 * gR, sz = 0.215 * gR;
     for (const r of R) { if (!r.role.hg && !r.role.hf) continue;
@@ -63854,7 +63933,8 @@ const head = new THREE.Group(); scene.add(head); head.scale.setScalar(1.06);
      under the rim, swelling, tapering), puffs (icosahedra), tubes; root-to-tip tones by vertex color */
   const D2R = Math.PI / 180;
   const hair3 = (put, L) => {
-    const op = L.headwear === 'cap', st = L.hairStyle, tie = () => lookC('jersey2').col; tie.hf = 1;
+    const low = HAIR_LOW(L), ff = low && L.headwear === 'full', op = L.headwear === 'cap' || low, st = L.hairStyle, tie = () => lookC('jersey2').col; tie.hf = 1;
+    const eB = ff ? -0.132 : -0.056; /* under a low shell: the roots sit as under the open rim (hairFit tucks the top in), eB = the shell's lower edge at the back */
     const rimY = (a) => op ? 0.066 : 0.012 + 0.0387 * Math.cos(a * D2R), y0 = (a) => rimY(a) - 0.01; /* the rim height round the head, a lock's root just under it */
     const hR = (y) => 0.185 * Math.sqrt(Math.max(0, 1 - ((y + 0.01) / 0.1887) ** 2)); /* the head's radius at a height */
     const G = hrole(['root', 'mid', 'tip']), HI = hrole(['mid', 'hi']), PF = hrole(['tip', 'mid', 'root']), RT = hrole(['root']), BZ = hrole(['buzz']);
@@ -63868,9 +63948,14 @@ const head = new THREE.Group(); scene.add(head); head.scale.setScalar(1.06);
       for (let i = 0; i < 12; i++) { const a0 = i * 30, a1 = a0 + 30, b0 = hl(a0), b1 = hl(a1), m0 = (0.12 + b0) / 2, m1 = (0.12 + b1) / 2;
         for (const [ya0, ya1, yb0, yb1] of [[0.12, 0.12, m0, m1], [m0, m1, b0, b1]]) { const p = at(a0, ya0), q = at(a1, ya1), u = at(a1, yb1), w = at(a0, yb0); T.push([p, q, u, c], [p, u, w, c]); } }
       put(rlGeo(T), role); };
+    /* under a low shell, what shows below its rim: sideburns in front of the trail shell's sides; under the full face, short styles add the nape out from under
+       the skirt (n tufts round the back) */
+    const lowX = (role, n = 0, yb = -0.19) => { if (!low) return;
+      if (!ff) for (const s of [-1, 1]) put(lk(s * 57, 0.042, -0.026, 0.182, 0.186, 0.03, 0.022, 0.016, s * 58, 0.004), role);
+      else if (n) for (let k = 0; k < n; k++) { const a = 180 + (k - (n - 1) / 2) * (n > 3 ? 23 : 22); put(lk(a, -0.112, yb, hR(-0.112) + 0.02, yb < -0.18 ? 0.152 : 0.14, 0.085, 0.055, 0.024, a, 0.006), role); } };
     if (st === 'buzz') { scalp(BZ); /* the tidy line: a close shell, sideburns, a short point at the nape */
       for (const s of [-1, 1]) put(lk(s * 76, 0.04, -0.035, 0.18, 0.183, 0.03, 0.022, 0.012, s * 77, 0.003), BZ);
-      put(strand([[180, -0.06, 0.169, 0.1, 0.012], [180, -0.085, 0.166, 0.09, 0.013], [180, -0.105, 0.159, 0.07, 0.012], [180, -0.122, 0.152, 0.04, 0.008]]), BZ); return; }
+      put(strand([[180, -0.06, 0.169, 0.1, 0.012], [180, -0.085, 0.166, 0.09, 0.013], [180, -0.105, 0.159, 0.07, 0.012], [180, -0.122, 0.152, 0.04, 0.008]]), BZ); lowX(BZ, 3, -0.17); return; }
     scalp(RT);
     if (st === 'short') { /* a tapered nape, short sides over the ears, sideburns, three fringe tufts and two flicks out at the back */
       for (const [a, yb, w] of [[180, -0.118, 0.09], [155, -0.108, 0.085], [205, -0.108, 0.085], [130, -0.08, 0.08], [230, -0.08, 0.08]]) put(lk(a, y0(a), yb, rl(a, 0.02), hR(yb) + 0.02, w, w * 0.7, 0.03, a + (a - 180) * 0.15, 0.012), a === 180 ? HI : G);
@@ -63893,20 +63978,20 @@ const head = new THREE.Group(); scene.add(head); head.scale.setScalar(1.06);
       for (const s of [-1, 1]) put(lk(s * 166, -0.05, -0.22, 0.195, 0.205, 0.08, 0.06, 0.03), G);    } else if (st === 'ponytail' || st === 'bun') { /* a short hem at the nape and the sides, the hair drawn back to a tie under the rim */
       for (const a of [150, 180, 210]) put(lk(a, y0(a), -0.085, rl(a, 0.016), 0.168, 0.11, 0.08, 0.026, a, 0.006), G);
       for (const s of [-1, 1]) put(lk(s * 117, y0(117), -0.04, rl(117), 0.188, 0.07, 0.05, 0.022, s * 120, 0.004), G);
-      if (st === 'ponytail') { const ty = Math.min(-0.045, rimY(180) - 0.035); /* the tail out the back below the strap, curving down */
-        put(new THREE.TorusGeometry(0.04, 0.014, 3, 6).rotateX(Math.PI / 2).rotateZ(-0.93), tie, -0.2, ty - 0.008, 0);
-        put(rlTube([[-0.17, ty + 0.01, 0], [-0.215, ty - 0.02, 0], [-0.27, ty - 0.07, 0], [-0.305, ty - 0.15, 0], [-0.32, ty - 0.23, 0], [-0.315, ty - 0.29, 0]], [0.04, 0.05, 0.05, 0.042, 0.03, 0.01], 6, [0, 0, 1]), G);
-        put(rlTube([[-0.232, ty - 0.02, 0.02], [-0.287, ty - 0.09, 0.024], [-0.312, ty - 0.17, 0.018]], [0.02, 0.026, 0.014], 5, [0, 0, 1]), HI);
-      } else { const by = Math.min(-0.07, rimY(180) - 0.06); /* a round bun low on the back of the head */
-        put(new THREE.IcosahedronGeometry(0.075, 1).scale(0.9, 0.85, 1.05), PF, -0.245, by, 0);
-        put(new THREE.TorusGeometry(0.05, 0.014, 3, 6).rotateY(Math.PI / 2), tie, -0.19, by, 0); }
+      if (st === 'ponytail') { const ty = low ? eB - 0.03 : Math.min(-0.045, rimY(180) - 0.035), q = low ? (0.335 + ty) / 0.29 : 1, X0 = ff ? 0.02 : 0; /* the tail out the back below the strap, curving down (under a low shell: out below its back edge, ending where it ends under the open helmet) */
+        put(new THREE.TorusGeometry(0.04, 0.014, 3, 6).rotateX(Math.PI / 2).rotateZ(-0.93), tie, -0.2 + X0, ty - 0.008 * q, 0);
+        put(rlTube([[-0.17 + X0, ty + 0.01 * q, 0], [-0.215 + X0, ty - 0.02 * q, 0], [-0.27, ty - 0.07 * q, 0], [-0.305, ty - 0.15 * q, 0], [-0.32, ty - 0.23 * q, 0], [-0.315, ty - 0.29 * q, 0]], [0.04, 0.05, 0.05, 0.042, 0.03, 0.01], 6, [0, 0, 1]), G);
+        put(rlTube([[-0.232 + X0, ty - 0.02 * q, 0.02], [-0.287, ty - 0.09 * q, 0.024], [-0.312, ty - 0.17 * q, 0.018]], [0.02, 0.026, 0.014], 5, [0, 0, 1]), HI);
+      } else { const by = low ? (ff ? -0.17 : -0.12) : Math.min(-0.07, rimY(180) - 0.06), bx = low ? -(hR(by) + 0.07) : -0.245; /* a round bun low on the back of the head (under a low shell: just below its back edge) */
+        put(new THREE.IcosahedronGeometry(0.075, 1).scale(0.9, 0.85, 1.05), PF, bx, by, 0);
+        put(new THREE.TorusGeometry(0.05, 0.014, 3, 6).rotateY(Math.PI / 2), tie, low ? bx + 0.055 : -0.19, by, 0); }
     } else if (st === 'braids') { /* two braids from behind the ears to the collar: diamond links zigzagging, a tie and a light tuft at the end */
       for (const a of [150, 180, 210]) put(lk(a, y0(a), -0.09, rl(a, 0.016), 0.168, 0.11, 0.08, 0.026, a, 0.006), G);
       for (const s of [-1, 1]) { for (let k = 0; k < 7; k++) { const u = k / 6; put(new THREE.OctahedronGeometry(1, 0).scale(0.036 - 0.006 * u, 0.044, 0.034 - 0.006 * u), PF, -0.088 - 0.012 * u, -0.035 - 0.044 * k, s * (0.162 - 0.016 * u), 0, k % 2 ? 0.6 : -0.6, s * (k % 2 ? 0.25 : -0.25)); }
         put(rlBox(-0.118, -0.082, -0.33, -0.31, s * 0.146 - 0.018, s * 0.146 + 0.018), tie); put(new THREE.IcosahedronGeometry(1, 0).scale(0.022, 0.045, 0.022), HI, -0.1, -0.36, s * 0.146); }
     } else if (st === 'pigtails') { /* two puffy tails out at the back corners, angled out and down: the widest outline that is not curly */
       for (const a of [155, 180, 205]) put(lk(a, y0(a), -0.09, rl(a, 0.016), 0.168, 0.1, 0.075, 0.026, a, 0.006), G);
-      for (const s of [-1, 1]) { const a = s * 122, c = Math.cos(a * D2R), n = Math.sin(a * D2R) * 0.94, dc = Math.cos(s * 104 * D2R), dn = Math.sin(s * 104 * D2R), by = Math.min(-0.03, rimY(122) - 0.035);
+      for (const s of [-1, 1]) { const a = s * 122, c = Math.cos(a * D2R), n = Math.sin(a * D2R) * 0.94, dc = Math.cos(s * 104 * D2R), dn = Math.sin(s * 104 * D2R), by = low ? eB - 0.03 : Math.min(-0.03, rimY(122) - 0.035);
         const P = (r, dy) => [c * 0.17 + dc * (r - 0.17), by + dy, n * 0.17 + dn * (r - 0.17)]; /* from behind the ear, out sideways (the T outline from behind) */
         put(new THREE.TorusGeometry(0.038, 0.013, 3, 6).rotateY(Math.atan2(dc, dn)), tie, P(0.205, 0)[0], by - 0.002, P(0.205, 0)[2]);
         put(rlTube([P(0.17, 0), P(0.24, -0.006), P(0.3, -0.022), P(0.355, -0.05), P(0.385, -0.09)], [0.036, 0.048, 0.046, 0.035, 0.014], 6, [0, 1, 0]), G);
@@ -63914,12 +63999,15 @@ const head = new THREE.Group(); scene.add(head); head.scale.setScalar(1.06);
       for (const a of [80, 115, 150, -150, -115, -80]) { const y = y0(a) - 0.025; put(puff(a, y, hR(y) + 0.032, 0.058), PF); }
       for (const a of [97, 132, 180, -132, -97]) put(puff(a, -0.05, 0.2, 0.062, 0.95), PF);
       for (const a of [155, 180, -155]) put(puff(a, -0.11, 0.17, 0.066, 0.9), a === 180 ? HI : PF);
+      if (ff) for (const a of [135, 160, 180, 200, 225]) put(puff(a, -0.165, 0.16, 0.05, 0.9), a === 180 ? HI : PF); /* under the full face: a row out from under the skirt */
     } else if (st === 'afro') { /* one big rounded mass round the back and sides, out from under the rim, with a bumpy edge */
       put(new THREE.IcosahedronGeometry(1, 1).scale(0.225, 0.2, 0.27), PF, -0.07, -0.02, 0);
       for (const [a, y, s] of [[60, 0.0, 0.07], [100, -0.06, 0.075], [140, 0.0, 0.075], [180, -0.08, 0.08], [-140, 0.0, 0.075], [-100, -0.06, 0.075], [-60, 0.0, 0.07], [180, 0.02, 0.07]]) {
         const c = Math.cos(a * D2R), n = Math.sin(a * D2R); put(new THREE.IcosahedronGeometry(1, 0).scale(s, s, s).rotateY(a * 0.05), a === 180 && y > 0 ? HI : PF, -0.07 + c * 0.2, y - 0.02, n * 0.245); }
+      if (ff) for (const a of [120, 150, 180, 210, 240]) put(puff(a, -0.17, 0.175, 0.066, 0.85), PF); /* under the full face: the mass bulging out from under the skirt */
     } else { /* an unknown id (normLook maps it to short first): the short hem */
       for (const a of [150, 180, 210]) put(lk(a, y0(a), -0.09, rl(a, 0.016), 0.168, 0.11, 0.08, 0.026, a, 0.006), G); }
+    if (low) lowX(G, st === 'short' || st === 'mop' || st === 'bob' ? 5 : 0, st === 'bob' ? -0.2 : -0.19);
   };
   const headV2 = (put, L) => { /* RIDER_LOOK_V2: the same head, eight hair styles built from chunky locks / puffs / braids that show under the helmet (and the whole
        style under a cap, a beanie or bare-headed), a trimmed helmet (top stripe, chin straps and buckle, visor ridge and screws, rear vents) and the headwear choice.
@@ -66645,7 +66733,7 @@ const bikeCrash = (() => {
     const sets = { F: [], S0: [], SB: [] }, v = new THREE.Vector3(), M = new THREE.Matrix4(), Mc = new THREE.Matrix4(), Ri = new THREE.Matrix4(), Si = new THREE.Matrix4(), SP = RIG.steerSplit;
     bikeGroup.updateMatrixWorld(true); Ri.copy(bikeGroup.matrixWorld).invert(); Si.copy(steerYaw.matrixWorld).invert(); Mc.copy(crank.matrixWorld).invert();
     const under = (o, a) => { for (let p = o; p; p = p.parent) if (p === a) return true; return false; };
-    bikeGroup.traverse((m) => { if (!m.isMesh || !m.geometry || !m.visible) return; const pa = m.geometry.attributes.position;
+    bikeGroup.traverse((m) => { if (!m.isMesh || !m.geometry || !m.visible) return; const pa = m.geometry.userData.hullPos || m.geometry.attributes.position; /* hullPos: the basket animal's plain pose (PETS_BASKET_VIS) */
       if (under(m, steerYaw)) { M.multiplyMatrices(Si, m.matrixWorld); for (let i = 0; i < pa.count; i++) (m === SP.mesh && i >= SP.nSteer ? sets.SB : sets.S0).push(v.fromBufferAttribute(pa, i).applyMatrix4(M).toArray()); }
       else if (under(m, crank)) { M.multiplyMatrices(Mc, m.matrixWorld); for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4, c = Math.cos(a), s = Math.sin(a); /* the crank at 8 angles */
           for (let i = 0; i < pa.count; i++) { v.fromBufferAttribute(pa, i).applyMatrix4(M); sets.F.push([crank.position.x + c * v.x - s * v.y, crank.position.y + s * v.x + c * v.y, crank.position.z + v.z]); } } }
@@ -67901,6 +67989,7 @@ function setScreen(name) {
   if (name === 'pause') pauseCam.enter(); else { pauseCam.leave(); if (pauseAsk) { if (favAsking) favAsk(false, true); else devAsk(false); } } /* the pause card cuts the lens in close on the rider; any other screen (or none) puts the ride lens back */
   sfx.title(document.body.classList.contains('onTitle')); /* title theme */
   pad.clear();
+  if (SHARE_V1) shareScreen(name); /* the share panel closes; the title's share cards close when the title goes */
   if (name === 'title') { refreshTitle(); syncContinue(); favSync(); favTitle(false, true); } /* 'Continue from camp N' follows the saved slot; the favorites card starts closed */
   gpMenu.onScreen(); /* the gamepad focus ring lands on the remembered / primary item */
 }
@@ -67971,12 +68060,13 @@ function favBest(code, t) { if (!(t > 0)) return; const L = favsLoad(), k = L.fi
 function favRow(f, i, pre, x) { const r = document.createElement('div'), b = document.createElement('button'), c = document.createElement('b'), t = document.createElement('span'), s = document.createElement('small');
   r.className = 'fvr' + (x ? '' : ' nx'); b.type = 'button'; b.className = 'fvp' + (f.code === favCode() ? ' cur' : ''); b.id = pre + i; b.dataset.code = f.code; b.dataset.i = String(i);
   c.textContent = f.code; t.className = 'ft'; t.textContent = f.time > 0 ? fmtTime(f.time) : '—'; s.textContent = [favThemeName(f), f.date].filter(Boolean).join(' · '); b.append(c, t, s); r.append(b);
+  if (SHARE_V1 && x) { const q = document.createElement('button'); q.type = 'button'; q.className = 'fvs'; q.id = pre + 's' + i; q.dataset.code = f.code; q.title = 'Share'; q.setAttribute('aria-label', 'Share ' + f.code); q.innerHTML = SHARE_ICON; r.append(q); r.classList.add('sh'); } /* Share sits between the row and its x */
   if (x) { const d = document.createElement('button'); d.type = 'button'; d.className = 'fvx'; d.id = pre + 'x' + i; d.dataset.code = f.code; d.dataset.i = String(i); d.title = 'Remove'; d.setAttribute('aria-label', 'Remove ' + f.code); d.textContent = '×'; r.append(d); }
   return r; }
 function favFill(id, pre, x) { const L = favsLoad(); $(id).replaceChildren(...L.map((f, i) => favRow(f, i, pre, x))); return L; }
 function favSync() { const L = favsLoad(), code = favCode(), on = L.some(f => f.code === code), b = $('btnFav'), p = $('pmFavs'), t = $('btnFavs');
   if (b) { b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); b.innerHTML = on ? '&#9733;' : '&#9734;'; }
-  if (p) p.hidden = !L.length; if (t) { t.hidden = !L.length; t.parentElement.classList.toggle('pair', !!L.length); } }
+  if (p) p.hidden = !L.length; if (t) { t.hidden = !L.length; t.parentElement.classList.toggle('pair', !!L.length); } if (SHARE_V1) shareSync(L); }
 /* pause card: 'list' = the rows, 'ask' = 'Leave this run and ride MTN-...?' (Cancel goes back to the list). An empty list closes itself. */
 function favAsk(mode, quiet, aim) { if (mode === 'list' && !favFill('pmFavList', 'fvP', true).length) mode = false; mode = mode || false; if (!mode && !favAsking) return;
   favAsking = mode; pauseAsk = !!mode; const pm = $('pauseMenu'); pm.classList.toggle('favList', mode === 'list'); pm.classList.toggle('askingFav', mode === 'ask');
@@ -67990,7 +68080,7 @@ function favTitle(on, quiet, aim) { on = !!on; if (on && !favFill('tFavList', 'f
 function favRep(on) { on = !!on; if (!on && !favRepOn) return; if (on && !favFill('favRepList', 'fvR', false).length) on = false;
   favRepOn = on; $('favRep').hidden = !on; $('endOv').classList.toggle('repOn', on);
   if (screen !== 'end') return; gpMenu.onScreen(); gpMenu.aim($(on ? 'favRepNo' : 'btnFav')); }
-function favEsc() { if (screen === 'title' && favTitleOn) { favTitle(false); return true; } if (screen === 'end' && favRepOn) { favRep(false); return true; } return false; } /* Esc / B close the title card and the replace chooser */
+function favEsc() { if (SHARE_V1 && shEsc()) return true; if (screen === 'title' && favTitleOn) { favTitle(false); return true; } if (screen === 'end' && favRepOn) { favRep(false); return true; } return false; } /* Esc / B close the title card and the replace chooser */
 $('btnFav').addEventListener('click', () => { if (!S.course || isTut()) return; const code = favCode(), L = favsLoad(), k = L.findIndex(f => f.code === code);
   if (k >= 0) { L.splice(k, 1); favsSave(L); } else if (L.length >= FAV_MAX) { favRep(true); return; } else { L.unshift(favNew(code)); favsSave(L); }
   favSync(); });
@@ -68011,7 +68101,7 @@ $('tFavList').addEventListener('click', (e) => { const x = e.target.closest('.fv
   if (!b) return; const sd = FAV_RE.test(b.dataset.code) ? codeToSeed(b.dataset.code) : null; if (sd === null || !Number.isFinite(sd)) return; favTitle(false, true); newRun(sd, { chosen: true }); startRiding(); }); /* the same path as Daily ride / Enter code */
 /* Enter while a favorites card is open: a focused row button takes its own click (the ride's Enter must not start or restart a run under it); with no
    focus ring yet, the first Enter only brings the ring up on the current item and the next one presses it */
-addEventListener('keydown', (e) => { if (e.key !== 'Enter') return; const card = screen === 'pause' && favAsking ? $('pauseMenu') : screen === 'title' && favTitleOn ? $('tFavs') : screen === 'end' && favRepOn ? $('favRep') : null; if (!card || gpMenu.shown) return;
+addEventListener('keydown', (e) => { if (e.key !== 'Enter') return; const card = (SHARE_V1 && shCard()) || (screen === 'pause' && favAsking ? $('pauseMenu') : screen === 'title' && favTitleOn ? $('tFavs') : screen === 'end' && favRepOn ? $('favRep') : null); if (!card || gpMenu.shown) return;
   e.stopImmediatePropagation(); const a = document.activeElement; if (a && a.tagName === 'BUTTON' && card.contains(a)) return;
   e.preventDefault(); const L = gpMenu.items(); if (gpMenu.cur && L.includes(gpMenu.cur)) gpMenu.focus(gpMenu.cur); else { gpMenu.pick(); gpMenu.show(true); } }, true);
 $('pmNew').addEventListener('click', () => { abandonRun(); newMountain(); startRiding(); popup('New mountain', seedToCode(S.course.seed)); });
@@ -68326,6 +68416,7 @@ $('btnDaily').addEventListener('click', () => { newRun(dailySeed(), { chosen: tr
 $('btnTut').addEventListener('click', () => { newRun(TUT_SEED); startRiding(); }); /* the set tutorial level (MTN-BASICS), one camp */
 $('btnCode').addEventListener('click', () => { const r = $('codeRow'); r.hidden = !r.hidden; if (!r.hidden) { $('codeIn').value = ''; $('codeMsg').textContent = ''; $('codeIn').focus(); } gpMenu.codeRow(!r.hidden); });
 const rideCode = () => {
+  if (SHARE_V1) { const p = shareCodeIn($('codeIn').value); if (!p) { const r = $('codeRow'); r.classList.remove('shake'); void r.offsetWidth; r.classList.add('shake'); shSay('code', 'Not a mountain code. Codes look like MTN-C2K1Q.'); return; } shRide(p); return; } /* a share line or link works too; its time shows as 'Time to beat' at the finish */
   let raw = ($('codeIn').value || '').trim().toUpperCase().replace(/\s+/g, ''); if (raw.includes('#')) raw = raw.slice(raw.lastIndexOf('#') + 1); /* a pasted share link works too; maxlength 40 (a code pasted with spaces must not be cut short and ride the wrong mountain) */
   if (TUT_ALIAS[raw]) raw = TUT_ALIAS[raw]; /* TUTORIAL / LEARN / BASICS ride the tutorial */
   const c = raw.startsWith('MTN-') ? raw : 'MTN-' + raw.replace(/^MTN/, '');
@@ -68530,6 +68621,7 @@ function openResults() {
   for (const el of document.querySelectorAll('#endOv .rrow, #endOv .rtot')) el.classList.remove('show');
   if (isTut()) tutCard(true);
   setScreen('end'); stepResults();
+  if (SHARE_V1) shareResults(); /* 'Time to beat', and the rider picture is taken right after the next render */
 }
 /* the tutorial's end card: retitled, no time / score / XP rows, the next real mountain rolled now so its code shows on the button that rides it.
    tutCard(false) puts the normal texts back (setScreen calls it when the card closes). */
@@ -68560,12 +68652,161 @@ try { if (SAVE_SAFE) { localStorage.setItem('holdon.probe', '1'); localStorage.r
 const SHARE_CLEAN = 1; /* 1: a shared link drops the tester query switches (debug, trains, trainshow, dev) and keeps any other query; 0: the whole address is shared */
 const shareQuery = () => { const q = location.search.replace(/^\?/, '').split('&').filter((p) => p && !/^(debug|trains|trainshow|dev)(=|$)/.test(p)); return q.length ? '?' + q.join('&') : ''; };
 $('btnShare').addEventListener('click', async () => {
+  if (SHARE_V1) { if (S.course) shareGo(seedToCode(S.course.seed), 'btnShare'); return; } /* the one Share action (share codes block below) */
   const code = seedToCode(S.course.seed), text = 'Ride ' + code + ' on No Hander';
   /* blob:, about:srcdoc and file: pages have no address anyone can open, so those share the code alone */
   let link = ''; try { if (/^https?:$/.test(location.protocol)) link = (SHARE_CLEAN ? location.origin + location.pathname + shareQuery() : location.href.split('#')[0]) + '#' + code; } catch (e) { link = ''; }
   try { if (navigator.share && document.body.classList.contains('touchy')) { await navigator.share(link ? { title: 'No Hander', text, url: link } : { title: 'No Hander', text }); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
   try { await navigator.clipboard.writeText(link || code); toast(link ? 'Link copied: ' + code : 'Mountain code copied: ' + code); } catch (e) { toast('Mountain code ' + code); }
 });
+/* ---- share codes (SHARE_V1). ONE Share action everywhere (the finish card, the pause card, each favorites row, the title favorites header): it shares
+   that mountain's code with the player's own best time on it (no time before a finish) as a line of text + a link + a share card picture drawn on a
+   canvas (no requests). Touch devices use the system share sheet (with the picture when the browser can share files); otherwise the text is copied
+   (clipboard, then execCommand, then a select-to-copy box) and a panel shows the card with Save image. The code is always printed on screen.
+   The link carries ?MTN-XXXXX&t=m:ss.s as a bonus (a host page may not pass it on; the code in the text is what counts): a page opened with it shows
+   'Ride this mountain?' (Save it / Ride, plus 'Time to beat' when a time came with it). That time is shown for this session only and never stored.
+   Enter code takes a bare code, 'MTN-XXXXX 2:41.3' or a whole link or share text, and gains Save (adds it to Favorites without riding).
+   0 = the older 'Share code' link copy and the plain code box exactly. ---- */
+const SHARE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>';
+/* a time as text: m:ss.s with 1-2 minute digits, kept only inside 0:05.0 .. 99:59.9 (counted in tenths, no float edge) */
+function shareTime(s) { const m = /^(\d{1,2}):([0-5]\d)\.(\d)$/.exec(String(s == null ? '' : s).trim()); if (!m) return null; const n = (+m[1] * 60 + +m[2]) * 10 + +m[3]; return n >= 50 && n <= 59999 ? n / 10 : null; }
+/* the first mountain code in any text (a code, 'MTN-XXXXX 2:41.3', a share line, a link) and the first time after it; null = no code */
+function shareParse(raw) { try { let s = typeof raw === 'string' ? raw : ''; if (s.length > 400) s = s.slice(0, 400); s = s.replace(/%3A/gi, ':').toUpperCase();
+  const m = /(?:^|[^0-9A-Z_])MTN-?([0-9A-Z]{1,7})(?![0-9A-Z_])/.exec(s); if (!m) return null; const seed = codeToSeed('MTN-' + m[1]); if (seed === null || !Number.isFinite(seed)) return null;
+  const tm = /(?:^|[^0-9:.])(\d{1,2}:[0-5]\d\.\d)(?![0-9])/.exec(s.slice(m.index + m[0].length)); return { code: seedToCode(seed), seed, t: tm ? shareTime(tm[1]) : null }; } catch (e) { return null; } }
+/* the code box: a share text / link first, else the plain box rules (a bare code, #code links, TUTORIAL / LEARN / BASICS) */
+function shareCodeIn(v) { if (typeof v !== 'string') return null; const p = shareParse(v); if (p) return p; try { let raw = String(v || '').trim().toUpperCase().replace(/\s+/g, ''); if (raw.includes('#')) raw = raw.slice(raw.lastIndexOf('#') + 1); if (TUT_ALIAS[raw]) raw = TUT_ALIAS[raw];
+  const c = raw.startsWith('MTN-') ? raw : 'MTN-' + raw.replace(/^MTN/, ''), seed = FAV_RE.test(c) ? codeToSeed(c) : null; return seed === null || !Number.isFinite(seed) ? null : { code: seedToCode(seed), seed, t: null }; } catch (e) { return null; } }
+const shareCap = (t) => Number.isFinite(t) && t >= 5 && Math.round(t * 10) <= 59999 ? t : 0;
+/* the player's own time on a code: the lowest of the saved best times (plain and skills / buffs), the favorite's time and a finish showing now */
+function shareOwn(code) { if (code === TUT_CODE) return 0; let best = 0; const add = (v) => { v = +v; if (Number.isFinite(v) && v > 0 && (!best || v < best)) best = v; };
+  try { add(parseFloat(localStorage.getItem('holdon.best.' + code))); add(parseFloat(localStorage.getItem('holdon.best.' + code + ':s'))); } catch (e) { }
+  try { const f = favsLoad().find(g => g.code === code); if (f) add(f.time); } catch (e) { }
+  if (S.course && S.finished && seedToCode(S.course.seed) === code) add(S.t); return shareCap(best); }
+function shareLink(code, t) { let u = ''; try { u = String(PUBLIC_URL || '').split('#')[0].split('?')[0]; if (!u && /^https?:$/.test(location.protocol)) u = location.origin + location.pathname; } catch (e) { u = ''; }
+  return u ? u + '?' + code + (t ? '&t=' + fmtTime(t) : '') : ''; } /* nothing of the page's own query is carried (no tester switches) */
+const shareText = (code, t) => t ? 'I rode ' + code + ' in ' + fmtTime(t) + ' on No Hander. Beat it:' : 'Ride ' + code + ' on No Hander:';
+const shareFull = (code, t) => { const L = shareLink(code, t), s = shareText(code, t); return L ? s + ' ' + L : s.replace(/:$/, '') + ' (Enter code on the title)'; };
+const shareTheme = (seed) => { try { const T = themeOf(seed); return T && T.name ? T.name : ''; } catch (e) { return ''; } };
+/* ---- the rider picture: the frame right after the finish render is copied at once (no preserved buffer needed), cropped square around the rider */
+function shBlank(c) { try { const s = document.createElement('canvas'); s.width = s.height = 8; const g = s.getContext('2d'); g.drawImage(c, 0, 0, 8, 8); const d = g.getImageData(0, 0, 8, 8).data; let lo = 255, hi = 0, a = 0;
+  for (let i = 0; i < d.length; i += 4) { const l = 0.3 * d[i] + 0.59 * d[i + 1] + 0.11 * d[i + 2]; lo = Math.min(lo, l); hi = Math.max(hi, l); a = Math.max(a, d[i + 3]); } return a < 8 || hi < 8 || hi - lo < 6; } catch (e) { return true; } }
+function shareSnap() { shShotWant = false; if (!S.course) return; try { const cv = renderer.domElement, w = cv.width, h = cv.height; if (!w || !h) return;
+  const p = _shV.copy(S.crashed ? rp[1] : S.pos); p.y += 0.9; const d = Math.max(0.5, camera.position.distanceTo(p)); p.project(camera); if (!(p.z < 1 && Math.abs(p.x) < 1.1 && Math.abs(p.y) < 1.1)) p.set(0, 0, 0);
+  const px = (p.x + 1) / 2 * w, py = (1 - p.y) / 2 * h, rh = h * 1.9 / (2 * d * Math.tan(camera.fov * Math.PI / 360)), side = Math.min(w, h, Math.max(h * 0.34, rh * 2.6));
+  const sx = Math.max(0, Math.min(w - side, px - side / 2)), sy = Math.max(0, Math.min(h - side, py - side * 0.56)), c = document.createElement('canvas'); c.width = c.height = 540;
+  c.getContext('2d').drawImage(cv, sx, sy, side, side, 0, 0, 540, 540); if (shBlank(c)) return; shShot = c; shShotCode = seedToCode(S.course.seed); } catch (e) { /* no picture: the card falls back to the logo, the code and the time */ } }
+/* ---- the share card: 1200 x 630 */
+function shFit(g, s, px, font, max) { let z = px; g.font = font.replace('#', z + 'px'); while (z > 12 && g.measureText(s).width > max) { z -= 2; g.font = font.replace('#', z + 'px'); } return z; }
+function shareCard(code, t) { const W = 1200, H = 630, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d'); if (!g) return null;
+  const DISP = 'italic 900 # "Barlow Condensed", "Arial Narrow", system-ui, sans-serif', UI = '600 # "Rubik", system-ui, "Segoe UI", sans-serif', MONO = '700 # ui-monospace, Menlo, Consolas, monospace';
+  const ACC = '#ffb24a', ACC2 = '#f0702a', CREAM = '#fdf8ea', seed = codeToSeed(code), theme = shareTheme(seed), shot = shShot && shShotCode === code ? shShot : null;
+  const bg = g.createLinearGradient(0, 0, W, H); bg.addColorStop(0, '#2b1b12'); bg.addColorStop(1, '#120b07'); g.fillStyle = bg; g.fillRect(0, 0, W, H);
+  g.fillStyle = ACC2; g.globalAlpha = 0.16; g.beginPath(); g.arc(W - 120, -40, 360, 0, Math.PI * 2); g.fill(); g.globalAlpha = 1;
+  let x0 = 80, cx = null, maxW = W - 160; g.textBaseline = 'alphabetic';
+  if (shot) { const S0 = 550, X = 40, Y = 40, R = 28; g.save(); g.beginPath(); g.moveTo(X + R, Y); g.arcTo(X + S0, Y, X + S0, Y + S0, R); g.arcTo(X + S0, Y + S0, X, Y + S0, R); g.arcTo(X, Y + S0, X, Y, R); g.arcTo(X, Y, X + S0, Y, R); g.closePath(); g.clip();
+    g.drawImage(shot, X, Y, S0, S0); g.restore(); g.strokeStyle = 'rgba(253,248,234,0.22)'; g.lineWidth = 2; g.strokeRect(X + 1, Y + 1, S0 - 2, S0 - 2); x0 = 640; maxW = W - x0 - 50; }
+  else { cx = W / 2; maxW = W - 160; }
+  g.textAlign = cx === null ? 'left' : 'center'; const X0 = cx === null ? x0 : cx;
+  g.fillStyle = 'rgba(253,248,234,0.72)'; shFit(g, 'A DOWNHILL GAME ABOUT LETTING GO', 20, UI, maxW); g.fillText('A DOWNHILL GAME ABOUT LETTING GO', X0, 92);
+  g.fillStyle = CREAM; shFit(g, 'NO HANDER', 92, DISP, maxW); g.fillText('NO HANDER', X0, 176);
+  g.fillStyle = ACC; shFit(g, code, cx === null ? 84 : 120, MONO, maxW); g.fillText(code, X0, cx === null ? 300 : 330);
+  g.fillStyle = 'rgba(253,248,234,0.85)'; shFit(g, theme, 30, UI, maxW); if (theme) g.fillText(theme, X0, cx === null ? 348 : 384);
+  if (t) { g.fillStyle = 'rgba(253,248,234,0.6)'; shFit(g, 'MY TIME', 22, UI, maxW); g.fillText('MY TIME', X0, cx === null ? 420 : 446); g.fillStyle = CREAM; shFit(g, fmtTime(t), 76, DISP, maxW); g.fillText(fmtTime(t), X0, cx === null ? 492 : 516); }
+  else { g.fillStyle = CREAM; shFit(g, 'Can you ride it?', 46, DISP, maxW); g.fillText('Can you ride it?', X0, cx === null ? 470 : 486); }
+  let host = ''; try { host = String(PUBLIC_URL || '').replace(/^https?:\/\//, '').split(/[?#]/)[0]; } catch (e) { host = ''; }
+  const foot = 'Enter the code on the title' + (host ? '  ·  ' + host : ''); g.fillStyle = 'rgba(253,248,234,0.7)'; shFit(g, foot, 22, UI, maxW); g.fillText(foot, X0, cx === null ? 566 : 586);
+  return c; }
+const shKey = (code, t) => code + '|' + (t ? fmtTime(t) : '');
+function shBlob(c) { return new Promise((res) => { try { if (!c || !c.toBlob) { res(null); return; } c.toBlob((b) => res(b || null), 'image/png'); setTimeout(() => res(null), 3000); } catch (e) { res(null); } }); }
+function sharePrebuild(code) { try { const t = shareOwn(code), k = shKey(code, t), c = shareCard(code, t); shPre = { key: k, code, canvas: c, blob: null }; const P = shPre; shBlob(c).then((b) => { if (shPre === P) P.blob = b; }); } catch (e) { shPre = null; } }
+async function shareCopy(s) { try { if (navigator.clipboard && navigator.clipboard.writeText) { await navigator.clipboard.writeText(s); return true; } } catch (e) { }
+  try { const ta = document.createElement('textarea'); ta.value = s; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0'; document.body.appendChild(ta); ta.select(); let ok = false; try { ok = document.execCommand('copy'); } catch (e) { ok = false; } ta.remove(); return !!ok; } catch (e) { return false; } }
+/* ---- the one Share action */
+async function shareGo(code, from) { if (shBusy) return; shBusy = true;
+  try { if (typeof code !== 'string' || !FAV_RE.test(code)) return; const t = shareOwn(code), k = shKey(code, t), link = shareLink(code, t), full = shareFull(code, t);
+    if (!shPre || shPre.key !== k) sharePrebuild(code); const P = shPre;
+    if (navigator.share && document.body.classList.contains('touchy')) {
+      let file = null; if (P && navigator.canShare) { if (!P.blob) P.blob = await shBlob(P.canvas); try { if (P.blob) file = new File([P.blob], 'no-hander-' + code + '.png', { type: 'image/png' }); } catch (e) { file = null; } }
+      let data = link ? { title: 'No Hander', text: shareText(code, t), url: link } : { title: 'No Hander', text: full }; try { if (file && navigator.canShare({ files: [file] })) data = Object.assign({ files: [file] }, data); } catch (e) { }
+      try { await navigator.share(data); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
+    const ok = await shareCopy(full); toast(ok ? 'Copied: ' + code : 'Mountain code ' + code); shPan(true, { code, t, full, copied: ok, from });
+  } catch (e) { try { toast('Mountain code ' + code); } catch (e2) { } } finally { shBusy = false; } }
+/* ---- the share panel (no share sheet, or it failed): the card, the text in a select-to-copy box, Copy text / Save image / Close. It opens over
+   whatever screen is up (title, pause, finish card) and the pad ring stays inside it */
+const SH_PANEL = '<div class="fvh" id="shPanH">Share</div><div class="shPw"><div class="shPl"><img id="shImg" alt="Share card"><div class="shCd"><code id="shCode"></code></div></div>'
+  + '<div class="shPr"><textarea id="shTxt" readonly rows="3" aria-label="Share text" spellcheck="false"></textarea><div id="shMsg" role="status"></div><div class="two"><button class="mb sm" id="shCopy" type="button">Copy text</button><button class="mb sm" id="shSave" type="button">Save image</button></div><button class="mb sm" id="shClose" type="button">Close</button></div></div>';
+function shScrEl() { const id = (SCREENS.find(([n]) => n === screen) || [])[1]; return id ? $(id) : null; }
+function shPan(on, o) { const el = $('shPan'); if (!el) return; on = !!on; if (!on) { if (el.hidden) return; el.hidden = true; const host = el.parentElement; if (host) host.classList.remove('shOpen'); try { if (shUrl) URL.revokeObjectURL(shUrl); } catch (e) { } shUrl = '';
+    const back = shCur && shCur.from; shCur = null; if (screen) { gpMenu.onScreen(); if (back && $(back) && gpMenu.items().includes($(back))) gpMenu.aim($(back)); } return; }
+  const host = shScrEl(); if (!host) return; if (el.parentElement !== host) host.appendChild(el); shCur = o; el.hidden = false; host.classList.add('shOpen');
+  $('shPanH').textContent = 'Share ' + o.code; $('shCode').textContent = o.code + (o.t ? '  ·  ' + fmtTime(o.t) : ''); $('shTxt').value = o.full;
+  $('shMsg').textContent = o.copied ? 'Copied. Paste it anywhere.' : 'Select the text above and copy it.'; if (!o.copied) { try { $('shTxt').focus(); $('shTxt').select(); } catch (e) { } }
+  const img = $('shImg'), P = shPre && shPre.key === shKey(o.code, o.t) ? shPre : null; img.removeAttribute('src');
+  if (P) { const put = (b) => { try { if (!b || el.hidden || shCur !== o) return; shUrl = URL.createObjectURL(b); img.src = shUrl; } catch (e) { } }; if (P.blob) put(P.blob); else shBlob(P.canvas).then((b) => { P.blob = P.blob || b; put(b); }); }
+  gpMenu.onScreen(); gpMenu.aim($(o.copied ? 'shClose' : 'shCopy')); }
+async function shSaveImg() { try { const o = shCur; if (!o) return; const P = shPre && shPre.key === shKey(o.code, o.t) ? shPre : null; const b = P ? (P.blob || await shBlob(P.canvas)) : null;
+  if (!b) { $('shMsg').textContent = 'No picture in this browser. The code still works.'; return; } const u = URL.createObjectURL(b), a = document.createElement('a'); a.href = u; a.download = 'no-hander-' + o.code + '.png'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => { try { URL.revokeObjectURL(u); } catch (e) { } }, 4000);
+  $('shMsg').textContent = 'Saved. Or press and hold (right-click) the picture.'; } catch (e) { $('shMsg').textContent = 'Press and hold (right-click) the picture to save it.'; } }
+/* ---- Save a code into Favorites without riding it (the code box, an incoming link): the tutorial never; a full list asks which one to replace */
+const shFavNew = (p) => ({ code: p.code, date: new Date().toISOString().slice(0, 10), time: (() => { let b = 0; try { for (const k of ['', ':s']) { const v = parseFloat(localStorage.getItem('holdon.best.' + p.code + k)); if (Number.isFinite(v) && v > 0 && (!b || v < b)) b = v; } } catch (e) { } return b; })(), theme: (() => { try { const T = themeOf(p.seed); return T && T.id ? String(T.id) : ''; } catch (e) { return ''; } })() }); /* the player's own saved best only, never a time that came with a link */
+function shSay(where, msg, ok) { const el = $(where === 'in' ? 'shInMsg' : 'codeMsg'); if (!el) return; el.textContent = msg; el.classList.toggle('ok', !!ok); }
+function shareSave(p, where) { if (!p) return false; if (p.seed === TUT_SEED) { shSay(where, 'The tutorial cannot be a favorite.'); return false; }
+  const L = favsLoad(); if (L.some(f => f.code === p.code)) { shSay(where, p.code + ' is already in Favorites.', true); return true; }
+  if (L.length >= FAV_MAX) { shRep(true, p, where); return false; } L.unshift(shFavNew(p)); favsSave(L); favSync(); shSay(where, 'Saved ' + p.code + ' to Favorites (' + Math.min(FAV_MAX, L.length) + ' / ' + FAV_MAX + ')', true); return true; }
+function shRep(on, p, where) { const el = $('shRep'); if (!el) return; on = !!on; if (on && !favFill('shRepList', 'fvS', false).length) on = false; if (!on && el.hidden) return;
+  shRepP = on ? { p, where } : null; el.hidden = !on; $('titleScr').classList.toggle('shRepOpen', on); if (screen !== 'title') return; gpMenu.onScreen();
+  gpMenu.aim($(on ? 'shRepNo' : (where === 'in' ? 'shInSave' : 'codeSave'))); }
+/* ---- an incoming link: ?MTN-XXXXX and an optional &t=m:ss.s, read once at start-up and then dropped from the address */
+function shareIncoming() { try { const q = String(location.search || '').replace(/^\?/, ''); if (!q || q.length > 400) return null; let code = null, t = null; const keep = [];
+    for (const part of q.split('&')) { let v = part; try { v = decodeURIComponent(part); } catch (e) { v = part; } let m;
+      if (!code && v.length <= 12 && (m = /^MTN-?([0-9A-Z]{1,7})$/i.exec(v))) { const sd = codeToSeed('MTN-' + m[1]); if (sd !== null && Number.isFinite(sd)) code = { code: seedToCode(sd), seed: sd }; continue; }
+      if (t === null && (m = /^t=(.{1,12})$/i.exec(v))) { t = shareTime(m[1]); continue; } keep.push(part); }
+    if (!code) return null; try { history.replaceState(history.state, '', location.pathname + (keep.length ? '?' + keep.join('&') : '') + location.hash); } catch (e) { }
+    return { code: code.code, seed: code.seed, t }; } catch (e) { return null; } }
+function shIn(on) { const el = $('shIn'); if (!el) return; on = !!on && !!shInP; if (!on && el.hidden) return; el.hidden = !on; $('titleScr').classList.toggle('shInOpen', on);
+  if (on) { const p = shInP; $('shInCode').textContent = p.code; $('shInTheme').textContent = shareTheme(p.seed); $('shInBeat').textContent = p.t ? 'Time to beat: ' + fmtTime(p.t) : ''; $('shInBeat').hidden = !p.t; shSay('in', ''); const sv = $('shInSave'); sv.disabled = false; sv.textContent = 'Save it'; }
+  if (screen !== 'title') return; gpMenu.onScreen(); gpMenu.aim($(on ? 'shInRide' : 'btnStart')); }
+function shRide(p) { if (!p) return; shBeat = p.t ? { code: p.code, t: p.t } : shBeat; shRep(false); shIn(false); shInP = null; $('codeIn').blur(); newRun(p.seed, { chosen: true }); startRiding(); }
+/* Esc / pad B: the panel, then the replace chooser, then the incoming card */
+function shEsc() { if (!SHARE_V1) return false; const P = $('shPan'); if (P && !P.hidden) { shPan(false); return true; } if (screen === 'title') { const R = $('shRep'); if (R && !R.hidden) { shRep(false, null, shRepP && shRepP.where); return true; } const I = $('shIn'); if (I && !I.hidden) { shIn(false); shInP = null; return true; } } return false; }
+const shCard = () => { if (!SHARE_V1) return null; const P = $('shPan'); if (P && !P.hidden && P.parentElement === shScrEl()) return P; if (screen !== 'title') return null; for (const id of ['shRep', 'shIn']) { const e = $(id); if (e && !e.hidden) return e; } return null; };
+function shareScreen(name) { if (!SHARE_V1) return; shPan(false); if (name !== 'title') { shRep(false); if (shInP) { shIn(false); shInP = null; } } }
+function shareSync(L) { if (!SHARE_V1) return; const n = (L || []).length + ' / ' + FAV_MAX + ' saved'; for (const id of ['tFavN', 'pmFavN']) { const e = $(id); if (e) e.textContent = n; }
+  const b = $('tFavShare'); if (b && S.course) { const c = seedToCode(S.course.seed); b.title = 'Share ' + c; b.setAttribute('aria-label', 'Share ' + c); } }
+function shareResults() { if (!SHARE_V1 || !S.course) return; const code = seedToCode(S.course.seed), e = $('eBeat'); if (e) { const on = !isTut() && !!shBeat && shBeat.code === code; e.hidden = !on; e.textContent = on ? 'Time to beat ' + fmtTime(shBeat.t) : ''; }
+  shPre = null; if (shShotCode !== code) shShot = null; shShotWant = true; setTimeout(() => { if (screen === 'end' && S.course && seedToCode(S.course.seed) === code) sharePrebuild(code); }, 400); }
+function shRowShare(e, pre) { const s = e.target.closest('.fvs'); if (!s) return; e.stopPropagation(); shareGo(s.dataset.code, s.id); }
+if (SHARE_V1) { try {
+  const mk = (tag, cls, id, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (id) e.id = id; if (html != null) e.innerHTML = html; return e; };
+  const pan = mk('div', 'favCard shPan', 'shPan', SH_PANEL); pan.hidden = true; pan.setAttribute('role', 'dialog'); $('endOv').appendChild(pan);
+  $('shCopy').addEventListener('click', async () => { const o = shCur; if (!o) return; const ok = await shareCopy(o.full); $('shMsg').textContent = ok ? 'Copied. Paste it anywhere.' : 'Select the text above and copy it.'; if (ok) toast('Copied: ' + o.code); else { try { $('shTxt').focus(); $('shTxt').select(); } catch (e) { } } });
+  $('shSave').addEventListener('click', shSaveImg); $('shClose').addEventListener('click', () => shPan(false));
+  $('shTxt').addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Escape') shPan(false); }); $('shTxt').addEventListener('focus', () => { try { $('shTxt').select(); } catch (e) { } });
+  /* the finish card: Share + the code (already there), the incoming time as a plain label */
+  $('btnShare').innerHTML = SHARE_ICON + 'Share'; $('btnShare').classList.add('shB'); { const b = mk('span', '', 'eBeat'); b.hidden = true; $('eDelta').after(b); }
+  /* the pause card: a Share chip beside the code line, the favorites list gets its count */
+  { const w = mk('div', 'pmShRow'), s = mk('button', 'mb sm shB', 'pmShare', SHARE_ICON + 'Share'); s.type = 'button'; $('pmSeed').before(w); w.append($('pmSeed'), s);
+    s.addEventListener('click', () => { if (S.course) shareGo(seedToCode(S.course.seed), 'pmShare'); }); $('pmFavL').prepend(mk('div', 'fvh shCnt', '', 'Favorites · <span id="pmFavN"></span>')); }
+  /* the title favorites card: the count in its header, a Share for the mountain behind the title */
+  { const h = $('tFavs').querySelector('.fvh'), s = mk('button', 'ico shH', 'tFavShare', SHARE_ICON); s.type = 'button'; h.classList.add('shHd'); h.innerHTML = '<span>Favorites</span><small id="tFavN"></small>'; h.append(s);
+    s.addEventListener('click', () => { if (S.course) shareGo(seedToCode(S.course.seed), 'tFavShare'); }); }
+  $('tFavList').addEventListener('click', (e) => shRowShare(e), true); $('pmFavList').addEventListener('click', (e) => shRowShare(e), true);
+  /* the code box: Save beside Ride; a long paste (a share line, a link) is trimmed to its code and time */
+  { const s = mk('button', 'mb sm', 'codeSave', 'Save'); s.type = 'button'; $('codeGo').before(s); $('codeRow').classList.add('shSave'); $('codeIn').maxLength = 400;
+    s.addEventListener('click', () => { const p = shareCodeIn($('codeIn').value); if (!p) { const r = $('codeRow'); r.classList.remove('shake'); void r.offsetWidth; r.classList.add('shake'); shSay('code', 'Not a mountain code. Codes look like MTN-C2K1Q.'); return; } shareSave(p, 'code'); });
+    $('codeIn').addEventListener('paste', () => setTimeout(() => { try { const v = $('codeIn').value; if (v.length <= 16) return; const p = shareParse(v); if (p) { $('codeIn').value = p.code + (p.t ? ' ' + fmtTime(p.t) : ''); shSay('code', p.t ? 'Time to beat: ' + fmtTime(p.t) : '', true); } } catch (e) { } }, 0)); }
+  /* the replace chooser and the incoming card live on the title */
+  { const r = mk('div', 'favCard', 'shRep', '<div class="fvh">Replace which favorite?</div><div class="fvl" id="shRepList"></div><button class="mb sm" id="shRepNo" type="button">Cancel</button>'); r.hidden = true; $('tFavs').after(r);
+    $('shRepList').addEventListener('click', (e) => { const b = e.target.closest('.fvp'), R = shRepP; if (!b || !R || !R.p) return; const L = favsLoad().filter(f => f.code !== b.dataset.code && f.code !== R.p.code); L.unshift(shFavNew(R.p)); favsSave(L); favSync(); shRep(false, null, R.where);
+      shSay(R.where, 'Saved ' + R.p.code + ' to Favorites (replaced ' + b.dataset.code + ')', true); if (R.where === 'in') { const sv = $('shInSave'); sv.textContent = 'Saved'; } });
+    $('shRepNo').addEventListener('click', () => shRep(false, null, shRepP && shRepP.where));
+    const n = mk('div', 'favCard', 'shIn', '<div class="fvh">Ride this mountain?</div><div class="shBig" id="shInCode"></div><div class="shSub" id="shInTheme"></div><div class="shBeat" id="shInBeat"></div><div id="shInMsg" role="status"></div><div class="two"><button class="mb sm" id="shInSave" type="button">Save it</button><button class="mb pri" id="shInRide" type="button">&#9654; Ride</button></div><button class="mb sm" id="shInNo" type="button">Not now</button>'); n.hidden = true; r.after(n);
+    $('shInRide').addEventListener('click', () => shRide(shInP)); $('shInNo').addEventListener('click', () => { shIn(false); shInP = null; });
+    $('shInSave').addEventListener('click', () => { if (shInP && shareSave(shInP, 'in')) $('shInSave').textContent = 'Saved'; }); }
+  shInP = shareIncoming(); if (shInP) shIn(true);
+} catch (e) { /* the share extras stay off; the plain buttons keep working */ } }
+if (DEBUG) window.__share = { parse: shareParse, codeIn: shareCodeIn, time: shareTime, text: shareText, full: shareFull, link: shareLink, own: shareOwn, card: shareCard, go: shareGo, get shot() { return shShot; }, get pre() { return shPre; }, get beat() { return shBeat; } };
 $('btnAgain').addEventListener('click', () => { resetRun(); startRiding(); });
 $('btnNew2').addEventListener('click', () => { if (tutNext !== null) { newRun(tutNext); setScreen(null); } else newMountain(); startRiding(); }); /* after the tutorial: the code its card showed */
 /* ---- per-frame UI (called from updateHud): screens that follow game state, title camera, results, haptics, coach, touch pad ---- */
@@ -68677,7 +68918,8 @@ const gpMenu = (() => {
     if (el.type === 'range' || isSeg(el)) { if (el.hasAttribute('data-gpok')) { const p = el.querySelector('[aria-pressed="true"]'); if (p) { const was = screen; p.click(); if (screen !== was) swallowUntil = true; } } return; }
     const was = screen; el.click(); if (screen !== was) swallowUntil = true; };
   const back = () => { const was = screen; show(true);
-    if (screen === 'settings') setScreen(setBack);
+    if (SHARE_V1 && shEsc()) { /* the share panel / a share card closed */ }
+    else if (screen === 'settings') setScreen(setBack);
     else if (screen === 'controls') ctlClose();
     else if ((screen === 'title' || screen === 'end') && favEsc()) { /* the favorites card / replace chooser closed */ }
     else if (screen === 'title') { const r = $('codeRow'); if (!r.hidden) { r.hidden = true; $('codeIn').blur(); if (cur === $('codeIn') || cur === $('codeGo')) ring($('btnCode')); } }
@@ -70350,6 +70592,7 @@ const campUI = (() => {
   const petsInfo = () => { const id = petPick(), own = PETS.owned.includes(id), W = PETS.where[id] || {}, B = PETS.bond[id] || { f: 0, c: 0 };
     if (!own) return `<b>???</b><span>${PET_ANY.includes(id) ? 'Keep riding: a friend is close' : 'Lives in ' + esc(petHome(id))}</span>`;
     const at = [W.code, W.theme, W.camp ? 'camp ' + W.camp : ''].filter(Boolean).join(' · ');
+    if (COMP_INFO_FIT) return `<b>${esc(PET_NAME[id])}<em>${esc(petPerkTxt(id))}</em></b><span>${at ? 'Found on ' + esc(at) : 'Found on the trail'}</span><span>${B.f} flip${B.f === 1 ? '' : 's'} · ${B.c} camp${B.c === 1 ? '' : 's'} together</span>`;
     return `<b>${esc(PET_NAME[id])}<em>${esc(petPerkTxt(id))}</em></b><span>${at ? 'Found on ' + esc(at) + ' · ' : ''}${B.f} flip${B.f === 1 ? '' : 's'} · ${B.c} camp${B.c === 1 ? '' : 's'} together</span>`; };
   const petsFoot = () => { const id = petPick(), own = PETS.owned.includes(id), r = petsRider();
     const ride = !own ? 'Not found yet' : r === id ? 'Ride with nobody' : 'Ride with ' + PET_NAME[id];
@@ -70357,7 +70600,7 @@ const campUI = (() => {
   const petsHTML = () => { const r = petsRider(), sel = petPick();
     return `<div class="pt">${backBtn()}<b>Companion</b><span class="m">${PETS.owned.length} / ${PET_IDS.length} found${PETS.basketOn ? '' : ' · no basket'}</span></div>
       <div class="pgrid" id="ckPets">${PET_IDS.map(id => { const own = PETS.owned.includes(id); return `<button class="pet${own ? '' : ' off'}${r === id ? ' rd' : ''}" data-pet="${id}" aria-pressed="${id === sel}" aria-label="${own ? esc(PET_NAME[id]) : 'Not found yet'}">${petSvg(id, own)}<i>${own ? esc(PET_NAME[id]) : '?'}</i></button>`; }).join('')}</div>
-      <div class="pinfo" id="ckPetInfo">${petsInfo()}</div><div class="pfoot" id="ckPetFoot">${petsFoot()}</div>
+      <div class="pinfo${COMP_INFO_FIT ? ' fit' : ''}" id="ckPetInfo">${petsInfo()}</div><div class="pfoot" id="ckPetFoot">${petsFoot()}</div>
       ${hint([[['dpad4'], 'Move'], [['A'], 'Ride with'], [['B'], 'Back']])}`; };
   const petsPaint = () => { if (!S.camp || S.camp.tab !== 'look' || V.sub !== 'pets' || pn.dataset.tab === 'res' || game) return; const g = $('ckPets'); if (!g) return; const sel = petPick(), r = petsRider();
     for (const b of g.children) { const id = b.dataset.pet, own = PETS.owned.includes(id); b.setAttribute('aria-pressed', String(id === sel)); b.classList.toggle('rd', r === id); if (own === b.classList.contains('off')) { b.classList.toggle('off', !own); b.innerHTML = petSvg(id, own) + `<i>${own ? esc(PET_NAME[id]) : '?'}</i>`; b.setAttribute('aria-label', own ? PET_NAME[id] : 'Not found yet'); } }
@@ -70376,8 +70619,8 @@ const campUI = (() => {
       ${hint([[['dpadH'], 'Choose'], [['A'], 'Open'], [['B'], 'Leave camp']])}`;
     if (V.sub === 'rider' && V.page === 'style') return `<div class="pt">${backBtn()}<b>Rider</b>${pageSeg()}</div>
       ${RIDER_LOOK_V2 ? /* eight hair styles in a 4 x 2 grid, the headwear row, legs and sleeves side by side: the page keeps its height at 844 x 390 */
-        `<div class="lst${HAIR_V3 ? ' v3' : ''}">${HAIR_V3 ? /* the helmet first; twelve hair styles in a 4 x 3 grid, dimmed with a note and a one-tap switch while a trail / full-face shell hides them */
-          `${segRow('Helmet', 'headwear', [['helmet', 'Trail'], ['cap', 'Open'], ['beanie', 'Skate'], ['full', 'Full face']])}<div class="lr hrow h3${hairHidden(LOOK) ? ' hid' : ''}"><span>Hair<i class="hh">Hair shows with the Open or Skate helmet</i><button class="hsw" id="ckHairOpen">Switch to Open</button></span>${segDiv('hairStyle', [['buzz', 'Buzz'], ['short', 'Short'], ['mop', 'Mop'], ['bob', 'Bob'], ['medium', 'Wavy'], ['long', 'Long'], ['ponytail', 'Ponytail'], ['bun', 'Bun'], ['braids', 'Braids'], ['pigtails', 'Pigtails'], ['curly', 'Curly'], ['afro', 'Afro']], 'g4 r3')}</div>`
+        `<div class="lst${HAIR_V3 ? ' v3' : ''}">${HAIR_V3 ? /* the helmet first; twelve hair styles in a 4 x 3 grid (without HAIR_ALL_HELMETS: dimmed with a note and a one-tap switch while a trail / full-face shell hides them) */
+          `${segRow('Helmet', 'headwear', [['helmet', 'Trail'], ['cap', 'Open'], ['beanie', 'Skate'], ['full', 'Full face']])}<div class="lr hrow h3${hairHidden(LOOK) ? ' hid' : ''}"><span>Hair${HAIR_ALL_HELMETS ? '' : '<i class="hh">Hair shows with the Open or Skate helmet</i><button class="hsw" id="ckHairOpen">Switch to Open</button>'}</span>${segDiv('hairStyle', [['buzz', 'Buzz'], ['short', 'Short'], ['mop', 'Mop'], ['bob', 'Bob'], ['medium', 'Wavy'], ['long', 'Long'], ['ponytail', 'Ponytail'], ['bun', 'Bun'], ['braids', 'Braids'], ['pigtails', 'Pigtails'], ['curly', 'Curly'], ['afro', 'Afro']], 'g4 r3')}</div>`
           : RIDER_ALWAYS_HELMET ? /* every option a helmet; the hair label notes when the shell hides the chosen style */
           `<div class="lr hrow${hairHidden(LOOK) ? ' hid' : ''}"><span>Hair<i class="hh">hidden by the helmet</i></span>${segDiv('hairStyle', [['short', 'Short'], ['medium', 'Medium'], ['ponytail', 'Ponytail'], ['long', 'Long'], ['bun', 'Bun'], ['braids', 'Braids'], ['curly', 'Curly'], ['buzz', 'Buzz']], 'g4')}</div>${segRow('Helmet', 'headwear', [['helmet', 'Trail'], ['cap', 'Open'], ['beanie', 'Skate'], ['full', 'Full face']])}`
         : `${segRow('Hair', 'hairStyle', [['short', 'Short'], ['medium', 'Medium'], ['ponytail', 'Ponytail'], ['long', 'Long'], ['bun', 'Bun'], ['braids', 'Braids'], ['curly', 'Curly'], ['buzz', 'Buzz']], 'g4')}${segRow('Head', 'headwear', [['helmet', 'Helmet'], ['cap', 'Cap'], ['beanie', 'Beanie'], ['none', 'None']])}`}
@@ -70524,7 +70767,7 @@ const campUI = (() => {
       if (CAMP_RESULT_PAY && S.camp.phase === 'out') { gameId = null; return; } /* paid on the way out of camp: no card to show */
       S.camp.tab = 'act'; place(); pn.dataset.tab = 'res';
       body.innerHTML = `<div class="pt"><b>${esc(M.names[id] || id)}</b><span class="m">${score > best && best > 0 ? 'New best!' : 'Done'}</span></div><div class="mres"><div class="big">${zfree ? '' : starsRow(st, 30)}</div><div class="lvl">${zfree ? 'Free rake' : campPct(score) + '%'}</div>
-        <div class="xpr"><span>XP</span><b>+${xp}</b></div>${buff ? `<div class="xpr"><span>Buff</span><b>${buffIco(bs)}${esc(buff)}</b></div>` : ''}${L1 > L0 ? `<div class="xpr"><span>Level up</span><b>LV ${L1}</b></div>` : ''}${id === 'stars' && M.found ? `<div class="xpr"><span>Constellations</span><b>${M.found().length} / ${M.total}</b></div>` : ''}${zen ? `<div class="xpr"><span>Garden</span><b>${esc(zen.name)}${zen.free ? ' · unscored' : ' · best ' + Math.round(zen.best * 100) + '%'}</b></div>` : ''}${cairn ? `<div class="xpr"><span>Cairn</span><b>${cairn.h} / ${cairn.N} stones · best ${cairn.bestH}</b></div>` : ''}${fly ? `<div class="xpr"><span>Fireflies</span><b>${fly.n ? Math.min(fly.n, FLY_LIGHTS_MAX) + ' glowing by the tent' : 'none this time'}</b></div>` : ''}${id === 'washers' && r && r.data ? `<div class="xpr"><span>Tosses</span><b>${r.data.cups} in the cup · ${r.data.box} on the box · ${r.data.pts} pts</b></div><div class="xpr"><span>Secret</span><b>Washers · camp ${campNo(S.camp.cp)} · ${esc(seedToCode(S.course.seed))}</b></div>` : ''}${fed ? `<div class="xpr"><span>Buff</span><b>${buffIco('belly')}${esc(fed)}</b></div>` : ''}${ham ? `<div class="xpr"><span>${ham.here ? 'At this camp' : 'Built'}</span><b>${ham.here ? 'Your ' + esc(ham.name) + ' stays here' : 'A ' + esc(ham.name)}</b></div>` : ''}</div>
+        <div class="xpr"><span>XP</span><b>+${xp}</b></div>${buff ? `<div class="xpr"><span>Buff</span><b>${buffIco(bs)}${esc(buff)}</b></div>` : ''}${L1 > L0 ? `<div class="xpr"><span>Level up</span><b>LV ${L1}</b></div>` : ''}${id === 'stars' && M.found ? `<div class="xpr"><span>Constellations</span><b>${M.found().length} / ${M.total}</b></div>` : ''}${zen ? `<div class="xpr"><span>Garden</span><b>${esc(zen.name)}${zen.free ? ' · unscored' : ' · best ' + Math.round(zen.best * 100) + '%'}</b></div>` : ''}${cairn ? `<div class="xpr"><span>Cairn</span><b>${cairn.h} / ${cairn.N} stones · best ${cairn.bestH}</b></div>` : ''}${fly ? `<div class="xpr"><span>Fireflies</span><b>${fly.n ? Math.min(fly.n, FLY_LIGHTS_MAX) + ' glowing by the tent' : 'none this time'}</b></div>` : ''}${id === 'washers' && r && r.data ? `<div class="xpr"><span>Tosses</span><b>${r.data.cups} in the cup · ${r.data.box} on the box · ${r.data.pts} pts</b></div><div class="xpr"><span>Secret</span><b>Washers · camp ${campNo(S.camp.cp)} · ${esc(seedToCode(S.course.seed))}</b></div>` : ''}${id === 'skip' && r && r.data && r.data.stones ? `<div class="xpr"><span>Skips</span><b>${r.data.skips} in ${r.data.stones} stones · best ${r.data.top}</b></div>` : ''}${fed ? `<div class="xpr"><span>Buff</span><b>${buffIco('belly')}${esc(fed)}</b></div>` : ''}${ham ? `<div class="xpr"><span>${ham.here ? 'At this camp' : 'Built'}</span><b>${ham.here ? 'Your ' + esc(ham.name) + ' stays here' : 'A ' + esc(ham.name)}</b></div>` : ''}</div>
         <div class="foot">${zen && zen.img ? '<button class="mb sm" id="ckZenImg">Save image</button>' : ''}${cairn && cairn.img ? '<button class="mb sm" id="ckCairnImg">Save image</button>' : ''}<button class="mb sm" id="ckAgain"${id === 'dinner' && S.camp && bellyHere(S.camp.cp) ? ' disabled' : ''}>Play again</button><button class="mb sm pri" id="ckBack">Done</button></div>`; body.classList.remove('slR', 'slL'); void body.offsetWidth; body.classList.add('slR'); header(); focusDef(); };
     try { game = M.start(id, { host, level: levelOfXp(PROF.xp), river: rvK, onDone, left: UIO.hand === 'left', cam: campGameCam, fire: (v) => { if (S.camp) S.camp.fireK = v; }, proj: campProj, bike3d, help: CampHelp, rider: campRiderVis, buff: !!SKILL.buffOf[id], poke: (k) => { if (S.camp) S.camp.pokeK = k; }, world: (lx, ly, lz, o) => (S.camp ? S.camp.W(lx, ly, lz, o) : o.set(lx, ly, lz)), stick: (v) => { if (S.camp) S.camp.stick = !!v; }, mirror: !!(S.camp && S.camp.mirror), ham: id === 'hammer' && HAM_ON && S.camp ? hamCamp.next(S.camp.cp) : undefined, ...(DEBUG && extra && typeof extra === 'object' ? extra : {}) }) || null; } catch (e) { if (!CAMP_CTOR_SAFE) throw e; console.error('Mini game', id, e); game = null; sfx.mini(null); }
     if (!game) { gameDone = true; gameId = null; if (S.camp) { S.camp.gcam = null; BATCH.want = false; S.camp.fireK = 1; S.camp.pokeK = 0; S.camp.stick = false; } gameOff(); render(); } };
@@ -70568,7 +70811,7 @@ const campUI = (() => {
     else if (bt.id === 'ckZenImg') { if (zenShare()) sfx.cue('tick'); }
     else if (bt.id === 'ckCairnImg') { if (cairnShare()) sfx.cue('tick'); }
     else if (bt.id === 'ckAgain') startGame(gameId || CM().ids[V.act]); else if (bt.id === 'ckBack') { render(); focusDef(); } });
-  return { open, render, header, setTab, tabStep, back, startGame, stopGame, leaveNote, openSub, setCar, focusDef, petsPaint, get view() { return Object.assign({}, V); }, get game() { return game; }, get draft() { return draft; }, get repeats() { return repeats; }, gcam: campGameCam, proj: campProj /* inspection hooks */ };
+  return { open, render, header, setTab, tabStep, back, startGame, stopGame, leaveNote, openSub, setCar, focusDef, petsPaint, petSvg, get view() { return Object.assign({}, V); }, get game() { return game; }, get draft() { return draft; }, get repeats() { return repeats; }, gcam: campGameCam, proj: campProj /* inspection hooks */ };
 })();
 /* Settings > 'Mini games auto-finish' (holdon.autofinish, default OFF). OFF: no mini game finishes itself without the player (no timed
    auto-link / auto-lock, an untouched stoke song starts over); ON: the timed assists apply. */
@@ -70650,7 +70893,7 @@ function frame(now) {
     const ps = 1 / Math.tan(camera.fov * Math.PI / 360); DUST.pts.material.size = DUST.size0 * ps; GRIT.pts.material.size = GRIT.size0 * ps; BLOOD.pts.material.size = BLOOD.size0 * ps; MIST.pts.material.size = MIST.size0 * ps; } /* dirt freezes with the pause menu; point sizes are true meters on any lens (three scales points by height/2, not by the fov) */
   if (popT > 0) { popT -= dt; popEl.style.opacity = Math.min(1, popT * 2); } else popEl.style.opacity = 0;
   if (pauseCam.on) pauseCam.frame(); else updateCamera(dt, inp); contactBlob.update(); if (S.camp) campTick(dt); /* the camp scene overrides the ride camera / rider / bike after they are computed */ updateHud(); updateRiderFx(dt); sfx.update(dt); campWarm.tick(); /* idle-slice camp warm-up on the ride approach */
-  if (!noRender()) { updateMotes(dt); if (!pauseCam.on) fadeForeground(dt); cullChunks(); flagFade(); fadeU.cam.value.copy(camera.position); fadeU.rider.value.copy(S.crashed || S.camp ? rp[1] : S.pos); fadeU.rider.value.y += 0.7; renderer.render(MINI_VIEW ? MINI_VIEW.scene : scene, MINI_VIEW ? MINI_VIEW.cam : camera); }
+  if (!noRender()) { updateMotes(dt); if (!pauseCam.on) fadeForeground(dt); cullChunks(); flagFade(); fadeU.cam.value.copy(camera.position); fadeU.rider.value.copy(S.crashed || S.camp ? rp[1] : S.pos); fadeU.rider.value.y += 0.7; renderer.render(MINI_VIEW ? MINI_VIEW.scene : scene, MINI_VIEW ? MINI_VIEW.cam : camera); if (SHARE_V1 && shShotWant && !MINI_VIEW) shareSnap(); }
   tireVis.restore();
   if (miniQ.length) miniFlush(false);
 }
@@ -71379,6 +71622,11 @@ const CampMini = (() => {
   const CHOP_ZONE = 1.1, CHOP_SPEED = 0.9;
   /* CHOP_SPEED_K: the marker's sweep along the ring takes this many times longer (1.05 = 5 % slower); the zones and every other timing stay. 1 = the old speed */
   const CHOP_SPEED_K = 1.05;
+  /* CHOP_SLOW: a calmer pace. The marker sweeps CHOP_SLOW_K times slower and the rest after each split lasts CHOP_SLOW_REST times longer; the zones
+     shrink to CHOP_SLOW_Z so each window lasts about the same time as before (1.25 x 0.85 = 1.06), and a steady player reaches the 85 % buff about as
+     often as at the old pace. 0 = the old pace and zones */
+  const CHOP_SLOW = 1, CHOP_SLOW_K = 1.25, CHOP_SLOW_Z = 0.85, CHOP_SLOW_REST = 1.25;
+  const chopSlowK = CHOP_SLOW ? CHOP_SLOW_K : 1, chopSlowZ = CHOP_SLOW ? CHOP_SLOW_Z : 1, chopRest = CHOP_SLOW ? 0.8 * CHOP_SLOW_REST : 0.8;
   function chop(G) {
     const KIND = { birch: { z: 0.28, v: 1.5, n: 1, bark: [233, 228, 214], side: [196, 189, 172], end: [242, 226, 192], ring: '#d2bb8e', mark: '#2a2622', name: 'Birch' },
       pine: { z: 0.2, v: 1.3, n: 1, bark: [168, 122, 74], side: [128, 90, 54], end: [238, 206, 150], ring: '#c9a066', mark: '#5e3f22', name: 'Pine' },
@@ -71393,8 +71641,8 @@ const CampMini = (() => {
     const tri = (x) => { const u = ((x % 2) + 2) % 2; return u <= 1 ? u : 2 - u; };
     const pos = (at) => tri(ph + v * (at - tA));
     const aim = (c, w) => { zc = c; zw = w; ph = G.rng() * 2; tA = G.clock; st = 'aim'; stT = 0; idle = 0; };
-    function startLog() { const L = logs[i], K = KIND[L.k]; v = K.v * CHOP_SPEED * (1 + 0.1 * G.d) / CHOP_SPEED_K; strike = 0; retry = false; crack = 0;
-      z0w = K.z * CHOP_ZONE * (1 - 0.15 * G.d) * (misses >= 2 ? 1.1 : 1); z0c = 0.1 + z0w / 2 + G.rng() * (0.8 - z0w); st = 'in'; stT = 0; G.prog(`${K.name} · log ${i + 1} / ${N}`); }
+    function startLog() { const L = logs[i], K = KIND[L.k]; v = K.v * CHOP_SPEED * (1 + 0.1 * G.d) / CHOP_SPEED_K / chopSlowK; strike = 0; retry = false; crack = 0;
+      z0w = K.z * CHOP_ZONE * (1 - 0.15 * G.d) * (misses >= 2 ? 1.1 : 1) * chopSlowZ; z0c = 0.1 + z0w / 2 + G.rng() * (0.8 - z0w); st = 'in'; stT = 0; G.prog(`${K.name} · log ${i + 1} / ${N}`); }
     const logQ = (L) => { if (!L.q.length) return 0; let m = L.q.reduce((a, b) => a + b, 0) / KIND[L.k].n; if (L.fixed) m = Math.min(m, 0.55); return m; };
     const bonus = () => 0.04 * Math.max(0, best - 2);
     const total = () => clamp(logs.reduce((a, L) => a + (L.lq >= 0 ? L.lq : 0), 0) / N + bonus(), 0, 1);
@@ -71473,7 +71721,7 @@ const CampMini = (() => {
         else if (st === 'swing') { if (stT >= 0.12) resolve(lastQ); }
         else if (st === 'set') { if (stT > 0.55) aim(clamp(1 - z0c, 0.1 + z0w * 0.4, 0.9 - z0w * 0.4), z0w * 0.8); } /* oak's second strike: the mirrored spot, 20 % narrower */
         else if (st === 'wedge') { if (stT > 0.75) { const w = zw * 0.8; aim(0.1 + w / 2 + G.rng() * (0.8 - w), w); } }
-        else if (st === 'split' || st === 'fail') { if (stT > 0.8) { i++; if (i >= N) return G.finish(total()); startLog(); G.cue('page'); } }
+        else if (st === 'split' || st === 'fail') { if (stT > chopRest) { i++; if (i >= N) return G.finish(total()); startLog(); G.cue('page'); } }
       },
       draw(c, W, H) {
         const u = Math.min(W, H), cx = W / 2, rx = clamp(u * 0.25, 64, 190), ry = rx * 0.3, sy = H * 0.76, lw = rx * 0.92, lh = clamp(H * 0.24, 56, 150), L = logs[Math.min(i, N - 1)], K = KIND[L.k];
@@ -74353,6 +74601,10 @@ const CampMini = (() => {
   /* SKIP_READOUT_FIX: the SKIPS counter and the end card show the real whole number of skips. The score still counts a stone at most SKMAX
      (1.25 x SKF = 11.875) skips, and that capped sum once leaked into the counter as '13.875 SKIPS'. 0 = the old counter, no skip line on the card */
   const SKIP_READOUT_FIX = 1;
+  /* SKIP_READOUT: the end card's percent is the same floored percent the camp's result card and the 85 % buff gate use (a rounded 84.9 % once read
+     '85 %' beside 'So close: 85 % earns the buff'), a stone past the score's cap says what it counted for, and the camp's result card lists the skips.
+     0 = the rounded percent and no skip row */
+  const SKIP_READOUT = 1;
   function skip(G) {
     const N = 5, XF = 40, H0 = 0.9, L0 = 0.6, LMAX = 1.5, GR = 9.8, sc = [], CAMH = 1.6, D0 = 2.5; /* the throw starts L0 to the handed side (+- LMAX, the slide), H0 up */
     let ph = G.rng() * TAU, ph2 = G.rng() * TAU, ph3 = G.rng() * 7; /* always drawn, so the game's stream is the same with or without a camp river */
@@ -74415,7 +74667,10 @@ const CampMini = (() => {
         else if ((type === 'up' || type === 'cancel') && drag) { const d = drag; drag = null; if (d.on) { if (type === 'up' || !CAMP_SKIP_CANCEL) throwIt(); else { pw = 0; st = 'aim'; stT = 0; } } else if (!d.mode && type === 'up' && st === 'aim') act(); } /* a plain tap locks the angle, as before */
       },
       partial() { return clamp(total / (N * SKF), 0, 1); },
-      card(score) { if (!SKIP_READOUT_FIX) return null; const k = starsOf(score, 'skip'); return { line: `${skips} skip${skips === 1 ? '' : 's'}  ·  ${Math.round(score * 100)}%  ·  ${k} star${k === 1 ? '' : 's'}` }; }, /* the whole skip count beside the score (the score is a capped share, at most 100 %) */
+      card(score) { if (!SKIP_READOUT_FIX) return null; const k = starsOf(score, 'skip'), top = sc.length ? Math.max(...sc) : 0;
+        if (!SKIP_READOUT) return { line: `${skips} skip${skips === 1 ? '' : 's'}  ·  ${Math.round(score * 100)}%  ·  ${k} star${k === 1 ? '' : 's'}` };
+        return { line: `${skips} skip${skips === 1 ? '' : 's'}  ·  ${campPct(score)}%  ·  ${k} star${k === 1 ? '' : 's'}`, em: top > SKMAX ? `Best stone ${top} skips · a stone counts up to about ${Math.round(SKMAX)}` : '' }; },
+      result() { return SKIP_READOUT ? { skips, top: sc.length ? Math.max(...sc) : 0, stones: sc.length } : undefined; }, /* the whole skip count beside the score (the score is a capped share, at most 100 %) */
       peek: () => ({ st, n, ang, pw, yaw, lx, total, skips, side: G.side, cnt }),
       end() { if (!V3) return; if (MINI_VIEW === V3) MINI_VIEW = null; miniDispose(V3); V3 = null; }, /* the camp is drawn again from the next frame */
       update(dt) {
