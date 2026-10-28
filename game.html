@@ -847,7 +847,7 @@
   <div class="favCard" id="tFavs" hidden><div class="fvh">Favorites</div><div class="fvl" id="tFavList"></div><button class="mb sm" id="tFavClose">Close</button></div>
   <div id="tapGo" role="status">Tap to start</div>
   <button class="ico" id="mute" role="switch" aria-checked="true" aria-label="Sound"><svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg><svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M17 9l5 6M22 9l-5 6"/></svg></button>
-  <div class="foot"><span id="verTag">v0.51.0</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span></div>
+  <div class="foot"><span id="verTag">v0.52.0</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span></div>
   <button id="btnNew" hidden>New mountain</button>
 </div>
 
@@ -54042,6 +54042,36 @@ const gfxNote = (on) => {
 const PUBLIC_BUILD = 0;
 /* ?debug in the URL exposes the debug hooks (window.__game and friends, the bot rider, the render switch, camera overrides) */
 const DEBUG = !PUBLIC_BUILD && /[?&]debug\b/.test(location.search);
+/* the desktop edition (tools/build_single.py --desktop writes 1): a Fullscreen row in Settings (and F11), Quit game in the pause card, and a copy of every
+   holdon.* key kept by the desktop app through its bridge (deskBridge). 0 = the web build */
+const DESKTOP_BUILD = 0;
+/* the free demo (tools/build_single.py --demo writes 1): the tutorial plus the mountains in DEMO_MOUNTAINS, picked from a small card on the title; no random,
+   typed, daily, shared or favorite mountains; a 'Get the full game' card at the finish and in the pause card. Saves use the same holdon.* keys, so a
+   Progress code from the demo loads in the full game. 0 = the full game */
+const DEMO_BUILD = 0;
+/* 1 to 4 entries, shown in this order on the picker; unlockAfter = the codes that must all be finished before the mountain opens (empty = open from the start) */
+const DEMO_MOUNTAINS = [
+  { code: 'MTN-S7K3D', name: 'Alpine Meadow', unlockAfter: [] },
+  { code: 'MTN-7Y29Q', name: 'Birch & Autumn', unlockAfter: [] },
+  { code: 'MTN-UO73Z', name: 'Rocky Canyon', unlockAfter: ['MTN-S7K3D', 'MTN-7Y29Q'] },
+  { code: 'MTN-OVY6B', name: 'Misty Lake Valley', unlockAfter: ['MTN-UO73Z'] }];
+let dPickOn = false, dDoneOn = false, demoNew = []; /* the demo: picker open on the title, the Demo complete card open, mountains unlocked since the picker last showed */
+/* the desktop app's bridge: window.nhDesktop = { setFullscreen(on), isFullscreen(), quit(), load() -> object | null, save(object) }; any part may be missing,
+   and the web build never looks for it */
+const deskBridge = () => { if (!DESKTOP_BUILD) return null; try { const d = window.nhDesktop; return d && typeof d === 'object' ? d : null; } catch (e) { return null; } };
+const deskFn = (name) => { const d = deskBridge(); return d && typeof d[name] === 'function' ? d : null; };
+/* every holdon.* key as { key: text } (the two scratch keys left out); null when storage cannot be read, so a blocked storage never empties the copy */
+function deskKeys() { const o = {}; try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (!k || k.indexOf('holdon.') !== 0 || k === 'holdon.probe' || k === 'holdon.__prog') continue; const v = localStorage.getItem(k); if (typeof v === 'string') o[k] = v; } } catch (e) { return null; } return o; }
+let deskLast = '';
+/* the copy is checked every few seconds and handed over only when it changed (and at once when the page hides or closes) */
+function deskFlush() { try { const d = deskFn('save'); if (!d) return; const o = deskKeys(); if (!o) return; const s = JSON.stringify(o); if (s === deskLast) return; deskLast = s; d.save(o); } catch (e) { } }
+/* start-up, before anything reads a save: an empty storage is filled from the desktop app's copy */
+if (DESKTOP_BUILD) { try { const d = deskFn('load'), have = deskKeys();
+  if (d && have && !Object.keys(have).length) { let o = d.load(); if (typeof o === 'string') { try { o = JSON.parse(o); } catch (e) { o = null; } }
+    if (o && typeof o === 'object' && !Array.isArray(o)) for (const k of Object.keys(o)) { if (k.indexOf('holdon.') !== 0 || k === 'holdon.probe' || k === 'holdon.__prog' || typeof o[k] !== 'string') continue; try { localStorage.setItem(k, o[k]); } catch (e) { } }
+    const now = deskKeys(); if (now) deskLast = JSON.stringify(now); }
+  if (deskFn('save')) { setInterval(deskFlush, 3000); addEventListener('pagehide', deskFlush); document.addEventListener('visibilitychange', () => { if (document.hidden) deskFlush(); }); }
+} catch (e) { } }
 const DEV_UI = true; /* the DEV section at the bottom of the pause card (Reset game, Haptics, FPS counter, Classic feel). false keeps it out of a shipped page; ?dev (or ?debug) brings it back, ?nodev hides it for one visit */
 /* the dev unlock: text typed into Enter code is trimmed, lowercased and its spaces collapsed, then its SHA-256 with DEV_SALT in front is compared with DEV_HASH
    (only the hash is in this file). A match turns the DEV section on for this device (holdon.dev = '1'; never part of a share or Progress code) and
@@ -54373,7 +54403,9 @@ const xpForLevel = (L) => XP_CUM[Math.max(1, Math.min(SKILL.LEVELS, L))]; /* XP 
 const xpForLevelOld = (L) => Math.round(40 * Math.pow(L - 1, 1.5)); /* the pre-v2 table, kept only to convert old saves */
 const levelOfXpOld = (xp) => { let L = 1; while (L < SKILL.LEVELS && xp >= xpForLevelOld(L + 1)) L++; return L; };
 const xpFromOld = (xp) => { const L = levelOfXpOld(xp); if (L >= SKILL.LEVELS) return xpForLevel(L); const a = xpForLevelOld(L), b = xpForLevelOld(L + 1); return xpForLevel(L) + Math.min(xpStep(L) - 1, Math.floor((xp - a) / (b - a) * xpStep(L))); }; /* equal progress: same level, same fraction of the way to the next one */
-const levelOfXp = (xp) => { let L = 1; while (L < SKILL.LEVELS && xp >= xpForLevel(L + 1)) L++; return L; };
+const DEMO_LVL_CAP = 3, LVL_TOP = DEMO_BUILD ? DEMO_LVL_CAP : SKILL.LEVELS; /* the demo stops the level (skills, points, perks) at 3: XP keeps counting and the save is unchanged, so the full game reads the same XP and goes on */
+const demoCapNote = () => 'Demo cap: level ' + DEMO_LVL_CAP + '. The full game goes to level ' + SKILL.LEVELS + '.';
+const levelOfXp = (xp) => { let L = 1; while (L < LVL_TOP && xp >= xpForLevel(L + 1)) L++; return L; };
 const pointsAtLevel = (L) => 3 + 3 * (Math.max(1, Math.min(L, 14)) - 1) + 2 * Math.max(0, Math.min(L, 21) - 14) + Math.max(0, Math.min(L, 25) - 21);
 const PROF = { v: 1, xv: XP_CURVE_V, xp: 0, pts: { speed: 0, jump: 0, handling: 0, air: 0, landing: 0, accel: 0 }, buff: {}, bt: {}, classic: false, best: {}, mtn: {}, day: '', plays: 0 };
 const SAVE_SAFE = 1; /* 1: Progress import is all-or-nothing, Copy and Apply share one size cap, and a refused write tells the player once (no SAVED banner over nothing); 0: the older behavior */
@@ -62801,7 +62833,7 @@ function mountBike(R, roleC) {
   const mesh = (L, parent, pre) => { const m = new THREE.Mesh(mergeParts(L.map((p) => ({ geo: p.geo, m: pre ? p.m.clone().premultiply(pre) : p.m, col: p.role ? roleC[p.role]() : p.col, role: p.role }))), mat); for (const p of L) p.geo.dispose(); parent.add(m); merged.push(m); return m; };
   const BP = basketPack(), nSteer = vertCount(G.steer), nBasket = nSteer + vertCount(BP.base);
   mesh(G.body, R.body); const steerM = mesh(G.steer.concat(BP.base, BP.ride), R.steerYaw, STEER_INV), campCat = mesh(BP.camp, R.steerYaw, STEER_INV);
-  let atCamp = null, bkOn = true, pet = null; /* pet: the companion in the basket ({ id, cut }) once petMode has run (null = the shipped cat: the ride tail and the camp mesh) */
+  let atCamp = null, bkOn = !DEMO_BUILD, pet = null; /* the demo bike carries no basket (the draw range stops before it) */ /* pet: the companion in the basket ({ id, cut }) once petMode has run (null = the shipped cat: the ride tail and the camp mesh) */
   const bkRange = () => { steerM.geometry.setDrawRange(0, !bkOn ? nSteer : pet ? (pet.cut ? nBasket : Infinity) : atCamp ? nBasket : Infinity); campCat.visible = bkOn && atCamp && !pet; };
   R.catMode = (camp) => { if (camp === atCamp) return; atCamp = camp; bkRange(); }; R.catMode(false); /* the ride cat is the tail of the steering mesh: at camp the draw range stops before it and the camp cat shows instead */
   R.basketOn = (on) => { on = !!on; if (on === bkOn) return; bkOn = on; bkRange(); }; R.hasBasket = () => bkOn; /* the plain bike: the draw range stops before the basket (no extra draw call) */
@@ -66353,7 +66385,7 @@ addEventListener('keydown', e => {
   if (S.camp) { if (k === 'escape' || k === 'backspace') { e.preventDefault(); campUI.back(); } else if (k === 'q' && !(CAMP_RESULT_PAY && campUI.game)) campUI.tabStep(-1); else if (k === 'e' && !(CAMP_RESULT_PAY && campUI.game)) campUI.tabStep(1); return; } /* camp mode keys (the gpMenu handler took the arrows / Enter already) */
   if (screen === 'controls') { if (k === 'backspace') { e.preventDefault(); ctlClose(); } return; } /* Backspace steps back like Esc; nothing rides or restarts under the page */
   if (k === 'enter') { if (!S.running || S.finished) { if (!(KEY_REPEAT && onControl(e))) startRiding(); } else if (screen === null && !S.paused && !e.repeat) restartKey(); } /* never under a menu card; mid-ride it asks for a second press */
-  if (k === 'n' && !rep && (!S.running || S.finished)) newMountain();
+  if (k === 'n' && !rep && (!S.running || S.finished)) { if (DEMO_BUILD) demoToPick(); else newMountain(); } /* the demo: N opens the mountain picker */
   if (k === 'r' && S.running && !S.finished && !S.paused) retry(); /* R and C do nothing while the pause card (or a screen opened from it) is up */
   if ((k === 'c' || k === 'y') && !e.repeat && !S.paused) campHold.down('key'); /* C / Y tap = save, hold 0.8 s = make camp (see campHold) */
 });
@@ -68114,7 +68146,7 @@ const autoHash = () => { try { const v = JSON.parse(localStorage.getItem('holdon
 function rememberAutoHash(code) { try { localStorage.setItem('holdon.autohash', JSON.stringify({ code, t: Date.now() })); } catch (e) { } }
 const autoHashSeed = () => { const v = autoHash(); return v ? codeToSeed(v.code) : null; };
 function seedRand() { if (START_RANDOM) { try { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] / 4294967296; } catch (e) { } } return Math.random(); }
-function rollSeed() { const rec = recentThemes(), prev = rec.at(-1); const roll = () => Math.floor(seedRand() * 60000000);
+function rollSeed() { if (DEMO_BUILD) return demoNext(); /* the demo never rolls: the next of its own mountains */ const rec = recentThemes(), prev = rec.at(-1); const roll = () => Math.floor(seedRand() * 60000000);
   if (!START_RANDOM) { let seed = roll(); for (let t = 0; t < 24 && prev && themeOf(seed).id === prev; t++) seed = roll(); return seed; }
   const lastSeed = autoHashSeed(), curSeed = S && S.course ? S.course.seed : null;
   const bad = (s, all) => s === lastSeed || s === curSeed ||(all ? rec.includes(themeOf(s).id) : themeOf(s).id === prev);
@@ -68128,7 +68160,7 @@ function closePause() { if (pauseAsk) { if (favAsking) favBack(); else devAsk(fa
 function toggleHelp() { if (S.camp) return; if (favEsc()) return; if (screen === 'controls') { ctlClose(); return; } /* Esc / H on the Controls page steps back one screen, like pad B */ if (screen === 'pause' || (screen === 'settings' && setBack === 'pause')) closePause(); else if (screen === null) openPause(); }
 function openSettings(from) { setBack = from; syncSettings(); setScreen('settings'); }
 function quitToTitle() { abandonRun(); S.paused = false; S.running = false; resetRun(); if (isTut()) newRun(rollSeed()); /* leaving the tutorial: the title shows a real mountain and Play rides it */ setScreen('title'); }
-$('btnStart').addEventListener('click', () => { if (S.paused) closePause(); else startRiding(); });
+$('btnStart').addEventListener('click', () => { if (S.paused) closePause(); else if (DEMO_BUILD && demoList().length) demoPick(true); else startRiding(); }); /* the demo's Play opens the mountain picker */
 $('btnNew').addEventListener('click', () => newMountain());
 $('bPause').addEventListener('click', () => { if (screen === null) openPause(); else if (screen === 'pause') closePause(); });
 function syncPauseMenu() { favAsk(false, true); favSync(); syncSettings(); devFold(false); $('pmSeed').textContent = seedToCode(S.course.seed) + ' · bails ' + S.bails + ' · ' + fmtTime(S.t); }
@@ -68154,7 +68186,7 @@ function favEntry(o) { if (!o || typeof o !== 'object' || Array.isArray(o) || ty
   return { code: seedToCode(sd), date: typeof o.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(o.date) ? o.date : '', time: Number.isFinite(o.time) && o.time > 0 ? o.time : 0, theme: typeof o.theme === 'string' ? o.theme.slice(0, 40) : '' }; }
 function favParse(raw) { let a; try { a = JSON.parse(raw); } catch (e) { return null; } if (!Array.isArray(a)) return null; const out = [];
   for (const o of a) { const f = favEntry(o); if (f && !out.some(g => g.code === f.code)) out.push(f); if (out.length >= FAV_MAX) break; } return out; }
-function favsLoad() { let raw = null, old = null;
+function favsLoad() { if (DEMO_BUILD) return []; /* the demo shows no favorites (a loaded Progress code keeps its list untouched) */ let raw = null, old = null;
   try { raw = localStorage.getItem('holdon.favs'); if (raw === null) old = localStorage.getItem('holdon.fav'); } catch (e) { return favMem ? favMem.slice() : []; }
   if (raw !== null) { const L = favParse(raw); if (L) return L; try { old = localStorage.getItem('holdon.fav'); } catch (e) { old = null; } } /* an unreadable list falls back to the old single favorite */
   let f = null; try { f = favEntry(JSON.parse(old)); } catch (e) { f = null; } return f ? [f] : []; }
@@ -68187,7 +68219,7 @@ function favTitle(on, quiet, aim) { on = !!on; if (on && !favFill('tFavList', 'f
 function favRep(on) { on = !!on; if (!on && !favRepOn) return; if (on && !favFill('favRepList', 'fvR', false).length) on = false;
   favRepOn = on; $('favRep').hidden = !on; $('endOv').classList.toggle('repOn', on);
   if (screen !== 'end') return; gpMenu.onScreen(); gpMenu.aim($(on ? 'favRepNo' : 'btnFav')); }
-function favEsc() { if (SHARE_V1 && shEsc()) return true; if (screen === 'title' && favTitleOn) { favTitle(false); return true; } if (screen === 'end' && favRepOn) { favRep(false); return true; } return false; } /* Esc / B close the title card and the replace chooser */
+function favEsc() { if (SHARE_V1 && shEsc()) return true; if (DEMO_BUILD && screen === 'title' && dPickOn) { demoPick(false); return true; } if (DEMO_BUILD && screen === 'end' && dDoneOn) { demoDoneCard(false); return true; } if (screen === 'title' && favTitleOn) { favTitle(false); return true; } if (screen === 'end' && favRepOn) { favRep(false); return true; } return false; } /* Esc / B close the title card and the replace chooser */
 $('btnFav').addEventListener('click', () => { if (!S.course || isTut()) return; const code = favCode(), L = favsLoad(), k = L.findIndex(f => f.code === code);
   if (k >= 0) { L.splice(k, 1); favsSave(L); } else if (L.length >= FAV_MAX) { favRep(true); return; } else { L.unshift(favNew(code)); favsSave(L); }
   favSync(); });
@@ -68208,7 +68240,7 @@ $('tFavList').addEventListener('click', (e) => { const x = e.target.closest('.fv
   if (!b) return; const sd = FAV_RE.test(b.dataset.code) ? codeToSeed(b.dataset.code) : null; if (sd === null || !Number.isFinite(sd)) return; favTitle(false, true); newRun(sd, { chosen: true }); startRiding(); }); /* the same path as Daily ride / Enter code */
 /* Enter while a favorites card is open: a focused row button takes its own click (the ride's Enter must not start or restart a run under it); with no
    focus ring yet, the first Enter only brings the ring up on the current item and the next one presses it */
-addEventListener('keydown', (e) => { if (e.key !== 'Enter') return; const card = (SHARE_V1 && shCard()) || (screen === 'pause' && favAsking ? $('pauseMenu') : screen === 'title' && favTitleOn ? $('tFavs') : screen === 'end' && favRepOn ? $('favRep') : null); if (!card || gpMenu.shown) return;
+addEventListener('keydown', (e) => { if (e.key !== 'Enter') return; const card = (SHARE_V1 && shCard()) || (screen === 'pause' && favAsking ? $('pauseMenu') : screen === 'title' && favTitleOn ? $('tFavs') : DEMO_BUILD && screen === 'title' && dPickOn ? $('dPick') : DEMO_BUILD && screen === 'end' && dDoneOn ? $('dDone') : screen === 'end' && favRepOn ? $('favRep') : null); if (!card || gpMenu.shown) return;
   e.stopImmediatePropagation(); const a = document.activeElement; if (a && a.tagName === 'BUTTON' && card.contains(a)) return;
   e.preventDefault(); const L = gpMenu.items(); if (gpMenu.cur && L.includes(gpMenu.cur)) gpMenu.focus(gpMenu.cur); else { gpMenu.pick(); gpMenu.show(true); } }, true);
 $('pmNew').addEventListener('click', () => { abandonRun(); newMountain(); startRiding(); popup('New mountain', seedToCode(S.course.seed)); });
@@ -68767,6 +68799,7 @@ const numOf = (id) => +($(id).textContent || '0').replace(/[^0-9.-]/g, '') || 0;
 const endNum = (k, id) => (RESULT_NUMS && S.endNums && Number.isFinite(S.endNums[k])) ? S.endNums[k] : numOf(id);
 let endAnim = null;
 function openResults() {
+  const dWas = DEMO_BUILD ? demoState() : null; /* the demo: the unlocks before this finish is paid */
   favRep(false); favSync();
   const code = seedToCode(S.course.seed), t = S.t; let prev = null;
   try { const v = parseFloat(localStorage.getItem(bestKey())); if (Number.isFinite(v)) prev = v; if (!isTut() && (prev === null || t < prev)) { localStorage.setItem(bestKey(), String(t)); pruneBest(bestKey()); } } catch (e) { } /* the tutorial keeps no best time */
@@ -68776,12 +68809,13 @@ function openResults() {
   else if (t < prev) { d.textContent = '▼ NEW BEST −' + (prev - t).toFixed(1) + ' s'; d.classList.add('best'); }
   else { d.textContent = '▲ +' + (t - prev).toFixed(1) + ' s · best ' + fmtTime(prev); d.classList.add('slow'); }
   endAnim = { t0: performance.now(), time: t, bonus: endNum('bonus', 'eBonus'), tricks: endNum('tricks', 'eTricks'), bails: endNum('bails', 'eBails'), total: endNum('total', 'eTotal'), done: false };
-  { const X = runXp(); $('eXpL').textContent = 'XP' + (X.first ? ' · first finish here' : '') + (X.belly ? ' · well fed +' + X.belly + '%' : '') + (S.steadyKept > 0 ? ' · steady bail kept ' + S.steadyKept.toLocaleString() + ' pts' : '') + (S.tLost > 0 ? ' · ' + S.tLost.toLocaleString() + ' trick pts lost to bails' : '') + (X.L1 > X.L0 ? ' · LEVEL ' + X.L1 + '!' : ' · LV ' + X.L1); $('eXp').textContent = '+' + X.n; $('eXpRow').classList.remove('show'); if (X.L1 > X.L0) sfx.cue('win'); } /* run XP (Full Belly is paid and cleared) */
+  { const X = runXp(); $('eXpL').textContent = 'XP' + (X.first ? ' · first finish here' : '') + (X.belly ? ' · well fed +' + X.belly + '%' : '') + (S.steadyKept > 0 ? ' · steady bail kept ' + S.steadyKept.toLocaleString() + ' pts' : '') + (S.tLost > 0 ? ' · ' + S.tLost.toLocaleString() + ' trick pts lost to bails' : '') + (X.L1 > X.L0 ? ' · LEVEL ' + X.L1 + '!' : ' · LV ' + X.L1) + (DEMO_BUILD && X.L1 >= LVL_TOP ? ' · ' + demoCapNote() : ''); $('eXp').textContent = '+' + X.n; $('eXpRow').classList.remove('show'); if (X.L1 > X.L0) sfx.cue('win'); } /* run XP (Full Belly is paid and cleared) */
   $('eCombo').textContent = '';
   for (const el of document.querySelectorAll('#endOv .rrow, #endOv .rtot')) el.classList.remove('show');
   if (isTut()) tutCard(true);
   setScreen('end'); stepResults();
   if (SHARE_V1) shareResults(); /* 'Time to beat', and the rider picture is taken right after the next render */
+  if (DEMO_BUILD) demoEnd(dWas); /* a new unlock, the Demo complete card */
 }
 /* the tutorial's end card: retitled, no time / score / XP rows, the next real mountain rolled now so its code shows on the button that rides it.
    tutCard(false) puts the normal texts back (setScreen calls it when the card closes). */
@@ -68791,8 +68825,8 @@ function tutCard(on) {
   if (!tutH1) tutH1 = h.innerHTML;
   document.body.classList.toggle('tutEnd', on);
   if (on) { tut.finish(); tutNext = rollSeed(); document.body.classList.toggle('tutOld', !TUT_TRICK_NOTE); if (TUT_TRICK_NOTE) $('eTutTrick').innerHTML = tut.hint(); h.innerHTML = 'You’re<br><span class="gtx">ready</span>'; d.className = 'first'; d.textContent = 'TUTORIAL DONE';
-    a.className = 'mb sm'; a.textContent = 'Replay tutorial'; n.className = 'mb pri'; n.innerHTML = 'Ride a real mountain<small>' + seedToCode(tutNext) + '</small>'; }
-  else { tutNext = null; h.innerHTML = tutH1; a.className = 'mb pri'; a.innerHTML = '&#9654; Ride again'; n.className = 'mb sm'; n.textContent = 'New mountain'; }
+    a.className = 'mb sm'; a.textContent = 'Replay tutorial'; n.className = 'mb pri'; n.innerHTML = 'Ride a real mountain<small>' + seedToCode(tutNext) + '</small>'; if (DEMO_BUILD) n.textContent = 'Pick a mountain'; }
+  else { tutNext = null; h.innerHTML = tutH1; a.className = 'mb pri'; a.innerHTML = '&#9654; Ride again'; n.className = 'mb sm'; n.textContent = DEMO_BUILD ? 'Pick a mountain' : 'New mountain'; }
 }
 const easeCount = (x) => Math.sqrt(Math.max(0, Math.min(1, x)));
 function stepResults() {
@@ -69066,11 +69100,11 @@ if (SHARE_V1) { try {
     const n = mk('div', 'favCard', 'shIn', '<div class="fvh">Ride this mountain?</div><div class="shBig" id="shInCode"></div><div class="shSub" id="shInTheme"></div><div class="shBeat" id="shInBeat"></div><div id="shInMsg" role="status"></div><div class="two"><button class="mb sm" id="shInSave" type="button">Save it</button><button class="mb pri" id="shInRide" type="button">&#9654; Ride</button></div><button class="mb sm" id="shInNo" type="button">Not now</button>'); n.hidden = true; r.after(n);
     $('shInRide').addEventListener('click', () => shRide(shInP)); $('shInNo').addEventListener('click', () => { shIn(false); shInP = null; });
     $('shInSave').addEventListener('click', () => { if (shInP && shareSave(shInP, 'in')) $('shInSave').textContent = 'Saved'; }); }
-  shInP = shareIncoming(); if (shInP) shIn(true);
+  shInP = DEMO_BUILD ? null : shareIncoming(); if (shInP) shIn(true); /* the demo takes no incoming mountain links */
 } catch (e) { /* the share extras stay off; the plain buttons keep working */ } }
 if (DEBUG) window.__share = { parse: shareParse, codeIn: shareCodeIn, time: shareTime, text: shareText, full: shareFull, link: shareLink, copyCode: shareCopyCode, own: shareOwn, card: shareCard, go: shareGo, hero: shHero, get path() { return shCardPath; }, get heroMs() { return shHeroMs; }, get shot() { return shShot; }, get pre() { return shPre; }, get beat() { return shBeat; } };
 $('btnAgain').addEventListener('click', () => { resetRun(); startRiding(); });
-$('btnNew2').addEventListener('click', () => { if (tutNext !== null) { newRun(tutNext); setScreen(null); } else newMountain(); startRiding(); }); /* after the tutorial: the code its card showed */
+$('btnNew2').addEventListener('click', () => { if (DEMO_BUILD) { demoToPick(); return; } /* the demo: back to the title's mountain picker */ if (tutNext !== null) { newRun(tutNext); setScreen(null); } else newMountain(); startRiding(); }); /* after the tutorial: the code its card showed */
 /* ---- per-frame UI (called from updateHud): screens that follow game state, title camera, results, haptics, coach, touch pad ---- */
 let prevG = true, prevCrash = false, prevBerm = false, airAcc = 0;
 function uiTick(dt) {
@@ -69223,6 +69257,144 @@ const gpMenu = (() => {
   return { poll, get swallow() { return swallowUntil; }, get cur() { return cur; }, get shown() { return shown; }, pick, move, confirm, back, start, items, show, onScreen, codeRow, aim: (el) => ring(el), focus: (el) => { show(true); ring(el); } };
 })();
 screen = 'title'; document.body.classList.add('onTitle', 'scrOn'); syncSettings(); favSync(); sfx.title(true); sfx.prebake(); /* plays from the first tap / key (the audio unlock); the title's notes are baked in idle time until then */
+
+/* ---- the demo (DEMO_BUILD): a mountain picker on the title (Play, N, 'Pick a mountain' on the finish card) with locked mountains that open one after another,
+   the menus for other mountains hidden, a 'Get the full game' line on the finish card and in the pause card, and a 'Demo complete' card once every demo
+   mountain is finished. A mountain counts as finished when the profile's finished-mountain map (PROF.mtn, written at every finish) holds its code, so the
+   unlocks need no key of their own, survive a reload, ride along in the Progress code and mean nothing to the full game (where nothing is locked).
+   Every hidden path falls back to the picker or an open demo mountain. ---- */
+function demoList() { const src = (Array.isArray(DEMO_MOUNTAINS) ? DEMO_MOUNTAINS : []).slice(0, 4), out = [];
+  for (const m of src) { const c = m && typeof m.code === 'string' ? m.code.trim().toUpperCase() : '', sd = FAV_RE.test(c) ? codeToSeed(c) : null;
+    if (sd === null || !Number.isFinite(sd) || sd === TUT_SEED || out.some(o => o.seed === sd)) continue;
+    out.push({ seed: sd, code: seedToCode(sd), name: typeof m.name === 'string' ? m.name.slice(0, 40) : '', after: Array.isArray(m.unlockAfter) ? m.unlockAfter : [] }); }
+  /* unlockAfter keeps only codes of other listed mountains, so a mistyped code never locks a mountain for good */
+  for (const o of out) o.after = o.after.map((c) => { const t = typeof c === 'string' ? c.trim().toUpperCase() : '', sd = FAV_RE.test(t) ? codeToSeed(t) : null; return sd === null || !Number.isFinite(sd) ? '' : seedToCode(sd); }).filter((c) => c && c !== o.code && out.some(p => p.code === c));
+  return out; }
+function demoDone(code) { try { return !!(PROF.mtn && PROF.mtn[code]); } catch (e) { return false; } }
+/* { L, open: { code: true when playable }, done: how many are finished }; when a loop of unlocks would leave nothing open, the first mountain opens */
+function demoState() { const L = demoList(), open = {}; for (const m of L) open[m.code] = m.after.every(demoDone); if (L.length && !L.some(m => open[m.code])) open[L[0].code] = true;
+  return { L, open, done: L.filter(m => demoDone(m.code)).length }; }
+function demoHas(sd) { const D = demoState(); return D.L.some(m => m.seed === sd && D.open[m.code]); }
+function demoBest(code) { let b = 0; try { for (const k of ['', ':s']) { const v = parseFloat(localStorage.getItem('holdon.best.' + code + k)); if (Number.isFinite(v) && v > 0 && (!b || v < b)) b = v; } } catch (e) { } return b; }
+const demoName = (m) => { if (m.name) return m.name; try { const T = themeOf(m.seed); return T && T.name ? T.name : m.code; } catch (e) { return m.code; } };
+function demoLockText(m, L) { const pre = L.filter(p => m.after.includes(p.code)); if (pre.length > 1 && pre.every(p => !p.after.length)) return 'Finish ' + (pre.length === 2 ? 'both' : 'all') + ' opening mountains to unlock';
+  return 'Finish ' + pre.map(demoName).join(' and ') + ' to unlock'; }
+/* the next demo mountain: the first open one not finished yet, else the open one after the current, else the first open one (the tutorial when none) */
+function demoNext() { const D = demoState(), O = D.L.filter(m => D.open[m.code]); if (!O.length) return TUT_SEED; const k = S && S.course ? O.findIndex(m => m.seed === S.course.seed) : -1;
+  return (O.find(m => !demoDone(m.code)) || (k >= 0 ? O[(k + 1) % O.length] : O[0])).seed; }
+/* start-up: a reload keeps an open demo mountain (or the tutorial) in the address; any other code is ignored */
+function demoBoot() { const h = codeToSeed(location.hash.slice(1)); return h !== null && Number.isFinite(h) && (h === TUT_SEED || demoHas(h)) ? h : null; }
+const DEMO_LOCK = '<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5" fill="currentColor" stroke="none"/><path d="M5 7V5a3 3 0 0 1 6 0v2"/></svg>';
+function demoFill() { const host = $('dPickL'); if (!host) return []; const D = demoState(), here = S.course ? S.course.seed : null;
+  host.replaceChildren(...D.L.map((m, i) => { const b = document.createElement('button'), n = document.createElement('b'), t = document.createElement('span'), s = document.createElement('small'), best = demoBest(m.code), open = D.open[m.code], fresh = open && demoNew.includes(m.code);
+    b.type = 'button'; b.className = 'fvp dpc' + (m.seed === here && open ? ' cur' : '') + (open ? '' : ' lock') + (fresh ? ' new' : ''); b.id = 'dpC' + i; b.dataset.i = String(i);
+    n.textContent = demoName(m); t.className = 'ft';
+    if (!open) { const why = demoLockText(m, D.L); b.setAttribute('data-nogp', ''); b.setAttribute('aria-disabled', 'true'); b.setAttribute('aria-label', n.textContent + ', locked. ' + why); t.innerHTML = DEMO_LOCK; s.textContent = why; }
+    else { t.textContent = best ? fmtTime(best) : ''; s.textContent = [fresh ? 'Unlocked!' : '', demoDone(m.code) ? 'Finished' : 'Not ridden yet', m.code].filter(Boolean).join(' · '); }
+    b.append(n, t, s); return b; }));
+  const p = $('dPickP'); if (p) p.textContent = D.done >= D.L.length && D.L.length ? 'Demo complete · ' + D.done + ' of ' + D.L.length + ' mountains finished' : D.done + ' of ' + D.L.length + ' mountains finished';
+  return D.L; }
+function demoPick(on, quiet) { on = !!on && !!DEMO_BUILD && !!$('dPick'); if (on && !demoFill().length) on = false; if (!on && !dPickOn) return;
+  dPickOn = on; $('dPick').hidden = !on; $('titleScr').classList.toggle('favOpen', on || favTitleOn); $('titleScr').classList.toggle('dPickOn', on);
+  const fresh = on ? demoState().L.filter(m => demoNew.includes(m.code)) : []; if (on) demoNew = [];
+  if (fresh.length) { try { toast('Unlocked: ' + fresh.map(demoName).join(', ')); } catch (e) { } }
+  if (quiet || screen !== 'title') return; gpMenu.onScreen();
+  if (on) { const D = demoState(), L = D.L, k = L.findIndex(m => (fresh.length ? m.code === fresh[0].code : S.course && m.seed === S.course.seed) && D.open[m.code]), f = L.findIndex(m => D.open[m.code] && !demoDone(m.code));
+    gpMenu.aim($('dpC' + (k >= 0 ? k : f >= 0 ? f : Math.max(0, L.findIndex(m => D.open[m.code]))))); }
+  else gpMenu.aim($('btnStart')); }
+/* from the finish card (or the title): the title with the picker open */
+function demoToPick() { if (!DEMO_BUILD) return; demoDoneCard(false, true); if (screen === 'end') { S.running = false; S.paused = false; resetRun(); if (isTut()) newRun(rollSeed()); setScreen('title'); }
+  if (screen !== 'title' || tapGate.waiting) return; if (demoList().length) demoPick(true); }
+const demoUrl = () => { try { return String(PUBLIC_URL || '').split('#')[0].trim(); } catch (e) { return ''; } };
+async function demoCopy(sel) { const u = demoUrl(); if (!u) return; let ok = false; try { ok = await shareCopy(u); } catch (e) { ok = false; }
+  toast(ok ? 'Link copied' : 'Select the address and copy it'); if (!ok) { try { const e = $(sel), r = document.createRange(); r.selectNodeContents(e); const g = getSelection(); g.removeAllRanges(); g.addRange(r); } catch (e) { } } }
+/* the full game's page in a new tab (the copy button stays for a blocked pop-up) */
+function demoOpenPage() { const u = demoUrl(); if (!/^https?:\/\//.test(u)) return; try { window.open(u, '_blank', 'noopener'); } catch (e) { } toast('Opening the full game page'); }
+/* the 'Demo complete' card over the finish card: what the full game adds, the page, Copy link, Pick a mountain (any open mountain can be ridden again) */
+function demoDoneCard(on, quiet) { const el = $('dDone'); if (!el) return; on = !!on; if (!on && !dDoneOn) return; dDoneOn = on; el.hidden = !on; $('endOv').classList.toggle('dDoneOn', on);
+  if (quiet || screen !== 'end') return; gpMenu.onScreen(); gpMenu.aim($(on ? 'dDoneGo' : 'btnNew2')); }
+/* openResults: what the finish changed (a new unlock, the demo complete); `was` is demoState() from before the finish was paid */
+function demoEnd(was) { if (!DEMO_BUILD || !was || !S.course || isTut()) { demoDoneCard(false, true); return; } const D = demoState();
+  const fresh = D.L.filter(m => D.open[m.code] && !was.open[m.code]); for (const m of fresh) if (!demoNew.includes(m.code)) demoNew.push(m.code);
+  const n = $('dEndN'); if (n) { n.textContent = fresh.length ? 'Unlocked: ' + fresh.map(demoName).join(', ') : ''; n.hidden = !fresh.length; }
+  const all = D.L.length > 0 && D.done >= D.L.length, last = D.L.length ? D.L[D.L.length - 1].seed : null;
+  const t = $('dDoneN'); if (t) t.textContent = 'You finished all ' + D.L.length + ' demo mountains. Thanks for riding!';
+  demoDoneCard(all && (was.done < was.L.length || S.course.seed === last)); }
+if (DEMO_BUILD) { try {
+  const st = document.createElement('style');
+  st.textContent = 'body.demo #btnDaily, body.demo .codeFav, body.demo #codeRow, body.demo #btnFavs, body.demo #tFavs, body.demo #pmFavs, body.demo #pmNew, body.demo #btnNew, body.demo #endOv .share, body.demo #pmShare, body.demo #tFavShare, body.demo #shIn, body.demo #shRep, body.demo .demoHide { display: none !important; }'
+    + ' body.demo #pmQuit { grid-column: 1 / -1; } #titleScr.dPickOn .logo { visibility: hidden; }'
+    + ' #dPick { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(560px, calc(100% - 32px)); max-height: calc(100% - 24px); } body.tapWait #dPick { display: none; }'
+    + ' #dPickL { grid-template-columns: repeat(2, minmax(0, 1fr)); } #dPick .dpc { min-height: 62px; padding: 6px 14px; } #dPick .dpc b { font: 700 17px/1.15 var(--f-ui); letter-spacing: .01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } #dPick .dpc .ft { font-size: 15px; }'
+    + ' #dPick .dpc.lock { opacity: .55; filter: grayscale(1); border-style: dashed; cursor: not-allowed; } #dPick .dpc.lock .ft { color: var(--cream); display: flex; }'
+    + ' #dPick .dpc.new { border-color: var(--acc1); animation: dNew 1.1s ease-in-out 3; } #dPick .dpc.new small { color: var(--acc1); opacity: 1; } @keyframes dNew { 50% { box-shadow: 0 0 0 3px var(--acc1), 0 0 22px var(--acc1); } }'
+    + ' #dPick .dFoot { display: flex; align-items: center; justify-content: space-between; gap: 10px; font: 500 11.5px var(--f-ui); color: var(--cream); } #dPickP { opacity: .75; }'
+    + ' #dPick .dTz { padding: 3px 10px; border-radius: 99px; border: 1px solid var(--acc1); color: var(--acc1); font: 700 11px var(--f-ui); letter-spacing: .06em; white-space: nowrap; }'
+    + ' #titleScr .foot .dTag { margin-left: 6px; padding: 1px 6px; border-radius: 6px; background: var(--acc1); color: #1a120c; font: 700 10px var(--f-ui); letter-spacing: .14em; }'
+    + ' .dFull { display: grid; gap: 4px; padding: 8px 12px; border-radius: 14px; background: rgba(20,14,10,.62); border: 1px solid var(--accLine, rgba(245,138,52,.5)); color: var(--cream); font: 500 12px/1.3 var(--f-ui); }'
+    + ' .dFull b { font: 700 13px var(--f-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--acc1); } .dFull .du { display: flex; align-items: center; gap: 8px; }'
+    + ' .dFull code, #dDone code { flex: 1; min-width: 0; font: 600 12px ui-monospace, Menlo, monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; -webkit-user-select: text; user-select: text; } .dFull .mb { flex: none; min-height: 36px; padding: 0 12px; } .dFull small { opacity: .75; font-size: 11px; }'
+    + ' .dFull .dh { display: flex; align-items: baseline; gap: 8px; min-width: 0; } .dFull .dh b { flex: none; white-space: nowrap; } .dFull .dh span { min-width: 0; font-size: 11px; opacity: .85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }'
+    + ' #dEnd { position: absolute; left: calc(var(--sl) + 31px); bottom: max(12px, var(--sb)); box-sizing: border-box; width: min(400px, calc(100 * var(--vw) - var(--sl) - var(--sr) - 82px - min(327px, calc(46 * var(--vw))))); gap: 3px; padding: 7px 10px; }'
+    + ' #dEnd .mb { min-height: 32px; } #dEndN { font: 700 12px var(--f-ui); color: var(--acc1); } #dEndN[hidden] { display: none; } body.tutEnd #dEnd { display: none; } #endOv.repOn #dEnd { visibility: hidden; }'
+    + ' .dFull, .dFull .du { min-width: 0; } .dFull { grid-template-columns: minmax(0, 1fr); box-sizing: border-box; max-width: 100%; } #dPause { margin-top: 2px; padding: 6px 10px; } #dPause .mb { min-height: 34px; }'
+    + ' #dDone { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(540px, calc(100% - 32px)); max-height: calc(100% - 20px); z-index: 1; gap: 7px; color: var(--cream); font: 500 12.5px/1.3 var(--f-ui); }'
+    + ' #dDone .fvh { font-size: 15px; } #dDoneN { text-align: center; } #dDone ul { margin: 0; padding: 0 0 0 18px; display: grid; grid-template-columns: 1fr 1fr; column-gap: 18px; row-gap: 2px; } #dDone li::marker { color: var(--acc1); }'
+    + ' #dDone .du { display: flex; align-items: center; gap: 8px; } #dDone .two { display: grid; grid-template-columns: 1.3fr 1fr; gap: 8px; } #dDone small { opacity: .75; font-size: 11px; text-align: center; }'
+    + ' #endOv.dDoneOn > :not(#dDone) { visibility: hidden; }';
+  document.head.appendChild(st); document.body.classList.add('demo');
+  { const c = document.createElement('div'); c.className = 'favCard'; c.id = 'dPick'; c.hidden = true; c.setAttribute('role', 'dialog');
+    c.innerHTML = '<div class="fvh">Pick a mountain</div><div class="fvl" id="dPickL"></div><div class="dFoot"><span id="dPickP"></span><span class="dTz">Full game: unlimited mountains</span></div><button class="mb sm" id="dPickX" type="button">Back</button>'; $('tFavs').after(c);
+    $('dPickL').addEventListener('click', (e) => { const b = e.target.closest('.dpc'); if (!b) return; const D = demoState(), m = D.L[+b.dataset.i]; if (!m) return;
+      if (!D.open[m.code]) { toast(demoLockText(m, D.L)); return; } /* a locked card only says what opens it */
+      demoPick(false, true); if (!S.course || S.course.seed !== m.seed) newRun(m.seed, { chosen: true }); startRiding(); });
+    $('dPickX').addEventListener('click', () => demoPick(false)); }
+  $('verTag').insertAdjacentHTML('afterend', '<b class="dTag">DEMO</b>'); $('verTag2').textContent = $('verTag').textContent + ' demo';
+  { const r = $('bDice').closest('.srow'); if (r) r.classList.add('demoHide'); }
+  $('btnNew2').textContent = 'Pick a mountain';
+  const u = demoUrl();
+  { const e = document.createElement('div'); e.className = 'dFull'; e.id = 'dEnd';
+    e.innerHTML = '<div id="dEndN" hidden></div><div class="dh"><b>Get the full game</b><span>new mountains every time, daily rides</span></div>' + (u ? '<div class="du"><code id="dEndU"></code><button class="mb sm" id="dEndCopy" type="button">Copy link</button></div>' : '');
+    $('endOv').appendChild(e); if (u) { $('dEndU').textContent = u; $('dEndCopy').addEventListener('click', () => demoCopy('dEndU')); } }
+  { const d = document.createElement('div'); d.className = 'favCard'; d.id = 'dDone'; d.hidden = true; d.setAttribute('role', 'dialog');
+    d.innerHTML = '<div class="fvh">Demo complete!</div><div id="dDoneN"></div><div>The full game adds:</div><ul><li>A new mountain every time</li><li>Share and enter mountain codes</li><li>A daily mountain</li><li>Favorites</li><li>Animal companions</li><li>Everything unlocked</li></ul>'
+      + (u ? '<div class="du"><code id="dDoneU"></code></div><div class="two"><button class="mb pri" id="dDoneGo" type="button">Get the full game</button><button class="mb sm" id="dDoneCopy" type="button">Copy link</button></div>' : '')
+      + '<small id="dDoneL">' + demoCapNote() + '</small><small>Your progress comes along: Settings, Progress, Copy, then Load it in the full game.</small><div class="two"><button class="mb sm" id="dDonePick" type="button">Pick a mountain</button><button class="mb sm" id="dDoneX" type="button">Close</button></div>';
+    $('endOv').appendChild(d);
+    if (u) { $('dDoneU').textContent = u; $('dDoneGo').addEventListener('click', demoOpenPage); $('dDoneCopy').addEventListener('click', () => demoCopy('dDoneU')); }
+    $('dDonePick').addEventListener('click', () => demoToPick()); $('dDoneX').addEventListener('click', () => demoDoneCard(false)); }
+  if (u) { const p = document.createElement('div'); p.className = 'dFull'; p.id = 'dPause'; p.innerHTML = '<b>Get the full game</b><div class="du"><code id="dPauseU"></code><button class="mb sm" id="dPauseCopy" type="button">Copy link</button></div>';
+    $('pmQuit').parentElement.after(p); $('dPauseU').textContent = u; $('dPauseCopy').addEventListener('click', () => demoCopy('dPauseU')); }
+} catch (e) { console.error(e); } }
+
+/* ---- the desktop edition (DESKTOP_BUILD): Settings > Display > Fullscreen (and F11) through the bridge or the Fullscreen API, Quit game in the pause card
+   (pointer and pad only: never on a touch screen), the About line says desktop. The saves copy runs from the top of the script (deskFlush). ---- */
+let deskFs = false;
+function deskFullOn() { const d = deskFn('isFullscreen');
+  if (d) { try { const v = d.isFullscreen(); if (v && typeof v.then === 'function') { v.then((x) => { deskFs = !!x; deskFullSync(true); }, () => { }); return deskFs; } deskFs = !!v; } catch (e) { } return deskFs; }
+  try { return !!(document.fullscreenElement || document.webkitFullscreenElement); } catch (e) { return false; } }
+function deskFullSync(cached) { const b = $('bFull'); if (b) b.setAttribute('aria-checked', String(cached === true ? deskFs : deskFullOn())); }
+function deskFull(on) { on = !!on; const d = deskFn('setFullscreen');
+  if (d) { try { d.setFullscreen(on); } catch (e) { } deskFs = on; deskFullSync(true); setTimeout(deskFullSync, 250); return; }
+  try { const el = document.documentElement, has = !!(document.fullscreenElement || document.webkitFullscreenElement);
+    if (on && !has) { const f = el.requestFullscreen || el.webkitRequestFullscreen; const p = f ? f.call(el) : null; if (p && p.catch) p.catch(() => deskFullSync()); }
+    else if (!on && has) { const f = document.exitFullscreen || document.webkitExitFullscreen; const p = f ? f.call(document) : null; if (p && p.catch) p.catch(() => deskFullSync()); } } catch (e) { }
+  deskFullSync(); }
+if (DESKTOP_BUILD) { try {
+  const st = document.createElement('style'); st.textContent = '#pauseMenu .dExit { grid-template-columns: minmax(0, 1fr); } body.touchy #pauseMenu .dExit { display: none; }'; document.head.appendChild(st);
+  $('sb_display').insertAdjacentHTML('afterbegin', '<div class="srow" id="fsRow"><span>Fullscreen <small class="kk">F11</small></span><button class="sw" id="bFull" role="switch" aria-checked="false" aria-label="Fullscreen"></button></div>');
+  $('bFull').addEventListener('click', () => deskFull(!deskFullOn()));
+  addEventListener('keydown', (e) => { if (e.key !== 'F11') return; e.preventDefault(); e.stopImmediatePropagation(); if (!e.repeat) deskFull(!deskFullOn()); }, true);
+  for (const ev of ['fullscreenchange', 'webkitfullscreenchange']) document.addEventListener(ev, () => deskFullSync()); addEventListener('resize', () => deskFullSync());
+  deskFullSync();
+  /* Quit game: the first press arms it for 3 s ('Press again to quit'), the second hands the saves over and closes the app */
+  const w = document.createElement('div'); w.className = 'two dExit'; w.innerHTML = '<button class="mb sm" id="pmExit" type="button">Quit game</button>'; $('pmQuit').parentElement.after(w);
+  let arm = 0; const label = () => { const b = $('pmExit'); if (b) b.textContent = arm ? 'Press again to quit' : 'Quit game'; };
+  $('pmExit').addEventListener('click', () => { const now = performance.now(); if (!(arm && now - arm < 3000)) { arm = now; label(); setTimeout(() => { if (arm && performance.now() - arm >= 2900) { arm = 0; label(); } }, 3000); return; }
+    arm = 0; label(); deskFlush(); const d = deskFn('quit'); if (d) { try { d.quit(); return; } catch (e) { } }
+    try { window.close(); } catch (e) { } setTimeout(() => { try { if (!document.hidden) toast('Close the window to quit'); } catch (e) { } }, 400); });
+  $('verTag2').textContent = $('verTag2').textContent + ' desktop';
+} catch (e) { console.error(e); } }
 
 /* ---------- CAMPFIRE MODE. Tap Y (pad button 3) / C / the camp button = SAVE (the respawn never moves backward); hold 0.8 s = make camp.
    Camp = S.camp (NOT S.paused: the fire and the dusk bed keep playing): frame() skips the sim and stepRider, the rider is written onto seat B, the bike
@@ -70801,8 +70973,8 @@ const campUI = (() => {
   const hint = (items) => `<div class="chint">${items.map(([g, t]) => `<span class="hi">${g.map(k => padGlyph(k, 18)).join('')}<em>${t}</em></span>`).join('')}</div>`;
   const starsRow = (n, sz = 13) => { let s = ''; for (let i = 0; i < 3; i++) s += `<svg width="${sz}" height="${sz}" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.2 6.6.8-4.9 4.6 1.3 6.7L12 17.5 6.1 20.8l1.3-6.7L2.5 9.5l6.6-.8z" fill="${i < n ? '#ffc65c' : 'rgba(255,255,255,.08)'}" stroke="${i < n ? '#ffe3a1' : 'rgba(255,255,255,.32)'}" stroke-width="1.3" stroke-linejoin="round"/></svg>`; return s; };
   const left = () => { const L = levelOfXp(PROF.xp), P = draft || PROF.pts; return pointsAtLevel(L) - SKILL.ids.reduce((s, id) => s + P[id], 0); };
-  const header = () => { const L = levelOfXp(PROF.xp), a = xpForLevel(L), b = L < SKILL.LEVELS ? xpForLevel(L + 1) : a + 1, n = left();
-    $('campLv').textContent = L; $('campXp').textContent = PROF.xp.toLocaleString() + ' XP' + (L < SKILL.LEVELS ? ' · ' + (b - PROF.xp) + ' to next' : ' · max'); $('campXpBar').style.width = (L < SKILL.LEVELS ? 100 * (PROF.xp - a) / (b - a) : 100).toFixed(1) + '%';
+  const header = () => { const L = levelOfXp(PROF.xp), a = xpForLevel(L), b = L < LVL_TOP ? xpForLevel(L + 1) : a + 1, n = left();
+    $('campLv').textContent = L; $('campXp').textContent = PROF.xp.toLocaleString() + ' XP' + (L < LVL_TOP ? ' · ' + (b - PROF.xp) + ' to next' : DEMO_BUILD ? ' · ' + demoCapNote() : ' · max'); $('campXpBar').style.width = (L < LVL_TOP ? 100 * (PROF.xp - a) / (b - a) : 100).toFixed(1) + '%';
     const t = n + ' skill point' + (n === 1 ? '' : 's'), P = $('campPts'); if (P.textContent !== t) { const had = P.textContent; P.textContent = t; if (had) { P.classList.remove('bump'); void P.offsetWidth; P.classList.add('bump'); } }
     if (S.camp) { $('campName').textContent = 'Camp ' + campNo(S.camp.cp); $('campMtn').textContent = S.course.themeName || ''; } };
   /* the tab bar: the highlight slides to the selected tab (and follows any resize: the LB / RB glyphs come and go with pad mode) */
@@ -71088,7 +71260,7 @@ function continueFromSlot() { const sl = readSlot(S.course.seed); if (!sl) retur
 let contPick = null; /* the newest camp save of any mountain: { code, n, t } */
 function newestSlot() { /* the holdon.slot.* entry with the largest 'at' (a slot with none counts as oldest); the shown mountain wins a tie */
   let best = null; try { const here = S.course ? seedToCode(S.course.seed) : '';
-    for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (!k || k.indexOf('holdon.slot.') !== 0) continue; const code = k.slice(12); if (!FAV_RE.test(code) || !Number.isFinite(codeToSeed(code))) continue;
+    for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (!k || k.indexOf('holdon.slot.') !== 0) continue; const code = k.slice(12); if (!FAV_RE.test(code) || !Number.isFinite(codeToSeed(code))) continue; if (DEMO_BUILD && !demoHas(codeToSeed(code))) continue; /* the demo continues its own mountains only */
       let o = null; try { o = JSON.parse(localStorage.getItem(k)); } catch (e) { } if (!o || typeof o !== 'object' || !Number.isFinite(+o.idx)) continue;
       const at = +o.at || 0; if (!best || at > best.at || (at === best.at && code === here)) best = { code, at, n: clampI(o.n, 0, 99), t: Math.max(0, Math.min(36000, +o.t || 0)) }; }
   } catch (e) { } return best; }
@@ -71105,7 +71277,7 @@ function reseedRider() { S.crashed = false; S.crashT = 0; updateBikeMatrix(); up
 
 /* ---------- boot ---------- */
 const TUT_AUTO = false; /* true: a first launch (no holdon.tut, no profile, no code in the URL) opens on the tutorial level instead of a random mountain */
-const bootSeed = (() => { const h = codeToSeed(location.hash.slice(1)); return START_RANDOM && !DEBUG && h !== null && h === autoHashSeed() ? null : h; })(); /* the game's own stamp from last time is not reused */
+const bootSeed = DEMO_BUILD ? demoBoot() : (() => { const h = codeToSeed(location.hash.slice(1)); return START_RANDOM && !DEBUG && h !== null && h === autoHashSeed() ? null : h; })(); /* the game's own stamp from last time is not reused */
 newRun(bootSeed ?? (TUT_AUTO && lsGet('holdon.tut') === null && lsGet('holdon.profile') === null ? TUT_SEED : rollSeed()));
 applyQuality(Q.mode === 'auto' ? 2 : +Q.mode); /* the saved quality level (Auto starts High) */ /* a fresh launch rolls a NEW mountain; a #MTN-code in the URL loads that mountain */
 let last = performance.now(), acc = 0; const DT = 1 / 120;
