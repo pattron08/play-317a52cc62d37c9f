@@ -277,6 +277,11 @@
   #pauseMenu .pmDev .devT { width: 100%; min-height: 32px; justify-content: space-between; padding: 0 14px; }
   #pauseMenu .pmDev .devT svg { width: 12px; height: 12px; transition: transform .15s var(--ease-out); } #pauseMenu .pmDev .devT[aria-expanded="true"] svg { transform: rotate(180deg); }
   #pauseMenu .devB { display: grid; gap: 6px; } #pauseMenu .devB[hidden] { display: none; }
+  #pauseMenu .pmDev[hidden], #pauseMenu .pmDev .devX, #pauseMenu .pmDev .devGB[hidden] { display: none; }
+  #pauseMenu .pmDev .mb.devG { width: 100%; min-height: 28px; justify-content: space-between; padding: 0 12px; font: 700 10px var(--f-ui); letter-spacing: .2em; border-style: solid; border-color: rgba(253,248,234,.18); }
+  #pauseMenu .pmDev .devG svg { width: 11px; height: 11px; transition: transform .15s var(--ease-out); } #pauseMenu .pmDev .devG[aria-expanded="true"] svg { transform: rotate(180deg); }
+  #pauseMenu .pmDev .devGB { display: grid; gap: 6px; padding-bottom: 2px; }
+  #pauseMenu .pmDev .devGB .devi { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 4px; }
   /* every two-button row of the pause card splits into the same two equal columns, whatever the label widths */
   #pauseMenu .two, #pauseMenu .pmDev .drow { grid-template-columns: repeat(2, minmax(0, 1fr)); } #pauseMenu .two .mb { padding: 0 8px; }
   .pmHint { display: flex; gap: 10px; justify-content: center; align-items: center; font: 500 10.5px var(--f-ui); color: var(--cream-70); } .pmHint[hidden] { display: none; }
@@ -307,6 +312,7 @@
   #pauseMenu .pmShRow { display: flex; align-items: center; justify-content: center; gap: 8px; margin: -2px 0 2px; } #pauseMenu .pmShRow .meta { margin: 0; } #pauseMenu .pmShRow .mb { min-height: 32px; padding: 0 10px; font-size: 12px; border-radius: 10px; gap: 5px; } #pauseMenu .pmShRow .mb svg { width: 14px; height: 14px; }
   #codeRow.shSave { grid-template-columns: minmax(0, 1fr) auto auto; } #codeRow.shSave #codeMsg { grid-column: 1 / -1; } #codeMsg.ok { color: var(--acc1); }
   #eBeat { display: block; margin-top: 4px; font: 600 13px var(--f-ui); letter-spacing: .04em; opacity: .85; } #eBeat[hidden] { display: none; }
+  #endOv .share .mb#btnCopyCode { width: 120px; } #shCode { display: block; font: 700 26px ui-monospace, Menlo, monospace; letter-spacing: .05em; color: var(--acc1); -webkit-user-select: text; user-select: text; } #shTm { display: block; font: 600 11px var(--f-ui); color: var(--cream); opacity: .8; min-height: 13px; }
   .shOpen > :not(.shPan) { visibility: hidden; }
   .shPan { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(560px, calc(100% - 32px)); max-height: calc(100% - 24px); z-index: 3; }
   .shPw { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; align-items: start; } .shPl, .shPr { display: grid; gap: 6px; }
@@ -841,7 +847,7 @@
   <div class="favCard" id="tFavs" hidden><div class="fvh">Favorites</div><div class="fvl" id="tFavList"></div><button class="mb sm" id="tFavClose">Close</button></div>
   <div id="tapGo" role="status">Tap to start</div>
   <button class="ico" id="mute" role="switch" aria-checked="true" aria-label="Sound"><svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg><svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M17 9l5 6M22 9l-5 6"/></svg></button>
-  <div class="foot"><span id="verTag">v0.50.0</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span></div>
+  <div class="foot"><span id="verTag">v0.51.0</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span></div>
   <button id="btnNew" hidden>New mountain</button>
 </div>
 
@@ -54031,12 +54037,26 @@ const gfxNote = (on) => {
   if (!n && on) { n = document.createElement('div'); n.id = 'gfxNote'; n.setAttribute('role', 'status'); n.textContent = 'Graphics paused - reload if it does not resume'; n.style.cssText = 'pointer-events:none;position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:9;background:#401414;color:#ffd9d9;padding:8px 14px;border-radius:8px;font:14px/1.3 system-ui,sans-serif;text-align:center'; document.body.appendChild(n); }
   if (n) n.hidden = !on;
 };
+/* the public build (tools/build_single.py --public writes 1): no DEV section, no Classic feel and no ?debug hooks, except that a device with the dev unlock (holdon.dev,
+   see DEV_UNLOCK) gets the DEV section back. 0 = the dev / tester build */
+const PUBLIC_BUILD = 0;
 /* ?debug in the URL exposes the debug hooks (window.__game and friends, the bot rider, the render switch, camera overrides) */
-const DEBUG = /[?&]debug\b/.test(location.search);
+const DEBUG = !PUBLIC_BUILD && /[?&]debug\b/.test(location.search);
 const DEV_UI = true; /* the DEV section at the bottom of the pause card (Reset game, Haptics, FPS counter, Classic feel). false keeps it out of a shipped page; ?dev (or ?debug) brings it back, ?nodev hides it for one visit */
+/* the dev unlock: text typed into Enter code is trimmed, lowercased and its spaces collapsed, then its SHA-256 with DEV_SALT in front is compared with DEV_HASH
+   (only the hash is in this file). A match turns the DEV section on for this device (holdon.dev = '1'; never part of a share or Progress code) and
+   'Hide dev tools' in the section turns it off again; any other text is read as a mountain code as before. 0 = no unlock */
+const DEV_UNLOCK = 1;
+const DEV_SALT = 'nh-dev-v1:', DEV_HASH = 'c79894cc840ad0c66f84ed8c3cf307b924aea63ad9fcb5849260b64d2bff4568';
+const DEV_NODEV = /[?&]nodev\b/.test(location.search);
+const DEV_FORCED = ((DEV_UI && !PUBLIC_BUILD) || DEBUG || /[?&]dev\b/.test(location.search)) && !DEV_NODEV; /* the DEV section on every visit: the tester build, ?debug, ?dev */
+function devFlag() { if (!DEV_UNLOCK) return false; try { return localStorage.getItem('holdon.dev') === '1'; } catch (e) { return false; } }
+const DEV_MENU_V2 = 1; /* 1 = the DEV section in three folding groups (GAME, COMPANIONS, WORLD), overlapping buttons folded, shorter toasts; 0 = the one long list */
 const noRender = () => DEBUG && !!window.__norender;
 /* share codes: the switch and its state live up here because setScreen / favSync can run before the share block further down (see SHARE_V1 there) */
 const SHARE_V1 = 1;
+const SHARE_CARD_V2 = 1; /* 1: the share card is the vista card (theme sky, ridges, the pause close-up rendered once offscreen at card size); 0: the plain dark card */
+const SHARE_LINK = 0; /* 0: the share text, the share sheet payload and the card carry no web address, only the code; 1: the older text with a link */
 const PUBLIC_URL = 'https://example.itch.io/no-hander'; /* the public game page every share link points to (never the address of the frame the game runs in) */
 let shShot = null, shShotCode = '', shShotWant = false, shPre = null; const _shV = new THREE.Vector3();
 let shBusy = false, shCur = null;
@@ -54281,6 +54301,15 @@ const WASHERS_V2 = 1;
    gold ring slides along its rail (the power), the let-go or a second press throws; the flight and the landing in the box are a fixed-step physics run
    (walls, wall tops, the pipe, its rim, the cup, skids), the arm shows its elbow and upper arm; 0 = the WASHERS_V2 game exactly */
 const WASHERS_V3 = 1;
+/* WASHERS_HAND_V2: 1 = (with WASHERS_V3) the thrower's arm pitches underhand: it hangs from the shoulder and swings like a pendulum (the aim held out
+   low toward the box, a short backswing with a knee dip while the power builds, the forward swing with the washer let go low and a wrist flick, the
+   follow-through pointing at the box), the hand pinches the washer flat between the thumb on top and the curled index finger; the flight, the
+   landing, the timing and the score are unchanged; 0 = the WASHERS_V3 arm and its palm-down hand exactly */
+const WASHERS_HAND_V2 = 1;
+/* WASHERS_BOUNCE: 1 = (with WASHERS_V3) a washer that lands on the plywood, a wall top or the grass hops on its first touch (a short hop and a couple
+   of smaller ones, each with a soft clink) and wobbles flat like a settling coin; drawn only: it ends exactly where the landing physics puts it, so the
+   rest spot, the score and the timing are unchanged; 0 = the landing as the physics run draws it */
+const WASHERS_BOUNCE = 1;
 /* CAMP_CTOR_SAFE: 1 = a mini game whose constructor throws is cleaned up (panel, camera lens, sound bed, shared board, its own scene) and reported on the console; 0 = the unguarded path */
 const CAMP_CTOR_SAFE = 1;
 /* CAMP_RESULT_PAY: 1 = leaving a finished game's result card by Esc / Backspace / pad B / pad Start pays like a tap on Continue, and Q / E do nothing while a game is up; 0 = those exits discard the score (as before) */
@@ -54357,7 +54386,7 @@ function loadProfile() { let o = null; try { o = JSON.parse(lsGet('holdon.profil
   const L = levelOfXp(PROF.xp), tot = pointsAtLevel(L); let sum = 0;
   for (const id of SKILL.ids) { let p = clampI(o.pts && o.pts[id], 0, SKILL.PIPS); if (sum + p > tot) p = Math.max(0, tot - sum); PROF.pts[id] = p; sum += p; } /* a corrupted save can never spend more than the level allows */
   PROF.buff = {}; PROF.bt = {}; if (o.buff && typeof o.buff === 'object') { const bt = o.bt && typeof o.bt === 'object' ? o.bt : {}; for (const k of BUFF_KEYS) if (o.buff[k] > 0) { const t = bt[k] === undefined ? buffMax(k) : +bt[k]; if (t > 0) { PROF.buff[k] = 1; PROF.bt[k] = Math.min(buffMax(k), t); } } } /* no clock = an older one-run buff: it starts full; a clock that is not a positive number drops the buff */
-  PROF.classic = !!o.classic; PROF.best = {}; if (o.best && typeof o.best === 'object') for (const k in o.best) if (typeof k === 'string' && k.length < 16) PROF.best[k] = Math.max(0, Math.min(1, +o.best[k] || 0));
+  PROF.classic = !!o.classic && (!PUBLIC_BUILD || DEV_FORCED || (!DEV_NODEV && devFlag())); PROF.best = {}; if (o.best && typeof o.best === 'object') for (const k in o.best) if (typeof k === 'string' && k.length < 16) PROF.best[k] = Math.max(0, Math.min(1, +o.best[k] || 0));
   PROF.mtn = {}; if (o.mtn && typeof o.mtn === 'object') for (const k in o.mtn) if (/^MTN-[0-9A-Z]{1,7}$/.test(k)) PROF.mtn[k] = 1; PROF.day = typeof o.day === 'string' ? o.day.slice(0, 10) : ''; PROF.plays = clampI(o.plays, 0, 1e6); if (migrated) saveProfile(); }
 const PRUNE_CAPS = 1; /* 1: the per-mountain saves keep a newest-N window (best times, Firefly counts, Soak marks, first-finish marks); 0: they grow without a limit */
 const BEST_KEEP = 200, FLY_KEEP = 200, SOAK_KEEP = 200, MTN_KEEP = 1000;
@@ -54664,6 +54693,7 @@ const PETW_DECOR = 1; /* 1: the side path's mouth looks cared for: wildflower cl
 const PETW_DECOR_SALT = 7466, PETW_DECOR_LEN = 11.5, PETW_DECOR_TREAD = 0.75; /* its own position hash (no stream is drawn), how far up the path it runs (m) and the
    path's kept-clear half width (m): nothing lies closer to the path's line */
 const PETW_DECOR_FLOWER = { green: ['#e8508a', '#9a6ae0', '#f2c230', '#5aa6e8', '#f4efe4'], scrub: ['#e8b84a', '#e07a96', '#a88ad8', '#f4ece0', '#e89a5a'] }; /* five heads that light up pastel, softer on Dry Scrub */
+const STUMP_GRAND = 1; /* 1: the basket's stump is a grand old tree stump (radius 0.9-1.3 m, 0.7-1.0 m tall, flared root buttresses, growth rings, bark facets, moss on one side, a few small mushrooms) with the very wire basket of the bike (bkWire, same meters) on it, the pick-up reaches 1.2-1.5 m from its center and the glade's dressing keeps off its footprint; 0 = the small stump and box basket exactly */
 const PETW_NOALLOC = 1; /* 1: the per-frame pick-up test reuses two fixed {x, z} slots and one segment function (nothing allocated on the ride); 0 = a fresh object and closure each frame */
 function petwSegD(X, Z) { const q = PETW.sq, ux = PETW.su, uz = PETW.sv, L2 = PETW.sL; const t = L2 > 1e-9 ? Math.max(0, Math.min(1, ((X - q.x) * ux + (Z - q.z) * uz) / L2)) : 0; return Math.hypot(q.x + ux * t - X, q.z + uz * t - Z); } /* this frame's travel segment to (X, Z) */
 const petwRng = (seed, salt, n) => mulberry32((seed + salt) ^ Math.imul(n + 1, 0x9E3779B1)); /* a salted counter stream: one per try / find number */
@@ -54766,7 +54796,10 @@ function petwClearing(course, surf, i, sd, D, rr, gs, ga, jit, dseed, pw = PETW_
   const tg = petwTargets(cx, sc.h, cz);
   if (petwSeen(C, surf, i, tg, extra) > 0) return petwNo(19); /* no ride lens finds it from the trail */
   return { x: cx, y: sc.h, z: cz, dseed, rr, th, gx, gz, mx, mz, mi: i, sd, D, dl, path, plen, ring, shrubs, theme: C.theme, pw }; }
-const petwTargets = (x, y, z) => [new THREE.Vector3(x, y + 0.5, z), new THREE.Vector3(x, y + 0.82, z)].concat([0, 1.571, 3.142, 4.712].map(a => new THREE.Vector3(x + Math.cos(a) * 0.3, y + 1.0, z + Math.sin(a) * 0.3))); /* the stump top, the basket and the lantern wherever it turned */
+const petwTargets = (x, y, z) => STUMP_GRAND ? petwGrandTargets(x, y, z) : [new THREE.Vector3(x, y + 0.5, z), new THREE.Vector3(x, y + 0.82, z)].concat([0, 1.571, 3.142, 4.712].map(a => new THREE.Vector3(x + Math.cos(a) * 0.3, y + 1.0, z + Math.sin(a) * 0.3))); /* the stump top, the basket and the lantern wherever it turned */
+function petwGrandTargets(x, y, z) { /* the grand stump's cut rim, the basket and the lantern wherever it turned, at the stump's own height (+0.25 for a slope) */
+  const D = petwStumpDims(x, z), t = y + D.h + 0.25, V = (a, r, h) => new THREE.Vector3(x + Math.cos(a) * r, t + h, z + Math.sin(a) * r);
+  return [V(0, 0, 0.03), V(0, 0, 0.3)].concat([0, 1.571, 3.142, 4.712].map(a => V(a, 0.62, 0.45)), [0, 1.571, 3.142, 4.712].map(a => V(a, D.r * 0.95, 0.03))); }
 function petwExtra(ring, shrubs, extra) { /* the ring and its shrubs as sight blockers [x, z, y0, y1, r, cone] */
   for (const T of ring) { const y = T.y - 0.1, s = T.s;
     if (T.kind === 'pine') { extra.push([T.x, T.z, y + 0.6 * s, y + 2.1 * s, 0.9 * s, 1], [T.x, T.z, y + 1.65 * s, y + 3.0 * s, 0.63 * s, 1], [T.x, T.z, y, y + 0.96 * s, 0.1 * s, 0]); }
@@ -54780,13 +54813,14 @@ function petwCampStump(course, surf, tries) { /* after PETW_MISS_MAX misses: the
   for (const cp of cps.length >= 2 ? [cps[1], cps[0]] : [cps[0]]) { const L = cp.lane;
     for (const li of [12, 10, 14, 8, 16, 18, 6, 20]) { if (!L[li + 1]) continue; const a = L[li - 1], b = L[li + 1], tl = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1; let nx = -(b[1] - a[1]) / tl, nz = (b[0] - a[0]) / tl;
       if (nx * (cp.x - L[li][0]) + nz * (cp.z - L[li][1]) > 0) { nx = -nx; nz = -nz; } /* away from the camp */
-      const x = L[li][0] + nx * (CAMP.laneW + 1.3), z = L[li][1] + nz * (CAMP.laneW + 1.3), s = surf(x, z); if (!s || s.water) continue;
-      let ok = petwObstNear(course, x, z, 3, (o, d) => d - (o.tree ? o.r : (o.rv ?? o.r)) > 1.0); if (!ok) continue;
-      for (const c2 of course.checkpoints) for (const so of c2.solids || []) if (Math.abs(c2.x - x) < 30 && ccDist(so, x, z) < 1.0) ok = false;
-      for (const [lx, lz] of L) if (Math.hypot(lx - x, lz - z) < CAMP.laneW + 0.9) ok = false;
-      const Wd = course.washers; if (Wd && Math.hypot(Wd.x - x, Wd.z - z) < 3) ok = false;
+      for (const co of STUMP_GRAND ? [2.1, 2.7, 3.4] : [1.3]) { /* the grand stump stands a bigger step off the lane (farther where that spot is crowded) */
+      const x = L[li][0] + nx * (CAMP.laneW + co), z = L[li][1] + nz * (CAMP.laneW + co), s = surf(x, z); if (!s || s.water) continue;
+      let ok = petwObstNear(course, x, z, STUMP_GRAND ? 4 : 3, (o, d) => d - (o.tree ? o.r : (o.rv ?? o.r)) > (STUMP_GRAND ? 2.1 : 1.0)); if (!ok) continue;
+      for (const c2 of course.checkpoints) for (const so of c2.solids || []) if (Math.abs(c2.x - x) < 30 && ccDist(so, x, z) < (STUMP_GRAND ? 2.1 : 1.0)) ok = false;
+      for (const [lx, lz] of L) if (Math.hypot(lx - x, lz - z) < CAMP.laneW + (STUMP_GRAND ? 1.8 : 0.9)) ok = false;
+      const Wd = course.washers; if (Wd && Math.hypot(Wd.x - x, Wd.z - z) < (STUMP_GRAND ? 4.5 : 3)) ok = false;
       if (!ok || petwDeckNear(course, x, z, s.h, 6)) continue;
-      return { x, y: s.h, z, camp: cp.idx, cp, mi: cp.idx, tries, theme: course.theme }; } }
+      return { x, y: s.h, z, camp: cp.idx, cp, mi: cp.idx, tries, theme: course.theme }; } } }
   return null; }
 /* ---- the animal bushes ---- */
 function petwHab(course, surf, x, z) { /* the kinds of ground at (x, z): water, rocks, trees, meadow */
@@ -54827,7 +54861,44 @@ function petwDecoys(course, surf, real) { /* a few still bushes a map, never nea
 /* ---- geometry: merged vertex-colored parts in the terrain's shared buffers ---- */
 const _pwM = new THREE.Matrix4(), _pwQ = new THREE.Quaternion(), _pwE = new THREE.Euler(), _pwV = new THREE.Vector3(), _pwS = new THREE.Vector3();
 const petwM = (x, y, z, rx, ry, rz, sx, sy, sz) => new THREE.Matrix4().compose(_pwV.set(x, y, z), _pwQ.setFromEuler(_pwE.set(rx, ry, rz)), _pwS.set(sx, sy ?? sx, sz ?? sx));
-function petwStumpParts(x, y, z, out, lit) { /* the stump, the wire basket on it and the lantern beside it (world meters); out: { stump, basket, glass } part lists */
+function petwStumpDims(x, z) { /* the grand stump's size for the spot (salted hashes 7467-7469 of the spot, no stream drawn): body radius r, height h, moss side ma, footprint fp (buttress and root tips), pick-up radius */
+  const hx = Math.round(x * 7), hz = Math.round(z * 7), r = 0.9 + 0.4 * hash2(hx, hz, 7467), h = 0.7 + 0.3 * hash2(hx, hz, 7468), ma = hash2(hx, hz, 7469) * 6.283;
+  return { r, h, ma, fp: r * 1.33 + 0.25, pick: Math.min(1.5, r + 0.3), top: 0, y0: 0 }; }
+function petwGrandStump(x, y, z, out, lit, theme) { /* STUMP_GRAND: the stump as one vertex-colored soup (bark facets, rings, moss) plus a few parts; the bike's wire basket (bkWire) and the small lantern on top */
+  const D = petwStumpDims(x, z), R = D.r, S2 = out.stump, B = out.basket, Gl = out.glass, dry = theme === 'scrub', N = 20, T = [0, 0.16, 0.45, 0.78, 1], hx = Math.round(x * 7), hz = Math.round(z * 7), hv = (n) => hash2((hx + n * 7919) | 0, (hz - n * 104729) | 0, 7468);
+  const bark = dry ? ['#7d6a4e', '#8a7658', '#5f503b'] : theme === 'autumn' ? ['#6a4a33', '#775439', '#4c3424'] : ['#5e4331', '#6d4e37', '#43301f'], moss = dry ? ['#9aa07a', '#8f9a6c', '#a8a882'] : ['#6f8f4a', '#7c9a50', '#5f8040'];
+  const ring = dry ? ['#e0cba0', '#cbb182'] : ['#d9b783', '#c49a68'], pith = dry ? '#b49a6c' : '#a77c52', cam = dry ? '#9a8460' : '#8b6a42', crack = dry ? '#7e6a4a' : '#6e4f33';
+  let gmax = y; for (let k = 0; k < 12; k++) gmax = Math.max(gmax, gridTriH(x + Math.cos(k * 0.5236) * R, z + Math.sin(k * 0.5236) * R));
+  const top = Math.max(y + D.h, gmax + 0.45), H = top - y, Y0 = top + 0.02; D.top = top; D.y0 = Y0; out.dim = D;
+  const ry = hash2(Math.round(x * 3), Math.round(z * 3), 7484) * 6.283, c = Math.cos(ry), s = Math.sin(ry), at = (u, w) => [x + u * c + w * s, z - u * s + w * c];
+  const nb = 5 + (hv(90) > 0.5 ? 1 : 0), ph0 = hv(91) * 6.283, lob = []; for (let k = 0; k < nb; k++) lob.push(ph0 + k * 6.2832 / nb + (hv(100 + k) - 0.5) * 0.6);
+  const bf = (a) => { let m = 0; for (const l of lob) { const d = Math.abs(Math.atan2(Math.sin(a - l), Math.cos(a - l))); m = Math.max(m, Math.exp(-(d / 0.3) * (d / 0.3))); } return m; };
+  const ang = (i) => (i % N) * 6.2832 / N + (hv(i % N) - 0.5) * 0.12 + (i >= N ? 6.2832 : 0), rad = (a, t, i) => R * (1 + Math.pow(1 - t, 2) * (0.07 + 0.26 * bf(a))) * (t < 1 ? (i % 2 ? 0.955 : 1) : (i % 2 ? 0.985 : 1.0));
+  const V = (i, j) => { const a = ang(i), r = rad(a, T[j], i % N), px = x + Math.cos(a) * r, pz = z + Math.sin(a) * r; return bkV(px, j === 0 ? gridTriH(px, pz) - 0.14 : j === T.length - 1 ? top + (hv(i % N + 40) - 0.5) * 0.04 : y + T[j] * H, pz); };
+  const sp = bkSoup(), dAng = (a) => Math.abs(Math.atan2(Math.sin(a - D.ma), Math.cos(a - D.ma)));
+  for (let i = 0; i < N; i++) for (let j = 0; j < T.length - 1; j++) { const amid = (ang(i) + ang(i + 1)) / 2, h = hv(i * 7 + j + 200);
+    let col = i % 2 ? bark[2] : h < 0.3 ? bark[1] : bark[0]; if (dAng(amid) < 1.0 && hv(i * 11 + j + 300) < (1 - j * 0.28) * (1 - dAng(amid) / 1.0)) col = moss[(i + j) % 3];
+    sp.quad(V(i, j), V(i + 1, j), V(i + 1, j + 1), V(i, j + 1), col, bkV(Math.cos(amid), 0.25, Math.sin(amid))); }
+  const F = [0, 0.14, 0.34, 0.56, 0.78, 0.94, 1], tv = (i, k) => { const a = ang(i), r = rad(a, 1, i % N) * F[k]; return k === F.length - 1 ? V(i, T.length - 1) : bkV(x + Math.cos(a) * r, top + 0.02 * (1 - F[k]) + (hv(i % N + 40) - 0.5) * 0.04 * F[k], z + Math.sin(a) * r); };
+  const UPV = bkV(0, 1, 0), ctr = bkV(x, Y0, z);
+  for (let i = 0; i < N; i++) { sp.tri(ctr, tv(i, 1), tv(i + 1, 1), pith, UPV);
+    for (let k = 1; k < F.length - 1; k++) { let col = k === F.length - 2 ? cam : ring[k % 2]; if (k > 1 && k < F.length - 2 && hv(i + 500) < 0.12) col = crack; sp.quad(tv(i, k), tv(i + 1, k), tv(i + 1, k + 1), tv(i, k + 1), col, UPV); } }
+  for (let k = 0; k < Math.min(4, nb); k++) { const a = lob[k], d = 0.17, p0 = [a - d, 0.96 * R, y + 0.34], p1 = [a + d, 0.96 * R, y + 0.34], pm = [a, 1.06 * R, y + 0.52], tx = x + Math.cos(a) * R * 1.3, tz = z + Math.sin(a) * R * 1.3, tip = bkV(tx, gridTriH(tx, tz) + 0.02, tz);
+    const P3 = (q) => bkV(x + Math.cos(q[0]) * q[1], q[2], z + Math.sin(q[0]) * q[1]), hint = bkV(Math.cos(a), 0.6, Math.sin(a)); sp.tri(P3(p0), P3(pm), tip, bark[2], hint); sp.tri(P3(pm), P3(p1), tip, bark[0], hint); } /* root fingers running out over the ground */
+  S2.push({ geo: sp.geo(), col: null, m: petwM(0, 0, 0, 0, 0, 0, 1) });
+  if (!dry) for (const [da, rr2, sx] of [[0.0, 1.08, 0.3], [0.55, 1.03, 0.22], [-0.5, 1.0, 0.2]]) { const a = D.ma + da, px = x + Math.cos(a) * R * rr2, pz = z + Math.sin(a) * R * rr2; S2.push({ geo: new THREE.DodecahedronGeometry(1, 0), col: moss[da > 0 ? 1 : 0], m: petwM(px, gridTriH(px, pz) + 0.1, pz, 0, a, 0, sx, 0.1, sx * 0.8) }); } /* moss over the roots on one side */
+  S2.push({ geo: new THREE.DodecahedronGeometry(1, 0), col: moss[0], m: petwM(x + Math.cos(D.ma + 0.2) * R * 0.86, top + 0.02, z + Math.sin(D.ma + 0.2) * R * 0.86, 0, D.ma, 0, 0.26, 0.04, 0.18) }); /* a moss pad on the cut rim */
+  const nm = dry ? 0 : 2 + Math.floor(hv(700) * 3); for (let k = 0; k < nm; k++) { const a = D.ma + (hv(710 + k) - 0.5) * 1.5 + 0.3, r = R * (1.14 + hv(720 + k) * 0.08), px = x + Math.cos(a) * r, pz = z + Math.sin(a) * r, g = gridTriH(px, pz), sc = 0.8 + hv(730 + k) * 0.7;
+    S2.push({ geo: new THREE.CylinderGeometry(0.016 * sc, 0.022 * sc, 0.09 * sc, 5), col: '#efe6d2', m: petwM(px, g + 0.045 * sc, pz, 0, 0, 0, 1) }); S2.push({ geo: new THREE.ConeGeometry(0.06 * sc, 0.05 * sc, 6), col: k % 2 ? '#d4503a' : '#c9743a', m: petwM(px, g + 0.1 * sc, pz, 0, a, 0, 1) }); }
+  B.push({ geo: bkWire(), col: null, m: petwM(x, Y0 + BK_D.floor, z, 0, ry, 0, 1) }); /* the bike's basket: the same geometry at scale 1, rim up, centered on the cut */
+  const [lx, lz] = at(0.62, -0.3), ly = Y0; B.push({ geo: new THREE.BoxGeometry(0.1, 0.03, 0.1), col: '#2f2a26', m: petwM(lx, ly + 0.015, lz, 0, ry, 0, 1) });
+  for (const [u, w] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) { const [px, pz] = [lx + u * 0.042 * c + w * 0.042 * s, lz - u * 0.042 * s + w * 0.042 * c]; B.push({ geo: new THREE.BoxGeometry(0.012, 0.12, 0.012), col: '#2f2a26', m: petwM(px, ly + 0.09, pz, 0, ry, 0, 1) }); }
+  B.push({ geo: new THREE.ConeGeometry(0.07, 0.05, 4), col: '#2f2a26', m: petwM(lx, ly + 0.175, lz, 0, ry + Math.PI / 4, 0, 1) });
+  B.push({ geo: new THREE.TorusGeometry(0.025, 0.005, 4, 8), col: '#2f2a26', m: petwM(lx, ly + 0.215, lz, 0, ry, 0, 1) });
+  Gl.push({ geo: new THREE.BoxGeometry(0.08, 0.11, 0.08), col: lit, m: petwM(lx, ly + 0.085, lz, 0, ry, 0, 1) });
+  return [lx, ly + 0.085, lz]; }
+function petwStumpParts(x, y, z, out, lit, theme) { /* the stump, the wire basket on it and the lantern beside it (world meters); out: { stump, basket, glass } part lists */
+  if (STUMP_GRAND) return petwGrandStump(x, y, z, out, lit, theme);
   const S2 = out.stump, B = out.basket, Gl = out.glass, ry = hash2(Math.round(x * 3), Math.round(z * 3), 7484) * 6.283, c = Math.cos(ry), s = Math.sin(ry), at = (u, w) => [x + u * c + w * s, z - u * s + w * c];
   S2.push({ geo: new THREE.CylinderGeometry(0.3, 0.37, 0.64, 9), col: '#6b4a33', m: petwM(x, y + 0.16, z, 0, ry, 0, 1) }); /* its foot sunk 0.16 m: it stands on a slope too */
   S2.push({ geo: new THREE.CylinderGeometry(0.285, 0.29, 0.03, 9), col: '#c49a6c', m: petwM(x, y + 0.47, z, 0, ry, 0, 1) });
@@ -54862,7 +54933,7 @@ function petwGlade(course, B, out) { /* PETW_SPECIAL: standing stones, wildflowe
       if (!offWay(x, z, 1.2)) continue; const h = 0.5 + hv(s + 40) * 0.35, w = 0.26 + hv(s + 60) * 0.12, y = gridTriH(x, z);
       out.push({ geo: new THREE.DodecahedronGeometry(1, 0), col: ['#8e928b', '#9a9c94', '#848a84'][s % 3], m: petwM(x, y + h * 0.42, z, (hv(s + 80) - 0.5) * 0.2, a, (hv(s + 90) - 0.5) * 0.2, w, h * 0.55, w * 0.8) });
       out.push({ geo: new THREE.DodecahedronGeometry(1, 0), col: s % 2 ? '#6f8f4a' : '#7c9a50', m: petwM(x, y + h * 0.86, z, 0, a + 0.5, 0, w * 0.86, h * 0.14, w * 0.72) }); } } /* a moss cap */
-  const fc = PETW_FLOWER[dry ? 'scrub' : 'pine'], stem = dry ? '#8d8a58' : '#5d8a44', cl = [[B.th + Math.PI + 0.9, 1.25, 11]]; /* one clump by the stump, a few more out in the glade */
+  const fc = PETW_FLOWER[dry ? 'scrub' : 'pine'], stem = dry ? '#8d8a58' : '#5d8a44', cl = [[B.th + Math.PI + 0.9, STUMP_GRAND && B.dim ? B.dim.fp + 0.7 : 1.25, 11]]; /* one clump by the stump, a few more out in the glade */
   for (let k = 0; k < 4; k++) cl.push([B.th + Math.PI * 0.45 + k * 1.35 + (hv(100 + k) - 0.5) * 0.5, 2.3 + hv(110 + k) * (B.rr - 4.2), 7 + Math.floor(hv(120 + k) * 4)]);
   cl.forEach(([a, r, n], c) => { const cx = B.x + Math.cos(a) * r, cz = B.z + Math.sin(a) * r; if (!offWay(cx, cz, 0.9)) return; const col = fc[(c + Math.floor(hv(130) * 4)) % 4], col2 = fc[(c + 2 + Math.floor(hv(130) * 4)) % 4];
     for (let f = 0; f < n; f++) { const fa = hv(200 + c * 20 + f) * 6.283, fr = Math.sqrt(hv(300 + c * 20 + f)) * 0.5, x = cx + Math.cos(fa) * fr, z = cz + Math.sin(fa) * fr, y = gridTriH(x, z), h = 0.16 + hv(400 + c * 20 + f) * 0.12;
@@ -54877,13 +54948,13 @@ function petwGlade(course, B, out) { /* PETW_SPECIAL: standing stones, wildflowe
 function petwBuild(course, surf, W) { /* every piece into the terrain buffers (one group per thing that moves or goes), the ring trees into the forest meshes, the paint into the ground colors */
   const theme = course.theme, pal = PETW_COL[theme] || PETW_COL.pine, groups = [];
   const B = W.basket;
-  if (B) { const lit = (B.tries || 0) >= PETW_GLOW_UP ? '#ffe2a0' : '#ffd890', o = { stump: [], basket: [], glass: [] }, lp = petwStumpParts(B.x, gridTriH(B.x, B.z), B.z, o, lit), st = { name: 'stump', x: B.x, z: B.z, parts: o.stump }, bk = { name: 'basket', x: B.x, z: B.z, parts: o.basket }, gl = { name: 'glass', x: B.x, z: B.z, parts: o.glass, glow: 1 };
-    B.lp = lp; groups.push(st, bk, gl); B.G = { st, bk, gl };
+  if (B) { const lit = (B.tries || 0) >= PETW_GLOW_UP ? '#ffe2a0' : '#ffd890', o = { stump: [], basket: [], glass: [] }, lp = petwStumpParts(B.x, gridTriH(B.x, B.z), B.z, o, lit, theme), st = { name: 'stump', x: B.x, z: B.z, parts: o.stump }, bk = { name: 'basket', x: B.x, z: B.z, parts: o.basket }, gl = { name: 'glass', x: B.x, z: B.z, parts: o.glass, glow: 1 };
+    B.lp = lp; if (o.dim) { B.dim = o.dim; B.pickR = o.dim.pick; } groups.push(st, bk, gl); B.G = { st, bk, gl };
     if (!B.camp) { const dress = { name: 'clearing', x: B.x, z: B.z, parts: [] }, P2 = dress.parts, Rd = mulberry32(B.dseed || ((B.x * 1000) | 0)), dry = theme === 'scrub';
       for (let k = 0; k < 230; k++) { const a = Rd() * 6.283, r = Math.sqrt(Rd()) * (B.rr - 0.6), x = B.x + Math.cos(a) * r, z = B.z + Math.sin(a) * r; if (Math.hypot(x - B.x, z - B.z) < 0.6) continue; const g0 = gridTriH(x, z), nb = 4 + Math.floor(Rd() * 3);
-        const keep = !PETW_SPECIAL || k % PETW_SCATTER === 0; /* with PETW_SPECIAL only a light scatter is kept; every draw still happens, so the shrubs after it stay where they were */
+        const keep = (!PETW_SPECIAL || k % PETW_SCATTER === 0) && !(STUMP_GRAND && B.dim && Math.hypot(x - B.x, z - B.z) < B.dim.fp + 0.15); /* with PETW_SPECIAL only a light scatter is kept; every draw still happens, so the shrubs after it stay where they were */
         for (let q = 0; q < nb; q++) { const h = 0.26 + Rd() * (dry ? 0.24 : 0.34), a2 = q * 1.7 + Rd(), ci = Math.floor(Rd() * 3); if (keep) P2.push({ geo: new THREE.ConeGeometry(0.06, h, 3, 1, true), col: pal.g[ci], m: petwM(x + Math.cos(a2) * 0.08, g0 + h / 2 - 0.03, z + Math.sin(a2) * 0.08, Math.sin(a2) * 0.35, a2, -Math.cos(a2) * 0.35, 1) }); } } /* tufts of blades */
-      for (let k = 0; k < 16 && !dry; k++) { const a = Rd() * 6.283, r = 1 + Rd() * (B.rr - 2), x = B.x + Math.cos(a) * r, z = B.z + Math.sin(a) * r, g0 = gridTriH(x, z); P2.push({ geo: new THREE.IcosahedronGeometry(0.045, 0), col: k % 3 ? '#f4efe0' : '#f0c94a', m: petwM(x, g0 + 0.24, z, 0, k, 0, 1) }); }
+      for (let k = 0; k < 16 && !dry; k++) { const a = Rd() * 6.283, r = 1 + Rd() * (B.rr - 2), x = B.x + Math.cos(a) * r, z = B.z + Math.sin(a) * r, g0 = gridTriH(x, z); if (!(STUMP_GRAND && B.dim && Math.hypot(x - B.x, z - B.z) < B.dim.fp + 0.15)) P2.push({ geo: new THREE.IcosahedronGeometry(0.045, 0), col: k % 3 ? '#f4efe0' : '#f0c94a', m: petwM(x, g0 + 0.24, z, 0, k, 0, 1) }); }
       for (const H of B.shrubs) { const n2 = 2; for (let q = 0; q < n2; q++) { const ox = (Rd() - 0.5) * 0.6, oz = (Rd() - 0.5) * 0.6; P2.push({ geo: new THREE.IcosahedronGeometry(H.r, 1), col: pal.s[Math.floor(Rd() * 3)], m: petwM(H.x + ox, H.y + H.h * 0.45 - q * 0.1, H.z + oz, Rd(), Rd() * 6, 0, 1, H.h / (H.r * 2) * 1.1, 1) }); } }
       for (const T of B.ring) if (T.kind === 'boulder') { P2.push({ geo: new THREE.DodecahedronGeometry(1, 0), col: ['#9a8c74', '#8f8470', '#a49580'][Math.floor(Rd() * 3)], m: petwM(T.x, T.y + T.s * 0.45, T.z, Rd(), T.ry, Rd() * 0.3, T.s * 1.25, T.s * 1.0, T.s * 1.1) }); }
         else if (T.kind === 'scrub') { for (let q = 0; q < 11; q++) { const a = q * 0.57 + T.ry, l = 0.8 + Rd() * 0.9, tl = 0.35 + Rd() * 0.4; P2.push({ geo: new THREE.CylinderGeometry(0.015, 0.035, l, 4), col: q % 2 ? '#6e5a42' : '#806c52', m: petwM(T.x + Math.cos(a) * l * 0.18, T.y + l * 0.42, T.z + Math.sin(a) * l * 0.18, Math.cos(a) * tl, 0, -Math.sin(a) * tl, 1) }); } } /* a dead bush: bare gray-brown stems fanning out */
@@ -54904,7 +54975,8 @@ function petwBuild(course, surf, W) { /* every piece into the terrain buffers (o
   if (B && B.G.gl) { const g = B.G.gl, ca = g.attr.c; g.c0 = Float32Array.from(ca.array.subarray(g.v0 * 3, (g.v0 + g.n) * 3)); petwLamp(B, 1); } /* the lantern glass: colors over 1 so the Lambert light leaves it glowing */
   if (B && B.G.tf) { const g = B.G.tf; g.c0 = Float32Array.from(g.attr.c.array.subarray(g.v0 * 3, (g.v0 + g.n) * 3)); petwFlame(B, 1); } /* the torch's flame, glowing the same way */
   if (W.bush) { const g = W.bush.G; g.p0 = Float32Array.from(g.attr.p.array.subarray(g.v0 * 3, (g.v0 + g.n) * 3)); }
-  if (B && !B.camp) petwPaint(course, B); }
+  if (B && !B.camp) petwPaint(course, B);
+  if (STUMP_GLOW && B) sgPlace(B); }
 function petwTorchSpot(course, surf, B) { /* the torch: beside the path's mouth (past it first, the stone pile stands before it), a couple of meters off the tread,
      never on any leg's tread, on the side path or on the pile, clear of trunks and rocks; the first one hidden from the stump, else the one seen least; null when no spot fits */
   const C = course, P = C.pts, Q = P[B.mi], nx = Q.vx * B.sd, nz = Q.vz * B.sd, h0 = hash2(Math.round(B.mx * 3), Math.round(B.mz * 3), PETW_BASKET_SALT), u0 = 1.4 * B.pw + 0.9 + h0 * 0.5; let best = null;
@@ -55046,13 +55118,13 @@ function petwPaint(course, B) { /* the ground colors: a faint worn track along t
   ca.needsUpdate = true; }
 /* ---- on the ride ---- */
 function petsWorldTick(dt) { /* every frame: the pick-ups (read S.pos only), the sound cues, the bush's rustle and the lantern's flare */
-  const W = S.course && S.course.petsW; if (!W) { PETW.prev = null; return; } PETW.t += dt; petwAnim(W, dt);
+  const W = S.course && S.course.petsW; if (STUMP_GLOW) sgTick(W); if (!W) { PETW.prev = null; return; } PETW.t += dt; petwAnim(W, dt);
   const p = S.pos; if (!S.running || S.paused || S.camp || S.crashed || S.finished) { PETW.prev = null; return; }
   const q = PETW.prev || p, ux = p.x - q.x, uz = p.z - q.z, L2 = ux * ux + uz * uz; const jumped = L2 > 64;
   if (PETW_NOALLOC) { const nq = PETW.prev === PETW.qa ? PETW.qb : PETW.qa; nq.x = p.x; nq.z = p.z; PETW.prev = nq; PETW.sq = q; PETW.su = ux; PETW.sv = uz; PETW.sL = L2; } else PETW.prev = { x: p.x, z: p.z };
   const segD = PETW_NOALLOC ? petwSegD : (X, Z) => { const t = L2 > 1e-9 ? Math.max(0, Math.min(1, ((X - q.x) * ux + (Z - q.z) * uz) / L2)) : 0; return Math.hypot(q.x + ux * t - X, q.z + uz * t - Z); };
   const B = W.basket; if (B && !B.got) {
-    if (!jumped && segD(B.x, B.z) < PETW_PICK_R && Math.abs(p.y - B.y) < 1.6) petwGot(W);
+    if (!jumped && segD(B.x, B.z) < (B.pickR || PETW_PICK_R) && Math.abs(p.y - B.y) < 1.6) petwGot(W);
     else { if (!B.camp) { const dm = Math.hypot(p.x - B.mx, p.z - B.mz); if (dm < 7) { if (!PETW.mouthIn) { PETW.mouthIn = true; petwCue('chime'); } } else if (dm > 14) PETW.mouthIn = false; }
       if ((B.tries || 0) >= PETW_NEAR_CUE) { const ds = Math.hypot(p.x - B.x, p.z - B.z); if (!PETW.near && ds < 40) { PETW.near = true; petwCue('near', true); } else if (PETW.near && ds > 52) { PETW.near = false; petwCue('near', false); } }
       if (!B.camp && !W.missB && S.segIdx > B.mi + PETW_MISS_AHEAD && Math.hypot(p.x - B.x, p.z - B.z) > 45) petwMiss(W, 'basket'); } }
@@ -55087,6 +55159,30 @@ function petwAnim(W, dt) { /* the lantern's flare (0.6 s, then the basket and la
   for (const [bx, by, bz, br] of R.blobs) { const n = Math.round(g.n / R.blobs.length), ph = bx * 3.1 + bz * 1.7, dx = amp * Math.sin(t * f + ph), dz = amp * 0.7 * Math.cos(t * f * 1.13 + ph);
     for (let k = 0; k < n && v < g.n; k++, v++) { const hy = Math.max(0, p0[v * 3 + 1] - y0) / 1.2; a[(g.v0 + v) * 3] = p0[v * 3] + dx * hy; a[(g.v0 + v) * 3 + 1] = p0[v * 3 + 1]; a[(g.v0 + v) * 3 + 2] = p0[v * 3 + 2] + dz * hy; } }
   petwSpan(g, g.attr.p); }
+const STUMP_GLOW = 1; /* 1: a small pick-up cue right around the stump's basket: a tight soft purple halo on its rim and a few lavender motes drifting up close to it, breathing slowly,
+     additive with no depth write (one tiny Points batch on the dust pools' program, drawn only while the rider (or the lens) is within SG_FAR m and the basket is in view; it fades out with the find); 0 = none */
+const SG_N = 12, SG_CORE_N = 6, SG_SALT = 7472, SG_SIZE = 0.21, SG_NEAR = 7, SG_FAR = 13; /* points (the first SG_CORE_N make the halo), the phase hash salt, point size (m, kept true to the lens zoom), full strength inside SG_NEAR m of the rider, gone past SG_FAR m (the trail is 21.8+ m away) */
+const SG_CORE = [0.43, 0.17, 1.0], SG_EDGE = [0.56, 0.32, 1.0]; /* linear colors (vertex colors are linear): #b074ff for the halo, a softer lavender #c598ff for the motes (paler ones add up to white over the light ground) */
+let SG = null;
+function sgPlace(B) { /* the glow's batch (built once, kept in the scene) centered on this map's basket; its phases from a salted hash of the spot (no stream is drawn) */
+  if (!SG) { const geo = new THREE.BufferGeometry(), pos = new Float32Array(SG_N * 3), col = new Float32Array(SG_N * 4);
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setAttribute('color', new THREE.BufferAttribute(col, 4)); geo.attributes.position.setUsage(THREE.DynamicDrawUsage); geo.attributes.color.setUsage(THREE.DynamicDrawUsage);
+    geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1.0);
+    const pts = new THREE.Points(geo, new THREE.PointsMaterial({ size: SG_SIZE, vertexColors: true, transparent: true, opacity: 1, depthWrite: false, sizeAttenuation: true, map: dotTex(true), blending: THREE.AdditiveBlending }));
+    pts.visible = false; pts.renderOrder = 2; scene.add(pts); SG = { pts, geo, pos, col, ph: new Float32Array(SG_N), B: null, x: 0, y: 0, z: 0 }; }
+  const y0 = B.dim ? B.dim.y0 : gridTriH(B.x, B.z) + 0.49; SG.B = B; SG.x = B.x; SG.y = y0; SG.z = B.z; SG.geo.boundingSphere.center.set(B.x, y0 + 0.3, B.z);
+  const hx = Math.round(B.x * 5), hz = Math.round(B.z * 5); for (let k = 0; k < SG_N; k++) SG.ph[k] = hash2((hx + k * 7919) | 0, (hz - k * 104729) | 0, SG_SALT);
+  SG.pts.visible = false; }
+function sgTick(W) { /* every frame: the halo's slow orbit and breath, the motes' rise, the fade with the lens distance and with the find; nothing allocated */
+  if (!SG) return; const B = W && W.basket, pts = SG.pts; if (!B || B !== SG.B || (B.got && W.flare < 0)) { pts.visible = false; return; }
+  const e = camera.matrixWorld.elements, d = Math.min(Math.hypot(S.pos.x - SG.x, S.pos.z - SG.z), Math.hypot(e[12] - SG.x, e[13] - SG.y, e[14] - SG.z)); let f = Math.max(0, Math.min(1, (SG_FAR - d) / (SG_FAR - SG_NEAR)));
+  if (B.got) f *= Math.max(0, 1 - W.flare / 0.6); if (f <= 0) { pts.visible = false; return; } pts.visible = true; pts.material.size = SG_SIZE * camera.projectionMatrix.elements[5]; /* a point's size ignores the field of view: scaled so it stays SG_SIZE m under the long lens */
+  const rm = reduceMotion.matches, t = PETW.t * (rm ? 0.3 : 1), br = 0.78 + 0.22 * Math.sin(t * 1.5), P = SG.pos, C = SG.col;
+  for (let k = 0; k < SG_N; k++) { const h = SG.ph[k], o = k * 3, c = k * 4; let a, r, y, al, cl;
+    if (k < SG_CORE_N) { a = h * 6.283 + k * 1.047 + t * 0.22; r = 0.25 + 0.04 * Math.sin(t * 0.7 + h * 9); y = 0.1 + 0.06 * Math.sin(t * 0.9 + h * 5); al = 0.5 * br; cl = SG_CORE; } /* the halo: a soft ring hugging the basket's rim (0.25 m round, the basket is 0.25 m) */
+    else { const u = (t / (3.4 + h * 1.6) + h) % 1; a = h * 6.283 + t * 0.45; r = 0.17 + 0.12 * h + 0.04 * Math.sin(u * 6.283); y = 0.06 + u * 0.55; al = 0.55 * Math.sin(u * Math.PI) * (0.6 + 0.4 * br); cl = SG_EDGE; } /* a mote: up from the basket, fading in and out */
+    P[o] = SG.x + Math.cos(a) * r; P[o + 1] = SG.y + y; P[o + 2] = SG.z + Math.sin(a) * r; C[c] = cl[0]; C[c + 1] = cl[1]; C[c + 2] = cl[2]; C[c + 3] = al * f; }
+  SG.geo.attributes.position.needsUpdate = true; SG.geo.attributes.color.needsUpdate = true; }
 /* ---------- TRAINS: a low work train on a seeded clock. A trench ('cut') is a level railbed cut through the hillside under a deep bridge, from a
    portal on the uphill side out over a timber trestle into the valley: scenery only, the train never touches the rider there. A level crossing
    ('cross', with its ramps) lives in course.trains.cross / ramps and is placed by placeCrossings. Timing is a pure function of (seed, event k,
@@ -60886,6 +60982,7 @@ const SG_ARMS = STARS_ARM_FIX ? { eR: [0.08, 0.57, 0.33], pR: [0.07, 0.87, 0.31]
   : { eR: [-0.1, 0.68, 0.3], pR: [0.06, 0.93, 0.36], rR: [0.14, 0.56, 0.12], eL: [-0.1, 0.6, -0.3], pL: [0.1, 0.9, -0.3], rL: [0.14, 0.52, -0.1] }; /* stargazer figure frame: elbow, pointing hand, resting hand per arm */
 const CAMPER_FIX = 1; /* camper geometry pass: 1 = the guitar rests on the guitarist's right thigh (neck up to the fretting hand, the strumming forearm over the lower bout; GTR_ROUND picks the pose) and the kneeling mechanic's back boot points behind him; 0 = the older poses (the guitar body sank through both thighs, the boot pointed forward into the shin) */
 const CAMPER_FIX2 = 1; /* camper clearance pass 2 (look only): 1 = the reader's blanket is narrower and sits clear of the chest and forearms, the painter's palette is held out past the hand and the brush tip reaches the picture instead of the back of the canvas; 0 = the older shapes */
+const READER_BOOK_FIX = 1; /* the reader's book (look only): 1 = open pages face her eyes with the cover turned away, the spine upright between the hands, the halves in a shallow V, the hands under the lower corners and her head tipped down at the pages; 0 = the older book (pages facing away) */
 const PAINT_FIX_MODE = 1; /* how CAMPER_FIX2 pulls the brush to the picture plane: 1 = the painter stands 0.25 m farther from the easel, 2 = the brush hand reaches 0.2 m less far */
 const GTR_ROUND = 1; /* which guitarist pose CAMPER_FIX uses: 1 = the full-size guitar on the right thigh, the strumming elbow over the lower bout's top edge; 2 = a smaller guitar (GTR_SCALE), he leans over it, the elbow out at his side */
 const GTR_SCALE = CAMPER_FIX && GTR_ROUND === 2 ? 0.84 : 1; /* the guitar's size against the camper (its length, depth and width) */
@@ -61488,11 +61585,18 @@ function addCampMesh(cp) {
       animMesh(sp, sl); fx.strum = sp;
     } else if (variant === 5) { /* the reader: sitting up on the log with a blanket over the knees, a book held up in both hands (the right
          forearm lifts to turn a page), a lantern on a stump at her elbow. Same seat-A footprint as the cook. */
-      figure(F, { ...seated, ch: [0.05, 0.82, 0], hd: [0.1, 1.12, 0], eL: [0.18, 0.56, -0.28], hL: [0.4, 0.74, -0.13], eR: [0.18, 0.56, 0.28], hR: [0.4, 0.74, 0.13] }, ['foreR'], -0.42, { tap: 'L', headK: 0.4, read: true, talk: true }); /* absorbed: the head barely moves (it follows the page down and lifts at each turn), the left foot taps now and then */
+      figure(F, { ...seated, ch: [0.05, 0.82, 0], hd: [0.1, 1.12, 0], eL: [0.18, 0.56, -0.28], hL: [0.4, 0.74, -0.13], eR: [0.18, 0.56, 0.28], hR: [0.4, 0.74, 0.13] }, ['foreR'], READER_BOOK_FIX ? -0.56 : -0.42, { tap: 'L', headK: 0.4, read: true, talk: true }); /* absorbed: the head barely moves (it follows the page down and lifts at each turn), the left foot taps now and then */
+      const BOOK_C = [0.5, 0.84]; /* the book's center (figure frame): its lower corners rest in her fists, clear of the forearms */
+      if (READER_BOOK_FIX) { /* the book frame: +x = out of the pages toward her eyes (the cover faces the fire), +y up the spine; each half is hinged on the spine and swung 0.2 rad toward her in a shallow V */
+        const bth = Math.atan2(1.12 - BOOK_C[1], 0.17 - BOOK_C[0]), BK = new THREE.Matrix4().compose(V.set(BOOK_C[0], BOOK_C[1], 0), Q.setFromEuler(E.set(0, 0, bth)), Sc.set(1, 1, 1)).premultiply(F), HM = new THREE.Matrix4();
+        for (const sd of [-1, 1]) { HM.compose(V.set(0, 0, 0), Q.setFromEuler(E.set(0, sd * 0.2, 0)), Sc.set(1, 1, 1)).premultiply(BK); const hh = HM.clone(); put(box(0.025, 0.2, 0.13), '#8d3b2a', -0.012, 0, sd * 0.065, 0, 0, 0, 1, 1, 1, hh); put(box(0.012, 0.18, 0.12), '#f0e6d0', 0.008, 0.002, sd * 0.065, 0, 0, 0, 1, 1, 1, hh); for (let k = 0; k < 4; k++) put(box(0.004, 0.008, 0.08), '#a89c88', 0.015, 0.06 - k * 0.035, sd * 0.065, 0, 0, 0, 1, 1, 1, hh); } /* covers, pages, lines of print */
+        put(box(0.03, 0.21, 0.02), '#6e2d20', -0.016, 0, 0, 0, 0, 0, 1, 1, 1, BK); } /* the spine */
+      else {
       { const BK = new THREE.Matrix4().compose(V.set(0.43, 0.82, 0), Q.setFromEuler(E.set(0, 0, 0.35)), Sc.set(1, 1, 1)).premultiply(F); /* the book frame: +x = out of the pages toward the reader, tilted back; two halves opened in a shallow V on a spine */
         for (const sd of [-1, 1]) { put(box(0.025, 0.2, 0.135), '#8d3b2a', -0.012, 0, sd * 0.072, sd * 0.2, 0, 0, 1, 1, 1, BK); put(box(0.012, 0.18, 0.125), '#f0e6d0', 0.008, 0.002, sd * 0.07, sd * 0.2, 0, 0, 1, 1, 1, BK); for (let k = 0; k < 4; k++) put(box(0.004, 0.008, 0.08), '#a89c88', 0.015, 0.06 - k * 0.035, sd * 0.07, sd * 0.2, 0, 0, 1, 1, 1, BK); } /* covers, pages, lines of print */
         put(box(0.03, 0.21, 0.02), '#6e2d20', -0.016, 0, 0, 0, 0, 0, 1, 1, 1, BK); } /* the spine */
-      fx.arm = { g: foreArm(F, [0.18, 0.56, 0.28], [0.4, 0.74, 0.13], (sl, dx, dy, dz) => sl.push({ geo: box(0.008, 0.17, 0.11), col: '#f6efe0', m: new THREE.Matrix4().compose(V.set(dx + 0.035, dy + 0.1, dz - 0.07), Q.setFromEuler(E.set(0, 0, 0.35)), Sc.set(1, 1, 1)) })), q: null, mode: 'page' }; fx.arm.q = fx.arm.g.quaternion.clone(); /* the page half turned, on the hand */
+      }
+      fx.arm = { g: foreArm(F, [0.18, 0.56, 0.28], [0.4, 0.74, 0.13], (sl, dx, dy, dz) => sl.push({ geo: box(0.008, 0.17, 0.11), col: '#f6efe0', m: READER_BOOK_FIX ? new THREE.Matrix4().makeTranslation(-0.18, -0.56, -0.28).multiply(new THREE.Matrix4().compose(V.set(BOOK_C[0], BOOK_C[1], 0), Q.setFromEuler(E.set(0, 0, Math.atan2(1.12 - BOOK_C[1], 0.17 - BOOK_C[0]))), Sc.set(1, 1, 1))).multiply(new THREE.Matrix4().compose(V.set(0.03, 0.002, 0.065), Q.setFromEuler(E.set(0, 0.2, 0)), Sc.set(1, 1, 1))) : new THREE.Matrix4().compose(V.set(dx + 0.035, dy + 0.1, dz - 0.07), Q.setFromEuler(E.set(0, 0, 0.35)), Sc.set(1, 1, 1)) })), q: null, mode: 'page' }; fx.arm.q = fx.arm.g.quaternion.clone(); /* the page half turned, on the hand */
       { const bw = CAMPER_FIX2 ? 0.24 : 0.56, bx = CAMPER_FIX2 ? 0.48 : 0.24, bz = CAMPER_FIX2 ? 0.44 : 0.48; put(box(bw, 0.05, bz), '#3c7f7a', bx, 0.585, 0, 0, 0, -0.12, 1, 1, 1, F); put(box(bw + 0.01, 0.052, 0.1), '#2f625e', bx, 0.585, 0.12, 0, 0, -0.12, 1, 1, 1, F); put(box(bw + 0.01, 0.052, 0.1), '#2f625e', bx, 0.585, -0.12, 0, 0, -0.12, 1, 1, 1, F); } /* a blanket over the knees (on top of the thighs and knee patches), two stripes; with CAMPER_FIX2 it is a narrower throw lying across the knees only, clear of the chest and the forearms */
       { const [sx, sz] = fc(F, 0.02, -0.62); put(cyl(0.19, 0.4, 7), '#6b4a30', sx, 0.2, sz); put(cyl(0.17, 0.02, 7), '#c9a883', sx, 0.405, sz); /* a stump */
         put(cyl(0.09, 0.03, 6), '#2a2a2a', sx, 0.43, sz); put(cyl(0.075, 0.18, 6), '#ffe6a8', sx, 0.535, sz); put(new THREE.CylinderGeometry(0.03, 0.09, 0.05, 6), '#2a2a2a', sx, 0.65, sz); put(new THREE.TorusGeometry(0.05, 0.008, 4, 8, Math.PI), '#3a3a3a', sx, 0.68, sz); /* the lantern on it */
@@ -67936,7 +68040,7 @@ const pauseCam = (() => {
       if (i > 0 && i < 10) { const q = S.surf(x, z); if (q && y < q.h + 0.12) return false; }
       for (const f of T) { if (Math.abs(f.x - x) > f.r + 0.6 || Math.abs(f.z - z) > f.r + 0.6) continue; if (Math.hypot(f.x - x, f.z - z) < f.r + (i === 0 ? 0.6 : 0.15) && y < f.y + f.h) return false; } }
     return true; };
-  const solve = (w, h) => {
+  const solve = (w, h, card) => { /* card: frame the whole w x h (the share picture) and return the pose instead of keeping it */
     const RS = RIDER_SCALE; pts.length = 0;
     for (let k = 0; k < 11; k++) { const q = rp[k]; pts.push([q.x, q.y, q.z, NF_R[SEAT_KEYS[k]] * RS]); }
     pts.push([rp[2].x, rp[2].y + 0.22 * RS, rp[2].z, 0.1 * RS]); /* the helmet's crown */
@@ -67944,8 +68048,8 @@ const pauseCam = (() => {
     bikeGroup.traverseVisible((m) => { if (!m.isMesh || !m.geometry || !m.geometry.attributes.position) return; const pa = m.geometry.attributes.position, st = Math.max(1, Math.floor(pa.count / 500)); for (let i = 0; i < pa.count; i += st) { P.v.fromBufferAttribute(pa, i).applyMatrix4(m.matrixWorld); pts.push([P.v.x, P.v.y, P.v.z, 0.05]); } }); /* the whole bike with the basket and the cat */
     const lo = [1e9, 1e9, 1e9], hi = [-1e9, -1e9, -1e9]; for (const q of pts) for (let i = 0; i < 3; i++) { lo[i] = Math.min(lo[i], q[i] - q[3]); hi[i] = Math.max(hi[i], q[i] + q[3]); }
     P.l.set((lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2, (lo[2] + hi[2]) / 2);
-    const FR = free(w, h), ya = S.yaw + (S.fish || 0), fx = Math.cos(ya), fz = -Math.sin(ya), rx = Math.sin(ya), rz = Math.cos(ya); /* the bike's forward and right (the Euler Y turn of the bike group) */
-    const s0 = document.body.classList.contains('lefty') ? -1 : 1, EL = 12 * Math.PI / 180; /* s0: the rider faces toward the card (screen right with the rider on the left) */
+    const FR = card ? { L: 0.07 * w, R: 0.93 * w, T: 0.07 * h, B: 0.93 * h } : free(w, h), ya = S.yaw + (S.fish || 0), fx = Math.cos(ya), fz = -Math.sin(ya), rx = Math.sin(ya), rz = Math.cos(ya); /* the bike's forward and right (the Euler Y turn of the bike group) */
+    const s0 = card || !document.body.classList.contains('lefty') ? 1 : -1, EL = 12 * Math.PI / 180; /* s0: the rider faces toward the card (screen right with the rider on the left) */
     let first = null, best = null;
     for (const sd of [s0, -s0]) for (const deg of [45, 65, 28]) {
       const th = deg * Math.PI / 180, hx = fx * Math.cos(th) + rx * sd * Math.sin(th), hz = fz * Math.cos(th) + rz * sd * Math.sin(th);
@@ -67963,7 +68067,7 @@ const pauseCam = (() => {
       if (!out || !(out.fov > 8 && out.fov < 90)) continue;
       if (!first) first = out; if (clear(out.pos, P.l)) { best = out; break; } /* the first view whose line of sight is free; the preferred one when none is */
     }
-    best = best || first; if (!best) return false;
+    best = best || first; if (!best) return false; if (card) return { pos: best.pos, look: P.l.clone(), fov: best.fov, dx: best.dx, dy: best.dy };
     fit.pos.copy(best.pos); fit.look.copy(P.l); fit.fov = best.fov; fit.dx = best.dx; fit.dy = best.dy; fit.w = w; fit.h = h; fit.side = best.sd; fit.ok = true; return true; };
   const apply = (w, h) => { camera.position.copy(fit.pos); camera.lookAt(fit.look); camera.fov = fit.fov; const V = camera.view;
     if (!V || !V.enabled || V.offsetX !== fit.dx || V.offsetY !== fit.dy || V.fullWidth !== w || V.fullHeight !== h) camera.setViewOffset(w, h, fit.dx, fit.dy, w, h);
@@ -67972,6 +68076,7 @@ const pauseCam = (() => {
     get on() { return on; }, get fit() { return fit; }, get saved() { return sv; },
     enter() { if (on || !S.running || S.finished || S.camp) return; save(); on = true; fit.ok = false; document.body.classList.add('pauseCam'); },
     leave() { if (!on) return; on = false; document.body.classList.remove('pauseCam'); restore(); },
+    shoot(w, h) { try { return solve(w, h, true) || null; } catch (e) { return null; } }, /* the share card's close-up pose for a w x h picture (the pause lens is left as it is) */
     frame() { const w = innerWidth, h = innerHeight; if (!fit.ok || fit.w !== w || fit.h !== h) { if (!solve(w, h)) return; } apply(w, h); } };
 })();
 
@@ -68034,7 +68139,9 @@ $('pmBack').addEventListener('click', () => { if (!S.running || S.finished || pa
 $('pmCtl').addEventListener('click', () => openControls('pause'));
 $('pmSnd').addEventListener('click', () => { sfx.init(); sfx.toggle(); syncSettings(); }); /* the M switch */
 /* the DEV block folds to one row; it opens in place and closes again each time the card opens */
-function devFold(on) { const t = $('pmDevT'), b = $('pmDevB'); if (!t || !b) return; on = !!on; t.setAttribute('aria-expanded', String(on)); b.hidden = !on; }
+function devFold(on) { const t = $('pmDevT'), b = $('pmDevB'); if (!t || !b) return; on = !!on; t.setAttribute('aria-expanded', String(on)); b.hidden = !on; if (DEV_MENU_V2 && !on) devGroup('pmDevG'); }
+/* the V2 groups fold like one accordion: opening one closes the others, tapping the open one closes it */
+function devGroup(id) { const b = $('pmDevB'); if (!b) return; for (const h of b.querySelectorAll('.devG')) { const on = h.id === id; h.setAttribute('aria-expanded', String(on)); const g = $(h.id + 'B'); if (g) g.hidden = !on; } }
 if ($('pmDevT')) $('pmDevT').addEventListener('click', () => devFold($('pmDevB').hidden));
 /* ---- favorite mountains: up to FAV_MAX entries {code, date, time, theme} in holdon.favs, newest first. The star on the finish card adds or removes the
    mountain (a full list asks which one to replace); 'Favorites' in the pause card and on the title lists them (code, theme, best time, date): a row rides
@@ -68109,15 +68216,18 @@ $('pmSettings').addEventListener('click', () => openSettings('pause'));
 $('pmQuit').addEventListener('click', quitToTitle);
 /* ---- DEV: Reset game (new player). Two steps inside the pause card: the button, then 'Really erase everything?' with Cancel and Erase. Erase clears every localStorage key this game
    owns (all of them start with 'holdon.'), puts the in-memory profile back to defaults and reloads, so the next page is the title with Tap to start for a brand-new player. ---- */
-const DEV_ON = (DEV_UI || DEBUG || /[?&]dev\b/.test(location.search)) && !/[?&]nodev\b/.test(location.search);
-let devResetting = false;
-function devKeys() { const out = []; try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.indexOf('holdon.') === 0) out.push(k); } } catch (e) { } return out; }
+const DEV_LATER = DEV_UNLOCK && !DEV_FORCED && !DEV_NODEV; /* the public build: the section waits hidden in the card; the phrase and Hide dev tools switch it without a reload */
+const DEV_ON = DEV_FORCED || (DEV_LATER && devFlag());
+let devResetting = false, devWired = false;
+/* holdon.dev is a device setting, not progress: Reset game keeps it and the Progress code neither carries nor clears it */
+function devKeys() { const out = []; try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.indexOf('holdon.') === 0 && !(DEV_UNLOCK && k === 'holdon.dev')) out.push(k); } } catch (e) { } return out; }
 function devWipe() { for (const k of devKeys()) { try { localStorage.removeItem(k); } catch (e) { } } }
 function devAsk(on) { pauseAsk = !!on; $('pauseMenu').classList.toggle('asking', pauseAsk); if (screen !== 'pause') return; gpMenu.onScreen(); gpMenu.aim($(pauseAsk ? 'pmAskNo' : 'pmReset')); }
 function devErase() { devResetting = true; devWipe();
   try { Object.assign(PROF, { xp: 0, pts: { speed: 0, jump: 0, handling: 0, air: 0, landing: 0, accel: 0 }, buff: {}, bt: {}, classic: false, best: {}, mtn: {}, day: '', plays: 0 }); Object.assign(KITCHEN, { mode: 'both' }); bellyClear(); recomputeMOD(); } catch (e) { }
   try { location.reload(); } catch (e) { } }
-if (DEV_ON) {
+function devWire() { if (devWired) return; devWired = true;
+  if (DEV_LATER && $('pmFeel') && !$('pmDevHide')) { $('pmFeel').insertAdjacentHTML('afterend', '<button class="mb sm" id="pmDevHide" type="button">Hide dev tools</button>'); $('pmDevHide').addEventListener('click', devHide); }
   $('pmReset').addEventListener('click', () => devAsk(true)); $('pmAskNo').addEventListener('click', () => devAsk(false)); $('pmAskYes').addEventListener('click', devErase);
   addEventListener('pagehide', () => { if (devResetting) devWipe(); }); /* nothing written between the wipe and the unload survives */
   addEventListener('keydown', (e) => { if (pauseAsk && e.key === 'Enter' && !gpMenu.shown) { e.preventDefault(); e.stopImmediatePropagation(); gpMenu.confirm(); } }, true); /* Enter presses the focused button; the ride's own Enter (restart) must not fire under the confirmation */
@@ -68125,20 +68235,23 @@ if (DEV_ON) {
     let pick = 0; $('pmDevB').insertAdjacentHTML('beforeend', `<div class="devh">COMPANION</div><div class="drow"><button class="mb sm" id="pmPetPick" type="button"></button><button class="mb sm" id="pmPetGive" type="button">${DEV_GIVE ? 'Give animal' : 'Give'}</button></div>${DEV_GIVE ? '<div class="drow"><button class="mb sm" id="pmPetGB" type="button">Give basket</button><button class="mb sm" id="pmPetEq" type="button">Equip</button></div><button class="mb sm" id="pmPetSeat" type="button">Give + seat now</button>' : ''}
       <div class="drow"><button class="mb sm dsw" id="pmPetBk" role="switch" aria-checked="false" type="button"><span>Basket found</span><i class="dk"></i></button><button class="mb sm" id="pmPetDue" type="button">Find due now</button></div><button class="mb sm" id="pmPetReset" type="button">Reset companions</button>${DEV_L10 ? '<button class="mb sm dsw" id="pmL10" role="switch" aria-checked="false" type="button" aria-label="Test: level 10"><span>Test: level 10 <small>companion start</small></span><i class="dk"></i></button>' : ''}${DEV_KIT ? '<div class="drow"><button class="mb sm" id="pmPetMap" type="button">Rebuild map</button><button class="mb sm" id="pmPetGo" type="button">Go to the find</button></div><div class="drow"><button class="mb sm dsw" id="pmPetPk" role="switch" aria-checked="false" type="button"><span>Quick peeks</span><i class="dk"></i></button><button class="mb sm" id="pmPetNote" type="button">Board note: auto</button></div><div class="devi" id="pmPetInfo"></div>' : ''}`);
     let sync = () => { $('pmPetPick').textContent = 'Animal: ' + PET_NAME[PET_IDS[pick]] + (PETS.owned.includes(PET_IDS[pick]) ? ' ✓' : ''); $('pmPetBk').setAttribute('aria-checked', String(!!PETS.basket)); $('pmPetDue').textContent = PETS.force ? 'Find due: on' : 'Find due now';
-      if (DEV_KIT && $('pmPetInfo')) { $('pmPetInfo').textContent = petsDevInfo(); $('pmPetPk').setAttribute('aria-checked', String(devPeekFast)); $('pmPetNote').textContent = 'Board note: ' + (boardScrapForce === null ? 'auto' : boardScrapForce); } };
+      if (DEV_KIT && $('pmPetInfo')) { $('pmPetInfo').textContent = petsDevInfo(); if (DEV_MENU_V2) $('pmPetInfo').title = $('pmPetInfo').textContent; $('pmPetPk').setAttribute('aria-checked', String(devPeekFast)); $('pmPetNote').textContent = 'Board note: ' + (boardScrapForce === null ? 'auto' : boardScrapForce); } };
     $('pmPetPick').addEventListener('click', () => { pick = (pick + 1) % PET_IDS.length; sync(); });
     if (DEV_GIVE) { /* Give animal leaves the basket alone (the stump stays on the map, the note on the board); the basket, the basket rider and a seat at once are their own buttons */
       if (lsGet('holdon.devnb') && PETS.basket && PETS.owned.length) { PETS.basket = 0; petsBikeSync(); recomputeMOD(); } /* a given animal saved without the basket (the save itself always pairs them) */
       const giveDev = (id) => { const hadB = PETS.basket, lc = PETS.lastCode, fo = PETS.force; if (!petsGive(id)) return false; if (!hadB) { PETS.basket = 0; PETS.basketOn = 1; PETS.lastCode = lc; PETS.force = fo; lsSet('holdon.devnb', '1'); petsSave(); petsBikeSync(); recomputeMOD(); } return true; }; /* a gift is not a find on this map: the basket stays due here */
-      const said = (id) => PET_NAME[id] + ' found' + (PETS.basket ? '' : ' · the basket is still out there') + (S.camp ? ' · it hops in now' : ' · it sits at the next camp');
-      const seatSync = (old) => { old(); const id = PET_IDS[pick]; $('pmPetGB').textContent = PETS.basket ? 'Basket: found ✓' : 'Give basket'; $('pmPetEq').textContent = petsRider() === id ? 'Unequip ' + PET_NAME[id] : 'Equip ' + PET_NAME[id]; };
+      const said = (id) => DEV_MENU_V2 ? PET_NAME[id] + ' given' + (PETS.basket ? '' : ' · no basket yet') + (S.camp ? ' · here now' : ' · at the next camp') : PET_NAME[id] + ' found' + (PETS.basket ? '' : ' · the basket is still out there') + (S.camp ? ' · it hops in now' : ' · it sits at the next camp');
+      const seatSync = (old) => { old(); const id = PET_IDS[pick]; $('pmPetGB').textContent = PETS.basket ? (DEV_MENU_V2 ? 'Basket ✓ · take back' : 'Basket: found ✓') : 'Give basket'; $('pmPetEq').textContent = petsRider() === id ? 'Unequip ' + PET_NAME[id] : 'Equip ' + PET_NAME[id]; };
       const old = sync; sync = () => seatSync(old);
       $('pmPetGive').addEventListener('click', () => { const id = PET_IDS[pick]; toast(giveDev(id) ? said(id) : PET_NAME[id] + ' is already yours'); sync(); });
-      $('pmPetGB').addEventListener('click', () => { toast(petsBasketFound() ? 'Basket found and on the bike · Equip puts an animal in it' : 'The basket is yours already'); sync(); });
+      $('pmPetGB').addEventListener('click', () => {
+        if (DEV_MENU_V2 && PETS.basket) { if (PETS.owned.length) toast('Reset companions to lose the basket'); else { PETS.basket = 0; petsSave(); petsBikeSync(); recomputeMOD(); toast('Basket taken back'); } sync(); return; } /* the old Basket found switch, folded in */
+        toast(petsBasketFound() ? (DEV_MENU_V2 ? 'Basket on the bike' : 'Basket found and on the bike · Equip puts an animal in it') : 'The basket is yours already'); sync(); });
       $('pmPetEq').addEventListener('click', () => { const id = PET_IDS[pick];
+        if (DEV_MENU_V2) { if (!PETS.owned.includes(id)) giveDev(id); if (!PETS.basket) petsBasketFound(); } /* Give + seat now, folded in: Equip gives what is missing first */
         if (!PETS.basket) { toast('Give basket first'); return; } if (!PETS.owned.includes(id)) { toast('Give ' + PET_NAME[id] + ' first'); return; }
         const on = petsRider() !== id; PETS.chosen = on ? id : null; PETS.basketOn = 1; if (on && id === 'snake' && !PETS.snake) petsSnakeRoll(); recomputeMOD(); petsBikeSync(); petsSave(); if (S.camp && screen === 'camp') campUI.petsPaint();
-        toast(on ? PET_NAME[id] + ' rides in the bike basket' : PET_NAME[id] + ' sits at camp again'); sync(); });
+        toast(on ? PET_NAME[id] + (DEV_MENU_V2 ? ' in the basket' : ' rides in the bike basket') : PET_NAME[id] + (DEV_MENU_V2 ? ' back at camp' : ' sits at camp again')); sync(); });
       $('pmPetSeat').addEventListener('click', () => { const id = PET_IDS[pick]; if (!S.course || isTut()) { toast('Not in the tutorial'); return; } if (!petsOn()) { toast(petsDevInfo(true) || 'Companions are off here'); return; }
         const had = PETS.owned.includes(id); if (!had) giveDev(id);
         if (!S.camp) { const cps = S.course.checkpoints.filter((c) => c.lane), cp = cps.find((c) => c.idx >= S.segIdx) || cps[cps.length - 1]; if (!cp) { toast('No camp on this map'); return; }
@@ -68148,7 +68261,7 @@ if (DEV_ON) {
     } else
     $('pmPetGive').addEventListener('click', () => { const id = PET_IDS[pick], hadB = PETS.basket; toast(petsGive(id) ? PET_NAME[id] + ' found' + (DEV_KIT ? (hadB ? '' : ' · basket marked found, no stump now') + ' · sits at the next camp' : '') : PET_NAME[id] + ' is already yours'); sync(); });
     $('pmPetBk').addEventListener('click', () => { if (PETS.basket) { if (PETS.owned.length) { toast('Reset companions to lose the basket'); return; } PETS.basket = 0; petsSave(); petsBikeSync(); recomputeMOD(); } else petsBasketFound(); sync(); });
-    $('pmPetDue').addEventListener('click', () => { PETS.force = PETS.force ? 0 : 1; PETS.lastCode = ''; petsSave(); toast(PETS.force ? 'A find is due from the next mountain' : 'Normal pace'); sync(); });
+    $('pmPetDue').addEventListener('click', () => { PETS.force = PETS.force ? 0 : 1; PETS.lastCode = ''; petsSave(); toast(PETS.force ? (DEV_MENU_V2 ? 'Find due on the next map' : 'A find is due from the next mountain') : 'Normal pace'); sync(); });
     $('pmPetReset').addEventListener('click', () => { petsReset(); toast('Companions reset'); sync(); });
     if (DEV_L10 && $('pmL10')) { /* Test: level 10 - raises the profile XP to level 10 and lets the companion start rule pass; unchecking gives the XP back */
       try { const o = JSON.parse(lsGet('holdon.devl10') || 'null'); if (o && o.on) devL10 = { on: 1, xp: clampI(o.xp, 0, 1e7), b: clampI(o.b, 0, 1e7) }; } catch (e) { devL10 = null; }
@@ -68170,7 +68283,53 @@ if (DEV_ON) {
       $('pmPetPk').addEventListener('click', () => { devPeekFast = !devPeekFast; PK.next = -1; toast(devPeekFast ? 'Quick peeks on: sit at a camp' : 'Quick peeks off'); sync(); });
       $('pmPetNote').addEventListener('click', () => { const L = [null, 1, 2, 3, 4], k = L[(L.indexOf(boardScrapForce) + 1) % L.length]; boardScrapForce = k; petsBoardSync(); toast(k === null ? 'Board note: auto' : 'Board note ' + k + ' at the next camp'); sync(); }); }
     $('pmDevT').addEventListener('click', sync); sync(); }
-} else { $('pmDev').remove(); $('pmAsk').remove(); }
+  if (DEV_MENU_V2) devMenuV2();
+}
+if (DEV_ON) devWire(); else if (!DEV_LATER) { $('pmDev').remove(); $('pmAsk').remove(); }
+if (DEV_LATER) $('pmDev').hidden = !DEV_ON;
+/* the DEV section in three groups. The buttons keep their ids and handlers and are only moved; Basket found and Give + seat now stay in the page (hidden)
+   because Give basket now also takes the basket back and Equip gives what is missing first */
+function devMenuV2() { const B = $('pmDevB'); if (!B) return;
+  const chev = '<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5l4 4 4-4"/></svg>';
+  const row = (...ids) => { const L = ids.map((i) => $(i)).filter(Boolean); if (!L.length) return null; if (L.length === 1) return L[0]; const r = document.createElement('div'); r.className = 'drow'; r.append(...L); return r; };
+  const grp = (id, label, parts) => { parts = parts.filter(Boolean); if (!parts.length) return null; const h = document.createElement('button'), g = document.createElement('div');
+    h.type = 'button'; h.className = 'mb sm devG'; h.id = id; h.setAttribute('aria-expanded', 'false'); h.setAttribute('aria-controls', id + 'B'); h.innerHTML = '<span>' + label + '</span>' + chev;
+    g.className = 'devGB'; g.id = id + 'B'; g.hidden = true; g.append(...parts); h.addEventListener('click', () => devGroup(h.getAttribute('aria-expanded') === 'true' ? '' : id)); return [h, g]; };
+  if ($('pmReset') && $('pmL10')) { $('pmReset').textContent = 'Reset game'; $('pmReset').title = 'Reset game (new player)'; } /* a half-width button: the short label (before the moves: $ only finds nodes still in the page) */
+  const parts = [grp('pmDevG', 'GAME', [row('pmReset', 'pmL10'), row('pmHaptic', 'pmFps'), $('pmFeel'), $('pmDevHide')]),
+    grp('pmDevC', 'COMPANIONS', [$('pmPetInfo'), row('pmPetPick', 'pmPetGive'), $('pmPetGB') ? row('pmPetGB', 'pmPetEq') : row('pmPetBk'), row('pmPetDue', 'pmPetReset')]),
+    grp('pmDevW', 'WORLD', [row('pmPetMap', 'pmPetGo'), row('pmPetPk', 'pmPetNote')])];
+  const x = document.createElement('div'); x.className = 'devX'; for (const i of ['pmPetBk', 'pmPetSeat']) if ($(i) && !$(i).closest('.devGB')) x.append($(i));
+  B.replaceChildren(...parts.filter(Boolean).flat(), x); devGroup('pmDevG'); }
+/* SHA-256 of a string's UTF-8 bytes as lowercase hex. Synchronous and local because crypto.subtle is missing on a plain-http page (a LAN copy) */
+function sha256Hex(str) {
+  const K = [0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5, 0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+    0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da, 0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+    0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85, 0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+    0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3, 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2];
+  const H = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19];
+  const b = new TextEncoder().encode(String(str)), n = b.length, L = Math.ceil((n + 9) / 64) * 64, m = new Uint8Array(L); m.set(b); m[n] = 0x80;
+  const dv = new DataView(m.buffer); dv.setUint32(L - 8, Math.floor(n / 0x20000000)); dv.setUint32(L - 4, (n * 8) >>> 0);
+  const w = new Uint32Array(64), r = (x, k) => (x >>> k) | (x << (32 - k));
+  for (let o = 0; o < L; o += 64) {
+    for (let i = 0; i < 16; i++) w[i] = dv.getUint32(o + i * 4);
+    for (let i = 16; i < 64; i++) { const a = w[i - 15], c = w[i - 2]; w[i] = (w[i - 16] + (r(a, 7) ^ r(a, 18) ^ (a >>> 3)) + w[i - 7] + (r(c, 17) ^ r(c, 19) ^ (c >>> 10))) >>> 0; }
+    const v = H.slice();
+    for (let i = 0; i < 64; i++) { const [a, bb, c, d, e, f, g, h] = v;
+      const t1 = (h + (r(e, 6) ^ r(e, 11) ^ r(e, 25)) + ((e & f) ^ (~e & g)) + K[i] + w[i]) >>> 0, t2 = ((r(a, 2) ^ r(a, 13) ^ r(a, 22)) + ((a & bb) ^ (a & c) ^ (bb & c))) >>> 0;
+      v[7] = g; v[6] = f; v[5] = e; v[4] = (d + t1) >>> 0; v[3] = c; v[2] = bb; v[1] = a; v[0] = (t1 + t2) >>> 0; }
+    for (let i = 0; i < 8; i++) H[i] = (H[i] + v[i]) >>> 0;
+  }
+  return H.map((x) => x.toString(16).padStart(8, '0')).join(''); }
+function devPhrase(v) { if (!DEV_UNLOCK || typeof v !== 'string' || v.length > 400) return false; const t = v.trim().toLowerCase().replace(/\s+/g, ' '); if (!t) return false;
+  try { return sha256Hex(DEV_SALT + t) === DEV_HASH; } catch (e) { return false; } }
+function devUnlock() { try { localStorage.setItem('holdon.dev', '1'); } catch (e) { } /* blocked storage: on for this visit only */
+  if (DEV_LATER) { devWire(); $('pmDev').hidden = false; devFold(false); } }
+/* Hide dev tools: what the section switched on goes back off (Test: level 10 returns the XP, Classic feel off), then the section hides until the phrase again */
+function devHide() { if (!DEV_LATER) return; if (devL10On() && $('pmL10')) $('pmL10').click(); if (PROF.classic) { PROF.classic = false; saveProfile(); recomputeMOD(); syncSettings(); }
+  devPeekFast = false; if (COMPANIONS_ON && boardScrapForce !== null) { boardScrapForce = null; petsBoardSync(); }
+  try { localStorage.removeItem('holdon.dev'); } catch (e) { } devFold(false); $('pmDev').hidden = true; toast('Dev tools hidden');
+  if (screen === 'pause') { gpMenu.onScreen(); gpMenu.aim($('pmResume')); } }
 $('pmHints').addEventListener('click', () => { pad.showHints(); toast('Touch hints will show on the next ride'); });
 $('btnSettings').addEventListener('click', () => openSettings('title'));
 $('setClose').addEventListener('click', () => setScreen(setBack));
@@ -68362,7 +68521,7 @@ function progParse(code) { /* returns { keys } or { err } */
   let o; try { o = JSON.parse(progUnB64(String(code || '').trim())); } catch (e) { return { err: 'Not a progress code' }; }
   if (!o || typeof o !== 'object' || o.v !== 1 || !o.keys || typeof o.keys !== 'object' || Array.isArray(o.keys)) return { err: 'Wrong version' };
   const keys = {}; let size = 0;
-  for (const k of Object.keys(o.keys)) { const v = o.keys[k]; if (k.indexOf('holdon.') !== 0 || typeof v !== 'string') continue; size += k.length + v.length; keys[k] = v; } /* anything else is ignored */
+  for (const k of Object.keys(o.keys)) { const v = o.keys[k]; if (k.indexOf('holdon.') !== 0 || typeof v !== 'string' || (DEV_UNLOCK && k === 'holdon.dev')) continue; size += k.length + v.length; keys[k] = v; } /* anything else is ignored */
   if (progSum(JSON.stringify(o.keys)) !== o.c) return { err: 'Code is damaged' };
   if (size > PROG_CAP) return { err: 'Code is too big' };
   return { keys };
@@ -68416,6 +68575,7 @@ $('btnDaily').addEventListener('click', () => { newRun(dailySeed(), { chosen: tr
 $('btnTut').addEventListener('click', () => { newRun(TUT_SEED); startRiding(); }); /* the set tutorial level (MTN-BASICS), one camp */
 $('btnCode').addEventListener('click', () => { const r = $('codeRow'); r.hidden = !r.hidden; if (!r.hidden) { $('codeIn').value = ''; $('codeMsg').textContent = ''; $('codeIn').focus(); } gpMenu.codeRow(!r.hidden); });
 const rideCode = () => {
+  if (DEV_UNLOCK && devPhrase($('codeIn').value)) { devUnlock(); $('codeIn').value = ''; const m = 'Dev tools on · DEV is in the pause card'; if (SHARE_V1) shSay('code', m, true); else $('codeMsg').textContent = m; return; }
   if (SHARE_V1) { const p = shareCodeIn($('codeIn').value); if (!p) { const r = $('codeRow'); r.classList.remove('shake'); void r.offsetWidth; r.classList.add('shake'); shSay('code', 'Not a mountain code. Codes look like MTN-C2K1Q.'); return; } shRide(p); return; } /* a share line or link works too; its time shows as 'Time to beat' at the finish */
   let raw = ($('codeIn').value || '').trim().toUpperCase().replace(/\s+/g, ''); if (raw.includes('#')) raw = raw.slice(raw.lastIndexOf('#') + 1); /* a pasted share link works too; maxlength 40 (a code pasted with spaces must not be cut short and ride the wrong mountain) */
   if (TUT_ALIAS[raw]) raw = TUT_ALIAS[raw]; /* TUTORIAL / LEARN / BASICS ride the tutorial */
@@ -68683,10 +68843,12 @@ function shareOwn(code) { if (code === TUT_CODE) return 0; let best = 0; const a
   try { add(parseFloat(localStorage.getItem('holdon.best.' + code))); add(parseFloat(localStorage.getItem('holdon.best.' + code + ':s'))); } catch (e) { }
   try { const f = favsLoad().find(g => g.code === code); if (f) add(f.time); } catch (e) { }
   if (S.course && S.finished && seedToCode(S.course.seed) === code) add(S.t); return shareCap(best); }
-function shareLink(code, t) { let u = ''; try { u = String(PUBLIC_URL || '').split('#')[0].split('?')[0]; if (!u && /^https?:$/.test(location.protocol)) u = location.origin + location.pathname; } catch (e) { u = ''; }
+function shareLink(code, t) { if (!SHARE_LINK) return ''; let u = ''; try { u = String(PUBLIC_URL || '').split('#')[0].split('?')[0]; if (!u && /^https?:$/.test(location.protocol)) u = location.origin + location.pathname; } catch (e) { u = ''; }
   return u ? u + '?' + code + (t ? '&t=' + fmtTime(t) : '') : ''; } /* nothing of the page's own query is carried (no tester switches) */
-const shareText = (code, t) => t ? 'I rode ' + code + ' in ' + fmtTime(t) + ' on No Hander. Beat it:' : 'Ride ' + code + ' on No Hander:';
-const shareFull = (code, t) => { const L = shareLink(code, t), s = shareText(code, t); return L ? s + ' ' + L : s.replace(/:$/, '') + ' (Enter code on the title)'; };
+/* the two lines drawn on the share card (the shared text itself is only the bare code, so it pastes straight into Enter code) */
+const shareLines = (code, t) => t ? ['I rode ' + code + ' in ' + fmtTime(t) + ' on No Hander.', 'Enter the code on the title screen to beat it.'] : ['Try mountain ' + code + ' on No Hander.', 'Enter the code on the title screen.'];
+const shareText = (code, t) => !SHARE_LINK ? shareLines(code, t).join(' ') : t ? 'I rode ' + code + ' in ' + fmtTime(t) + ' on No Hander. Beat it:' : 'Ride ' + code + ' on No Hander:';
+const shareFull = (code, t) => { if (!SHARE_LINK) return code; const L = shareLink(code, t), s = shareText(code, t); return L ? s + ' ' + L : s.replace(/:$/, '') + ' (Enter code on the title)'; };
 const shareTheme = (seed) => { try { const T = themeOf(seed); return T && T.name ? T.name : ''; } catch (e) { return ''; } };
 /* ---- the rider picture: the frame right after the finish render is copied at once (no preserved buffer needed), cropped square around the rider */
 function shBlank(c) { try { const s = document.createElement('canvas'); s.width = s.height = 8; const g = s.getContext('2d'); g.drawImage(c, 0, 0, 8, 8); const d = g.getImageData(0, 0, 8, 8).data; let lo = 255, hi = 0, a = 0;
@@ -68698,7 +68860,7 @@ function shareSnap() { shShotWant = false; if (!S.course) return; try { const cv
   c.getContext('2d').drawImage(cv, sx, sy, side, side, 0, 0, 540, 540); if (shBlank(c)) return; shShot = c; shShotCode = seedToCode(S.course.seed); } catch (e) { /* no picture: the card falls back to the logo, the code and the time */ } }
 /* ---- the share card: 1200 x 630 */
 function shFit(g, s, px, font, max) { let z = px; g.font = font.replace('#', z + 'px'); while (z > 12 && g.measureText(s).width > max) { z -= 2; g.font = font.replace('#', z + 'px'); } return z; }
-function shareCard(code, t) { const W = 1200, H = 630, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d'); if (!g) return null;
+function shareCardV1(code, t) { const W = 1200, H = 630, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d'); if (!g) return null;
   const DISP = 'italic 900 # "Barlow Condensed", "Arial Narrow", system-ui, sans-serif', UI = '600 # "Rubik", system-ui, "Segoe UI", sans-serif', MONO = '700 # ui-monospace, Menlo, Consolas, monospace';
   const ACC = '#ffb24a', ACC2 = '#f0702a', CREAM = '#fdf8ea', seed = codeToSeed(code), theme = shareTheme(seed), shot = shShot && shShotCode === code ? shShot : null;
   const bg = g.createLinearGradient(0, 0, W, H); bg.addColorStop(0, '#2b1b12'); bg.addColorStop(1, '#120b07'); g.fillStyle = bg; g.fillRect(0, 0, W, H);
@@ -68714,37 +68876,136 @@ function shareCard(code, t) { const W = 1200, H = 630, c = document.createElemen
   g.fillStyle = 'rgba(253,248,234,0.85)'; shFit(g, theme, 30, UI, maxW); if (theme) g.fillText(theme, X0, cx === null ? 348 : 384);
   if (t) { g.fillStyle = 'rgba(253,248,234,0.6)'; shFit(g, 'MY TIME', 22, UI, maxW); g.fillText('MY TIME', X0, cx === null ? 420 : 446); g.fillStyle = CREAM; shFit(g, fmtTime(t), 76, DISP, maxW); g.fillText(fmtTime(t), X0, cx === null ? 492 : 516); }
   else { g.fillStyle = CREAM; shFit(g, 'Can you ride it?', 46, DISP, maxW); g.fillText('Can you ride it?', X0, cx === null ? 470 : 486); }
-  let host = ''; try { host = String(PUBLIC_URL || '').replace(/^https?:\/\//, '').split(/[?#]/)[0]; } catch (e) { host = ''; }
-  const foot = 'Enter the code on the title' + (host ? '  ·  ' + host : ''); g.fillStyle = 'rgba(253,248,234,0.7)'; shFit(g, foot, 22, UI, maxW); g.fillText(foot, X0, cx === null ? 566 : 586);
+  if (SHARE_LINK) { let host = ''; try { host = String(PUBLIC_URL || '').replace(/^https?:\/\//, '').split(/[?#]/)[0]; } catch (e) { host = ''; }
+    const foot = 'Enter the code on the title' + (host ? '  ·  ' + host : ''); g.fillStyle = 'rgba(253,248,234,0.7)'; shFit(g, foot, 22, UI, maxW); g.fillText(foot, X0, cx === null ? 566 : 586); }
+  else { const L = shareLines(code, t); g.fillStyle = 'rgba(253,248,234,0.92)'; shFit(g, L[1].length > L[0].length ? L[1] : L[0], 26, UI, maxW); const z = parseInt(g.font.match(/(\d+)px/)[1], 10);
+    g.font = UI.replace('#', z + 'px'); g.fillText(L[0], X0, 560); g.fillStyle = 'rgba(253,248,234,0.78)'; g.fillText(L[1], X0, 560 + z + 8); }
   return c; }
-const shKey = (code, t) => code + '|' + (t ? fmtTime(t) : '');
+/* ---- the vista card (SHARE_CARD_V2): a theme sky with a sun glow and three hazy ridges (their shapes come from a hash of the code string, so every
+   code has its own card and nothing seeded is drawn from), the rider picture in a rounded frame on the left, the title ribbon, the code banner with
+   the theme pill and the finish time panel on the right, the two-line sentence in a dark footer. The picture is the pause close-up rendered ONCE into
+   an offscreen target at card size while the finish or pause card is up (shHero); without it the last close-up of the same mountain is used, without that the column is centered (no
+   picture). Every Share (finish card, pause card, favorites rows, the panel preview and Save image) draws its card here, so all show the same lens */
+let shCardPath = '', shHeroMs = 0, shHeroC = null;
+const SH_VISTA = { /* sky top / middle / bottom, the ridge colors far to near, the sun */
+  pine: { sky: ['#5f8aa3', '#cfe2e6', '#f3ead0'], ridge: ['#7d9fa8', '#4f7a73', '#2b5148'], sun: '#fff0c0' },
+  autumn: { sky: ['#c98a5a', '#f2c991', '#fbeccb'], ridge: ['#c99a74', '#a8643c', '#6f3b26'], sun: '#fff1c8' },
+  scrub: { sky: ['#d79a5e', '#f6d7a0', '#fdf0cf'], ridge: ['#d1ad84', '#a88a5a', '#76603f'], sun: '#fff4d0' },
+  alpine: { sky: ['#4d83c0', '#bcd8ee', '#f2f7fb'], ridge: ['#9fb4cc', '#6f8aa6', '#3f5c4a'], sun: '#ffffff', snow: true },
+  canyon: { sky: ['#b8764e', '#efc59a', '#fbeedd'], ridge: ['#c69a7c', '#a0623f', '#6a3a24'], sun: '#fff0d0' },
+  mist: { sky: ['#7f95a3', '#c9d5db', '#eef1f0'], ridge: ['#a7b6bd', '#7d9294', '#4d6563'], sun: '#fffbe8' } };
+const shHex = (c) => { c = String(c || '#000000').replace('#', ''); return [0, 2, 4].map(i => parseInt(c.slice(i, i + 2), 16) || 0); };
+const shMix = (a, b, t) => a.map((v, i) => Math.round(v + (b[i] - v) * t));
+const shCss = (a, al) => 'rgba(' + a[0] + ',' + a[1] + ',' + a[2] + ',' + (al === undefined ? 1 : al) + ')';
+function shRnd(str) { let h = 2166136261; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } h = h >>> 0 || 1; /* FNV-1a of the code, then xorshift32 */
+  return () => { h ^= h << 13; h >>>= 0; h ^= h >>> 17; h ^= h << 5; h >>>= 0; return h / 4294967296; }; }
+function shRR(g, x, y, w, h, r) { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
+/* the pause close-up of the rider (with the bike, the basket and its animal) rendered once into an offscreen target of W x H, read back into a 2D canvas.
+   The target reports the screen's output color space and tone mapping (isXRRenderTarget), so every material keeps the program it already has; its
+   buffers are made plain RGBA8 before that flag is set, so the colors are encoded once, as on screen. The ride lens is put back right after. */
+function shHero(code, fresh) { if (fresh) shHeroC = null; if (!SHARE_CARD_V2 || !S.course || seedToCode(S.course.seed) !== code || S.camp || MINI_VIEW || gfxLost || noRender() || !(screen === 'end' || screen === 'pause')) return null;
+  const key = code + '|' + screen + '|' + (+S.t || 0).toFixed(3); if (shHeroC && shHeroC.key === key) return shHeroC.canvas;
+  const W = 822, H = 696, cam = camera, t0 = performance.now(); let rt = null, prev = null, out = null, kept = false;
+  const sv = { pos: cam.position.clone(), quat: cam.quaternion.clone(), fov: cam.fov, aspect: cam.aspect, sky: sky.position.clone(), fc: fadeU.cam.value.clone(), view: cam.view && cam.view.enabled ? Object.assign({}, cam.view) : null };
+  try { const f = pauseCam.shoot(W, H); if (!f) return null; kept = true; prev = renderer.getRenderTarget();
+    cam.position.copy(f.pos); cam.lookAt(f.look); cam.fov = f.fov; cam.aspect = W / H; cam.setViewOffset(W, H, f.dx, f.dy, W, H); cam.updateProjectionMatrix(); cam.updateMatrixWorld(true);
+    sky.position.copy(cam.position); fadeU.cam.value.copy(cam.position); cullChunks();
+    rt = new THREE.WebGLRenderTarget(W, H, { samples: 4 }); renderer.setRenderTarget(rt); rt.texture.colorSpace = THREE.SRGBColorSpace; rt.isXRRenderTarget = true;
+    renderer.render(scene, cam); const px = new Uint8Array(W * H * 4); renderer.readRenderTargetPixels(rt, 0, 0, W, H, px);
+    const c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d'), im = g.createImageData(W, H), row = W * 4;
+    for (let y = 0; y < H; y++) im.data.set(px.subarray((H - 1 - y) * row, (H - y) * row), y * row); /* GL rows run bottom-up */
+    for (let i = 3; i < im.data.length; i += 4) im.data[i] = 255; g.putImageData(im, 0, 0); if (!shBlank(c)) out = c;
+  } catch (e) { out = null; }
+  finally { if (kept) { try { renderer.setRenderTarget(prev); } catch (e) { } cam.position.copy(sv.pos); cam.quaternion.copy(sv.quat); cam.fov = sv.fov; cam.aspect = sv.aspect;
+      if (sv.view) cam.setViewOffset(sv.view.fullWidth, sv.view.fullHeight, sv.view.offsetX, sv.view.offsetY, sv.view.width, sv.view.height); else cam.clearViewOffset();
+      cam.updateProjectionMatrix(); cam.updateMatrixWorld(true); sky.position.copy(sv.sky); fadeU.cam.value.copy(sv.fc); try { cullChunks(); } catch (e) { } }
+    if (rt) { try { rt.dispose(); } catch (e) { } } }
+  shHeroMs = performance.now() - t0; if (out) shHeroC = { key, code, canvas: out }; return out; }
+function shareCard2(code, t) { const W = 1200, H = 630, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d'); if (!g) return null;
+  const DISP = 'italic 900 # "Barlow Condensed", "Arial Narrow", system-ui, sans-serif', UI = '700 # "Rubik", system-ui, "Segoe UI", sans-serif', MONO = '700 # ui-monospace, Menlo, Consolas, monospace';
+  const seed = codeToSeed(code); let T = null; try { T = themeOf(seed); } catch (e) { T = null; } const V = SH_VISTA[T && T.id] || SH_VISTA.pine, rnd = shRnd(code);
+  const ACC = '#ffb24a', CREAM = '#fdf8ea', sk = V.sky.map(shHex), fog = shHex(T && T.fog || V.sky[2]), haze0 = shMix(sk[2], fog, 0.3);
+  let hero = null, path = 'none'; try { hero = shHero(code); if (hero) path = 'hero'; } catch (e) { hero = null; }
+  if (!hero && shHeroC && shHeroC.code === code) { hero = shHeroC.canvas; path = 'last'; } /* the last close-up of this mountain (a Share from the title favorites, a failed capture); the plain game camera is never used */
+  /* sky, sun glow, sun */
+  const bg = g.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, shCss(sk[0])); bg.addColorStop(0.55, shCss(sk[1])); bg.addColorStop(1, shCss(sk[2])); g.fillStyle = bg; g.fillRect(0, 0, W, H);
+  const sx = (0.86 + rnd() * 0.1) * W, sy = (0.05 + rnd() * 0.05) * H, sc = shHex(V.sun), gl = g.createRadialGradient(sx, sy, 0, sx, sy, 540);
+  gl.addColorStop(0, shCss(sc, 0.75)); gl.addColorStop(0.18, shCss(sc, 0.42)); gl.addColorStop(0.45, shCss(sc, 0.16)); gl.addColorStop(1, shCss(sc, 0)); g.fillStyle = gl; g.fillRect(0, 0, W, H);
+  g.fillStyle = shCss(sc, 0.92); g.beginPath(); g.arc(sx, sy, 46, 0, Math.PI * 2); g.fill();
+  /* three ridges (midpoint displacement), hazy at the top and darker below; snow caps on the far one in the alpine theme, a mist band after it */
+  const bases = [0.45, 0.60, 0.76], amps = [0.36, 0.30, 0.22];
+  for (let li = 0; li < 3; li++) { let pts = [rnd(), rnd()], amp = 0.5; const rough = 0.52 + li * 0.03;
+    for (let it = 0; it < 9; it++) { const nw = []; for (let i = 0; i < pts.length - 1; i++) nw.push(pts[i], (pts[i] + pts[i + 1]) / 2 + (rnd() - 0.5) * amp); nw.push(pts[pts.length - 1]); pts = nw; amp *= rough; }
+    const n = pts.length, col = shHex(V.ridge[li]), hz = shMix(col, haze0, 0.35 - li * 0.12), ys = [];
+    g.beginPath(); g.moveTo(0, H); for (let i = 0; i < n; i++) { const y = (bases[li] - (pts[i] - 0.5) * amps[li] * (li < 2 ? 1 : 0.7)) * H; ys.push(y); g.lineTo(i / (n - 1) * W, y); } g.lineTo(W, H); g.closePath();
+    const y0 = (bases[li] - 0.2) * H, gr = g.createLinearGradient(0, Math.max(0, y0), 0, Math.min(H, y0 + 0.6375 * H)); gr.addColorStop(0, shCss(hz)); gr.addColorStop(1, shCss(col)); g.fillStyle = gr; g.fill();
+    if (V.snow && li === 0) { g.save(); g.clip(); g.fillStyle = 'rgba(250,252,255,0.85)'; g.beginPath(); const lim = bases[0] * H - 0.14 * amps[0] * H;
+      for (let i = 0; i < n; i += 2) { const x = i / (n - 1) * W, y = ys[i]; if (y < lim) { g.moveTo(x - 60, y + 60); g.lineTo(x, y - 2); g.lineTo(x + 60, y + 60); g.closePath(); } } g.fill(); g.restore(); }
+    if (li === 0) { const my = bases[1] * H, mg = g.createLinearGradient(0, my - 70, 0, my + 80); mg.addColorStop(0, shCss(haze0, 0)); mg.addColorStop(0.47, shCss(haze0, 0.36)); mg.addColorStop(1, shCss(haze0, 0)); g.fillStyle = mg; g.fillRect(0, my - 70, W, 150); } }
+  /* soft vignette */
+  g.save(); g.translate(W / 2, H / 2); g.scale(1, (0.85 * H) / (0.75 * W)); const vg = g.createRadialGradient(0, 0, 0.55 * 0.75 * W, 0, 0, 1.25 * 0.75 * W); vg.addColorStop(0, 'rgba(25,12,6,0)'); vg.addColorStop(1, 'rgba(25,12,6,0.45)'); g.fillStyle = vg; g.fillRect(-W, -W, 2 * W, 2 * W); g.restore();
+  /* the footer band */
+  const FB = 112; g.fillStyle = 'rgba(30,18,11,0.93)'; g.fillRect(0, H - FB, W, FB); g.fillStyle = ACC; g.fillRect(0, H - FB - 1.5, W, 3);
+  /* the rider picture: cover-cropped, rounded, vignetted, a cream border and a drop shadow */
+  const hx = 34, hy = 34, hw = 548, hh = 464, hr = 30;
+  if (hero) { g.save(); g.shadowColor = 'rgba(15,8,4,0.6)'; g.shadowBlur = 28; g.shadowOffsetY = 8; g.fillStyle = 'rgba(15,8,4,0.9)'; shRR(g, hx, hy, hw, hh, hr); g.fill(); g.restore();
+    const a = hw / hh; let sw = hero.width, sh = sw / a; if (sh > hero.height) { sh = hero.height; sw = sh * a; } const ox = (hero.width - sw) / 2, oy = (hero.height - sh) * 0.25;
+    g.save(); shRR(g, hx, hy, hw, hh, hr); g.clip(); g.drawImage(hero, ox, oy, sw, sh, hx, hy, hw, hh);
+    g.translate(hx + hw / 2, hy + hh / 2); g.scale(1, hh / hw); const iv = g.createRadialGradient(0, 0, hw * 0.36, 0, 0, hw * 0.78); iv.addColorStop(0, 'rgba(20,10,5,0)'); iv.addColorStop(1, 'rgba(20,10,5,0.5)'); g.fillStyle = iv; g.fillRect(-hw, -hw, 2 * hw, 2 * hw); g.restore();
+    g.strokeStyle = 'rgba(253,248,234,0.9)'; g.lineWidth = 4; shRR(g, hx, hy, hw, hh, hr); g.stroke(); }
+  /* the right column (centered on the card when there is no picture) */
+  const RX0 = hero ? 620 : 327, RX1 = hero ? 1166 : 873, RC = (RX0 + RX1) / 2; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillStyle = 'rgba(38,22,14,0.96)'; g.beginPath(); g.moveTo(RX0 - 10, 44); g.lineTo(RX1 + 10, 44); g.lineTo(RX1 - 4, 98); g.lineTo(RX1 + 10, 152); g.lineTo(RX0 - 10, 152); g.lineTo(RX0 + 4, 98); g.closePath(); g.fill();
+  g.fillStyle = ACC; g.fillRect(RX0 - 10, 44, RX1 - RX0 + 20, 5);
+  g.save(); g.shadowColor = 'rgba(20,10,5,0.35)'; g.shadowBlur = 6; g.shadowOffsetY = 3; g.fillStyle = CREAM; shFit(g, 'NO HANDER', 104, DISP, 440); g.fillText('NO HANDER', RC, 104); g.restore();
+  const by0 = 176, by1 = 276; g.save(); g.shadowColor = 'rgba(15,8,4,0.55)'; g.shadowBlur = 16; g.shadowOffsetY = 7; g.fillStyle = ACC; shRR(g, RX0, by0, RX1 - RX0, by1 - by0, 22); g.fill(); g.restore();
+  g.strokeStyle = 'rgb(255,236,200)'; g.lineWidth = 2; shRR(g, RX0 + 6, by0 + 6, RX1 - RX0 - 12, by1 - by0 - 12, 17); g.stroke();
+  g.fillStyle = 'rgb(88,40,12)'; g.font = UI.replace('#', '16px'); g.fillText(t ? 'MOUNTAIN CODE' : 'TRY MOUNTAIN', RC, by0 + 27);
+  g.fillStyle = 'rgb(43,22,12)'; shFit(g, code, 66, MONO, 500); g.fillText(code, RC, by0 + 63);
+  const nm = String(T && T.name || '').toUpperCase(); if (nm) { g.font = UI.replace('#', '18px'); const pw = g.measureText(nm).width + 44; g.fillStyle = 'rgba(30,18,11,0.84)'; shRR(g, RC - pw / 2, 288, pw, 30, 15); g.fill(); g.fillStyle = 'rgb(253,240,214)'; g.fillText(nm, RC, 304); }
+  g.fillStyle = 'rgba(30,18,11,0.7)'; shRR(g, RX0, 336, RX1 - RX0, 162, 24); g.fill();
+  g.fillStyle = ACC; g.font = UI.replace('#', '19px'); g.fillText(t ? 'FINISH TIME' : 'NOT RIDDEN YET', RC, 366);
+  g.fillStyle = CREAM; if (t) { const s = fmtTime(t); shFit(g, s, 118, DISP, 470); g.fillText(s, RC, 442); } else { shFit(g, 'CAN YOU RIDE IT?', 74, DISP, 470); g.fillText('CAN YOU RIDE IT?', RC, 440); }
+  const L = shareLines(code, t), fy = H - FB; g.fillStyle = CREAM; shFit(g, L[0], 34, UI, 1090); g.fillText(L[0], W / 2, fy + 37); g.fillStyle = 'rgb(240,205,160)'; shFit(g, L[1], 28, UI, 1090); g.fillText(L[1], W / 2, fy + 80);
+  g.textBaseline = 'alphabetic'; shCardPath = path; return c; }
+function shareCard(code, t) { if (SHARE_CARD_V2) { try { const c = shareCard2(code, t); if (c) return c; } catch (e) { /* the plain card below */ } shCardPath = 'v1'; } return shareCardV1(code, t); }
+/* with the vista card a card is also tied to the moment of its close-up (a later pause or a new finish takes a new picture) */
+const shHeroTag = (code) => S.course && seedToCode(S.course.seed) === code && (screen === 'end' || screen === 'pause') ? '|' + screen + (+S.t || 0).toFixed(3) : '';
+const shKey = (code, t) => code + '|' + (t ? fmtTime(t) : '') + (SHARE_CARD_V2 ? shHeroTag(code) : '');
 function shBlob(c) { return new Promise((res) => { try { if (!c || !c.toBlob) { res(null); return; } c.toBlob((b) => res(b || null), 'image/png'); setTimeout(() => res(null), 3000); } catch (e) { res(null); } }); }
 function sharePrebuild(code) { try { const t = shareOwn(code), k = shKey(code, t), c = shareCard(code, t); shPre = { key: k, code, canvas: c, blob: null }; const P = shPre; shBlob(c).then((b) => { if (shPre === P) P.blob = b; }); } catch (e) { shPre = null; } }
 async function shareCopy(s) { try { if (navigator.clipboard && navigator.clipboard.writeText) { await navigator.clipboard.writeText(s); return true; } } catch (e) { }
   try { const ta = document.createElement('textarea'); ta.value = s; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0'; document.body.appendChild(ta); ta.select(); let ok = false; try { ok = document.execCommand('copy'); } catch (e) { ok = false; } ta.remove(); return !!ok; } catch (e) { return false; } }
+/* Copy code: ONLY the code goes to the clipboard (clipboard, then execCommand, then the big code is selected for a manual copy) */
+function shSelCode() { try { const e = $('shCode'); if (!e) return; const r = document.createRange(); r.selectNodeContents(e); const g = getSelection(); g.removeAllRanges(); g.addRange(r); } catch (e) { } }
+async function shareCopyCode(code, from) { try { if (typeof code !== 'string' || !FAV_RE.test(code)) return; const ok = await shareCopy(code);
+    if (ok) { toast('Code copied'); const m = $('shMsg'); if (m && shCur) m.textContent = 'Code copied. Enter it on the title screen.'; return; }
+    if (!shCur) { const t = shareOwn(code), k = shKey(code, t); if (!shPre || shPre.key !== k) sharePrebuild(code); shPan(true, { code, t, full: shareFull(code, t), copied: false, from }); }
+    const m = $('shMsg'); if (m) m.textContent = 'Select the code above and copy it.'; shSelCode(); toast('Mountain code ' + code); } catch (e) { try { toast('Mountain code ' + code); } catch (e2) { } } }
 /* ---- the one Share action */
 async function shareGo(code, from) { if (shBusy) return; shBusy = true;
   try { if (typeof code !== 'string' || !FAV_RE.test(code)) return; const t = shareOwn(code), k = shKey(code, t), link = shareLink(code, t), full = shareFull(code, t);
     if (!shPre || shPre.key !== k) sharePrebuild(code); const P = shPre;
     if (navigator.share && document.body.classList.contains('touchy')) {
       let file = null; if (P && navigator.canShare) { if (!P.blob) P.blob = await shBlob(P.canvas); try { if (P.blob) file = new File([P.blob], 'no-hander-' + code + '.png', { type: 'image/png' }); } catch (e) { file = null; } }
-      let data = link ? { title: 'No Hander', text: shareText(code, t), url: link } : { title: 'No Hander', text: full }; try { if (file && navigator.canShare({ files: [file] })) data = Object.assign({ files: [file] }, data); } catch (e) { }
+      let data = link ? { title: 'No Hander', text: shareText(code, t), url: link } : SHARE_LINK ? { title: 'No Hander', text: full } : { text: full }; try { if (file && navigator.canShare({ files: [file] })) data = Object.assign({ files: [file] }, data); } catch (e) { }
       try { await navigator.share(data); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
     const ok = await shareCopy(full); toast(ok ? 'Copied: ' + code : 'Mountain code ' + code); shPan(true, { code, t, full, copied: ok, from });
   } catch (e) { try { toast('Mountain code ' + code); } catch (e2) { } } finally { shBusy = false; } }
 /* ---- the share panel (no share sheet, or it failed): the card, the text in a select-to-copy box, Copy text / Save image / Close. It opens over
    whatever screen is up (title, pause, finish card) and the pad ring stays inside it */
-const SH_PANEL = '<div class="fvh" id="shPanH">Share</div><div class="shPw"><div class="shPl"><img id="shImg" alt="Share card"><div class="shCd"><code id="shCode"></code></div></div>'
+const SH_PANEL = '<div class="fvh" id="shPanH">Share</div><div class="shPw"><div class="shPl"><img id="shImg" alt="Share card"><div class="shCd"><code id="shCode"></code><small id="shTm"></small></div></div>'
   + '<div class="shPr"><textarea id="shTxt" readonly rows="3" aria-label="Share text" spellcheck="false"></textarea><div id="shMsg" role="status"></div><div class="two"><button class="mb sm" id="shCopy" type="button">Copy text</button><button class="mb sm" id="shSave" type="button">Save image</button></div><button class="mb sm" id="shClose" type="button">Close</button></div></div>';
+const SH_PANEL2 = SH_PANEL.replace('<textarea id="shTxt" readonly rows="3" aria-label="Share text" spellcheck="false"></textarea>', '').replace('<button class="mb sm" id="shCopy" type="button">Copy text</button>', '<button class="mb sm pri" id="shCopyCode" type="button">Copy code</button>');
 function shScrEl() { const id = (SCREENS.find(([n]) => n === screen) || [])[1]; return id ? $(id) : null; }
 function shPan(on, o) { const el = $('shPan'); if (!el) return; on = !!on; if (!on) { if (el.hidden) return; el.hidden = true; const host = el.parentElement; if (host) host.classList.remove('shOpen'); try { if (shUrl) URL.revokeObjectURL(shUrl); } catch (e) { } shUrl = '';
     const back = shCur && shCur.from; shCur = null; if (screen) { gpMenu.onScreen(); if (back && $(back) && gpMenu.items().includes($(back))) gpMenu.aim($(back)); } return; }
   const host = shScrEl(); if (!host) return; if (el.parentElement !== host) host.appendChild(el); shCur = o; el.hidden = false; host.classList.add('shOpen');
-  $('shPanH').textContent = 'Share ' + o.code; $('shCode').textContent = o.code + (o.t ? '  ·  ' + fmtTime(o.t) : ''); $('shTxt').value = o.full;
-  $('shMsg').textContent = o.copied ? 'Copied. Paste it anywhere.' : 'Select the text above and copy it.'; if (!o.copied) { try { $('shTxt').focus(); $('shTxt').select(); } catch (e) { } }
+  $('shPanH').textContent = 'Share ' + o.code; $('shCode').textContent = o.code; { const tm = $('shTm'); if (tm) tm.textContent = o.t ? 'My time ' + fmtTime(o.t) : ''; } { const x = $('shTxt'); if (x) x.value = o.full; }
+  $('shMsg').textContent = o.copied ? (SHARE_LINK ? 'Copied. Paste it anywhere.' : 'Code copied. Enter it on the title screen.') : (SHARE_LINK ? 'Select the text above and copy it.' : 'Select the code above and copy it.'); if (!o.copied) { if ($('shTxt')) { try { $('shTxt').focus(); $('shTxt').select(); } catch (e) { } } else shSelCode(); }
   const img = $('shImg'), P = shPre && shPre.key === shKey(o.code, o.t) ? shPre : null; img.removeAttribute('src');
   if (P) { const put = (b) => { try { if (!b || el.hidden || shCur !== o) return; shUrl = URL.createObjectURL(b); img.src = shUrl; } catch (e) { } }; if (P.blob) put(P.blob); else shBlob(P.canvas).then((b) => { P.blob = P.blob || b; put(b); }); }
-  gpMenu.onScreen(); gpMenu.aim($(o.copied ? 'shClose' : 'shCopy')); }
+  gpMenu.onScreen(); gpMenu.aim($(o.copied ? 'shClose' : (SHARE_LINK ? 'shCopy' : 'shCopyCode'))); }
 async function shSaveImg() { try { const o = shCur; if (!o) return; const P = shPre && shPre.key === shKey(o.code, o.t) ? shPre : null; const b = P ? (P.blob || await shBlob(P.canvas)) : null;
   if (!b) { $('shMsg').textContent = 'No picture in this browser. The code still works.'; return; } const u = URL.createObjectURL(b), a = document.createElement('a'); a.href = u; a.download = 'no-hander-' + o.code + '.png'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => { try { URL.revokeObjectURL(u); } catch (e) { } }, 4000);
   $('shMsg').textContent = 'Saved. Or press and hold (right-click) the picture.'; } catch (e) { $('shMsg').textContent = 'Press and hold (right-click) the picture to save it.'; } }
@@ -68775,14 +69036,15 @@ function shareScreen(name) { if (!SHARE_V1) return; shPan(false); if (name !== '
 function shareSync(L) { if (!SHARE_V1) return; const n = (L || []).length + ' / ' + FAV_MAX + ' saved'; for (const id of ['tFavN', 'pmFavN']) { const e = $(id); if (e) e.textContent = n; }
   const b = $('tFavShare'); if (b && S.course) { const c = seedToCode(S.course.seed); b.title = 'Share ' + c; b.setAttribute('aria-label', 'Share ' + c); } }
 function shareResults() { if (!SHARE_V1 || !S.course) return; const code = seedToCode(S.course.seed), e = $('eBeat'); if (e) { const on = !isTut() && !!shBeat && shBeat.code === code; e.hidden = !on; e.textContent = on ? 'Time to beat ' + fmtTime(shBeat.t) : ''; }
-  shPre = null; if (shShotCode !== code) shShot = null; shShotWant = true; setTimeout(() => { if (screen === 'end' && S.course && seedToCode(S.course.seed) === code) sharePrebuild(code); }, 400); }
+  shPre = null; shHeroC = null; if (shShotCode !== code) shShot = null; shShotWant = true; setTimeout(() => { if (screen === 'end' && S.course && seedToCode(S.course.seed) === code) sharePrebuild(code); }, 400); }
 function shRowShare(e, pre) { const s = e.target.closest('.fvs'); if (!s) return; e.stopPropagation(); shareGo(s.dataset.code, s.id); }
 if (SHARE_V1) { try {
   const mk = (tag, cls, id, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (id) e.id = id; if (html != null) e.innerHTML = html; return e; };
-  const pan = mk('div', 'favCard shPan', 'shPan', SH_PANEL); pan.hidden = true; pan.setAttribute('role', 'dialog'); $('endOv').appendChild(pan);
-  $('shCopy').addEventListener('click', async () => { const o = shCur; if (!o) return; const ok = await shareCopy(o.full); $('shMsg').textContent = ok ? 'Copied. Paste it anywhere.' : 'Select the text above and copy it.'; if (ok) toast('Copied: ' + o.code); else { try { $('shTxt').focus(); $('shTxt').select(); } catch (e) { } } });
+  const pan = mk('div', 'favCard shPan', 'shPan', SHARE_LINK ? SH_PANEL : SH_PANEL2); pan.hidden = true; pan.setAttribute('role', 'dialog'); $('endOv').appendChild(pan);
+  if (SHARE_LINK) $('shCopy').addEventListener('click', async () => { const o = shCur; if (!o) return; const ok = await shareCopy(o.full); $('shMsg').textContent = ok ? 'Copied. Paste it anywhere.' : 'Select the text above and copy it.'; if (ok) toast('Copied: ' + o.code); else { try { $('shTxt').focus(); $('shTxt').select(); } catch (e) { } } });
+  if (!SHARE_LINK) { $('shCopyCode').addEventListener('click', () => { if (shCur) shareCopyCode(shCur.code, 'shCopyCode'); }); const b = mk('button', 'mb sm shB', 'btnCopyCode', 'Copy code'); b.type = 'button'; $('btnShare').after(b); b.addEventListener('click', () => { if (S.course) shareCopyCode(seedToCode(S.course.seed), 'btnCopyCode'); }); }
   $('shSave').addEventListener('click', shSaveImg); $('shClose').addEventListener('click', () => shPan(false));
-  $('shTxt').addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Escape') shPan(false); }); $('shTxt').addEventListener('focus', () => { try { $('shTxt').select(); } catch (e) { } });
+  if ($('shTxt')) { $('shTxt').addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Escape') shPan(false); }); $('shTxt').addEventListener('focus', () => { try { $('shTxt').select(); } catch (e) { } }); }
   /* the finish card: Share + the code (already there), the incoming time as a plain label */
   $('btnShare').innerHTML = SHARE_ICON + 'Share'; $('btnShare').classList.add('shB'); { const b = mk('span', '', 'eBeat'); b.hidden = true; $('eDelta').after(b); }
   /* the pause card: a Share chip beside the code line, the favorites list gets its count */
@@ -68806,7 +69068,7 @@ if (SHARE_V1) { try {
     $('shInSave').addEventListener('click', () => { if (shInP && shareSave(shInP, 'in')) $('shInSave').textContent = 'Saved'; }); }
   shInP = shareIncoming(); if (shInP) shIn(true);
 } catch (e) { /* the share extras stay off; the plain buttons keep working */ } }
-if (DEBUG) window.__share = { parse: shareParse, codeIn: shareCodeIn, time: shareTime, text: shareText, full: shareFull, link: shareLink, own: shareOwn, card: shareCard, go: shareGo, get shot() { return shShot; }, get pre() { return shPre; }, get beat() { return shBeat; } };
+if (DEBUG) window.__share = { parse: shareParse, codeIn: shareCodeIn, time: shareTime, text: shareText, full: shareFull, link: shareLink, copyCode: shareCopyCode, own: shareOwn, card: shareCard, go: shareGo, hero: shHero, get path() { return shCardPath; }, get heroMs() { return shHeroMs; }, get shot() { return shShot; }, get pre() { return shPre; }, get beat() { return shBeat; } };
 $('btnAgain').addEventListener('click', () => { resetRun(); startRiding(); });
 $('btnNew2').addEventListener('click', () => { if (tutNext !== null) { newRun(tutNext); setScreen(null); } else newMountain(); startRiding(); }); /* after the tutorial: the code its card showed */
 /* ---- per-frame UI (called from updateHud): screens that follow game state, title camera, results, haptics, coach, touch pad ---- */
@@ -71111,9 +71373,12 @@ const CampMini = (() => {
      the rounded rims, darker blistered patches come in past golden, it puffs a little with heat and the far end sags once it is soft; when it
      catches, campfire-style tongues wrap it end to end and it chars black (that pull scores 0). The hidden target (shown as its name + swatch), the toasting ramp and the scoring are the same either way.
      Without the 3D hooks (no scene) the 2D drawing is the fallback. */
+  const ROAST_VARIETY = 1; /* 1 = each game asks 3 different levels drawn from a pool of 6 (Math.random per game start, never the seeded stream); 0 = the old fixed three */
   const ROAST_EXP = 1.5; /* color-match curve exponent (was 0.85): the same hit still reads Close but pays less */
   function roast(G) {
     const N = 3, TGT = [['Golden', 0.35], ['A little toasty', 0.55], ['Well done', 0.8]];
+    const POOL = [['Light gold', 0.22], ['Golden', 0.35], ['A little toasty', 0.55], ['Medium brown', 0.68], ['Well done', 0.8], ['Charred edge', 0.9]]; /* six clearly different steps along the ramp below */
+    const ASK = TGT.slice(); if (ROAST_VARIETY) { const pl = POOL.slice(); for (let k = 0; k < N; k++) { const j = k + Math.floor(Math.random() * (pl.length - k)); [pl[k], pl[j]] = [pl[j], pl[k]]; ASK[k] = pl[k]; } } /* 3 distinct levels in a fresh random order; the seeded draws below stay exactly as they were */
     const RAMP = [[0, [253, 249, 240]], [0.35, [236, 182, 88]], [0.6, [176, 108, 50]], [0.8, [98, 58, 30]], [1, [36, 27, 22]]];
     const colAt = (d) => { d = clamp(d, 0, 1); for (let i = 1; i < RAMP.length; i++) if (d <= RAMP[i][0]) { const [a, ca] = RAMP[i - 1], [b, cb] = RAMP[i]; return mix3(ca, cb, (d - a) / (b - a)); } return RAMP[RAMP.length - 1][1]; };
     /* the target drawn as the marshmallow looks (a top view of its end): the same ramp (colAt) and the same recipe as the 3D vertex colors
@@ -71141,7 +71406,7 @@ const CampMini = (() => {
       const g = c.createLinearGradient(x, 0, x + w, 0); for (const [k, cc] of RAMP) g.addColorStop(k, rgb(cc)); c.save(); c.fillStyle = g; c.beginPath(); c.roundRect(x, y, w, h, h / 2); c.fill();
       const mx = x + w * clamp(dv, 0, 1); c.fillStyle = '#fdf8ea'; c.beginPath(); c.moveTo(mx, y - 1); c.lineTo(mx - 4, y - 6); c.lineTo(mx + 4, y - 6); c.closePath(); c.fill(); c.fillRect(mx - 1, y - 1, 2, h + 2); c.restore(); };
     const order = [0, 1, 2]; for (let i = 2; i > 0; i--) { const j = Math.floor(G.rng() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
-    const targets = order.map((k) => ({ n: TGT[k][0], v: clamp(TGT[k][1] + (G.rng() - 0.5) * 0.05, 0.25, 0.9) }));
+    const targets = order.map((k) => ({ n: ASK[k][0], v: clamp(ASK[k][1] + (G.rng() - 0.5) * 0.05, ROAST_VARIETY ? 0.18 : 0.25, ROAST_VARIETY ? 0.93 : 0.9) }));
     const tol = 0.2 - 0.05 * G.d, RATE = 0.2, ems = embers(G.rng), fl = G.rng() * 100;
     let i = 0, h = 0, d = 0, hold = false, st = 'wait', stT = 0, t = 0, sizT = 0, q = 0, word = '', hinted = false, burnt = false, spin0 = G.rng() * TAU, spin = spin0;
     const sc = [];
@@ -71156,7 +71421,7 @@ const CampMini = (() => {
       act(dn) { act(dn); },
       ptr(type) { if (type === 'down') act(true); else if (type === 'up' || type === 'cancel') act(false); },
       partial() { return (sc.reduce((a, b) => a + b, 0) + (st === 'cook' || st === 'lift' ? Math.pow(clamp(1 - Math.abs(d - targets[i].v) / tol, 0, 1), ROAST_EXP) : 0)) / N; },
-      peek: () => ({ st, i, h, d, tg: targets[Math.min(i, N - 1)].v, tol, burnt, m3: !!M3 }),
+      peek: () => ({ st, i, h, d, tg: targets[Math.min(i, N - 1)].v, asks: targets.map((x) => x.n), sc: sc.slice(), tol, burnt, m3: !!M3 }),
       end() { if (M3) { M3.dispose(); M3 = null; } },
       update(dt) {
         t += dt; ems.step(dt);
@@ -74880,6 +75145,17 @@ const CampMini = (() => {
     wshCal = out; return out; }
   const wshV3V = (o, u) => o.vc + (u - WSH_W.US) * (u < WSH_W.US ? o.gLo : o.gHi); /* the launch speed at power u */
   const wshV3GA = (r) => WSH_W.RI / (WSH_V.A * 2 * Math.PI / WSH_V.PER[r] * WSH_W.WINA[r]); /* the aim's side gain: the cup's radius in +-WINA s at the sway's full speed */
+  /* the landing's drawn bounce (WASHERS_BOUNCE): from the first touch, N hops under gravity G, the first H m high at full strength, each next one
+     E^2 as high (E: the speed kept per touch), so they shorten and stop; a wobble about the washer's flat that dies out over WT s while it speeds
+     up from WF[0] to WF[1] a second (a coin settling), WA rad at full strength. KIND: the strength by the first touch's kind (the toss's event
+     codes: 1 the box floor, 2 a wall, 6 the grass; the rim, the cup and the pipe do not hop). Pure; an offset of 0 once it is over. */
+  const WSH_B = { H: 0.09, E: 0.42, N: 3, G: 9.8, WA: 0.3, WT: 0.85, WF: [4, 12], KIND: [0, 1, 0.8, 0, 0, 0, 0.3, 0] };
+  function wshHop(tau, a) { if (!(a > 0) || !(tau > 0)) return 0; const B = WSH_B; let h = B.H * a, q = tau;
+    for (let k = 0; k < B.N; k++) { const v = Math.sqrt(2 * B.G * h), T = 2 * v / B.G; if (q < T) return v * q - B.G * q * q / 2; q -= T; h *= B.E * B.E; } return 0; }
+  function wshHopN(tau, a) { if (!(a > 0) || !(tau > 0)) return 0; const B = WSH_B; let h = B.H * a, q = tau, k = 0; /* the touches made since the first */
+    for (; k < B.N; k++) { const T = 2 * Math.sqrt(2 * B.G * h) / B.G; if (q < T) return k; q -= T; h *= B.E * B.E; } return k; }
+  function wshWob(tau, a) { const B = WSH_B; if (!(a > 0) || !(tau > 0) || tau >= B.WT) return 0; const q = 1 - tau / B.WT;
+    return B.WA * a * q * q * Math.sin(2 * Math.PI * (B.WF[0] * tau + (B.WF[1] - B.WF[0]) * tau * tau / (2 * B.WT))); }
 
   /* the throwing arm (WASHERS_V3): the hand rides an arc of radius R about the pivot PIV = [y, z] (m, the lens' frame; at the arc's angle phi = 0 it
      hangs straight under it, + swings it out toward the lane): REST at aim, PULL[0] (eased in) + PULL[1] u back while the power builds (a TICK[1] degree nudge for TICK[0] s on the press first), a sine-eased forward swing of
@@ -74919,6 +75195,34 @@ const CampMini = (() => {
   function wshArm() { const T = THREE, pe = (k) => lookC(k), sk = pe('skin'), fo = LOOK.sleeves === 'long' ? pe('jersey2') : sk, up = pe('jersey'), I = new T.Matrix4(), fz = (px, py, pz, f) => f % 2 === 0;
     const cyl = (r1, r0, cA, cB) => { const g = new T.CylinderGeometry(r1, r0, 1, 6); g.translate(0, 0.5, 0); return [{ geo: dinTone(g, cA, cB, fz, 0.08), m: I }]; };
     return [cyl(0.056, 0.066, fo.col, fo.d), cyl(0.07, 0.08, up.col, up.d), [{ geo: dinTone(new T.OctahedronGeometry(0.068, 0), fo.col, fo.d, fz, 0.08), m: I }]]; }
+  /* the underhand pitch (WASHERS_HAND_V2): the pinch rides a circle of radius R about the shoulder (SH from the resting hand, scaled with the hand, SHX
+     of the hand's side sway; DIP m lower at the deepest knee bend); the arc angle phi is in degrees from hanging straight down (90 = held straight out
+     toward the lane). REST: the aim, held out low; the pull drops it PB[0] (eased in on the press) + PB[1] u; the forward swing dips through LOW in
+     the first XB of the way to the let-go (the bottom of the pendulum, under the lens' edge), rises to REL at the let-go (the swing's RELF, the same
+     moment as before) and carries on to END, then settles about FT (spring K / Z) and comes back down. The swing's plane stands upright through the
+     shoulder and the hand's sway spot FZ m down the lane, so the arm comes in from the lower right at a slant; the hand is pitched along the arm plus the wrist: cocked back with the pull (CK), flicked up at the let-go (FL, from
+     FLT[0] to FLT[1] of the swing), FTP held through the follow-through; ROLL turns the palm up a little, ROLLF more with the flick. L1 / L2 the bones (TH thick), POLE the elbow's bend; HSC: this hand's size
+     over the old one's; the washer sits at WSH in the pinch, tipped WSHR nose up. */
+  const WSH_H = { SH: [0.7, 0.18, 1.1], SHX: 0.6, FZ: 1.2, DIP: 0.05, R: 1.3, REST: 86, PB: [3, 6], LOW: 68, XB: 0.4, REL: 79, END: 95, FT: 92, K: 9, Z: 6, ROLLF: 0.6,
+    CK: [-0.12, -0.3], FL: 0.35, FLT: [0.62, 0.92], FTP: 0.1, ROLL: -0.35, L1: 0.72, L2: 0.7, POLE: [0.6, -0.8, 0.3], WR: [0.006, -0.036, 0.12], WSH: [-0.022, 0.003, -0.048], WSHR: 0.3, HSC: 1.2, TH: 0.72 };
+  /* the thrower's right hand for the underhand pinch, seen from behind: the rider's glove (or skin) in a handshake grip, the back of the hand to the
+     right, the thumb on top pressing the washer flat onto the side of the curled index finger, the other three fingers curled under, the glove cuff;
+     open: the hand after the let-go, the fingers stretched toward the box and the thumb up. Meters before the HS scale, fingers toward -z, the thumb
+     side +y, the origin at the pinch; colored from the look; 248 triangles. */
+  function wshHand2(open) { const T = THREE, L = [], V = new T.Vector3(), Q = new T.Quaternion(), S1 = new T.Vector3(1, 1, 1), Y = new T.Vector3(0, 1, 0), I = new T.Matrix4();
+    const pe = (k) => lookC(k), gl = LOOK.glovesOn ? pe('gloves') : pe('skin'), j2 = pe('jersey2'), cuffA = gl.col.clone().lerp(j2.col, 0.35), cuffB = gl.d.clone().lerp(j2.d, 0.35);
+    const back = (px) => px > 0.012, fz = (px, py, pz, f) => f % 2 === 0;
+    const seg = (a, b, r0, r1) => { const d = new T.Vector3(b[0] - a[0], b[1] - a[1], b[2] - a[2]), l = d.length(); d.normalize(); /* a five-sided segment from a to b */
+      L.push({ geo: dinTone(new T.CylinderGeometry(r1, r0, l, 5), gl.col, gl.d, fz, 0.08), m: new T.Matrix4().compose(V.set((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2), Q.setFromUnitVectors(Y, d), S1) }); };
+    L.push({ geo: dinTone(new T.BoxGeometry(0.03, 0.08, 0.078), gl.l, gl.col, back, 0.08), m: new T.Matrix4().makeTranslation(0.008, -0.036, 0.052) }); /* the palm and the back of the hand */
+    L.push({ geo: dinTone(new T.BoxGeometry(0.032, 0.082, 0.024), gl.l, gl.col, back, 0.1), m: new T.Matrix4().makeTranslation(0.006, -0.036, 0.012) }); /* the knuckles */
+    for (let i = 0; i < 4; i++) { const y = -0.008 - i * 0.02, r = 0.0098 - i * 0.0007, c1 = open ? 0.12 + 0.05 * i : i === 0 ? 0.55 : 0.8, c2 = open ? 0.3 + 0.08 * i : i === 0 ? 1.55 : 2.1, l1 = 0.036 - i * 0.002, l2 = 0.03 - i * 0.002; /* the fingers, curled toward the palm; the index under the washer */
+      const k0 = [0.004, y, 0.004], k1 = [k0[0] - l1 * Math.sin(c1), y, k0[2] - l1 * Math.cos(c1)], k2 = [k1[0] - l2 * Math.sin(c2), y, k1[2] - l2 * Math.cos(c2)];
+      seg(k0, k1, r, r * 0.95); seg(k1, k2, r * 0.95, r * 0.8); }
+    if (open) { seg([-0.01, -0.012, 0.06], [-0.022, 0.012, 0.03], 0.012, 0.011); seg([-0.022, 0.012, 0.03], [-0.026, 0.02, -0.004], 0.011, 0.009); } /* the thumb, along the fingers */
+    else { seg([-0.01, -0.012, 0.06], [-0.018, 0.004, 0.026], 0.012, 0.011); seg([-0.018, 0.004, 0.026], [-0.022, 0.009, -0.016], 0.011, 0.009); } /* the thumb, lying on the washer */
+    L.push({ geo: dinTone(new T.CylinderGeometry(0.027, 0.03, 0.024, 6), cuffA, cuffB, fz, 0.08), m: I.clone().makeRotationX(Math.PI / 2).setPosition(0.006, -0.036, 0.104) }); /* the cuff */
+    return L; }
   function washersWorld(o) {
     const T = THREE, lend = campFireLend();
     try {
@@ -74947,8 +75251,9 @@ const CampMini = (() => {
     const join = (L) => { let n = 0; for (const t of L) n += t.P.length; const P = new Float32Array(n), C = new Float32Array(n); let o = 0; for (const t of L) { P.set(t.P, o); C.set(t.C, o); o += t.P.length; } return { P, C }; };
     const boxT = join(wshKit.box().map((q) => { q.geo.applyMatrix4(q.m); return tpl(q.geo); })), brass = tpl(wshKit.washer(false)), steel = tpl(wshKit.washer(true));
     const items = [{ t: boxT, m: new T.Matrix4() }, { t: boxT, m: new T.Matrix4() }]; for (let i = 0; i < 4; i++) items.push({ t: brass, m: new T.Matrix4() });
-    if (o && o.hand) items.push({ t: join(wshHand(o.arm).map((q) => { q.geo.applyMatrix4(q.m); return tpl(q.geo); })), m: new T.Matrix4() }); /* the thrower's hand (items[6]): the same buffer, no extra draw call */
+    if (o && o.hand) items.push({ t: join((WASHERS_HAND_V2 && o.arm ? wshHand2() : wshHand(o.arm)).map((q) => { q.geo.applyMatrix4(q.m); return tpl(q.geo); })), m: new T.Matrix4() }); /* the thrower's hand (items[6]): the same buffer, no extra draw call */
     if (o && o.arm) for (const L of wshArm()) items.push({ t: join(L.map((q) => { q.geo.applyMatrix4(q.m); return tpl(q.geo); })), m: new T.Matrix4() }); /* the forearm, the upper arm, the elbow (items[7..9]) */
+    if (WASHERS_HAND_V2 && o && o.arm) items.push({ t: join(wshHand2(true).map((q) => { q.geo.applyMatrix4(q.m); return tpl(q.geo); })), m: new T.Matrix4() }); /* the open hand after the let-go (items[10]) */
     let nV = 0; for (const it of items) { it.o = nV; nV += it.t.P.length / 3; } /* the washer slots carry brass or steel colors (set when a round starts) */
     const pos = new Float32Array(nV * 3), col = new Float32Array(nV * 3), nrm = new Float32Array(nV * 3); for (let i = 1; i < nrm.length; i += 3) nrm[i] = 1;
     for (const it of items) col.set(it.t.C, it.o * 3);
@@ -75176,13 +75481,13 @@ const CampMini = (() => {
      0; the score = points / WSH_W.PAR. The same 27 G.rng draws in the same order (the drawn start aim becomes the sway center, the side and range
      wobble move the toss). The arm is items[6..9] of the props buffer: the draw calls are the base game's. */
   function washersV3(G) {
-    const N = 3, R = 3, rm = reduceMotion.matches, A = WSH_V.A, slow = rm || G.auto ? WSH_V.SLOW : 1, HY = WSH_V.HAND[0], HZ = WSH_V.HAND[1], AMP = WSH_V.A + WSH_V.COFF, P = WSH_W, AR = WSH_A;
+    const N = 3, R = 3, rm = reduceMotion.matches, A = WSH_V.A, slow = rm || G.auto ? WSH_V.SLOW : 1, HY = WSH_V.HAND[0], HZ = WSH_V.HAND[1], AMP = WSH_V.A + WSH_V.COFF, P = WSH_W, AR = WSH_A, HH = WSH_H, AREST = WASHERS_HAND_V2 ? HH.REST : AR.REST;
     const draws = []; for (let i = 0; i < N * R; i++) draws.push({ a0: (G.rng() - 0.5) * 1.1, wx: (G.rng() - 0.5) * 0.1, wz: (G.rng() - 0.5) * 0.1 }); /* every G.rng draw up front, in a fixed order */
     let V = null; try { V = washersWorld({ hand: true, arm: true }); MINI_VIEW = V; } catch (e) { console.error('CampMini washers scene', e); V = null; }
     const CAL = wshV3Cal(), TRK = new Float32Array(P.NT * 4), EV = new Float32Array(3 * 24);
     let st = 'wait', stT = 0, t = 0, round = 0, k = 0, n = 0, cc = 0, ph0 = 0, t0 = 0, hx = 0, hxFrom = 0, te = 0, ur = 0, idle = 0, hinted = false, keyDn = false, ptrDn = false, kv = 0.4, hs = 1, rolled = false;
-    let tapped = false, pend = -1, xaL = 0, res = null, evI = 0, sw0 = 0, swD = 0.2, phiA = 0, pitA = 0, phiF = AR.REST, pitF = 0, lunF = 0, spin = 0, fov0 = 38;
-    let pts = 0, cups = 0, box = 0, grass = 0, rimIn = 0, roundCups = 0, last = null, arcN = 0;
+    let tapped = false, pend = -1, xaL = 0, res = null, evI = 0, sw0 = 0, swD = 0.2, phiA = 0, pitA = 0, lunA = 0, phiF = AREST, pitF = 0, lunF = 0, spin = 0, fov0 = 38;
+    let pts = 0, cups = 0, box = 0, grass = 0, rimIn = 0, roundCups = 0, last = null, arcN = 0, hb = 0, hopN = 0;
     const landed = [], dust = []; /* this round's washers at rest: { kind, b, x, y, ry, t } in the target's frame; the grass dust puffs */
     const boxY = (zt) => { if (!V) return 0; let h = -1e9; for (const [x, z] of [[0, 0], [0.5, 0.5], [-0.5, 0.5], [0.5, -0.5], [-0.5, -0.5]]) h = Math.max(h, V.gy(x, zt + z)); return h + 0.015; };
     const zT = () => -(WSH_T.D + (round === 2 ? WSH_T.LONG : 0)), om = () => 2 * Math.PI / (WSH_V.PER[round] * slow), gA = () => wshV3GA(round);
@@ -75191,14 +75496,15 @@ const CampMini = (() => {
     const score = () => clamp(pts / P.PAR, 0, 1), sm = (u) => u * u * (3 - 2 * u), tcR = () => P.TC[round] * slow;
     const uAt = (tt) => wshU((tt - te) / tcR()), cbAt = (u) => { const cb = CAL[round].cb, j = clamp(u, 0, 1) * 32, j0 = Math.min(31, Math.floor(j)); return cb[j0] + (cb[j0 + 1] - cb[j0]) * (j - j0); };
     const Dh = () => P.REL - zT();
-    function nextWasher() { const d = draws[round * N + k]; cc = clamp(d.a0, -0.55, 0.55) * (WSH_V.COFF / 0.55); hxFrom = hx; st = 'wait'; stT = 0; tapped = false; pend = -1; phiF = AR.REST; pitF = 0; lunF = 0; G.prog(`Round ${round + 1} / ${R} · Washer ${k + 1} / ${N}`, false); }
+    function nextWasher() { const d = draws[round * N + k]; cc = clamp(d.a0, -0.55, 0.55) * (WSH_V.COFF / 0.55); hxFrom = hx; st = 'wait'; stT = 0; tapped = false; pend = -1; phiF = AREST; pitF = 0; lunF = 0; G.prog(`Round ${round + 1} / ${R} · Washer ${k + 1} / ${N}`, false); }
     function down(tp) { if (G.ended) return;
       if (st === 'sway') { te = Math.max(t0, tp); hx = swayX(te); xaL = gA() * hx; st = 'pull'; stT = 0; idle = 0; tapped = false; pend = -1; G.cue('tick', 0.35); }
       else if (st === 'pull' && tp > te + 0.03) pend = Math.max(te, tp); } /* the second press throws */
     function up(tp) { if (st !== 'pull' || keyDn || ptrDn || G.ended) return; if (tapped) return; if (tp - te < P.TAP) { tapped = true; return; } pend = Math.max(te, tp); } /* a quick tap keeps pulling */
-    function cancel() { if (st !== 'pull') return; const h = armNow(); phiF = h.phi; pitF = h.pit; lunF = 0; st = 'wait'; stT = 0; hxFrom = hx; pend = -1; tapped = false; } /* the pull is put down: the washer stays in the hand */
+    function cancel() { if (st !== 'pull') return; const h = armNow(); phiF = h.phi; pitF = h.pit; lunF = WASHERS_HAND_V2 ? h.lun : 0; st = 'wait'; stT = 0; hxFrom = hx; pend = -1; tapped = false; } /* the pull is put down: the washer stays in the hand */
     function release(tp) { const tr = Math.min(tp, te + P.CAP), d = draws[round * N + k], o = CAL[round], h = armNow(); ur = uAt(tr);
-      res = wshV3Toss(round, wshV3V(o, ur) + d.wz * o.kv, xaL + d.wx, TRK, EV); phiA = h.phi; pitA = h.pit; sw0 = G.clock; swD = AR.SW[0] - AR.SW[1] * ur; st = 'swing'; stT = 0; }
+      res = wshV3Toss(round, wshV3V(o, ur) + d.wz * o.kv, xaL + d.wx, TRK, EV); phiA = h.phi; pitA = h.pit; lunA = h.lun; sw0 = G.clock; swD = AR.SW[0] - AR.SW[1] * ur; st = 'swing'; stT = 0;
+      if (WASHERS_BOUNCE) { hb = res.ne > 0 && res.tc >= 0 ? (WSH_B.KIND[EV[1] | 0] || 0) * clamp(EV[2] / 0.8, 0.35, 1) : 0; hopN = 0; } } /* the drawn bounce's strength, from the first touch */
     const off = [0, 0, 0];
     function launch() { const w = handWasher(); trkAt(0, tA); off[0] = w[0] - tA.x; off[1] = w[1] - tA.y; off[2] = w[2] - tA.z; st = 'fly'; stT = 0; n++; evI = 0; spin = (n * 1.7) % TAU; G.cue('tick', 0.6); G.buzz(5); }
     function trkAt(tt, out) { const f = clamp(tt * P.HZ, 0, res.n - 1), j0 = Math.min(res.n - 1, Math.floor(f)), j1 = Math.min(res.n - 1, j0 + 1), q = f - j0, zt = zT(), by = boxY(zt);
@@ -75209,9 +75515,10 @@ const CampMini = (() => {
       if (gain === 3) { cups++; roundCups++; if (kd === 'rimin') rimIn++; G.kick(0.5); if (kd === 'cup') G.cue('good'); G.float(kd === 'rimin' ? 'Off the rim, in! +3' : 'In the cup! +3', 0.5, 0.3, false); }
       else if (gain === 1) { box++; G.float(f.rim ? 'Rim, out +1' : f.front ? 'Short: front board +1' : kd === 'wall' ? 'On the board +1' : miss + ' +1', 0.5, 0.3, true); }
       else { grass++; G.cue('miss'); G.float(f.rim ? 'Rim, out' : f.front ? 'Short: front board' : lng ? (eb > 0 ? 'Long: over the box' : 'Short: in the grass') : ex < 0 ? 'Left: in the grass' : 'Right: in the grass', 0.5, 0.3, true); }
-      G.buzz(6); landed.push({ kind: kd, b: f.b, x: f.x, y: f.y, ry: spin, t: 0 }); arcN = f.n;
+      G.buzz(6); landed.push(WASHERS_BOUNCE ? { kind: kd, b: f.b, x: f.x, y: f.y, ry: spin, t: 0, hb, h0: f.t - f.tc } : { kind: kd, b: f.b, x: f.x, y: f.y, ry: spin, t: 0 }); arcN = f.n; /* h0: s since the first touch */
       const h = armNow(); phiF = h.phi; pitF = h.pit; lunF = h.lun;
       last = { kind: kd, b: f.b, x: f.x, cb: f.cb, cx: f.cx, rim: f.rim, front: f.front, u: ur }; G.prog(`Round ${round + 1} / ${R} · ${pts} pts`, true); st = 'rest'; stT = 0; }
+    function hopTick(tau) { if (!(hb > 0)) return; const kk = wshHopN(tau, hb); if (kk > hopN) { hopN = kk; G.cue('clack', 0.08 + 0.12 * hb * Math.pow(WSH_B.E, kk)); } } /* a soft clink as each drawn hop comes down */
     function cueAt(kind, s, tt) { if (kind === 1) G.cue('clack', 0.25 + 0.2 * s); else if (kind === 2) G.cue('clack', 0.55); else if (kind === 3) { G.cue('clack', 0.85); G.cue('plink', 2); } else if (kind === 4) G.cue('plink', 1.4); else if (kind === 5) G.cue('clack', 0.15); else if (kind === 7) G.cue('clack', 0.75);
       else if (kind === 6) { const p = trkAt(tt, tB); for (let q = 0; q < 7; q++) { const a = q * 0.9 + n; dust.push({ x: p.x + Math.cos(a) * 0.05, y: p.y + 0.02, z: p.z + Math.sin(a) * 0.04, vx: Math.cos(a) * 0.35, vz: Math.sin(a) * 0.2, t: 0 }); } G.cue('clack', 0.1); } }
     function finishNow() { if (st === 'end') return; st = 'end'; G.finish(score()); }
@@ -75236,7 +75543,23 @@ const CampMini = (() => {
     const proj = (x, y, z) => { if (!cam) return null; tA.set(x, y, z).project(cam); if (tA.z > 1) return null; return [(tA.x + 1) / 2 * G.W, (1 - tA.y) / 2 * G.H]; };
     const setM = (it, x, y, z, rx, ry, s) => { it.m.compose(V4.set(x, y, z), Q4.setFromEuler(E4.set(rx || 0, ry || 0, 0)), S4.set(s, s, s)); };
     /* the arm's timeline: its arc angle, the wrist's cock / flick and the shoulder's step toward the lane, from the state and its clock */
-    function armNow() { const a = AN;
+    const swS = () => G.clock - sw0; /* s since the let-go */
+    /* the underhand timeline (WASHERS_HAND_V2): phi from hanging straight down, the wrist's pitch, lun = the knee dip (0 .. 1) */
+    function armNowU() { const a = AN, H = HH;
+      if (st === 'sway') { a.phi = H.REST + 0.8 * Math.sin(t * 2.1); a.pit = 0.04 * Math.sin(t * 1.3); a.lun = 0; }
+      else if (st === 'pull') { const u = uAt(G.clock), e = sm(clamp(stT / 0.12, 0, 1)); a.phi = H.REST - H.PB[0] * e - H.PB[1] * u + AR.TICK[1] * Math.sin(Math.PI * clamp(stT / AR.TICK[0], 0, 1)); a.pit = H.CK[0] * e + H.CK[1] * u; a.lun = 0.4 * e + 0.6 * u; }
+      else if (st === 'swing' || st === 'fly') { const s = swS(), tau = s / swD, fl = sm(clamp((tau - H.FLT[0]) / (H.FLT[1] - H.FLT[0]), 0, 1));
+        if (tau <= AR.RELF) { const x = tau / AR.RELF, lo = Math.min(H.LOW, phiA); /* down through the bottom of the swing, then up to the let-go */
+          a.phi = x < H.XB ? phiA + (lo - phiA) * sm(x / H.XB) : lo + (H.REL - lo) * (1 - Math.cos(Math.PI / 2 * (x - H.XB) / (1 - H.XB)));
+          a.pit = pitA * (1 + 0.4 * Math.min(1, x / H.XB)) * (1 - fl) + H.FL * fl; a.lun = lunA * (1 - sm(x)); }
+        else if (tau <= 1) { const x = (tau - AR.RELF) / (1 - AR.RELF); a.phi = H.REL + (H.END - H.REL) * Math.sin(Math.PI / 2 * x); a.pit = pitA * 1.4 * (1 - fl) + H.FL * fl; a.lun = 0; }
+        else { const q = s - swD, e = Math.exp(-H.Z * q), dn = sm(clamp((q - 0.45) / 0.6, 0, 1)); a.phi = H.FT + (H.END - H.FT) * e * Math.cos(H.K * q); a.pit = H.FTP + (H.FL - H.FTP) * e; a.lun = 0; /* the follow-through held, then back to the aim */
+          a.phi += (H.REST - a.phi) * dn; a.pit *= 1 - dn; } }
+      else if (st === 'rest') { const u = sm(clamp(stT / 0.6, 0, 1)); a.phi = phiF + (H.REST - phiF) * u; a.pit = pitF * (1 - u); a.lun = lunF * (1 - u); }
+      else if (st === 'wait') { const u = sm(clamp(stT / 0.45, 0, 1)); a.phi = phiF + (H.REST - phiF) * u; a.pit = pitF * (1 - u); a.lun = lunF * (1 - u); }
+      else { a.phi = H.REST; a.pit = 0; a.lun = 0; }
+      return a; }
+    function armNow() { if (WASHERS_HAND_V2) return armNowU(); const a = AN;
       if (st === 'sway') { a.phi = AR.REST + 0.8 * Math.sin(t * 2.1); a.pit = 0; a.lun = 0; }
       else if (st === 'pull') { const u = uAt(G.clock), e = sm(clamp(stT / 0.12, 0, 1)); a.phi = AR.REST - AR.PULL[0] * e - AR.PULL[1] * u + AR.TICK[1] * Math.sin(Math.PI * clamp(stT / AR.TICK[0], 0, 1)); a.pit = AR.CK[0] * e + AR.CK[1] * u; a.lun = 0; }
       else if (st === 'swing' || st === 'fly') { const s = G.clock - sw0, tau = s / swD;
@@ -75247,24 +75570,36 @@ const CampMini = (() => {
       else if (st === 'wait') { const u = sm(clamp(stT / 0.45, 0, 1)); a.phi = phiF + (AR.REST - phiF) * u; a.pit = pitF * (1 - u); a.lun = lunF * (1 - u); }
       else { a.phi = AR.REST; a.pit = 0; a.lun = 0; }
       return a; }
-    function handPose() { const q = clamp(hx / AMP, -1.2, 1.2), xv = q * AMP * kv, lxN = gA() * hx, a = armNow(); wshArc(ARC, a.phi, hs, HY + 0.045 * q * q, HZ);
+    function handPoseU() { const H = HH, q = clamp(hx / AMP, -1.2, 1.2), xv = q * AMP * kv, lxN = gA() * hx, a = armNow(), ph = a.phi * Math.PI / 180, r = H.R * hs;
+      SH.set(xv * H.SHX + H.SH[0] * hs, HY + (H.SH[1] - H.DIP * a.lun) * hs, HZ + H.SH[2] * hs); /* the shoulder: the pendulum's pivot, out of the lens' lower right */
+      let fx = xv - SH.x, fz = -H.FZ * hs; const fl = Math.hypot(fx, fz); fx /= fl; fz /= fl; /* the swing's forward, level */
+      HP.y = SH.y - r * Math.cos(ph); HP.x = SH.x + r * Math.sin(ph) * fx; HP.z = SH.z + r * Math.sin(ph) * fz;
+      HP.yaw = 0.6 * Math.atan2(-(lxN - HP.x), -(zT() - HP.z)); HP.pitch = ph - Math.PI / 2 + a.pit; HP.roll = H.ROLL + 0.22 * q - H.ROLLF * clamp(a.pit / H.FL, 0, 1); return HP; }
+    function handPose() { if (WASHERS_HAND_V2) return handPoseU(); const q = clamp(hx / AMP, -1.2, 1.2), xv = q * AMP * kv, lxN = gA() * hx, a = armNow(); wshArc(ARC, a.phi, hs, HY + 0.045 * q * q, HZ);
       HP.x = xv; HP.y = ARC[0]; HP.z = ARC[1]; HP.yaw = 0.6 * Math.atan2(-(lxN - xv), -(zT() - HP.z)); HP.pitch = a.pit; HP.roll = 0.22 * q; return HP; }
-    const handM = () => { const h = handPose(); HM.compose(V4.set(h.x, h.y, h.z), Q4.setFromEuler(E4.set(h.pitch, h.yaw, h.roll, 'YXZ')), S4.setScalar(WSH_V.HS * hs)); E4.order = 'XYZ'; return HM; };
-    function handWasher() { WM.copy(handM()).multiply(WL.compose(V4.set(-0.008, 0.026, -0.03), Q4.setFromEuler(E4.set(0.95, 0, 0.12)), S4.setScalar(WSH_V.HW / WSH_V.HS))); return [WM.elements[12], WM.elements[13], WM.elements[14]]; }
+    const handM = () => { const h = handPose(); HM.compose(V4.set(h.x, h.y, h.z), Q4.setFromEuler(E4.set(h.pitch, h.yaw, h.roll, 'YXZ')), S4.setScalar(WSH_V.HS * hs * (WASHERS_HAND_V2 ? HH.HSC : 1))); E4.order = 'XYZ'; return HM; };
+    function handWasher() { if (WASHERS_HAND_V2) WM.copy(handM()).multiply(WL.compose(V4.set(HH.WSH[0], HH.WSH[1], HH.WSH[2]), Q4.setFromEuler(E4.set(HH.WSHR, 0, 0)), S4.setScalar(WSH_V.HW / (WSH_V.HS * HH.HSC)))); /* flat in the pinch */
+      else WM.copy(handM()).multiply(WL.compose(V4.set(-0.008, 0.026, -0.03), Q4.setFromEuler(E4.set(0.95, 0, 0.12)), S4.setScalar(WSH_V.HW / WSH_V.HS))); return [WM.elements[12], WM.elements[13], WM.elements[14]]; }
     const bone = (it, ax, ay, az, bx, by, bz, s) => { V4.set(bx - ax, by - ay, bz - az); const l = V4.length() || 1e-6; V4.multiplyScalar(1 / l); Q4.setFromUnitVectors(YUP, V4); it.m.compose(V4.set(ax, ay, az), Q4, S4.set(s, l, s)); };
     function pose() { if (!V) return; const I = V.items, zt = zT(), by = boxY(zt);
       setM(I[0], 0, boxY(0), 0, 0, 0, 1); setM(I[1], 0, by, zt, 0, 0, 1); /* the near box (under the lens' bottom edge) and the target */
       let w = 2; const put = (x, y, z, rx, ry, s) => { if (w < 6) setM(I[w++], x, y, z, rx, ry, s === undefined ? 1 : s); };
       const shrink = st === 'next' ? clamp(1 - stT / 0.3, 0.0001, 1) : 1; /* the round's washers are picked up between rounds */
-      for (const L of landed) { const gr = Math.max(Math.abs(L.b), Math.abs(L.x)) >= P.OUT, x = L.x, z = zt - L.b; put(x, gr ? (V.gy(x, z) + 0.015) : by + L.y, z, 0, L.ry, shrink); }
+      for (const L of landed) { const gr = Math.max(Math.abs(L.b), Math.abs(L.x)) >= P.OUT, x = L.x, z = zt - L.b;
+        if (WASHERS_BOUNCE && L.hb) { const tb = L.t + L.h0; put(x, (gr ? (V.gy(x, z) + 0.015) : by + L.y) + wshHop(tb, L.hb), z, wshWob(tb, L.hb), L.ry, shrink); } /* the bounce's last hops and wobble */
+        else put(x, gr ? (V.gy(x, z) + 0.015) : by + L.y, z, 0, L.ry, shrink); }
       if (st === 'fly' && res) { const p = trkAt(stT, tA), u = clamp(stT / 0.5, 0, 1), fb = 1 - sm(clamp(stT / Math.max(0.3, (res.tc > 0 ? res.tc : res.t) * 0.55), 0, 1)), hsW = WSH_V.HW * hs;
-        put(p.x + off[0] * fb, p.y + off[1] * fb, p.z + off[2] * fb, p.air * (-0.35 + 0.15 * Math.sin(stT * 14)) + (1 - u) * 0.9, spin, hsW + (1 - hsW) * sm(u)); }
+        if (WASHERS_BOUNCE && hb > 0 && stT > res.tc) { const tb = stT - res.tc; put(p.x + off[0] * fb, p.y + off[1] * fb + wshHop(tb, hb), p.z + off[2] * fb, p.air * (-0.35 + 0.15 * Math.sin(stT * 14)) + (1 - u) * 0.9 + wshWob(tb, hb), spin, hsW + (1 - hsW) * sm(u)); } /* after the first touch: the drawn bounce on top of the track */
+        else put(p.x + off[0] * fb, p.y + off[1] * fb, p.z + off[2] * fb, p.air * (-0.35 + 0.15 * Math.sin(stT * 14)) + (1 - u) * 0.9, spin, hsW + (1 - hsW) * sm(u)); }
       else if (st === 'wait' || st === 'sway' || st === 'pull' || st === 'swing') { if (w < 6) { handWasher(); I[w++].m.copy(WM); } } /* the washer in the hand */
       while (w < 6) setM(I[w++], 0, -5, 0, 0, 0, 0.0001);
-      if (I[6]) { const H = handM(), a = AN; I[6].m.copy(H); /* the arm: the wrist under the glove's cuff, the shoulder low beside the lens, the elbow solved between */
-        WR.set(0.004, 0.012, 0.125).applyMatrix4(H); SH.set(HP.x * AR.SHX + AR.SH[0] * hs, HY + AR.SH[1] * hs, HZ + (AR.SH[2] - AR.LUNGE * a.lun) * hs);
-        wshIK(EL, SH.x, SH.y, SH.z, WR.x, WR.y, WR.z, AR.L1 * hs, AR.L2 * hs, AR.POLE[0], AR.POLE[1], AR.POLE[2]);
-        if (I[7]) bone(I[7], EL[0], EL[1], EL[2], WR.x, WR.y, WR.z, hs); if (I[8]) bone(I[8], SH.x, SH.y, SH.z, EL[0], EL[1], EL[2], hs); if (I[9]) setM(I[9], EL[0], EL[1], EL[2], 0, 0, hs); }
+      if (I[6]) { const H = handM(), a = AN; I[6].m.copy(H);
+        if (I[10]) { if (st === 'wait' || st === 'sway' || st === 'pull' || st === 'swing') setM(I[10], 0, -5, 0, 0, 0, 0.0001); else { I[10].m.copy(H); setM(I[6], 0, -5, 0, 0, 0, 0.0001); } } /* the pinch while the washer is held, the open hand after */ /* the arm: the wrist under the glove's cuff, the shoulder low beside the lens, the elbow solved between */
+        if (WASHERS_HAND_V2) { WR.set(HH.WR[0], HH.WR[1], HH.WR[2]).applyMatrix4(H); /* the shoulder was set by handPoseU */
+          wshIK(EL, SH.x, SH.y, SH.z, WR.x, WR.y, WR.z, HH.L1 * hs, HH.L2 * hs, HH.POLE[0], HH.POLE[1], HH.POLE[2]); }
+        else { WR.set(0.004, 0.012, 0.125).applyMatrix4(H); SH.set(HP.x * AR.SHX + AR.SH[0] * hs, HY + AR.SH[1] * hs, HZ + (AR.SH[2] - AR.LUNGE * a.lun) * hs);
+        wshIK(EL, SH.x, SH.y, SH.z, WR.x, WR.y, WR.z, AR.L1 * hs, AR.L2 * hs, AR.POLE[0], AR.POLE[1], AR.POLE[2]); }
+        const th = WASHERS_HAND_V2 ? hs * HH.TH : hs; if (I[7]) bone(I[7], EL[0], EL[1], EL[2], WR.x, WR.y, WR.z, th); if (I[8]) bone(I[8], SH.x, SH.y, SH.z, EL[0], EL[1], EL[2], th); if (I[9]) setM(I[9], EL[0], EL[1], EL[2], 0, 0, th); }
       V.commit(); }
     function nextCup(now) { /* s until the ring next crosses the cup's center (the sway as it is; null when not swaying) */
       if (st !== 'sway') return null; const w = om(), th = ph0 + w * Math.max(0, now - t0), s = Math.asin(clamp(-cc / A, -1, 1)); let best = Infinity;
@@ -75284,12 +75619,12 @@ const CampMini = (() => {
       update(dt) {
         t += dt; stT += dt; CAM_DRIFT.tick(dt, !!V, 0.6);
         if (pend >= 0 && st === 'pull') { const p = pend; pend = -1; release(p); }
-        if (st === 'wait') { const s0 = startX(); hx = hxFrom + (s0 - hxFrom) * sm(clamp(stT / 0.45, 0, 1)); if (stT >= 0.45 && !keyDn && !ptrDn) { st = 'sway'; stT = 0; t0 = G.clock; ph0 = s0 > cc ? Math.PI / 2 : -Math.PI / 2; hx = s0; phiF = AR.REST; pitF = 0; lunF = 0; } }
+        if (st === 'wait') { const s0 = startX(); hx = hxFrom + (s0 - hxFrom) * sm(clamp(stT / 0.45, 0, 1)); if (stT >= 0.45 && !keyDn && !ptrDn) { st = 'sway'; stT = 0; t0 = G.clock; ph0 = s0 > cc ? Math.PI / 2 : -Math.PI / 2; hx = s0; phiF = AREST; pitF = 0; lunF = 0; } }
         else if (st === 'sway') { hx = swayX(G.clock); idle += dt; if (!hinted && idle > 6 && n === 0) { hinted = true; G.float(G.pad ? 'Press A when the ring sits on the cup' : G.touch ? 'Tap when the ring sits on the cup' : 'Press Space when the ring sits on the cup', 0.5, 0.3, true); } }
         else if (st === 'pull') { if (G.clock >= te + P.CAP) release(te + P.CAP); }
         else if (st === 'swing') { if (G.clock - sw0 >= swD * AR.RELF) launch(); }
-        else if (st === 'fly') { spin += dt * 9 * (res.n ? TRK[Math.min(res.n - 1, Math.floor(stT * P.HZ)) * 4 + 3] : 0); while (evI < res.ne && EV[evI * 3] <= stT) { cueAt(EV[evI * 3 + 1], EV[evI * 3 + 2], EV[evI * 3]); evI++; } if (stT >= res.t) land(); }
-        else if (st === 'rest') { if (stT >= 1.1) { k++; if (k < N) nextWasher(); else { if (roundCups === N) { G.cue('success', true); G.float('Three in the cup!', 0.5, 0.22, false); } st = round + 1 < R ? 'next' : 'done'; stT = 0; rolled = false; } } }
+        else if (st === 'fly') { spin += dt * 9 * (res.n ? TRK[Math.min(res.n - 1, Math.floor(stT * P.HZ)) * 4 + 3] : 0); while (evI < res.ne && EV[evI * 3] <= stT) { cueAt(EV[evI * 3 + 1], EV[evI * 3 + 2], EV[evI * 3]); evI++; } if (WASHERS_BOUNCE) hopTick(stT - res.tc); if (stT >= res.t) land(); }
+        else if (st === 'rest') { if (WASHERS_BOUNCE) hopTick(res.t - res.tc + stT); if (stT >= 1.1) { k++; if (k < N) nextWasher(); else { if (roundCups === N) { G.cue('success', true); G.float('Three in the cup!', 0.5, 0.22, false); } st = round + 1 < R ? 'next' : 'done'; stT = 0; rolled = false; } } }
         else if (st === 'next') { if (!rolled && stT >= 0.3) { rolled = true; round++; k = 0; roundCups = 0; landed.length = 0; if (V) V.setSet(round === 1); G.float(round === 2 ? 'Long toss: the far box steps back' : 'Round 2: a quicker sway', 0.5, 0.26, true); }
           if (stT >= 0.9) nextWasher(); }
         else if (st === 'done') { if (stT >= 1.1) { finishNow(); return; } }
@@ -75511,7 +75846,7 @@ if (DEBUG) {
       return { n, bad: bad.length, kinds: bad.slice(0, 8), zen: !!F.wshZen }; },
     draw: () => { const W = S.course && S.course.washers; if (!W || !W.cp.body) return null; return { body: W.cp.body.geometry.drawRange.count, wshV: W.cp.wshV || 0, glow: W.F ? W.F.glow.geometry.drawRange.count : -1, ring: W.F ? W.F.wshStar.ring : -1 }; } }; /* tests: the washers camp, its spot, the find */
   if (COMPANIONS_ON) window.__petsW = { get W() { const W = S.course && S.course.petsW; if (!W) return null; const B = W.basket, R = W.bush; /* tests: the basket clearing, the bushes, the pick-ups */
-      return { basket: B ? { x: B.x, y: B.y, z: B.z, camp: B.camp ?? null, mi: B.mi, mx: B.mx, mz: B.mz, rr: B.rr, th: B.th, gx: B.gx, gz: B.gz, sd: B.sd, D: B.D, dl: B.dl, plen: B.plen, cand: B.cand, pass: B.pass, tries: B.tries, got: !!B.got, path: B.path, pile: B.pile, torch: B.torch ? [B.torch.x, B.torch.y, B.torch.z] : null, decor: B.decor || null, ring: B.ring && B.ring.map(T => [T.kind, +T.x.toFixed(2), +T.z.toFixed(2), +T.s.toFixed(2)]), lamp: B.lp } : null,
+      return { basket: B ? { x: B.x, y: B.y, z: B.z, camp: B.camp ?? null, mi: B.mi, mx: B.mx, mz: B.mz, rr: B.rr, th: B.th, gx: B.gx, gz: B.gz, sd: B.sd, D: B.D, dl: B.dl, plen: B.plen, cand: B.cand, pass: B.pass, tries: B.tries, got: !!B.got, path: B.path, pile: B.pile, torch: B.torch ? [B.torch.x, B.torch.y, B.torch.z] : null, decor: B.decor || null, ring: B.ring && B.ring.map(T => [T.kind, +T.x.toFixed(2), +T.z.toFixed(2), +T.s.toFixed(2)]), lamp: B.lp, stump: B.dim || null, pickR: B.pickR || null } : null,
         bush: R ? { x: R.x, y: R.y, z: R.z, i: R.i, id: R.id, mode: R.mode, off: R.off, fit: R.fit, hab: R.hab, tries: R.tries, got: !!R.got } : null, decoys: W.decoys.map(D2 => ({ x: D2.x, y: D2.y, z: D2.z, i: D2.i })), missB: W.missB, missR: W.missR, groups: W.groups.map(g => ({ name: g.name, v0: g.v0, n: g.n, gone: !!g.gone })) }; },
     PETW, force: (o) => { PETW.force = o || null; }, seen: () => { const W = S.course && S.course.petsW, B = W && W.basket; if (!B || B.camp) return -1; PETW.parts = null; return petwSeen(S.course, S.surf, B.mi, petwTargets(B.x, B.y, B.z), petwExtra(B.ring, B.shrubs, [])); },
     tick: (dt) => petsWorldTick(dt || 1 / 60), finish: () => petsWorldFinish(), camp: (cp) => petsWorldCamp(cp), C: { PETW_PICK_R, PETW_CATCH_R, PETW_MISS_MAX, PETW_GLOW_UP, PETW_NEAR_CUE, PETW_BUSH_NEAR, PETW_OFF, PETW_RING } };
