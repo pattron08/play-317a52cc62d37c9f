@@ -705,6 +705,20 @@
   #campPn .pre { width: 26px; height: 26px; border-radius: 50%; background: var(--c); border: 2px solid rgba(253,248,234,.4); cursor: pointer; padding: 0; flex: none; box-sizing: border-box; }
   #campPn .pre[aria-pressed="true"] { border-color: #fff; box-shadow: 0 0 0 2px var(--acc1), 0 0 10px var(--accGlow); }
   #campPn .pres.gpf { border-radius: 12px; } #campPn .chips.gpf { border-radius: 10px; scale: 1; box-shadow: 0 0 0 2px var(--acc1), 0 0 0 5px rgba(245,138,52,.2), 0 0 18px 2px var(--accGlow) !important; } #campPn .chips.gpf::after { display: none; } /* the chip row scrolls: its own overflow would clip the ring, so it is a box-shadow */
+  /* LOOK_MENU_ORG (.morg): the color pages close up to their smallest sizes, then the free height spreads them again (the chip grid and the sliders grow back first, the rest goes into even gaps) */
+  #campPn.morg:is([data-sub="rider-col"], [data-sub="bike"]) #campBody { padding: 6px 12px; gap: 2px; justify-content: space-between; } #campPn.morg:is([data-sub="rider-col"], [data-sub="bike"]) .chint { margin-top: 0; }
+  #campPn.morg:is([data-sub="rider-col"], [data-sub="bike"]) .pt { height: 24px; } #campPn.morg:is([data-sub="rider-col"], [data-sub="bike"]) .bk { width: 24px; height: 24px; } #campPn.morg:is([data-sub="rider-col"], [data-sub="bike"]) .pt .seg.pg button { min-height: 22px; }
+  #campPn.morg:is([data-sub="rider-col"], [data-sub="bike"]) .swc { height: 26px; } #campPn.morg:is([data-sub="rider-col"], [data-sub="bike"]) .swatch { width: 54px; height: 26px; } #campPn.morg:is([data-sub="rider-col"], [data-sub="bike"]) .pres.fun { gap: 5px; }
+  #campPn.morg:is([data-sub="rider-col"], [data-sub="bike"]) .sl { height: auto; min-height: 18px; max-height: 22px; flex: 1 1 18px; } #campPn.morg:is([data-sub="rider-col"], [data-sub="bike"]) .pres { padding: 0 2px; } #campPn.morg:is([data-sub="rider-col"], [data-sub="bike"]) .pre { width: 22px; height: 22px; }
+  #campPn.morg .cgw { display: flex; gap: 5px; flex: 1 1 69px; min-height: 69px; max-height: 87px; } /* the nine rider chips: a word column + a 3 x 3 grid, rows 21 .. 27 px */
+  #campPn.morg .cgl { width: 54px; flex: none; display: grid; grid-template-rows: repeat(3, minmax(0, 1fr)); row-gap: 3px; align-items: center; font: 600 10.5px var(--f-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+  #campPn.morg .chips.cg3 { flex: 1; min-width: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(3, minmax(21px, 1fr)); gap: 3px; overflow: visible; padding: 0; margin: 0; }
+  #campPn.morg .chips.cg3 .chip { height: auto; min-width: 0; padding: 0 4px; gap: 3px; font-size: 11px; }
+  #campPn.morg .chips.cg1 { gap: 3px; overflow: visible; } #campPn.morg .chips.cg1 .chip { flex: 1 1 auto; justify-content: center; padding: 0 5px 0 4px; gap: 4px; font-size: 11px; } /* the four bike chips share one row */
+  /* LOOK_MENU_ORG: the Style page in head-to-toe groups with thin rules, the rows spread over the free height */
+  #campPn.morg[data-sub="rider-style"] .lst.sp { flex: 1 0 auto; gap: 1px; justify-content: space-between; } #campPn.morg .grl { flex: none; height: 1px; background: rgba(253,248,234,.14); }
+  body.gpNav #campPn.morg[data-sub="rider-style"] .pt { height: 24px; } body.gpNav #campPn.morg[data-sub="rider-style"] .bk { width: 24px; height: 24px; } body.gpNav #campPn.morg[data-sub="rider-style"] .pt .seg.pg button { min-height: 22px; } /* with the pad hint row the Style rows close up so the hint stays inside a short phone panel */
+  body.gpNav #campPn.morg[data-sub="rider-style"] .lst .lr .seg button { min-height: 21px; } body.gpNav #campPn.morg[data-sub="rider-style"] .lst .lr .seg.g4.r3 button { min-height: 20px; } body.gpNav #campPn.morg[data-sub="rider-style"] .tgl { height: 22px; }
   /* Skills: 6 one-line rows of 10 pips, the points chip in the title row (plus a quiet 'Classic feel' note while it is on: the switch lives in the pause card's DEV section), Undo / Respec / Confirm always on screen */
   #campPn .ptc { font: 700 10.5px/20px var(--f-ui); letter-spacing: .08em; text-transform: uppercase; padding: 0 9px; border-radius: 99px; border: 1px solid rgba(253,248,234,.25); color: var(--muted); white-space: nowrap; }
   #campPn .ptc.has { background: var(--accGrad); border-color: transparent; color: var(--accInk); }
@@ -863,7 +877,7 @@
   <div class="favCard" id="tFavs" hidden><div class="fvh">Favorites</div><div class="fvl" id="tFavList"></div><button class="mb sm" id="tFavClose">Close</button></div>
   <div id="tapGo" role="status">Tap to start</div>
   <button class="ico" id="mute" role="switch" aria-checked="true" aria-label="Sound"><svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg><svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M17 9l5 6M22 9l-5 6"/></svg></button>
-  <div class="foot"><span id="verTag">v0.53.0</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span></div>
+  <div class="foot"><span id="verTag">v0.54.0</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span></div>
   <button id="btnNew" hidden>New mountain</button>
 </div>
 
@@ -54065,6 +54079,8 @@ const DESKTOP_BUILD = 0;
    typed, daily, shared or favorite mountains; a 'Get the full game' card at the finish and in the pause card. Saves use the same holdon.* keys, so a
    Progress code from the demo loads in the full game. 0 = the full game */
 const DEMO_BUILD = 0;
+/* the demo's 'Get the full game' card on the finish screen: 1 = its Copy link button is 44 px tall (a full touch target on a phone); 0 = 32 px */
+const DEMO_COPY_TALL = 1;
 /* 1 to 4 entries, shown in this order on the picker; unlockAfter = the codes that must all be finished before the mountain opens (empty = open from the start) */
 const DEMO_MOUNTAINS = [
   { code: 'MTN-S7K3D', name: 'Alpine Meadow', unlockAfter: [] },
@@ -54388,6 +54404,9 @@ const CAMP_CEN_FIX = 1;
 const CAMP_THROW_ABORT = 1;
 /* CAMP_LEAVE_GUARD: 1 = no mini game (or Soak) starts while the camp is fading out, and anything still up when the fade ends is stopped; 0 = a card tap in the fade starts a game that then runs unseen (as before) */
 const CAMP_LEAVE_GUARD = 1;
+/* CAMP_LOOP_GUARD: 1 = a mini game's frame loop stops for good once the game is torn down (a frame already queued when it ended runs nothing and queues no more),
+   so an ended game can never keep polling the pad and clear the B claim (CampMini.ownsB) of the game started after it; 0 = as before */
+const CAMP_LOOP_GUARD = 1;
 const campPct = (v) => (CAMP_PCT_FLOOR ? Math.floor(v * 100 + 1e-7) : Math.round(v * 100));
 if (WASHERS_ON) SKILL.buffOf.washers = 'lucky';
 /* HAM_ON: the Trail Build camp game (fit planks, then nail them; a different small wooden piece each time, kept at that camp for the visit only).
@@ -54545,6 +54564,10 @@ const PETS_BASKET_K = 1.25, PETS_BASKET_RIM = 0.03, PETS_BASKET_LIFT = 1.12; /* 
 const PET_JUMP = 1; /* 1 = an animal found while the basket is on and empty jumps out of its bush into the bike's basket (one small mesh for about a second) and rides
      along from then on; its perk waits for the next camp or run start (MOD and the best-time key never change mid-ride); a find with an animal already in the
      basket, or with the basket off, goes to camp as before; 0 = every find goes to camp */
+const PJ_FIT_SMALL = 1; /* 1 = in flight the hop moves only when it would cover the find banner's text (the title, its icon and the line under it, 8 px padded); then it is
+     lowered only as far as its own arc lift (never down into the bush it leaves), then drawn smaller (down to PJ_FIT_MIN x its basket size), and no further (where the banner sits over the bush on screen, the text is drawn over it for a moment);
+     0 = it is lowered whenever its top is above the banner's last line anywhere across the screen, so with the bush high on screen it starts pushed down into the bush */
+const PJ_FIT_MIN = 1;
 let petsJumpHold = false; /* PET_JUMP: the animal that jumped in rides without its perk until the next camp or run start */
 const SCRAP_BIG = 1; /* 1 = the board's basket note is drawn ~1.6 x larger in heavier charcoal, fitted between the flag words and the sheet's right edge; 0 = the small scrap */
 const petsStory = () => petsOn() && (!!PETS.force || devL10On() || (levelOfXp(PROF.xp) >= PET_START_LVL && Object.keys(PROF.mtn).length >= PET_START_MAPS));
@@ -61066,10 +61089,11 @@ function herringboneKnobs(M, RT, RS = 6, TS = 14) { /* M, RT, RS, TS = the carca
   const N = TS * 2, T = 0.52, L = 0.044, W = 0.026, Hk = 0.009, SINK = 0.001, YAW = 24 * Math.PI / 180, dv = Math.PI * 2 / RS, du = Math.PI * 2 / TS;
   const b = [[-.5, 0, -.5], [.5, 0, -.5], [.5, 0, .5], [-.5, 0, .5]], t = [[-.36, 1, -.4], [.36, 1, -.4], [.36, 1, .4], [-.36, 1, .4]], tri = [];
   const q4 = (a, c, d, e) => tri.push(a, c, d, a, d, e); q4(t[0], t[3], t[2], t[1]); for (let i = 0; i < 4; i++) { const j = (i + 1) % 4; q4(b[i], t[i], t[j], b[j]); } /* a 5-face tapered block, 10 tris, open base */
-  const pos = new Float32Array(2 * N * tri.length * 3), tv = new THREE.Vector3(), nv = new THREE.Vector3(), sv = new THREE.Vector3(), pv = new THREE.Vector3(), qq = new THREE.Quaternion(), mm = new THREE.Matrix4(), vv = new THREE.Vector3();
+  const pos = new Float32Array(2 * (TIRE_KNOBS_LITE ? N / 2 : N) * tri.length * 3), tv = new THREE.Vector3(), nv = new THREE.Vector3(), sv = new THREE.Vector3(), pv = new THREE.Vector3(), qq = new THREE.Quaternion(), mm = new THREE.Matrix4(), vv = new THREE.Vector3();
   const tp = (u, v) => new THREE.Vector3((M + RT * Math.cos(v)) * Math.cos(u), (M + RT * Math.cos(v)) * Math.sin(u), RT * Math.sin(v)); /* a torus vertex (TorusGeometry's own formula) */
   let o = 0;
   for (const sd of [-1, 1]) for (let i = 0; i < N; i++) { /* two blocks per tubular facet (at 1/4 and 3/4 of it), 52 % of the way from the crown ring to the next ring */
+    if (TIRE_KNOBS_LITE && (i & 1)) continue; /* the light tread: the 1/4 block only */
     const u0 = Math.floor(i / 2) * du, u1 = u0 + du, s = (i & 1) ? 0.75 : 0.25, c00 = tp(u0, 0), c10 = tp(u1, 0), c01 = tp(u0, sd * dv), c11 = tp(u1, sd * dv);
     pv.copy(c00).multiplyScalar((1 - s) * (1 - T)).addScaledVector(c10, s * (1 - T)).addScaledVector(c01, (1 - s) * T).addScaledVector(c11, s * T); /* on the (planar) facet */
     tv.subVectors(c10, c00).normalize(); vv.subVectors(c01, c00); nv.crossVectors(tv, vv).normalize(); if (nv.dot(vv.set(pv.x - M * Math.cos(u0 + du / 2), pv.y - M * Math.sin(u0 + du / 2), pv.z)) < 0) nv.negate(); /* facet normal, outward */
@@ -62811,7 +62835,8 @@ function petsPeekFits(cp, p, d) { /* the whole head-and-shoulders box on screen 
   return true; }
 /* ---- peek pick (pure) ---- */
 const PEEK_AREA = { kiosk: 'sign', fence: 'fence', post: 'fence', seat: 'log', log: 'log', tent: 'tent', door: 'tent', tentTop: 'tent', hill: 'ridge', bush: 'edge', woodpile: 'wood', pole: 'pole' }; /* the area a cover belongs to */
-const PEEK_AREA_W = { tent: 1.5, ridge: 1.5 }; /* how often an area comes up compared with the others (1 each): the whole part is extra entries, the fraction a chance of one more per bag */
+const PEEK_TENT_EVEN = 1; /* 1 = the tent area (one spot, in sight at nearly every camp) comes up as often as any other area; 0 = 1.5 x (as before) */
+const PEEK_AREA_W = { tent: PEEK_TENT_EVEN ? 1 : 1.5, ridge: 1.5 }; /* how often an area comes up compared with the others (1 each): the whole part is extra entries, the fraction a chance of one more per bag */
 function peekPickArea(avail, st, rnd) { /* avail: the areas with a spot in sight, st: { bag, hist } kept per camp, rnd: () => [0, 1); returns one area, never the last one (nor the one before when more than three are in sight), every area once per bag before any repeats */
   if (!avail.length) return null; if (!st.bag) st.bag = []; if (!st.hist) st.hist = [];
   if (avail.length === 1) { st.hist.push(avail[0]); if (st.hist.length > 8) st.hist.shift(); return avail[0]; }
@@ -63050,6 +63075,26 @@ const PAL = { c: mkPal(PAL_C), skin: mkPal(PAL_S), hair: mkPal(PAL_H) };
    eight hair styles that show under the helmet, a headwear choice (helmet, cap, beanie, none) and a shoe color that follows the saddle until it is set);
    0 = the block rider (four hair styles, the helmet only, shoes in the saddle's color). Geometry only: the pose rig, physics and crash hull never read it */
 const RIDER_LOOK_V2 = 1;
+/* geometry fits of the rider and the bike (drawn shapes only: the pose rig, physics, the crash hull inputs and the camera never read them; 0 = the shapes before).
+   CHIN_STRAP_V2: the trail / open / skate / full-face chin straps lie on the jaw (lower run on the head's surface, flat side down) and a small dark buckle sits tucked under the chin. */
+const CHIN_STRAP_V2 = 1;
+/* HOSE_HUG: the hydration hose runs on top of the right shoulder strap (it stood up to 3 cm off it behind the shoulder) */
+const HOSE_HUG = 1;
+/* HELMET_TRIM_FLUSH: the rear vent blocks of the trail and full-face shells lie on the shell (their back corner stood up as a fin), the visor screws are small seated bolt heads */
+const HELMET_TRIM_FLUSH = 1;
+/* BURN_IN: the sideburn locks of the short, buzz and low-shell styles sit on the cheek (4 mm in) */
+const BURN_IN = 1;
+/* SHOE_PEDAL_FIT: on the bike the shoe is drawn 2.5 cm higher on the pedal point, so the pedal sits in the sole and not through the upper; the ankle collar follows.
+   At camp (seated, walking) the shoe is drawn as before, so the feet stay on the ground. Off: the pedal platform already sits wholly inside the shoe
+   (only the spindle shows on the inner side) and a 2.5 cm lift still leaves the sole 6 cm under the platform; a sole on the pedal needs the foot target moved */
+const SHOE_PEDAL_FIT = 0, SHOE_LIFT = 0.025;
+/* TIRE_KNOBS_LITE: every other tread block of the herringbone is left out (half the knob vertices, 1680 a bike); 0 = all of them (the sparser tread shows
+   in camp and tune-up close-ups) */
+const TIRE_KNOBS_LITE = 0;
+/* CHAINLINE_FIX: the chainring, the cassette and the rotors clear the frame: chainstay roots inboard and slimmer, chainring / spider / chain guide / bash guard
+   8 mm outboard, the cassette inboard of the stay ends and thinner, the chain runs follow, both rotors 5 mm inboard of the dropout's face; the tune-up's
+   chain, sprocket stack and rotor holes follow */
+const CHAINLINE_FIX = 1;
 /* the rider's build: 1 = a Build slider on the Look page, from slim through the shipped build (the middle, the default) to broad. It only thickens or thins
    the body round the same axes at build time (limb and torso radii, the torso kit's depth and width, gloves, shoe width), never a length, a joint, the head
    or the helmet; LOOK.body 0..1, 0.5 = the shipped build. 0 = the shipped build only (no slider, no saved field). Needs RIDER_LOOK_V2 */
@@ -63071,7 +63116,11 @@ const HAIR_LOW = (L) => HAIR_V3 && HAIR_ALL_HELMETS && (L.headwear === 'helmet' 
 /* the camp Look > Rider > Style page with the twelve hair styles and the Build row: 1 = its padding, gaps and row heights close up (rows 25 px, hair 22 px,
    toggles 24 px) so the whole page and the pad hint fit inside the panel at 844 x 390; 0 = the earlier spacing (the hint ran past the panel's bottom there) */
 const LOOK_FIT = 1;
-const PAL_H3 = [['black', '#26262d'], ['darkbrown', '#3f2819'], ['brown', '#5a3a22'], ['chestnut', '#8a5a3a'], ['auburn', '#8a3a22'], ['ginger', '#c66a2e'], ['blonde', '#d8b86f'], ['platinum', '#e8dfc0'], ['silver', '#b5b2ac'], ['white', '#efece6'],
+/* the camp Bike & Rider pages laid out head to toe and spread over the panel's height: Rider > Colors shows all nine part chips in a 3 x 3 grid
+   (Head / Clothes / Gear rows), Rider > Style groups Helmet, Hair, Eyes | Sleeves, Legs | Gloves, Knee pads, Backpack | Build with thin rules, Bike > Colors
+   fits its four chips in one row (the fork slot is named Shocks). 0 = the earlier scrolling chip strip and row order */
+const LOOK_MENU_ORG = 1;
+const PAL_H3 =[['black', '#26262d'], ['darkbrown', '#3f2819'], ['brown', '#5a3a22'], ['chestnut', '#8a5a3a'], ['auburn', '#8a3a22'], ['ginger', '#c66a2e'], ['blonde', '#d8b86f'], ['platinum', '#e8dfc0'], ['silver', '#b5b2ac'], ['white', '#efece6'],
   ['teal', '#2fb5a8'], ['pink', '#e86aa6'], ['purple', '#8a5fd0'], ['blue', '#3f7fe0'], ['red', '#d6362f']]; /* ten natural (black lifted so it never reads as a hole; 'silver' is the gray) + five bright */
 if (HAIR_V3) PAL.hair = mkPal(PAL_H3);
 /* a saved hair color that was one of the old presets shows as the nearest new palette color (the save itself keeps its value) */
@@ -63146,7 +63195,8 @@ function bikeParts() {
   prism(B, [[0.36, 1.035], [0.44, 0.82], [0.52, 0.955]], -0.022, 0.022, 'frame'); /* gusset web: its edges run inside the tubes, only the filled corner shows */
   disc(B, 0.046, 0.13, 0, 0.45, 0, 'frameD');
   /* swingarm: chainstays from the main pivot (just behind the BB, under the chain), seatstays up to the rocker, bridge, dropouts, axle */
-  for (const s of [-1, 1]) { tube(B, V(-0.035, 0.5, s * 0.05), V(-0.42, 0.355, s * 0.07), 0.03, 0.022, 6, 'frame'); tube(B, V(-0.43, 0.37, s * 0.07), V(-0.165, 0.865, s * 0.05), 0.022, 0.018, 6, 'frameD');
+  const CL = CHAINLINE_FIX; /* the chain line clear of the frame (see CHAINLINE_FIX) */
+  for (const s of [-1, 1]) { tube(B, V(-0.035, 0.5, s * (CL ? 0.04 : 0.05)), V(-0.42, 0.355, s * 0.07), CL ? 0.022 : 0.03, 0.022, 6, 'frame'); tube(B, V(-0.43, 0.37, s * 0.07), V(-0.165, 0.865, s * 0.05), 0.022, 0.018, 6, 'frameD');
     prism(B, [[-0.485, 0.32], [-0.41, 0.32], [-0.4, 0.35], [-0.42, 0.4], [-0.47, 0.395], [-0.495, 0.36]], s * 0.07 - 0.007, s * 0.07 + 0.007, 'frameD'); }
   tube(B, V(-0.34, 0.54, -0.063), V(-0.34, 0.54, 0.063), 0.014, 0.014, 6, 'frameD'); /* seatstay bridge */
     tube(B, V(-0.45, 0.35, -0.085), V(-0.45, 0.35, 0.085), 0.012, 0.012, 6, 'silver'); /* rear axle */
@@ -63163,10 +63213,11 @@ function bikeParts() {
   { const sd = [[-0.355, -0.05], [-0.31, -0.068], [-0.22, -0.06], [-0.13, -0.032], [-0.04, -0.022], [-0.022, 0], [-0.04, 0.022], [-0.13, 0.032], [-0.22, 0.06], [-0.31, 0.068], [-0.355, 0.05]];
     prism(B, sd, 1.08, 1.1225, 'saddle', XZ); prism(B, sd.map(([x, z]) => [x * 0.94 - 0.012, z * 0.9]), 1.064, 1.081, 'saddleD', XZ); }
   /* drivetrain that does not turn: chain runs, cassette, a short-cage derailleur, the chain guide and bash guard (a DH tell) */
-  tube(B, V(0, 0.547, 0.064), V(-0.45, 0.408, 0.064), 0.007, 0.007, 4, 'dark'); tube(B, V(0, 0.353, 0.064), V(-0.49, 0.175, 0.064), 0.007, 0.007, 4, 'dark');
-  disc(B, 0.058, 0.022, -0.45, 0.35, 0.046, 'steel', 10); disc(B, 0.042, 0.028, -0.45, 0.35, 0.071, 'silver', 8);
+  tube(B, V(0, 0.547, CL ? 0.072 : 0.064), V(-0.45, 0.408, CL ? 0.045 : 0.064), 0.007, 0.007, 4, 'dark'); tube(B, V(0, 0.353, CL ? 0.072 : 0.064), V(-0.49, 0.175, CL ? 0.08 : 0.064), 0.007, 0.007, 4, 'dark');
+  if (CL) { disc(B, 0.058, 0.016, -0.45, 0.35, 0.034, 'steel', 10); disc(B, 0.042, 0.006, -0.45, 0.35, 0.045, 'silver', 8); } /* the cassette inboard of the stay ends */
+  else { disc(B, 0.058, 0.022, -0.45, 0.35, 0.046, 'steel', 10); disc(B, 0.042, 0.028, -0.45, 0.35, 0.071, 'silver', 8); }
   box(B, 0.05, 0.035, 0.03, -0.465, 0.305, 0.092, 'dark'); box(B, 0.03, 0.12, 0.01, -0.48, 0.22, 0.086, 'black', 0.2); disc(B, 0.019, 0.012, -0.47, 0.265, 0.08, 'steel', 8); disc(B, 0.019, 0.012, -0.49, 0.175, 0.08, 'steel', 8);
-  box(B, 0.06, 0.03, 0.03, -0.075, 0.535, 0.064, 'dark', -0.3); add(B, new T.TorusGeometry(0.113, 0.012, 3, 7, Math.PI * 0.7), new T.Matrix4().compose(V(0, 0.45, 0.064), qz(Math.PI * 1.15), ONE), 'dark');
+  box(B, 0.06, 0.03, 0.03, -0.075, 0.535, CL ? 0.072 : 0.064, 'dark', -0.3); add(B, new T.TorusGeometry(0.113, 0.012, 3, 7, Math.PI * 0.7), new T.Matrix4().compose(V(0, 0.45, CL ? 0.072 : 0.064), qz(Math.PI * 1.15), ONE), 'dark');
   /* rear 4-piston caliper astride the rotor, a silver pad cap */
   { const a = 0.75, cx = -0.45 + Math.cos(a) * 0.093, cy = 0.35 + Math.sin(a) * 0.093; box(B, 0.095, 0.045, 0.05, cx, cy, -0.062, 'dark', a + Math.PI / 2); box(B, 0.05, 0.016, 0.054, cx + Math.cos(a) * 0.03, cy + Math.sin(a) * 0.03, -0.062, 'silver', a + Math.PI / 2); }
   /* dual-crown fork, two-tone: stanchions in the Fork color's light shade, crowns + lowers in the Fork color, dark seals, axle lugs + through axle */
@@ -63187,11 +63238,12 @@ function bikeParts() {
     add(L, new T.TorusGeometry(0.31, 0.075, 6, 14), I(), 'tire'); add(L, herringboneKnobs(0.31, 0.075), I(), 'tire2'); add(L, new T.TorusGeometry(0.245, 0.024, 4, 14), I(), 'rims');
     for (let k = 0; k < 16; k++) { const th = k / 16 * Math.PI * 2, z = (k & 1) ? 0.033 : -0.033, t = th + ((k & 2) ? 0.5 : -0.5); tube(L, V(Math.cos(th) * 0.045, Math.sin(th) * 0.045, z), V(Math.cos(t) * 0.234, Math.sin(t) * 0.234, z * 0.25), 0.0045, 0.0045, 4, 'hub', true); }
     disc(L, 0.028, 0.13, 0, 0, 0, 'hub', 6); disc(L, 0.05, 0.01, 0, 0, -0.033, 'hub', 6); disc(L, 0.05, 0.01, 0, 0, 0.033, 'hub', 6);
-    add(L, new T.TorusGeometry(0.088, 0.013, 4, 12), new T.Matrix4().compose(V(0, 0, -0.06), new T.Quaternion(), V(1, 1, 0.35)), 'steel'); disc(L, 0.036, 0.01, 0, 0, -0.06, 'dark', 6);
-    for (let k = 0; k < 5; k++) { const th = k / 5 * Math.PI * 2; box(L, 0.05, 0.012, 0.006, Math.cos(th) * 0.055, Math.sin(th) * 0.055, -0.06, 'steel', th); } }
+    const rz = CL ? -0.055 : -0.06; /* the rotors' z */
+    add(L, new T.TorusGeometry(0.088, 0.013, 4, 12), new T.Matrix4().compose(V(0, 0, rz), new T.Quaternion(), V(1, 1, 0.35)), 'steel'); disc(L, 0.036, 0.01, 0, 0, rz, 'dark', 6);
+    for (let k = 0; k < 5; k++) { const th = k / 5 * Math.PI * 2; box(L, 0.05, 0.012, 0.006, Math.cos(th) * 0.055, Math.sin(th) * 0.055, rz, 'steel', th); } }
   /* crank (about the BB): a toothed ring, dark spider, spindle and both arms (the -z arm points down at rest, the +z one up) */
   { const K = G.crank, tooth = []; for (let i = 0; i < 24; i++) { const a = i / 24 * Math.PI * 2, r = (i & 1) ? 0.086 : 0.099; tooth.push([Math.cos(a) * r, Math.sin(a) * r]); }
-    prism(K, tooth, 0.057, 0.067, 'silver'); disc(K, 0.05, 0.018, 0, 0, 0.062, 'dark', 8); tube(K, V(0, 0, -0.1), V(0, 0, 0.1), 0.018, 0.018, 6, 'dark');
+    prism(K, tooth, CL ? 0.065 : 0.057, CL ? 0.075 : 0.067, 'silver'); disc(K, 0.05, 0.018, 0, 0, CL ? 0.07 : 0.062, 'dark', 8); tube(K, V(0, 0, -0.1), V(0, 0, 0.1), 0.018, 0.018, 6, 'dark');
     const arm = [[-0.022, 0.012], [-0.016, -CRANK], [0, -CRANK - 0.018], [0.016, -CRANK], [0.022, 0.012], [0, 0.032]];
     prism(K, arm, -0.103, -0.077, 'silver'); prism(K, arm, 0.077, 0.103, 'silver', new T.Matrix4().makeRotationZ(Math.PI)); }
   /* flat pedals (about the spindle; each pedal keeps level by counter-rotating) */
@@ -64007,7 +64059,7 @@ function pjAnchor(v) { steerYaw.updateWorldMatrix(true, false); return v.copy(PJ
 function pjStart(R, id, geo) { pjEnd(false); geo.computeBoundingBox(); const b = geo.boundingBox; PJ.a.set((b.min.x + b.max.x) / 2, b.min.y, (b.min.z + b.max.z) / 2); geo.translate(-PJ.a.x, -PJ.a.y, -PJ.a.z); geo.computeBoundingSphere(); geo.computeBoundingBox();
   const m = new THREE.Mesh(geo, campMat); m.matrixAutoUpdate = false; m.frustumCulled = false; scene.add(m); PJ.m = m; PJ.on = true; PJ.id = id; PJ.t = 0; PJ.tr = 0; PJ.n = 0; PJ.land = false; PJ.run = S.course;
   PJ.s0.set(R.x, R.y + 0.55, R.z); pjAnchor(PJ.b0); PJ.k0 = PJ_K0; PJ.h = innerWidth <= 900 ? PJ_H_PHONE : PJ_H; PJ.bb.copy(geo.boundingBox); PJ.lim = null;
-  const sb = popT > 0 && popEl.querySelector('.sub'); if (sb) { const rg = document.createRange(); rg.selectNodeContents(sb); const r = rg.getBoundingClientRect(); if (r.bottom > 0) PJ.lim = 1 - 2 * (r.bottom + 8) / innerHeight; } /* the find banner's last line (one layout read a find): the animal stays below it */
+  const sb = popT > 0 && popEl.querySelector('.sub'); if (sb) { const rg = document.createRange(); rg.selectNodeContents(sb); const r = rg.getBoundingClientRect(); if (r.bottom > 0) PJ.lim = 1 - 2 * (r.bottom + 8) / innerHeight; if (PJ_FIT_SMALL) { const qs = [], tw = document.createTreeWalker(popEl, NodeFilter.SHOW_TEXT); for (let nd = tw.nextNode(); nd; nd = tw.nextNode()) { const rb = document.createRange(); rb.selectNodeContents(nd); qs.push(...rb.getClientRects()); } for (const sv of popEl.querySelectorAll('svg')) qs.push(sv.getBoundingClientRect()); PJ.box = qs.filter((q) => q.width > 0 && q.height > 0).map((q) => [2 * (q.left - 8) / innerWidth - 1, 2 * (q.right + 8) / innerWidth - 1, 1 - 2 * (q.bottom + 8) / innerHeight, 1 - 2 * (q.top - 8) / innerHeight]); } } /* the find banner's last line (one layout read a find): the animal stays below it */
   pjPose(); }
 function pjPose() { /* the mesh's matrix for PJ.t: world position, a squash on the world axes, then the steering group's own turn and size */
   const t = PJ.t; pjAnchor(_pjB); _pjW.copy(steerYaw.matrixWorld).setPosition(0, 0, 0); let k = 1, sy = 1, sh = 1;
@@ -64016,10 +64068,25 @@ function pjPose() { /* the mesh's matrix for PJ.t: world position, a squash on t
   else if (t < PJ_T + 0.12) { const q = Math.sin((t - PJ_T) / 0.12 * Math.PI); sy = 1 - 0.2 * q; sh = 1 + 0.25 * q; } /* squashed on the landing */
   else k = 1 + 0.12 * Math.sin(Math.min(1, (t - PJ_T - 0.12) / (PJ_END - PJ_T - 0.12)) * Math.PI); /* the pulse in the basket */
   _pjS.makeScale(sh, sy, sh); PJ.m.matrix.makeScale(k, k, k).premultiply(_pjW).premultiply(_pjS).setPosition(_pjB);
-  if (PJ.lim !== null && popT > 0) { const B = PJ.bb; let y1 = -9, k1 = 0; /* the highest corner of its box on screen: the animal is lowered (in world height) while it would reach the banner */
+  if (PJ_FIT_SMALL && PJ.lim !== null && popT > 0 && t < PJ_T) pjFit(t, k);
+  else if (PJ.lim !== null && popT > 0) { const B = PJ.bb; let y1 = -9, k1 = 0; /* the highest corner of its box on screen: the animal is lowered (in world height) while it would reach the banner */
     for (let c = 0; c < 8; c++) { _pjD.set(c & 1 ? B.max.x : B.min.x, c & 2 ? B.max.y : B.min.y, c & 4 ? B.max.z : B.min.z).applyMatrix4(PJ.m.matrix); const y = _pjD.project(camera).y; if (y > y1) { y1 = y; k1 = c; } }
     if (y1 > PJ.lim) { _pjD.set(k1 & 1 ? B.max.x : B.min.x, k1 & 2 ? B.max.y : B.min.y, k1 & 4 ? B.max.z : B.min.z).applyMatrix4(PJ.m.matrix); _pjD.y -= 1; const per = y1 - _pjD.project(camera).y; if (per > 1e-4) { _pjB.y -= (y1 - PJ.lim) / per; PJ.m.matrix.setPosition(_pjB); } } }
   PJ.m.matrixWorldNeedsUpdate = true; }
+let _pjPer = 0, _pjY1 = 0; /* the hop's highest corner on screen (NDC y) and how far it moves per meter of world height, from the last pjOver */
+function pjOver() { /* how far (NDC y) the hop's screen box reaches up into the find banner's text boxes (PJ.box: the glyph runs and the icon, 8 px padded); 0 = clear */
+  const B = PJ.bb, M = PJ.m.matrix; let y0 = 9, y1 = -9, k1 = 0, x0 = 9, x1 = -9;
+  for (let c = 0; c < 8; c++) { _pjD.set(c & 1 ? B.max.x : B.min.x, c & 2 ? B.max.y : B.min.y, c & 4 ? B.max.z : B.min.z).applyMatrix4(M).project(camera); if (_pjD.x < x0) x0 = _pjD.x; if (_pjD.x > x1) x1 = _pjD.x; if (_pjD.y < y0) y0 = _pjD.y; if (_pjD.y > y1) { y1 = _pjD.y; k1 = c; } }
+  let tgt = 9; for (const b of PJ.box) if (x1 > b[0] && x0 < b[1] && y1 > b[2] && y0 < b[3] && b[2] < tgt) tgt = b[2];
+  if (tgt === 9) return 0;
+  _pjD.set(k1 & 1 ? B.max.x : B.min.x, k1 & 2 ? B.max.y : B.min.y, k1 & 4 ? B.max.z : B.min.z).applyMatrix4(M); _pjD.y -= 1; _pjPer = y1 - _pjD.project(camera).y; _pjY1 = y1; return y1 - tgt; }
+function pjFit(t, k) { /* PJ_FIT_SMALL, in flight: keep the hop off the find banner's text without sinking it under its straight path from the bush. Only a hop that would
+     cover the text moves: first lowered by at most its arc lift, then drawn smaller about its base (a few passes, the lens is not linear), down to PJ_FIT_MIN, and never sunk below that path: at that size it may pass under the text for a moment */
+  if (!PJ.box || !PJ.box.length) return; let o = pjOver(); if (o <= 0) return;
+  const s = t / PJ_T, lift = PJ.h * 4 * s * (1 - s);
+  if (lift > 0 && _pjPer > 1e-4) { _pjB.y -= Math.min(lift, o / _pjPer); PJ.m.matrix.setPosition(_pjB); o = pjOver(); if (o <= 0) return; }
+  for (let i = 0; i < 3 && k > PJ_FIT_MIN && o > 0; i++) { const yb = _pjD.copy(_pjB).project(camera).y; if (_pjY1 - yb < 1e-4) break;
+    k = Math.max(PJ_FIT_MIN, k * (_pjY1 - o - yb) / (_pjY1 - yb)); PJ.m.matrix.makeScale(k, k, k).premultiply(_pjW).premultiply(_pjS).setPosition(_pjB); o = pjOver(); } }
 function pjEnd(show) { if (PJ.m) { scene.remove(PJ.m); PJ.m.geometry.dispose(); PJ.m = null; } if (PJ.on && show && RIG.petCut) RIG.petCut(false); PJ.on = false; }
 function pjTick(dt) {
   if (!PJ.on) return; if (PJ.run !== S.course || S.camp || !S.running) { pjEnd(true); return; } /* camp, a new run or the title: it is simply in the basket */
@@ -64046,17 +64113,17 @@ function bikeDetailParts() {
   const T = THREE, V = (x, y, z = 0) => new T.Vector3(x, y, z), D = { body: [], steer: [], wR: [] }, ONE = V(1, 1, 1);
   const boxP = (L, w, h, d, x, y, z, col, rz) => L.push({ geo: new T.BoxGeometry(w, h, d), m: new T.Matrix4().compose(V(x, y, z), new T.Quaternion().setFromAxisAngle(V(0, 0, 1), rz), ONE), col });
   const hose = (L, pts, r, col) => L.push({ geo: new T.TubeGeometry(new T.CatmullRomCurve3(pts.map((p) => V(p[0], p[1], p[2]))), 20, r, 4, false), m: new T.Matrix4(), col });
-  { const z = 0.064, R = (a, r) => [Math.cos(a) * r, 0.45 + Math.sin(a) * r], path = [[0, 0.547], [-0.45, 0.409], [-0.5, 0.38], [-0.49, 0.265], [-0.512, 0.175], [-0.49, 0.153], [0, 0.353], R(-1.1, 0.102), R(-0.4, 0.102), R(0.4, 0.102), R(1.1, 0.102), [0, 0.547]];
+  { const z = CHAINLINE_FIX ? 0.066 : 0.064, R = (a, r) => [Math.cos(a) * r, 0.45 + Math.sin(a) * r], path = [[0, 0.547], [-0.45, 0.409], [-0.5, 0.38], [-0.49, 0.265], [-0.512, 0.175], [-0.49, 0.153], [0, 0.353], R(-1.1, 0.102), R(-0.4, 0.102), R(0.4, 0.102), R(1.1, 0.102), [0, 0.547]];
     for (let i = 0; i + 1 < path.length; i++) { const a = path[i], b = path[i + 1], L = Math.hypot(b[0] - a[0], b[1] - a[1]), nl = Math.max(1, Math.round(L / 0.021)), rz = Math.atan2(b[1] - a[1], b[0] - a[0]);
       for (let k = 0; k < nl; k++) { const t = (k + 0.5) / nl; boxP(D.body, 0.02, 0.012, k & 1 ? 0.016 : 0.01, a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, z, k & 1 ? '#8d939a' : '#c3c8cc', rz); } } }
   hose(D.body, [[-0.455, 0.31, 0.095], [-0.36, 0.385, 0.09], [-0.2, 0.455, 0.085], [-0.06, 0.505, 0.08]], 0.005, '#121417'); /* gear cable housing along the chainstay */
   hose(D.body, [[-0.385, 0.43, -0.09], [-0.25, 0.475, -0.085], [-0.07, 0.52, -0.075], [0.15, 0.6, -0.066], [0.43, 0.83, -0.066]], 0.006, '#121417'); /* rear brake hose */
   hose(D.steer, [[0.565, 1.155, 0.215], [0.63, 1.08, 0.17], [0.63, 0.97, 0.08], [0.59, 0.89, 0.02]], 0.006, '#121417'); /* rear brake hose from the right lever */
   hose(D.steer, [[0.565, 1.155, -0.215], [0.62, 1.08, -0.2], [0.63, 0.95, -0.17], [0.68, 0.75, -0.17], [0.73, 0.55, -0.168], [0.765, 0.465, -0.1]], 0.006, '#121417'); /* front brake hose down the fork leg */
-  for (let k = 0; k < 7; k++) { const r = 0.064 - k * 0.005, n = 24 - k * 2, z = 0.033 + k * 0.008, pts = []; for (let i = 0; i < n * 2; i++) { const a = i / (n * 2) * Math.PI * 2, rr = (i & 1) ? r - 0.006 : r; pts.push([Math.cos(a) * rr, Math.sin(a) * rr]); }
+  for (let k = 0; k < 7; k++) { const r = 0.064 - k * 0.005, n = 24 - k * 2, z = CHAINLINE_FIX ? 0.027 + k * 0.0033 : 0.033 + k * 0.008, pts = []; for (let i = 0; i < n * 2; i++) { const a = i / (n * 2) * Math.PI * 2, rr = (i & 1) ? r - 0.006 : r; pts.push([Math.cos(a) * rr, Math.sin(a) * rr]); }
     let P = []; for (let i = 0; i < pts.length; i++) { const [ax, ay] = pts[i], [bx, by] = pts[(i + 1) % pts.length], z0 = z - 0.002, z1 = z + 0.002; P.push(0, 0, z1, ax, ay, z1, bx, by, z1, 0, 0, z0, bx, by, z0, ax, ay, z0, ax, ay, z0, bx, by, z0, bx, by, z1, ax, ay, z0, bx, by, z1, ax, ay, z1); }
     const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(P, 3)); D.wR.push({ geo: g, m: new T.Matrix4(), col: k & 1 ? '#8d939a' : '#c3c8cc' }); } /* sprockets */
-  for (let k = 0; k < 12; k++) { const a = k / 12 * Math.PI * 2 + 0.26; boxP(D.wR, 0.012, 0.012, 0.012, Math.cos(a) * 0.088, Math.sin(a) * 0.088, -0.06, '#121417', a); } /* rotor holes */
+  for (let k = 0; k < 12; k++) { const a = k / 12 * Math.PI * 2 + 0.26; boxP(D.wR, 0.012, 0.012, 0.012, Math.cos(a) * 0.088, Math.sin(a) * 0.088, CHAINLINE_FIX ? -0.055 : -0.06, '#121417', a); } /* rotor holes */
   return D;
 }
 const RIDE_ROLES = { frame: () => lookC('bikeFrame').col, frameD: () => lookC('bikeFrame').d, accent: () => lookC('bikeAccent').col, accentL: () => lookC('bikeAccent').l, rims: () => lookC('bikeRims').col, saddle: () => lookC('bikeSaddle').col, saddleD: () => lookC('bikeSaddle').d };
@@ -64319,7 +64386,8 @@ function rlPack() { /* the hydration pack in the body frame (x out of the chest,
   const sternum = rlStrap([[0.132, 0.2, -0.084], [0.155, 0.2, -0.04], [0.166, 0.2, 0], [0.155, 0.2, 0.04], [0.132, 0.2, 0.084]], 0.02, 0.009, [0, 1, 0]);
   const lidStrap = rlStrap([[-0.212, 0.338, 0], [-0.225, 0.29, 0], [-0.242, 0.235, 0], [-0.249, 0.17, 0]], 0.032, 0.008, [0, 0, 1]);
   const clip = rlCat([rlBox(0.163, 0.181, 0.187, 0.213, -0.016, 0.016, 0.8, 0.8), rlBox(-0.258, -0.244, 0.158, 0.196, -0.022, 0.022)]);
-  const hose = rlTube([[-0.165, 0.318, 0.07], [-0.128, 0.392, 0.108], [-0.06, 0.452, 0.118], [0.03, 0.452, 0.12], [0.098, 0.405, 0.118], [0.126, 0.318, 0.112], [0.13, 0.226, 0.106]], 0.013, 6, [0, 0, 1]);
+  const hose = rlTube(HOSE_HUG ? [[-0.165, 0.318, 0.07], [-0.118, 0.379, 0.1], [-0.047, 0.452, 0.1], [0.045, 0.453, 0.1], [0.113, 0.402, 0.104], [0.126, 0.318, 0.112], [0.13, 0.226, 0.106]] /* over the shoulder: on the strap's outer face, a little sunk */
+    : [[-0.165, 0.318, 0.07], [-0.128, 0.392, 0.108], [-0.06, 0.452, 0.118], [0.03, 0.452, 0.12], [0.098, 0.405, 0.118], [0.126, 0.318, 0.112], [0.13, 0.226, 0.106]], 0.013, 6, [0, 0, 1]);
   const valve = new THREE.CylinderGeometry(0.019, 0.015, 0.042, 6).translate(0.131, 0.196, 0.106);
   return { body, hump, light: rlCat([lid, logo, valve]), dark: rlCat([pocket, mesh, side, shoulder, sternum, lidStrap]), refl, clip, hose }; }
 {
@@ -64340,6 +64408,7 @@ function rlPack() { /* the hydration pack in the body frame (x out of the chest,
   const tubeG = (a, b, r) => { const A = new THREE.Vector3(...a), Bv = new THREE.Vector3(...b), d = Bv.clone().sub(A), L = d.length(); const g = new THREE.CylinderGeometry(r, r, L, 5, 1); g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.divideScalar(L))); g.translate((A.x + Bv.x) / 2, (A.y + Bv.y) / 2, (A.z + Bv.z) / 2); return g; }; /* a cylinder from a to b (the hydration hose) */
   const _reflC = new THREE.Color('#f2d35a'), _hoseC = new THREE.Color('#22b7da'), _stickC = new THREE.Color('#6b4a2c'); /* fixed colors - the pack's reflective stripes, the bite-valve hose, the camp poker stick */
   const _rlCream = new THREE.Color('#d8d2c4'), _rlClip = new THREE.Color('#2b2f33'), _rlPatch = new THREE.Color('#efe6d2'), _rlY = new THREE.Vector3(0, 1, 0); /* RIDER_LOOK_V2: the sole's cream, buckles and clips, the back patch */
+  const _shoeP = [new THREE.Vector3(), new THREE.Vector3()]; /* SHOE_PEDAL_FIT: the lifted shoe anchors */
   const _rlQ = [0, 1, 2, 3, 4, 5, 6, 7].map(() => new THREE.Quaternion()), _rlP = [0, 1, 2, 3, 4, 5].map(() => new THREE.Vector3()), _rlD = new THREE.Vector3(), _rlX = new THREE.Vector3(), _rlZ = new THREE.Vector3(), _rlMB = new THREE.Matrix4();
   const rlAlong = (fa, fb, j) => () => { _rlD.subVectors(fb(), fa()); const d = _rlD.length(); return d < 1e-5 ? _rlQ[j] : _rlQ[j].setFromUnitVectors(_rlY, _rlD.divideScalar(d)); }; /* +y along a limb (a band round it) */
   const rlShinQ = (k, f, j) => () => { /* a shin frame for the knee pad: y up the shin (foot -> knee), x the bike's forward made square to it */
@@ -64384,8 +64453,9 @@ function rlPack() { /* the hydration pack in the body frame (x out of the chest,
         if (L.glovesOn) rig.push([P(i), Q, H.main, glove], [P(i), Q, H.knuck, () => gl().d], [P(i), Q, H.cuff, mix(glove, jersey2, 0.35)], [P(i), Q, H.strap, mix(glove, jersey2, 0.7)]);
         else rig.push([P(i), Q, H.main, skin]); } /* gloves (cuff and strap in the sleeve color's tint) or bare hands */
       for (const [i, k, j] of [[8, 7, 0], [10, 9, 1]]) { const F = rlShoe(); for (const s in F) W(F[s], 1, 1, gS); /* wider, never longer */
-        rig.push([P(i), QB, F.upper, shoeUp], [P(i), QB, F.rubber, rubber], [P(i), QB, F.mid, sole2], [P(i), QB, F.heel, () => sh().d], [P(i), QB, F.tongue, mix(shoeUp, sole2, 0.22)], [P(i), QB, F.strap, mix(shoeUp, jersey2, 0.75)], [P(i), QB, F.lace, sole2]);
-        rig.push([rlAtD(P(i), P(k), 0.034, j), rlAlong(P(i), P(k), j), W(rlBand(0.078, 0.036, 8), gB, 1, gB), shoeUp], /* the padded ankle collar, round the shin where it enters the shoe */
+        const A = SHOE_PEDAL_FIT ? () => S.camp ? rp[i] : _shoeP[j].set(0, SHOE_LIFT * RIDER_SCALE, 0).applyQuaternion(QB()).add(rp[i]) : P(i); /* SHOE_PEDAL_FIT: on the bike the shoe rides up the pedal point */
+        rig.push([A, QB, F.upper, shoeUp], [A, QB, F.rubber, rubber], [A, QB, F.mid, sole2], [A, QB, F.heel, () => sh().d], [A, QB, F.tongue, mix(shoeUp, sole2, 0.22)], [A, QB, F.strap, mix(shoeUp, jersey2, 0.75)], [A, QB, F.lace, sole2]);
+        rig.push([SHOE_PEDAL_FIT ? () => _rlP[j].subVectors(rp[k], rp[i]).setLength(S.camp ? 0.034 : 0.034 + SHOE_LIFT * RIDER_SCALE).add(rp[i]) : rlAtD(P(i), P(k), 0.034, j), rlAlong(P(i), P(k), j), W(rlBand(0.078, 0.036, 8), gB, 1, gB), shoeUp], /* the padded ankle collar, round the shin where it enters the shoe */
           [rlAtD(j ? () => RD.sk10 : () => RD.sk8, P(i), 0.012, j + 2), rlAlong(P(k), P(i), j + 2), W(rlBand(0.074, 0.024, 8), gB, 1, gB), mix(sock, jersey2, 0.6)]); } /* a stripe round the sock's top */
       if (L.kneePads) for (const [i, f, j] of [[7, 8, 6], [9, 10, 7]]) { const K = rlPad(), QK = rlShinQ(i, f, j); for (const s in K) W(K[s], gB, 1, gB); rig.push([P(i), QK, K.shell, mix(padC, () => lookC('pants').l, 0.35)], [P(i), QK, K.ridge, mix(padC, jersey2, 0.6)], [P(i), QK, K.strap, () => lookC('pants').d.clone().lerp(blk, 0.35)]); }
       const B = () => RD.belly;
@@ -64502,15 +64572,15 @@ const head = new THREE.Group(); scene.add(head); head.scale.setScalar(1.06);
     /* under a low shell, what shows below its rim: sideburns in front of the trail shell's sides; under the full face, short styles add the nape out from under
        the skirt (n tufts round the back) */
     const lowX = (role, n = 0, yb = -0.19) => { if (!low) return;
-      if (!ff) for (const s of [-1, 1]) put(lk(s * 57, 0.042, -0.026, 0.182, 0.186, 0.03, 0.022, 0.016, s * 58, 0.004), role);
+      if (!ff) for (const s of [-1, 1]) put(lk(s * 57, 0.042, -0.026, BURN_IN ? 0.178 : 0.182, BURN_IN ? 0.182 : 0.186, 0.03, 0.022, 0.016, s * 58, 0.004), role);
       else if (n) for (let k = 0; k < n; k++) { const a = 180 + (k - (n - 1) / 2) * (n > 3 ? 23 : 22); put(lk(a, -0.112, yb, hR(-0.112) + 0.02, yb < -0.18 ? 0.152 : 0.14, 0.085, 0.055, 0.024, a, 0.006), role); } };
     if (st === 'buzz') { scalp(BZ); /* the tidy line: a close shell, sideburns, a short point at the nape */
-      for (const s of [-1, 1]) put(lk(s * 76, 0.04, -0.035, 0.18, 0.183, 0.03, 0.022, 0.012, s * 77, 0.003), BZ);
+      for (const s of [-1, 1]) put(lk(s * 76, 0.04, -0.035, BURN_IN ? 0.176 : 0.18, BURN_IN ? 0.179 : 0.183, 0.03, 0.022, 0.012, s * 77, 0.003), BZ);
       put(strand([[180, -0.06, 0.169, 0.1, 0.012], [180, -0.085, 0.166, 0.09, 0.013], [180, -0.105, 0.159, 0.07, 0.012], [180, -0.122, 0.152, 0.04, 0.008]]), BZ); lowX(BZ, 3, -0.17); return; }
     scalp(RT);
     if (st === 'short') { /* a tapered nape, short sides over the ears, sideburns, three fringe tufts and two flicks out at the back */
       for (const [a, yb, w] of [[180, -0.118, 0.09], [155, -0.108, 0.085], [205, -0.108, 0.085], [130, -0.08, 0.08], [230, -0.08, 0.08]]) put(lk(a, y0(a), yb, rl(a, 0.02), hR(yb) + 0.02, w, w * 0.7, 0.03, a + (a - 180) * 0.15, 0.012), a === 180 ? HI : G);
-      for (const s of [-1, 1]) { put(lk(s * 117, y0(117), -0.05, rl(117), 0.19, 0.07, 0.05, 0.026, s * 120, 0.006), G); put(lk(s * 76, 0.045, -0.03, 0.182, 0.186, 0.032, 0.022, 0.018, s * 76, 0.004), G);
+      for (const s of [-1, 1]) { put(lk(s * 117, y0(117), -0.05, rl(117), 0.19, 0.07, 0.05, 0.026, s * 120, 0.006), G); put(lk(s * 76, 0.045, -0.03, BURN_IN ? 0.178 : 0.182, BURN_IN ? 0.182 : 0.186, 0.032, 0.022, 0.018, s * 76, 0.004), G);
         put(lk(s * 150, y0(150), y0(150) - 0.05, rl(150), 0.228, 0.065, 0.02, 0.026, s * 154, 0.006), G); }
       for (const a of [-24, 0, 24]) put(lk(a, y0(a), 0.03, 0.178, 0.196, 0.06, 0.04, 0.024, a * 1.2, 0.006), G);
     } else if (st === 'mop') { /* a bowl: a thick fringe slab across the brow, round blunt sides bulging over the ears to the jaw, a full back */
@@ -64566,6 +64636,11 @@ const head = new THREE.Group(); scene.add(head); head.scale.setScalar(1.06);
     const hairE = () => lookC('hair'), hair = () => hairE().col, hairD = () => hairE().col.clone().lerp(hairE().d, 0.55), hairL = () => hairE().col.clone().lerp(hairE().l, 0.35);
     const skin = () => lookC('skin').col, shell = () => lookC('helmet').col, shellD = () => lookC('helmet').d, stripe = () => lookC('helmet2').col, tie = () => lookC('jersey2').col, strapC = new THREE.Color('#1f2327');
     const hw = L.headwear || 'helmet', st = L.hairStyle, bare = hw === 'none';
+    /* the lower chin strap from the junction J under the ear to the chin, and the buckle under it. CHIN_STRAP_V2: the run lies on the head's faceted surface
+       (3.5 mm out, flat side down) and ends under the jaw, the buckle is a small dark block tucked up against the chin */
+    const jawStrap = (J, s) => CHIN_STRAP_V2 ? rlStrap([J, [0.029, -0.148, s * 0.113], [0.0505, -0.18, s * 0.0605], [0.062, -0.19, s * 0.012]], 0.014, 0.006, [1, 0, 0])
+      : rlStrap([J, [0.035, -0.15, s * 0.118], [0.05, -0.183, s * 0.068], [0.04, -0.204, s * 0.012]], 0.014, 0.006, [0, 0, 1]);
+    const chinBuckle = () => CHIN_STRAP_V2 ? rlBox(0.044, 0.072, -0.198, -0.185, -0.016, 0.016) : rlBox(0.024, 0.06, -0.218, -0.2, -0.02, 0.02);
     /* a lock: a tapered block hanging from (a0, y0) to (a1, y1) on an ellipse round the head (angles in degrees from +x toward +z: 180 = the back), r = distance
        out; it swells out a little a third of the way down (volume) and thins at the end */
     const lock = (a0, y0, y1, r0, r1, w0, w1, th, a1 = a0, bulge = 0.012) => { const q = (a, y, r, w, t) => { const c = Math.cos(a * Math.PI / 180), s = Math.sin(a * Math.PI / 180), n = [c, 0, s * 0.94], tg = [-s, 0, c];
@@ -64620,23 +64695,25 @@ const head = new THREE.Group(); scene.add(head); head.scale.setScalar(1.06);
       put(new THREE.SphereGeometry(0.205, 10, 7, 0, Math.PI * 2, 0, 1.45), shell, 0, 0.02, 0, 0, 0, 0, 1.08, 1.0, 0.98); put(new THREE.SphereGeometry(0.205, 10, 4, Math.PI * 1.35, Math.PI * 1.3, 1.45, 0.5), shell, 0, 0.02, 0, 0, 0, 0, 1.08, 1.0, 0.98);
       put(new THREE.TorusGeometry(0.2, 0.02, 4, 12), shellD, 0, 0.02 + Math.cos(1.45) * 0.205, 0, Math.PI / 2, 0, 0, 1.08, 1.0, 0.98);
       for (const ph of [-0.12, Math.PI - 0.12]) put(new THREE.SphereGeometry(0.2105, 2, 6, ph, 0.24, 0.06, 1.34), stripe, 0, 0.02, 0, 0, 0, 0, 1.08, 1.0, 0.98);
-      for (const sd of [-1, 1]) put(new THREE.BoxGeometry(0.06, 0.02, 0.028), shellD, -0.1, 0.19, sd * 0.075, 0, 0, 0.5);
+      for (const sd of [-1, 1]) if (HELMET_TRIM_FLUSH) put(new THREE.BoxGeometry(0.06, 0.02, 0.028), shellD, -0.1, 0.177, sd * 0.075, 0, 0, 0.53); /* lying on the shell, the top face a few mm proud */
+        else put(new THREE.BoxGeometry(0.06, 0.02, 0.028), shellD, -0.1, 0.19, sd * 0.075, 0, 0, 0.5);
       for (const sd of [-1, 1]) put(new THREE.BoxGeometry(0.022, 0.065, 0.024), shellD, -0.204, 0.085, sd * 0.05, 0, 0, -0.42);
       put(new THREE.BoxGeometry(0.17, 0.022, 0.26), shellD, 0.24, 0.1, 0, 0, 0, -0.28); put(new THREE.BoxGeometry(0.15, 0.014, 0.034), shell, 0.2445, 0.1155, 0, 0, 0, -0.28);
-      for (const sd of [-1, 1]) put(new THREE.BoxGeometry(0.022, 0.022, 0.022), strapC, 0.168, 0.125, sd * 0.112, 0, 0, -0.28);
+      for (const sd of [-1, 1]) if (HELMET_TRIM_FLUSH) put(new THREE.BoxGeometry(0.014, 0.008, 0.014), strapC, 0.174, 0.132, sd * 0.112, 0, 0, -0.28); /* a bolt head seated in the visor's top face */
+        else put(new THREE.BoxGeometry(0.022, 0.022, 0.022), strapC, 0.168, 0.125, sd * 0.112, 0, 0, -0.28);
       for (const s of [-1, 1]) { const J = [-0.002, -0.088, s * 0.168];
         put(rlStrap([[0.075, 0.045, s * 0.192], [0.036, -0.02, s * 0.184], J], 0.014, 0.006, [0, 0, 1]), strapC);
         put(rlStrap([[-0.07, -0.05, s * 0.186], J], 0.014, 0.006, [0, 0, 1]), strapC);
-        put(rlStrap([J, [0.035, -0.15, s * 0.118], [0.05, -0.183, s * 0.068], [0.04, -0.204, s * 0.012]], 0.014, 0.006, [0, 0, 1]), strapC);
+        put(jawStrap(J, s), strapC);
         put(rlBox(-0.012, 0.012, J[1] - 0.012, J[1] + 0.012, J[2] - 0.005, J[2] + 0.005), strapC); }
-      put(rlBox(0.024, 0.06, -0.218, -0.2, -0.02, 0.02), shellD);
+      put(chinBuckle(), CHIN_STRAP_V2 ? strapC : shellD);
     } else if (RIDER_ALWAYS_HELMET) { /* the other hard shells: open-face, skate, full face */
       const TAU = Math.PI * 2, vent = strapC;
       const chin = (f, b) => { for (const s of [-1, 1]) { const J = [-0.002, -0.088, s * 0.168]; /* chin straps from the shell's front and back anchors to a junction under the ear, a buckle under the chin */
         put(rlStrap([[f[0], f[1], s * f[2]], [0.036, -0.02, s * 0.184], J], 0.014, 0.006, [0, 0, 1]), strapC); put(rlStrap([[b[0], b[1], s * b[2]], J], 0.014, 0.006, [0, 0, 1]), strapC);
-        put(rlStrap([J, [0.035, -0.15, s * 0.118], [0.05, -0.183, s * 0.068], [0.04, -0.204, s * 0.012]], 0.014, 0.006, [0, 0, 1]), strapC);
+        put(jawStrap(J, s), strapC);
         put(rlBox(-0.012, 0.012, J[1] - 0.012, J[1] + 0.012, J[2] - 0.005, J[2] + 0.005), strapC); }
-        put(rlBox(0.024, 0.06, -0.218, -0.2, -0.02, 0.02), shellD); };
+        put(chinBuckle(), CHIN_STRAP_V2 ? strapC : shellD); };
       if (hw === 'cap') { /* open-face: a hard shell cut high all round (the ears and the hair out under the rim), a thick rim, a center stripe and two side ridges,
            slot vents, a short peak, the fit dial at the back */
         const R = 0.212, A = 1.36, cy = 0.022, sx = 1.08, sz = 0.98, rimY = cy + Math.cos(A) * R, rimR = Math.sin(A) * R;
@@ -64674,7 +64751,7 @@ const head = new THREE.Group(); scene.add(head); head.scale.setScalar(1.06);
         { const pts = []; for (let k = 0; k <= 6; k++) { const a = -0.86 + k * 0.2867, r = 0.2 * (1 + 0.13 * Math.cos(a)); pts.push([Math.cos(a) * r * sx, -0.108 - 0.012 * Math.cos(a), Math.sin(a) * r * sz]); } put(rlTube(pts, 0.036, 6, [0, 1, 0], 1.2), shell); } /* the chin bar */
         put(rlBox(0.274, 0.29, -0.136, -0.1, -0.03, 0.03), vent); for (const s of [-1, 1]) put(rlBox(0.262, 0.276, -0.124, -0.108, s * 0.058 - 0.011, s * 0.058 + 0.011), vent);
         for (const ph of [-0.1, Math.PI - 0.1]) put(new THREE.SphereGeometry(R * 1.025, 2, 6, ph, 0.2, 0.06, A - 0.1), stripe, 0, cy, 0, 0, 0, 0, sx, 1, sz);
-        for (const s of [-1, 1]) { put(new THREE.BoxGeometry(0.06, 0.02, 0.028), vent, -0.1, 0.214, s * 0.075, 0, 0, 0.45); put(new THREE.BoxGeometry(0.022, 0.065, 0.024), vent, -0.218, 0.09, s * 0.05, 0, 0, -0.42); }
+        for (const s of [-1, 1]) { put(new THREE.BoxGeometry(0.06, 0.02, 0.028), vent, -0.1, HELMET_TRIM_FLUSH ? 0.191 : 0.214, s * 0.075, 0, 0, 0.45); put(new THREE.BoxGeometry(0.022, 0.065, 0.024), vent, -0.218, 0.09, s * 0.05, 0, 0, -0.42); }
         put(new THREE.BoxGeometry(0.2, 0.018, 0.32), shellD, 0.262, 0.135, 0, 0, 0, -0.3); put(new THREE.BoxGeometry(0.17, 0.012, 0.04), shell, 0.268, 0.149, 0, 0, 0, -0.3); /* the visor and its center rib */
       }
     } else if (hw === 'cap') { /* a soft cap: crown in six panels' worth of facets, a curved brim, a top button and the back strap */
@@ -69764,7 +69841,8 @@ if (DEMO_BUILD) { try {
     + ' #dDone { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(540px, calc(100% - 32px)); max-height: calc(100% - 20px); z-index: 1; gap: 7px; color: var(--cream); font: 500 12.5px/1.3 var(--f-ui); }'
     + ' #dDone .fvh { font-size: 15px; } #dDoneN { text-align: center; } #dDone ul { margin: 0; padding: 0 0 0 18px; display: grid; grid-template-columns: 1fr 1fr; column-gap: 18px; row-gap: 2px; } #dDone li::marker { color: var(--acc1); }'
     + ' #dDone .du { display: flex; align-items: center; gap: 8px; } #dDone .two { display: grid; grid-template-columns: 1.3fr 1fr; gap: 8px; } #dDone small { opacity: .75; font-size: 11px; text-align: center; }'
-    + ' #endOv.dDoneOn > :not(#dDone) { visibility: hidden; }';
+    + ' #endOv.dDoneOn > :not(#dDone) { visibility: hidden; }'
+    + (DEMO_COPY_TALL ? ' #dEnd .mb { min-height: 44px; }' : '');
   document.head.appendChild(st); document.body.classList.add('demo');
   { const c = document.createElement('div'); c.className = 'favCard'; c.id = 'dPick'; c.hidden = true; c.setAttribute('role', 'dialog');
     c.innerHTML = '<div class="fvh">Pick a mountain</div><div class="fvl" id="dPickL"></div><div class="dFoot"><span id="dPickP"></span><span class="dTz">Full game: unlimited mountains</span></div><button class="mb sm" id="dPickX" type="button">Back</button>'; $('tFavs').after(c);
@@ -71383,9 +71461,12 @@ const campUI = (() => {
   const body = $('campBody'), host = $('campHost'), pn = $('campPn'), tabs = $('campTabs'), scr = $('campScr'), tabRow = tabs.querySelector('.tabs'), ind = $('campInd'); let draft = null, game = null, gameId = null, gameDone = false, sessionPlays = 0; const repeats = {};
   const CM = () => CampMini;
   const ORDER = ['look', 'skills', 'act', 'leave'];
-  const V = { sub: 'home', page: 'col', part: { rider: 0, bike: 0 }, act: 0 }; /* the Bike & Rider sub-view, the color part per sub-menu, the centered activity */
-  const PARTS = { rider: [['jersey', 'Jersey'], ['jersey2', 'Sleeves'], ['helmet', 'Helmet'], ['pants', 'Pants'], ['gloves', 'Gloves'], ['pack', 'Pack'], ['hair', 'Hair'], ['skin', 'Skin'], ...(RIDER_LOOK_V2 ? [['shoes', 'Shoes']] : [])],
-    bike: [['bikeFrame', 'Frame'], ['bikeAccent', 'Fork'], ['bikeRims', 'Rims'], ['bikeSaddle', 'Saddle']] };
+  const MORG = !!(LOOK_MENU_ORG && RIDER_LOOK_V2 && HAIR_V3); /* the head-to-toe page layout (needs the nine-part rider and the twelve-style Style page) */
+  const V = { sub: 'home', page: 'col', part: { rider: MORG ? 3 : 0, bike: 0 }, act: 0 }; /* the Bike & Rider sub-view, the color part per sub-menu (the Jersey first), the centered activity */
+  const PARTS = { rider: MORG ? [['skin', 'Skin'], ['hair', 'Hair'], ['helmet', 'Helmet'], ['jersey', 'Jersey'], ['jersey2', 'Sleeves'], ['pants', 'Pants'], ['shoes', 'Shoes'], ['gloves', 'Gloves'], ['pack', 'Pack']]
+    : [['jersey', 'Jersey'], ['jersey2', 'Sleeves'], ['helmet', 'Helmet'], ['pants', 'Pants'], ['gloves', 'Gloves'], ['pack', 'Pack'], ['hair', 'Hair'], ['skin', 'Skin'], ...(RIDER_LOOK_V2 ? [['shoes', 'Shoes']] : [])],
+    bike: [['bikeFrame', 'Frame'], ['bikeAccent', MORG ? 'Shocks' : 'Fork'], ['bikeRims', 'Rims'], ['bikeSaddle', 'Saddle']] };
+  const PART_GRP = ['Head', 'Clothes', 'Gear']; /* MORG: the word beside each row of three rider chips */
   const PRE = { c: ['#d9473a', '#f0a33a', '#8fb04a', '#2a8c86', '#3f7fd0', '#7c5290', '#efe6d2', '#23272b'], skin: ['#f6dcc4', '#f3d3b7', '#ecc39d', '#e0b48f', '#c99670', '#a8744f', '#6e4a33', '#4a3022'], hair: HAIR_V3 ? PAL_H3.slice(0, 10).map(a => a[1]) : ['#1c1c20', '#5a3a22', '#8a5a3a', '#d2b06a', '#c66a2e', '#c8c4bc', '#efe2c0', '#2f5f8f'] };
   const PRE_HFUN = HAIR_V3 ? PAL_H3.slice(10).map(a => a[1]) : []; /* the bright hair colors, in a row of their own beside the swatch */
   const ICO = { look: '<svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="17" r="4.5"/><circle cx="20" cy="17" r="4.5"/><path d="M6 17l5-8h6l3 8M11 9l3 8M9 6h3"/></svg>',
@@ -71476,6 +71557,14 @@ const campUI = (() => {
       <div class="tiles"><button class="tile" id="ckTileRider" data-open="rider">${riderSvg()}<b>Rider</b></button>
       <button class="tile" id="ckTileBike" data-open="bike">${bikeSvg()}<b>Bike</b></button>${petsPage() ? `<button class="tile" id="ckTilePets" data-open="pets">${basketSvg()}<b>Companion</b></button>` : ''}</div>
       ${hint([[['dpadH'], 'Choose'], [['A'], 'Open'], [['B'], 'Leave camp']])}`;
+    if (MORG && V.sub === 'rider' && V.page === 'style') { /* head to toe: Helmet, Hair, Eyes | Sleeves, Legs | the three toggles | Build, thin rules between the groups */
+      const rule = '<div class="grl" aria-hidden="true"></div>';
+      return `<div class="pt">${backBtn()}<b>Rider</b>${pageSeg()}</div>
+      <div class="lst v3 sp">${segRow('Helmet', 'headwear', [['helmet', 'Trail'], ['cap', 'Open'], ['beanie', 'Skate'], ['full', 'Full face']])}<div class="lr hrow h3${hairHidden(LOOK) ? ' hid' : ''}"><span>Hair${HAIR_ALL_HELMETS ? '' : '<i class="hh">Hair shows with the Open or Skate helmet</i><button class="hsw" id="ckHairOpen">Switch to Open</button>'}</span>${segDiv('hairStyle', [['buzz', 'Buzz'], ['short', 'Short'], ['mop', 'Mop'], ['bob', 'Bob'], ['medium', 'Wavy'], ['long', 'Long'], ['ponytail', 'Ponytail'], ['bun', 'Bun'], ['braids', 'Braids'], ['pigtails', 'Pigtails'], ['curly', 'Curly'], ['afro', 'Afro']], 'g4 r3')}</div>
+      ${segRow('Eyes', 'glasses', [['none', 'None'], ['clear', 'Glasses'], ['sun', 'Shades'], ['goggles', 'Goggles']])}${rule}
+      <div class="lr lr2"><span>Sleeves</span>${segDiv('sleeves', [['short', 'Short'], ['long', 'Long']])}<span>Legs</span>${segDiv('legwear', [['pants', 'Pants'], ['shorts', 'Shorts']])}</div>${rule}
+      <div class="tg">${[['glovesOn', 'Gloves'], ['kneePads', 'Knee pads'], ['backpack', 'Backpack']].map(([k, n]) => `<button class="tgl" id="ck_${k}" role="switch" aria-checked="${!!LOOK[k]}"><span class="ck"></span>${n}</button>`).join('')}</div>${RIDER_BODY ? rule + bodyRow() : ''}</div>
+      ${hint([[['dpad4'], 'Move'], [['A'], 'Toggle'], [['B'], 'Back']])}`; }
     if (V.sub === 'rider' && V.page === 'style') return `<div class="pt">${backBtn()}<b>Rider</b>${pageSeg()}</div>
       ${RIDER_LOOK_V2 ? /* eight hair styles in a 4 x 2 grid, the headwear row, legs and sleeves side by side: the page keeps its height at 844 x 390 */
         `<div class="lst${HAIR_V3 ? ' v3' : ''}">${HAIR_V3 ? /* the helmet first; twelve hair styles in a 4 x 3 grid (without HAIR_ALL_HELMETS: dimmed with a note and a one-tap switch while a trail / full-face shell hides them) */
@@ -71491,7 +71580,7 @@ const campUI = (() => {
       ${hint([[['dpad4'], 'Move'], [['A'], 'Toggle'], [['B'], 'Back']])}`;
     const isR = V.sub === 'rider', P = PARTS[V.sub], pi = Math.min(V.part[V.sub], P.length - 1);
     return `<div class="pt">${backBtn()}<b>${isR ? 'Rider' : 'Bike'}</b>${isR ? pageSeg() : '<span class="m">Colors</span>'}</div>
-      <div class="chips" id="ckParts" data-gpseg data-nowrap>${P.map(([k, n], i) => `<button class="chip" data-i="${i}" aria-pressed="${i === pi}"><i style="--c:${hexOf(k)}"></i>${partName(k, n)}</button>`).join('')}</div>
+      ${MORG ? (isR ? `<div class="cgw"><div class="cgl" aria-hidden="true">${PART_GRP.map(g => `<span>${g}</span>`).join('')}</div>` : '') + `<div class="chips ${isR ? 'cg3' : 'cg1'}" id="ckParts" data-gpseg data-nowrap>` : '<div class="chips" id="ckParts" data-gpseg data-nowrap>'}${P.map(([k, n], i) => `<button class="chip" data-i="${i}" aria-pressed="${i === pi}"><i style="--c:${hexOf(k)}"></i>${partName(k, n)}</button>`).join('')}</div>${MORG && isR ? '</div>' : ''}
       <div class="swc"><span class="swatch" id="ckSw"></span><span class="swt"><b id="ckSwN"></b></span>${HAIR_V3 ? '<div class="pres fun off" id="ckPre2" data-gpseg data-nowrap></div>' : ''}</div>
       <label class="sl"><span>Hue</span><input type="range" id="ckHue" class="hue" min="0" max="360" step="1" data-gstep="6" aria-label="Hue"><em id="ckHueV"></em></label>
       <label class="sl"><span>Sat</span><input type="range" id="ckSat" min="0" max="100" step="1" data-gstep="4" aria-label="Saturation"><em id="ckSatV"></em></label>
@@ -71556,7 +71645,7 @@ const campUI = (() => {
     header(); place(); nudge(); };
   /* the pad ring's landing spot per view (never lost: every re-render re-aims it) */
   const defEl = () => { if (!S.camp) return null; const t = pn.dataset.tab; if (t === 'res') return $('ckBack'); if (t === 'skills') return body.querySelector('.seg.pm'); if (t === 'act') return $('ckCar');
-    if (V.sub === 'home') return $(V.last === 'bike' ? 'ckTileBike' : V.last === 'pets' && $('ckTilePets') ? 'ckTilePets' : 'ckTileRider'); if (V.sub === 'pets') return body.querySelector('.pet[aria-pressed="true"]') || $('ckPets'); if (V.sub === 'rider' && V.page === 'style') return body.querySelector('.seg[data-set="look:hairStyle"]'); return $('ckParts'); };
+    if (V.sub === 'home') return $(V.last === 'bike' ? 'ckTileBike' : V.last === 'pets' && $('ckTilePets') ? 'ckTilePets' : 'ckTileRider'); if (V.sub === 'pets') return body.querySelector('.pet[aria-pressed="true"]') || $('ckPets'); if (V.sub === 'rider' && V.page === 'style') return body.querySelector(MORG ? '.seg[data-set="look:headwear"]' : '.seg[data-set="look:hairStyle"]'); return $('ckParts'); };
   const focusDef = () => { const el = defEl(); if (el) gpMenu.aim(el); else gpMenu.pick(); };
   const openSub = (sub, page) => { if (sub === 'pets') { if (!petsPage()) return; V.pet = petsRider() || PETS.owned[0] || PET_IDS[0]; } V.sub = sub; V.page = page || 'col'; if (sub !== 'home') V.last = sub; render(sub === 'home' ? -1 : 1); focusDef(); };
   const subBack = () => { if (S.camp && S.camp.tab === 'look' && V.sub !== 'home') { const was = V.sub; V.sub = 'home'; V.page = 'col'; render(-1); V.last = was; focusDef(); return true; } return false; };
@@ -71642,6 +71731,7 @@ const campUI = (() => {
   tabs.addEventListener('click', (e) => { const b = e.target.closest('.tab'); if (b) setTab(b.dataset.tab); });
   if (RIDER_BODY && RIDER_LOOK_V2) pn.classList.add('bdOn'); /* the Build row's compact style page */
   if (LOOK_FIT && RIDER_BODY && HAIR_V3) pn.classList.add('lfit'); /* the twelve-style page with the Build row: tighter spacing (the CSS keys it on data-sub="rider-style") */
+  if (MORG) pn.classList.add('morg'); /* the head-to-toe layout of the Rider and Bike pages (the CSS keys it on data-sub) */
   pn.addEventListener('input', (e) => { if (RIDER_BODY && e.target.id === 'ckBody') { bodyInput(e.target); return; } if (e.target.closest('.sl')) fromSliders(); });
   /* carousel swipe (touch / mouse drag) and a horizontal wheel */
   let sx = null, sy = 0, moved = false;
@@ -76391,7 +76481,7 @@ const CampMini = (() => {
     const $ = (s) => root.querySelector(s), cv = $('canvas'), c2 = cv.getContext('2d'), back = $('.cm-back'), progEl = $('.cm-prog'), instrEl = $('.cm-instr'), endEl = $('.cm-end');
     const cs = getComputedStyle(root), fontDisp = (cs.getPropertyValue('--f-disp') || '').trim() || FONT.disp, fontUi = (cs.getPropertyValue('--f-ui') || '').trim() || FONT.ui; FONT.disp = fontDisp; FONT.ui = fontUi;
     const left = !!opts.left, side = left ? -1 : 1; /* handed things (the stick, the dial, the thrower) sit on the right thumb's side; left-hand mode mirrors only those */
-    const floats = [], offs = []; let inputs = 0, W = 0, H = 0, dpr = 1, uz = 1, raf = 0, ended = false, doneSent = false, stopped = false, endT = 0, score = 0, instrGone = false, riderHid = false, waitT = 0; /* waiting: the how-to card holds the game until the first tap / key / A (that press is swallowed) */
+    const floats = [], offs = []; let inputs = 0, W = 0, H = 0, dpr = 1, uz = 1, raf = 0, ended = false, doneSent = false, stopped = false, torn = false, endT = 0, score = 0, instrGone = false, riderHid = false, waitT = 0; /* waiting: the how-to card holds the game until the first tap / key / A (that press is swallowed) */
     let waiting = id !== 'zen' && (instrMode() === 'always' || (instrMode() === 'auto' && !instrSeen(id))); /* the zen garden keeps its own collapsible how-to */
     const on = (el, ev, fn, o) => { el.addEventListener(ev, fn, o); dbg.listeners++; offs.push(() => { el.removeEventListener(ev, fn, o); dbg.listeners--; }); };
     const flags = { key: false, pad: false, ptr: false }; let actNow = false;
@@ -76435,7 +76525,7 @@ const CampMini = (() => {
       endEl.querySelector('em').textContent = emT; endEl.hidden = false; instrEl.classList.add('gone');
       cue(n >= 2 ? 'win' : 'good'); endT = 0; help.set(inDev.pad ? [[['A'], 'Continue']] : []); dbg.ownsB = 0;
     }
-    function teardown() { cancelAnimationFrame(raf); if (raf) dbg.raf--; raf = 0; while (offs.length) offs.pop()(); if (ro) { ro.disconnect(); ro = null; dbg.ro--; } try { if (game.end) game.end(); } catch (e) { /* */ } if (bike) { bike.dispose(); bike = null; } if (riderHid) G.rider(true); G.poke(0); G.stick(false); G.fire(1); G.cam(null); help.clear(); dbg.ownsB = 0; dbg.running--; }
+    function teardown() { torn = true; cancelAnimationFrame(raf); if (raf) dbg.raf--; raf = 0; while (offs.length) offs.pop()(); if (ro) { ro.disconnect(); ro = null; dbg.ro--; } try { if (game.end) game.end(); } catch (e) { /* */ } if (bike) { bike.dispose(); bike = null; } if (riderHid) G.rider(true); G.poke(0); G.stick(false); G.fire(1); G.cam(null); help.clear(); dbg.ownsB = 0; dbg.running--; }
     function finalize(isStop) {
       if (doneSent) return; doneSent = true; if (!ended) { ended = true; try { score = clamp(game.partial ? game.partial() : 0, 0, 1); } catch (e) { score = 0; } }
       let data; try { data = game.result ? game.result() : undefined; } catch (e) { data = undefined; } /* a game's own record for the host (the firefly jar's catch), read before teardown */
@@ -76487,6 +76577,7 @@ const CampMini = (() => {
     }
     /* the loop: fixed 1/60 s logic steps, one draw a frame */
     function frame(now) {
+      if (CAMP_LOOP_GUARD && torn) return; /* torn down: a frame queued before the end (cancelAnimationFrame cannot reach a callback already handed on) is dropped */
       raf = requestAnimationFrame(frame); frameStamp = now; const dt = Math.min(0.1, Math.max(0, (now - frameNow) / 1000)); frameNow = now;
       if (CTX_LOST_PAUSE && gfxLost) { acc = 0; return; } /* nothing can draw: the game, its idle timers and the end-card countdown wait for the context */
       try {
