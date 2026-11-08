@@ -930,7 +930,7 @@
   <div class="favCard" id="tFavs" hidden><div class="fvh">Favorites</div><div class="fvl" id="tFavList"></div><button class="mb sm" id="tFavClose">Close</button></div>
   <div id="tapGo" role="status">Tap to start</div>
   <button class="ico" id="mute" role="switch" aria-checked="true" aria-label="Sound"><svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg><svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M17 9l5 6M22 9l-5 6"/></svg></button>
-  <div class="foot"><span id="verTag">v0.56.0</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span></div>
+  <div class="foot"><span id="verTag">v0.57.0</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span></div>
   <button id="btnNew" hidden>New mountain</button>
 </div>
 
@@ -54486,6 +54486,9 @@ const WASHERS_AXE_UP = 1;
 /* WASHERS_FIRE_CLEAR: 1 = on the washers lawn the pine that stood over the fire ring (its lowest boughs 0.34 m from the fire's center) stands back at
    [-6.0, -5.0], its boughs 2.2 m from the fire (the same draws, only its spot); 0 = the old spot */
 const WASHERS_FIRE_CLEAR = 1;
+/* WASHERS_PWR_LINE_OFF: 1 = the slim power gauge beside the far box drops its white notch (the mark where the rail crosses the cup); the gauge's
+   dark case and its gold fill stay, the toss, the timing and the score are unchanged; 0 = the gauge with its white notch exactly */
+const WASHERS_PWR_LINE_OFF = 1;
 /* CAMP_CTOR_SAFE: 1 = a mini game whose constructor throws is cleaned up (panel, camera lens, sound bed, shared board, its own scene) and reported on the console; 0 = the unguarded path */
 const CAMP_CTOR_SAFE = 1;
 /* CAMP_RESULT_PAY: 1 = leaving a finished game's result card by Esc / Backspace / pad B / pad Start pays like a tap on Continue, and Q / E do nothing while a game is up; 0 = those exits discard the score (as before) */
@@ -61920,6 +61923,9 @@ function tentParts(put, parts, T, o) {
         seg([gx - ox * 0.05 * c45, -0.05 * c45, gz - oz * 0.05 * c45], head, 0.02, '#8a8a8a', 4, false);
         seg([ax, ay, az], [gx + ox * 0.11 * c45, 0.11 * c45, gz + oz * 0.11 * c45], 0.006, '#e8e4da', 3, false); } }
 }
+/* DINNER_STEAK_LOOK: the steak's look wherever one is drawn (the Dinner's 3D steak and slices, its 2D target chip and cut faces, the Dinner card's plate,
+   the sliced steak on the board by the camp fire); the Dinner code's DIN_LOOK comment lists the looks. 2 = the faceted ribeye; 0 = the steak as before */
+const DINNER_STEAK_LOOK = 2;
 function addCampMesh(cp) {
   /* seeded camp scenes, dealt along the mountain from a per-session shuffle (campVariantOrder) so neighbors differ: 0 cook, 1 sleeper, 2 bike mechanic, 3 guitarist, 4 stargazer, 5 reader, 6 map planner, 7 tea maker, 8 sketch painter. Your own camps: tent and fire only. */
   const seedC = (S.course && S.course.seed) || 1, rc = mulberry32(((seedC * 2654435761) ^ (cp.idx * 40503 + 977)) >>> 0); /* well-mixed per mountain + per camp (the LAYOUT stream: tent spot, woodpile, fence, bushes) */
@@ -62421,16 +62427,19 @@ function addCampMesh(cp) {
           at(new THREE.CircleGeometry(0.007, 6), '#4d1512', 0.093, BT + 0.001, zs - 0.03, -Math.PI / 2); /* a drip */
           for (const [px, pz] of [[0.094, zs + 0.016], [-0.08, zs - 0.006]]) at(new THREE.IcosahedronGeometry(0.0022, 0), '#2e1a10', px, BT + 0.0014, pz); /* two charred bits fallen from the crust */
           { const prof = [[-0.035, 0], [0.035, 0], [0.038, 0.012], [0.031, 0.022], [0.014, 0.027], [-0.014, 0.027], [-0.031, 0.022], [-0.036, 0.0165], [-0.038, 0.012]]; /* the steak's cross-section (z, y): flat on the board, domed on top; the -z side carries the fat */
-            const sliceG = (t, ws, hs) => { const P = prof.map(([z, y]) => [z * ws, y * hs]), n = P.length, yc = 0.0135 * hs, pos = [], col = [], c = new THREE.Color(), A = new THREE.Vector3(), B = new THREE.Vector3(), C = new THREE.Vector3(), N = new THREE.Vector3(), W = new THREE.Vector3();
+            const sliceG = (t, ws, hs, mk) => { const P = prof.map(([z, y]) => [z * ws, y * hs]), n = P.length, yc = 0.0135 * hs, pos = [], col = [], c = new THREE.Color(), A = new THREE.Vector3(), B = new THREE.Vector3(), C = new THREE.Vector3(), N = new THREE.Vector3(), W = new THREE.Vector3();
               const tri = (a, b, d, h, cc) => { A.fromArray(a); B.fromArray(b); C.fromArray(d); N.subVectors(B, A).cross(W.subVectors(C, A)); if (N.dot(h) < 0) { W.copy(B); B.copy(C); C.copy(W); } pos.push(A.x, A.y, A.z, B.x, B.y, B.z, C.x, C.y, C.z); c.set(cc); for (let k = 0; k < 3; k++) col.push(c.r, c.g, c.b); }; /* one triangle, wound to face along h */
-              const ring = (x, s) => P.map(([z, y]) => [x, yc + (y - yc) * s, z * s]), fat = j => j === 6; /* a thin fat strip along the upper edge of the -z side (edge 6-7) */
+              /* DINNER_STEAK_LOOK 2: the Dinner's faceted ribeye cooked medium: a thicker golden fat cap (edges 5-7), a warm brown crust with dark grill
+                 marks on every other slice's top, a deeper band and a pink center */
+              const LB = DINNER_STEAK_LOOK === 2, CF = LB ? '#e2a254' : '#dcc79e', CR = LB ? '#74401f' : '#4a2a1c', CB = LB ? '#c4545a' : '#b33b45', CC = LB ? '#e27e84' : '#d4616b';
+              const ring = (x, s) => P.map(([z, y]) => [x, yc + (y - yc) * s, z * s]), fat = j => j === 6 || LB && (j === 5 || j === 7); /* a thin fat strip along the upper edge of the -z side (edge 6-7) */
               for (const sx of [-1, 1]) { const x = sx * t / 2, h = new THREE.Vector3(sx, 0, 0), R0 = ring(x, 1), R1 = ring(x, 0.8), R2 = ring(x, 0.45), ctr = [x, yc, 0]; /* a cut face: crust (or fat) rim, red-pink band, pink center */
-                for (let j = 0; j < n; j++) { const k = (j + 1) % n, rc0 = fat(j) ? '#dcc79e' : '#4a2a1c'; tri(R0[j], R0[k], R1[k], h, rc0); tri(R0[j], R1[k], R1[j], h, rc0); tri(R1[j], R1[k], R2[k], h, '#b33b45'); tri(R1[j], R2[k], R2[j], h, '#b33b45'); tri(R2[j], R2[k], ctr, h, '#d4616b'); } }
-              for (let j = 1; j < n; j++) { const k = (j + 1) % n, [za, ya] = P[j], [zb, yb] = P[k], h = new THREE.Vector3(0, (ya + yb) / 2 - yc, (za + zb) / 2), cc = fat(j) ? '#dcc79e' : j >= 3 && j <= 5 ? '#3a2015' : '#563020'; /* the seared outside: darkest on top */
+                for (let j = 0; j < n; j++) { const k = (j + 1) % n, rc0 = fat(j) ? CF : CR; tri(R0[j], R0[k], R1[k], h, rc0); tri(R0[j], R1[k], R1[j], h, rc0); tri(R1[j], R1[k], R2[k], h, CB); tri(R1[j], R2[k], R2[j], h, CB); tri(R2[j], R2[k], ctr, h, CC); } }
+              for (let j = 1; j < n; j++) { const k = (j + 1) % n, [za, ya] = P[j], [zb, yb] = P[k], h = new THREE.Vector3(0, (ya + yb) / 2 - yc, (za + zb) / 2), cc = fat(j) ? CF : j >= 3 && j <= 5 ? (LB ? (mk && j === 4 ? '#2a1810' : '#5e3218') : '#3a2015') : LB ? '#7c4424' : '#563020'; /* the seared outside: darkest on top */
                 tri([-t / 2, ya, za], [t / 2, ya, za], [t / 2, yb, zb], h, cc); tri([-t / 2, ya, za], [t / 2, yb, zb], [-t / 2, yb, zb], h, cc); }
               const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); return g; };
             const T0 = 0.017, SL = [[0.95, 0.82, 0.85], [0.62, 0.94, 0.95], [0.56, 1, 1], [0.5, 1, 1], [0.44, 0.96, 0.97], [0.12, 0.86, 0.9]]; /* per slice: lean (rad), width, height; the end piece stands nearly upright and the rest lean on it */
-            SL.forEach(([th, ws, hs], i) => parts.push({ geo: sliceG(T0, ws, hs), col: null, m: new THREE.Matrix4().makeTranslation(-0.062 + i * 0.024 + T0 / 2, BT, zs).multiply(new THREE.Matrix4().makeRotationZ(-th)).multiply(new THREE.Matrix4().makeTranslation(-T0 / 2, 0, 0)).premultiply(BF) })); } /* each slice tips forward on its front bottom edge */
+            SL.forEach(([th, ws, hs], i) => parts.push({ geo: sliceG(T0, ws, hs, i % 2 === 1), col: null, m: new THREE.Matrix4().makeTranslation(-0.062 + i * 0.024 + T0 / 2, BT, zs).multiply(new THREE.Matrix4().makeRotationZ(-th)).multiply(new THREE.Matrix4().makeTranslation(-T0 / 2, 0, 0)).premultiply(BF) })); } /* each slice tips forward on its front bottom edge */
           { const kz = -0.1145, ST = '#c9d1d9'; /* the knife, lying flat along the camera side of the board, point toward +x */
             at(new THREE.ExtrudeGeometry(flat([[-0.02, -0.103], [0.085, -0.103], [0.13, -0.111], [0.112, -0.12], [0.07, -0.1255], [-0.02, -0.1265]]), { depth: 0.0025, bevelEnabled: false }), ST, 0, BT, 0, -Math.PI / 2); /* the blade: straight spine, the edge sweeping up to the point */
             at(new THREE.ShapeGeometry(flat([[0.0, -0.1215], [0.07, -0.1205], [0.11, -0.1165], [0.122, -0.1135], [0.112, -0.12], [0.07, -0.1255], [0.0, -0.1262]])), '#eef2f5', 0, BT + 0.0028, 0, -Math.PI / 2); /* the honed edge, a pale strip */
@@ -65772,7 +65781,7 @@ const S = {
   pos: new THREE.Vector3(), vel: new THREE.Vector3(), yaw: 0, pitch: 0, pitchVel: 0, speed: 0,
   grounded: true, crashed: false, crashT: 0, spin: 0, roll: 0,
   airT: 0, trickPts: 0, lastGrab: -9, t: 0, running: false, finished: false, paused: false,
-  score: 0, tBank: 0, tPend: 0, tLost: 0, streak: 0, bails: 0, camps: 2, cp: null, segIdx: 0, /* trick points: banked at camps / pending since the last camp / lost to bails (score is the display total, unchanged) */
+  score: 0, tBank: 0, tPend: 0, tLost: 0, streak: 0, bails: 0, camps: 2, cp: null, segIdx: 0, /* trick points: banked at camps / pending since the last camp / lost to bails (score is the running total the results card and the slot read; a bail never lowers it) */
   limbs: { arms: { on: true, grab: false }, legs: { on: true, grab: false } },
   mode: 'hold', camYaw: 0, wheelSpin: 0, crankA: 0, cranking: false,
   crouch: 0, hopHeld: 0, hopCd: 0, secStart: 0, secN: 0, camTrail: 0, camSide: 1, zoneT: 0, susp: 0, drift: 0, steerSm: 0, comboT: 0, yawRate: 0, steerVis: 0, steerLag: 0,
@@ -68717,12 +68726,16 @@ function stepRider(dt) {
   if (!S.crashed && S.running && !S.finished) { const s = S.surf(rp[2].x, rp[2].z); if (s && rp[2].y < s.h + 0.24 && rp[2].y < S.pos.y + 0.8 && S.t > 1) bail('Faceplant'); } /* only when the rider has really folded, not when a bank brushes the helmet */
 }
 
+/* FINISH_EARNED_ONLY: the finish card's Tricks row and TOTAL count only the trick points earned (S.tBank + S.tPend, the HUD's number: points a bail
+   threw away are left out, a Steady Bail's kept points stay in), TOTAL = those + the time bonus; the XP line still names the points lost to bails,
+   marked as not counted. 0: Tricks = S.score (the running total that a bail never lowers) */
+const FINISH_EARNED_ONLY = 1;
 function finishRun() {
   if (S.finished) return; S.finished = true; buffEnd('lucky'); if (COMPANIONS_ON) petsWorldFinish(); /* what was not found on this trail counts a miss */ /* Lucky toss lasts to the finish at most */
-  const par = S.course.pts.length / 10; const bonus = Math.max(0, Math.round((par - S.t) * 60));
-  $('eTime').textContent = fmtTime(S.t); $('eBonus').textContent = bonus.toLocaleString(); $('eTricks').textContent = S.score.toLocaleString();
-  $('eBails').textContent = S.bails; $('eTotal').textContent = (S.score + bonus).toLocaleString(); $('endOv').hidden = false;
-  S.endNums = { bonus, tricks: S.score, bails: S.bails, total: S.score + bonus }; /* the count-up animates these numbers, never the grouped text */
+  const par = S.course.pts.length / 10; const bonus = Math.max(0, Math.round((par - S.t) * 60)), tr = FINISH_EARNED_ONLY ? S.tBank + S.tPend : S.score;
+  $('eTime').textContent = fmtTime(S.t); $('eBonus').textContent = bonus.toLocaleString(); $('eTricks').textContent = tr.toLocaleString();
+  $('eBails').textContent = S.bails; $('eTotal').textContent = (tr + bonus).toLocaleString(); $('endOv').hidden = false;
+  S.endNums = { bonus, tricks: tr, bails: S.bails, total: tr + bonus }; /* the count-up animates these numbers, never the grouped text */
 }
 const FMT_ROUND = 1; /* 1: a time is rounded to a tenth before it is split into minutes and seconds (59.96 s reads 1:00.0, never 0:60.0); 0: split first */
 const fmtTime = t => { if (FMT_ROUND) t = Math.round(t * 10) / 10; const m = Math.floor(t / 60), s = t - m * 60; return m + ':' + (s < 10 ? '0' : '') + s.toFixed(1); };
@@ -68931,6 +68944,8 @@ function updateRiderFx(dt) {
   if (onR) { const [cx, cy] = riderScreen(0.9, _rs2); ring.style.left = cx + 'px'; ring.style.top = cy + 'px'; E.arc.setAttribute('stroke-dashoffset', (226 * (1 - S.comboT / COMBO_T)).toFixed(1)); E.x.textContent = 'x' + (1 + 0.5 * S.streak).toFixed(1); }
   if (bannerT > 0) { bannerT -= dt; if (bannerT <= 0) E.banner.classList.remove('show'); }
 }
+const HUD_EARNED_PTS = 1; /* 1: the corner score shows the trick points that count (banked at camps + pending since the last one): a bail that loses the pending points drops it
+   at once, a Steady Bail that banks them does not, and it climbs again as tricks land. Display only: S.score (the results card, the slot, XP) is untouched. 0: it shows S.score, the running total that never drops */
 const hudLast = {}; let hudPrevT = performance.now(), scoreSeen = -1, comboSeen = '', scoreAt = -1e9, hudTenth = -1;
 const setTxt = (id, v) => { if (hudLast[id] !== v) { hudLast[id] = v; $(id).textContent = v; } };
 const setCls = (el, c, on) => { if (el.classList.contains(c) !== on) el.classList.toggle(c, on); };
@@ -68938,7 +68953,8 @@ function updateHud() {
   const tNow = performance.now(), dt = Math.min(0.1, (tNow - hudPrevT) / 1000); hudPrevT = tNow;
   { const tenth = Math.round(S.t * 10); if (tenth !== hudTenth) { hudTenth = tenth; setTxt('tTime', fmtTime(S.t)); } }
   const combo = S.streak ? '×' + (1 + 0.5 * S.streak).toFixed(1) : '';
-  if (S.score !== scoreSeen || combo !== comboSeen) { scoreSeen = S.score; comboSeen = combo; scoreAt = tNow; setTxt('tScore', S.score.toLocaleString()); setTxt('tCombo', combo); }
+  const shown = HUD_EARNED_PTS ? S.tBank + S.tPend : S.score;
+  if (shown !== scoreSeen || combo !== comboSeen) { scoreSeen = shown; comboSeen = combo; scoreAt = tNow; setTxt('tScore', shown.toLocaleString()); setTxt('tCombo', combo); }
   { const el = $('hScore'), inAirPts = !S.grounded && !S.crashed && S.trickPts > 40, live = S.score > 0 || S.streak > 0; /* score / combo: only when there is one, fades to 35 % after 3 s idle */
     setCls(el, 'live', live); setCls(el, 'calm', live && !inAirPts && tNow - scoreAt > 3000); }
   for (const [pair, id] of [['legs', 'lLegs'], ['arms', 'lArms']]) { const L = S.limbs[pair], el = $(id); setCls(el, 'off', !L.on && !L.grab); setCls(el, 'grab', L.grab && !L.on); }
@@ -69719,7 +69735,7 @@ function openResults() {
   else if (t < prev) { d.textContent = '▼ NEW BEST −' + (prev - t).toFixed(1) + ' s'; d.classList.add('best'); }
   else { d.textContent = '▲ +' + (t - prev).toFixed(1) + ' s · best ' + fmtTime(prev); d.classList.add('slow'); }
   endAnim = { t0: performance.now(), time: t, bonus: endNum('bonus', 'eBonus'), tricks: endNum('tricks', 'eTricks'), bails: endNum('bails', 'eBails'), total: endNum('total', 'eTotal'), done: false };
-  { const X = runXp(); $('eXpL').textContent = 'XP' + (X.first ? ' · first finish here' : '') + (X.belly ? ' · well fed +' + X.belly + '%' : '') + (S.steadyKept > 0 ? ' · steady bail kept ' + S.steadyKept.toLocaleString() + ' pts' : '') + (S.tLost > 0 ? ' · ' + S.tLost.toLocaleString() + ' trick pts lost to bails' : '') + (X.L1 > X.L0 ? ' · LEVEL ' + X.L1 + '!' : ' · LV ' + X.L1) + (DEMO_BUILD && X.L1 >= LVL_TOP ? ' · ' + demoCapNote() : ''); $('eXp').textContent = '+' + X.n; $('eXpRow').classList.remove('show'); if (X.L1 > X.L0) sfx.cue('win'); if (XP_CARD) { xpCardTotal(); try { campUI.header(); } catch (e) { /* no camp panel yet */ } } } /* run XP (Full Belly is paid and cleared) */
+  { const X = runXp(); $('eXpL').textContent = 'XP' + (X.first ? ' · first finish here' : '') + (X.belly ? ' · well fed +' + X.belly + '%' : '') + (S.steadyKept > 0 ? ' · steady bail kept ' + S.steadyKept.toLocaleString() + ' pts' : '') + (S.tLost > 0 ? ' · ' + S.tLost.toLocaleString() + ' trick pts lost to bails' + (FINISH_EARNED_ONLY ? ' (not counted)' : '') : '') + (X.L1 > X.L0 ? ' · LEVEL ' + X.L1 + '!' : ' · LV ' + X.L1) + (DEMO_BUILD && X.L1 >= LVL_TOP ? ' · ' + demoCapNote() : ''); $('eXp').textContent = '+' + X.n; $('eXpRow').classList.remove('show'); if (X.L1 > X.L0) sfx.cue('win'); if (XP_CARD) { xpCardTotal(); try { campUI.header(); } catch (e) { /* no camp panel yet */ } } } /* run XP (Full Belly is paid and cleared) */
   $('eCombo').textContent = '';
   for (const el of document.querySelectorAll('#endOv .rrow, #endOv .rtot')) el.classList.remove('show');
   if (isTut()) tutCard(true);
@@ -71870,7 +71886,10 @@ const CAMP_ART = (() => {
     `<rect width="200" height="200" fill="url(#a${u})"/>${DINNER_CARD_ANIM ? [[30, 18, 1.1], [62, 34, .8], [92, 12, 1.2], [118, 40, .9], [146, 20, 1], [176, 30, .8], [48, 56, .9], [134, 62, .8], [104, 74, .7], [70, 84, .8]].map(([x, y, r], i) => `<circle class="tw${i % 2 ? ' t2' : ''}" cx="${x}" cy="${y}" r="${r}" fill="#fff6e0" style="animation-delay:${(-i * 0.37).toFixed(2)}s"/>`).join('') : ''}<polygon points="-10,104 14,60 38,104" fill="#16142b"/><polygon points="160,104 186,52 212,104" fill="#16142b"/><circle class="glw" cx="20" cy="110" r="80" fill="url(#g${u})"/>${DINNER_CARD_ANIM ? [[58, 78, '#ffd35a', 4.6, 0], [112, 64, '#b8ff6a', 5.4, -1.8], [146, 86, '#ffd35a', 4.1, -3.1]].map(([x, y, c, d, k]) => `<g class="kdf" style="animation-duration:${d}s;animation-delay:${k}s"><circle cx="${x}" cy="${y}" r="4.5" fill="${c}" opacity=".22"/><circle cx="${x}" cy="${y}" r="1.4" fill="${c}"/></g>`).join('') : ''}
     <rect y="100" width="200" height="100" fill="#8a5f3a"/><rect y="128" width="200" height="3" fill="rgba(30,18,10,.5)"/><rect y="160" width="200" height="4" fill="rgba(30,18,10,.5)"/>
     <ellipse cx="98" cy="150" rx="62" ry="24" fill="#d9cdb2"/><ellipse cx="98" cy="150" rx="50" ry="18" fill="#f2ead6"/><ellipse cx="98" cy="150" rx="58" ry="22" fill="none" stroke="#3d6fb0" stroke-width="2"/>
-    <polygon points="62,148 82,140 86,156 66,160" fill="#a86a3a"/><polygon points="86,140 104,138 106,156 88,158" fill="#b0743c"/><polygon points="108,138 128,142 128,158 108,158" fill="#a86a3a"/><rect x="101" y="140" width="4" height="16" fill="#d06a70"/><rect x="124" y="143" width="4" height="14" fill="#d06a70"/>
+    ${DINNER_STEAK_LOOK === 2 ? `<polygon points="62,148 82,140 86,156 66,160" fill="#7a4020"/><polygon points="62,148 82,140 76,151" fill="rgba(255,226,190,.14)"/><polygon points="62,148 82,140 83,144 63,152" fill="#e2a254"/><line x1="68" y1="158" x2="77" y2="143" stroke="#2a1810" stroke-width="2"/>
+    <polygon points="86,140 104,138 106,156 88,158" fill="#86482a"/><polygon points="104,138 106,156 96,150" fill="rgba(20,8,4,.16)"/><polygon points="86,140 104,138 104.4,142 86.6,144" fill="#e2a254"/><line x1="92" y1="156" x2="99" y2="142" stroke="#2a1810" stroke-width="2"/>
+    <polygon points="108,138 128,142 128,158 108,158" fill="#7a4020"/><polygon points="108,138 128,142 120,150" fill="rgba(255,226,190,.12)"/><polygon points="108,138 128,142 128,146 108,142" fill="#e2a254"/><line x1="114" y1="157" x2="121" y2="144" stroke="#2a1810" stroke-width="2"/>
+    <rect x="101" y="140" width="4" height="16" fill="#c4545a"/><rect x="101.9" y="144" width="2.2" height="10" fill="#ec8f94"/><rect x="101" y="140" width="4" height="3" fill="#e2a254"/><rect x="124" y="143" width="4" height="14" fill="#c4545a"/><rect x="124.9" y="147" width="2.2" height="8" fill="#ec8f94"/><rect x="124" y="143" width="4" height="3" fill="#e2a254"/>` : `<polygon points="62,148 82,140 86,156 66,160" fill="#a86a3a"/><polygon points="86,140 104,138 106,156 88,158" fill="#b0743c"/><polygon points="108,138 128,142 128,158 108,158" fill="#a86a3a"/><rect x="101" y="140" width="4" height="16" fill="#d06a70"/><rect x="124" y="143" width="4" height="14" fill="#d06a70"/>`}
     ${(() => { const pot = '<polygon points="-16,22 -18,6 -14,-6 -6,-12 8,-12 14,-6 18,6 16,22" fill="#f2f0e6"/><polygon points="-16,22 -18,6 -14,-6 -6,-12 -2,-12 -6,10 -8,22" fill="#ffffff"/><polygon points="-8,-12 8,-12 5,-17 -5,-17" fill="#d4d1c2"/><polygon points="16,4 18,-2 34,-14 36,-10 20,8" fill="#e6e3d6"/><path d="M-16 -4 q-12 6 -1 18" fill="none" stroke="#2a56a8" stroke-width="3"/>', gx = DINNER_CARD_ANIM ? 18 : 160;
       const glass = `<rect x="${gx}" y="112" width="18" height="24" fill="rgba(220,235,255,.2)" stroke="rgba(232,242,255,.8)" stroke-width="2"/><rect x="${gx + 2}" y="118" width="14" height="17" fill="#c47a2c"/>
     <g class="stm"><path d="M${gx + 6} 106 q-4 -8 0 -14 q4 -6 0 -12" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="2"/><path d="M${gx + 13} 108 q-4 -8 0 -14" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="2"/></g>`;
@@ -72573,8 +72592,20 @@ const CampMini = (() => {
     psa: { path: [0, 3, 2, 1, 7, 5, 6, 7, 4, 0] },
     ser: { path: [1, 7, 6, 2, 1, 3, 0, 4, 5], fact: 'The Serpent is the one constellation cut in two; this is its head, the tail lies past Ophiuchus.' }
   };
+  /* STARS_FIGURES_FIX: 1 = six more link orders checked line by line against the Sky & Telescope / IAU chart lines and Stellarium's modern lines
+     (a link both charts lack is dropped, a link both charts draw between two stars the figure already has is added); 0 = the figures as STARS_FIX leaves them.
+     Link orders only: the stars, their positions and counts stay, so every random draw is unchanged. */
+  const STARS_FIGURES_FIX = 1;
+  const STARS_FIG_EDIT = {
+    aql: { path: [1, 0, 2, -1, 0, 4, 6, -1, 3, 4, 5] }, /* Tarazed, Altair, Alshain; Altair to Delta; Delta is the hub for Zeta, Lambda and Theta (no Alshain-Theta, no Altair-Zeta) */
+    leo: { path: [5, 4, 3, 2, 1, 0, 8, 6, 7, 2, -1, 7, 8] }, /* the hindquarter triangle closes: Zosma to Chertan */
+    her: { path: [8, 7, 4, 3, 2, 5, 4, -1, 2, 1, 0, 6, 5] }, /* the head Rasalgethi joins both Kornephoros and Sarin */
+    lep: { path: [3, 0, 1, 2, 3, -1, 0, 4, 7, 6, 5, 1] }, /* the back runs Zeta, Eta, Delta (Eta was a dead end, Delta joined Zeta) */
+    cen: { path: [0, 1, 4, -1, 6, 3, 4, 5, 9, 2, 7, -1, 9, 8] }, /* Alpha Centauri joins Hadar, and Hadar joins Epsilon (not Alpha to Epsilon) */
+    lup: { path: [7, 6, 2, 3, 1, 0, 5, 4, 2] } /* Chi joins Eta, not Delta */
+  };
   const SHAPES = LIB.map(([id, n, fact0, st0, path0]) => {
-    const fx = STARS_FIX ? STARS_EDIT[id] : null, fact = fx && fx.fact ? fx.fact : fact0, path = fx && fx.path ? fx.path : path0, st = fx && fx.p ? st0.map((q, i) => fx.p[i] || q) : st0;
+    const fx = STARS_FIX ? STARS_EDIT[id] : null, fact = fx && fx.fact ? fx.fact : fact0, gx = STARS_FIGURES_FIX ? STARS_FIG_EDIT[id] : null, path = gx ? gx.path : fx && fx.path ? fx.path : path0, st = fx && fx.p ? st0.map((q, i) => fx.p[i] || q) : st0;
     const V = st.map(([ra, de]) => { const a = ra * Math.PI / 12, d = de * Math.PI / 180; return [Math.cos(d) * Math.cos(a), Math.cos(d) * Math.sin(a), Math.sin(d)]; });
     const m = [0, 0, 0]; for (const v of V) { m[0] += v[0]; m[1] += v[1]; m[2] += v[2]; } const ml = Math.hypot(m[0], m[1], m[2]) || 1; const c = [m[0] / ml, m[1] / ml, m[2] / ml];
     const e = [-c[1], c[0], 0]; const el = Math.hypot(e[0], e[1]) || 1; e[0] /= el; e[1] /= el; /* east = pole x center */
@@ -74395,7 +74426,7 @@ const CampMini = (() => {
       set heat(v) { heat = v; }, set glowK(v) { glowK = v; }, set spread(v) { spread = v; }, /* spread: the fire's width x this (its height stays heat's) */ /* the fire's size, and the glow's (a lens right at the fire turns it down) */
       compile() { try { renderer.compile(sc, cam); } catch (e) { /* compiled on the first frame instead */ } },
       sync(t) { const fk = RM ? 1 : 1 + 0.1 * Math.sin(t * 9.3) + 0.06 * Math.sin(t * 23.1), h = heat; if (flame) flame.scale.set(h * spread, fk * h * (o.flameH || 1), h * spread); if (lendG) { const k = 0.46 / 0.58 * h; lendG.scale.set(k * spread, k * (o.lendY || 1), k * spread); } glow.scale.setScalar((0.9 + 0.1 * fk) * (0.6 + 0.4 * h) * (o.glow || 1) * glowK); glow.quaternion.copy(cam.quaternion);
-        fireL.intensity = FI * (0.9 + 0.1 * fk + (RM ? 0 : 0.06 * Math.sin(t * 5.7 + Math.sin(t * 1.3)))) * (0.75 + 0.25 * h);
+        fireL.intensity = FI * (0.9 + 0.1 * fk + (RM ? 0 : 0.06 * Math.sin(t * 5.7 + Math.sin(t * 1.3)))) * (0.75 + 0.25 * h); fireL.base = FI * (0.75 + 0.25 * h); /* base: the light without its flicker (the Dinner's pan colors follow it) */
         const gg = 0.5 + 0.5 * Math.sin(t * 0.37 + Math.sin(t * 0.11) * 2.2); swU.uT.value = RM ? 0 : t; swU.uW.value = RM ? 0 : 2.2 * (0.35 + 0.65 * gg * gg * (3 - 2 * gg)); },
       lendBack() { if (o.lend) { o.lend.back(); o.lend = null; } }, /* the camp's flames go home (always before the dispose below: their geometry is the camp's) */
       dispose() { this.lendBack(); near.dispose(); sc.traverse((ob) => { if (ob.geometry) ob.geometry.dispose(); }); for (const m of mats) m.dispose(); sc.clear(); }
@@ -75230,7 +75261,54 @@ const CampMini = (() => {
   /* DINNER_STEAK_MODEL: 1 = the finer ribeye (steakTopo3) in every course, the slices as long strips tipped onto their cut face (crust edge, band, center,
      the fat at one end, a juice gloss) and a butter pat with a rosemary sprig by the sides on the plate; still one mesh each. 0 = the steak and slices as before */
   const DINNER_STEAK_MODEL = 1;
+  /* DINNER_STEAK_LOOK (with DINNER_STEAK_MODEL): the whole steak's look in every course, built by steakTopoL in steakTopo3's parts (so the sides, the
+     doneness bands, the swatch, the done glow and the grill marks work as before; still one mesh). 0 = steakTopo3 exactly.
+     1 = clean: a smooth thick steak, a cream lip round the top edge, two flat lobes (the eye and the cap) parted by a cream fat ribbon, a swoosh of fat
+       in the eye, no speckle, four bold grill bars once a face has seared.
+     2 = faceted ribeye: a chunky low-poly outline and a faceted dome, a thick fat cap along one edge (white raw, golden once cooked), a few fat streaks,
+       crosshatched grill marks and a rosemary sprig on the steak while it rests between courses.
+     3 = T-bone: a wide cream rim all round, the bone's T in ivory parting the strip from the tenderloin, the rim seared brown once cooked, grill bars.
+     In every look the raw meat is a fresher red (DIN_LOOK raw / cap) that hands over to the sear ramp as the face browns, the fat is whiter raw and
+     golden cooked, the raw sides in the pan take DIN_CLR.sraw (the hold-against swatch's own raw) and grill marks stay hidden until a face has
+     seared. DIN_LOOK per look: N = spokes round the outline, wob = outline wobble, dome = the top's rise, fj = facet jitter, ring = the fat rim's width,
+     capW / capT = the fat cap's (or cap lobe's) spread (radians) and depth, seam = the fat ribbon's width, jit / cj = color jitter raw / cooked,
+     raw / cap / fat / gold / mark = colors (0..255), fatK = how far the crust browns the fat, lip = a fat lip on the top edge, pan / panF = the up-facing meat's / fat's colors' scale in the pan (linear r, g, b; the fat's capped at 1),
+     capA = the fat cap's direction for the right hand (radians in steak units, +v toward the lens; mirrored for the left hand), left out = the far left edge.
+     Look 2's cap sits on the end away from the tongs, turned a little toward the lens, so the golden rim reads in the pan and on the board while the near
+     side (the doneness band) stays meat. The switch itself is declared with the camp code (DINNER_STEAK_LOOK). No rule, timing, input or stream change. */
+  const DIN_LOOK = [
+    { N: 32, wob: 0.008, dome: 0.06, fj: 0, ring: 0.05, capW: 1.5, capT: 0.3, seam: 0.1, jit: 0, cj: 0.06, raw: [218, 40, 58], cap: [178, 20, 44], fat: [250, 236, 216], gold: [240, 196, 132], mark: [46, 26, 18], fatK: 0.18, lip: 1, pan: [0.24, 0.42, 0.68], panF: [0.3, 0.55, 1.25] },
+    { N: 18, wob: 0.045, dome: 0.1, fj: 0.022, ring: 0.035, capW: 1.3, capT: 0.4, seam: 0, jit: 0.12, cj: 0.14, raw: [206, 44, 60], cap: [206, 44, 60], fat: [248, 232, 212], gold: [238, 170, 88], mark: [40, 22, 16], fatK: 0.22, lip: 0, pan: [0.24, 0.42, 0.68], panF: [0.3, 0.55, 1.25], capA: 0.3 },
+    { N: 28, wob: 0.006, dome: 0.06, fj: 0, ring: 0.085, capW: 1.1, capT: 0, seam: 0, jit: 0.04, cj: 0.08, raw: [216, 42, 60], cap: [176, 20, 46], fat: [248, 234, 212], gold: [228, 176, 112], mark: [44, 24, 16], fatK: 0.5, lip: 1, pan: [0.24, 0.42, 0.68], panF: [0.3, 0.55, 1.25] }];
+  /* a look's fat at doneness d (0..1) beside a face color: white raw, golden as it renders, browned toward the face's crust, darker once it chars */
+  const dinFat = (LK, d, face) => { const f = mix3(mix3(LK.fat, LK.gold, clamp(d * 2.4, 0, 1)), face, LK.fatK * clamp(d * 1.6, 0, 1)); return d > 0.7 ? mix3(f, [58, 34, 22], clamp((d - 0.7) * 1.6, 0, 0.6)) : f; };
+  const DLK = DINNER_STEAK_LOOK === 2 ? DIN_LOOK[1] : null; /* the faceted ribeye's numbers for the slices and the 2D steak pictures (null: they stay as before) */
+  /* DINNER_MARK_HALO (look 2): grill marks that still read on a dark crust. The bars are a touch wider and go a deeper char past medium, and each one
+     lies on a thin band of caramel crust (a slightly wider strip just under it, 'qT' / 'qB') that only lightens once the face is past medium, so a
+     well-done or charred face keeps its crosshatch at phone size. Rare and medium look as before; the sides, the swatch and the glow are untouched.
+     DIN_MARK: [the halo's caramel, the deep char (0..255), the halo's most blend]. 0 = the marks as before */
+  const DINNER_MARK_HALO = 1, DIN_MARK = [[168, 96, 48], [22, 12, 9], 0.55];
+  /* DINNER_PAN_AUTO: the pan's deepening of the up-facing colors (DIN_LOOK pan / panF, set under the stage's own dusk light) follows the light that
+     really reaches the steak's top: the sky, the low sun, the fire at its current size (not its flicker) and the fill, at the steak, and the tone
+     mapping exposure. Per channel the scale is (reference light x exposure) / (current light x exposure), clamped to DIN_PAN_K, so a brighter sky or
+     a bigger fire deepens the colors more and a dimmer one less, and raw stays red and the crust brown. DIN_PAN_REF = the light the numbers were set
+     for: [sky color, its intensity, sun color, its intensity, the sun's position, the fire's intensity at the wait pose, the exposure].
+     0 = the fixed numbers */
+  const DINNER_PAN_AUTO = 1, DIN_PAN_K = [0.55, 1.6], DIN_PAN_REF = ['#a896c0', 1.75, '#ffb47a', 1.7, [-7, 3.5, -9], 5 * (0.75 + 0.25 * DIN_FIRE[0]), DUSK.expo];
   const DINNER_ROAST_STYLE = 1, DIN_ROAST_SALT = 0x57ea4c, DIN_SEC = 18, DIN_PEEK = { first: 2.2, every: 2.8, len: 0.9, tilt: 1.4, lift: 0.42 }, DIN_OUTRO = 3.2;
+  /* DINNER_AUTOPEEK_OFF: 1 = no automatic peek: while the steak is held on the pan the tongs keep it flat (the seared face shows only on the lift at the
+     release, as before); 0 = DIN_PEEK's peeks every few seconds.
+     DINNER_COLOR_CLEAR (with DINNER_ROAST_STYLE and DINNER_MODELS): the doneness read off the steak itself the whole cook, no bar. 1 = the sides: a dark raw
+     red, a crust line at the seared face and a cooked band climbing from it in the ladder's own colors (DIN_LAD: raw, then the six menu colors on the
+     stages' centers), with a crisper edge; on side 2 the band now cooking lies over the first side's. 2 = as 1, plus a hold-against swatch beside the pan
+     (the steak's side as it should look at the target: the same crust, band height and color, like the roast's little target marshmallow) and the
+     ladder's cell the steak has reached outlined in cream with a dot under it. 0 = the colors as before.
+     DINNER_DONE_GLOW: 1 = a soft gold rim round the steak while its doneness is inside the target's scoring window (center - lo .. center + hi); it
+     breathes a little, static with reduced motion. 0 = none. Looks only: no rule, timing, input or stream changes; no 3D draw call added (2D layer).
+     DIN_CLR: raw = the raw side color, lift = the band's brightness on the sides, edge = the band edge's softness (share of the side's height), h0 / h1 =
+     the band's height at the first heat and its climb per unit doneness, max = its cap, sw = the hold-against swatch's width (design px), th = the steak's
+     thickness in the pan (x the old one: more side for the band), sraw = the swatch's raw side (the raw color as the pan's light shows it) */
+  const DINNER_AUTOPEEK_OFF = 1, DINNER_COLOR_CLEAR = 2, DINNER_DONE_GLOW = 1, DIN_CLR = { raw: [84, 18, 36], lift: 1.3, edge: 0.08, h0: 0.16, h1: 0.7, max: 0.84, sw: 58, th: 1.3, sraw: [128, 24, 44] };
   const DIN_STEAK = [
     { n: 'Rare', s: 'RARE', f: '120-125°F · 49-52°C', c: 4.5, lo: 1.5, hi: 1.5, w: 1 },
     { n: 'Medium rare', s: 'M-RARE', f: '130-135°F · 54-57°C', c: 6.5, lo: 1.8, hi: 1.8, w: 1 },
@@ -75244,22 +75322,41 @@ const CampMini = (() => {
   const SEAR_IN = [[0, [176, 36, 58]], [0.25, [208, 46, 68]], [0.36, [228, 98, 106]], [0.47, [232, 128, 130]], [0.58, [222, 150, 140]], [0.78, [178, 128, 94]], [1, [118, 82, 60]]], SEAR_BAND = [170, 124, 98];
   /* the menu colors of the six stages (the plate's ladder): pink-red, rosy red, warm pink-tan, tan-brown, rich brown, near black (its cell has an ember edge) */
   const DIN_MENU = [[214, 58, 74], [228, 96, 100], [226, 150, 126], [192, 132, 92], [128, 74, 40], [34, 24, 20]];
+  const DIN_LAD = [[0, DIN_CLR.raw], [0.25, DIN_MENU[0]], [0.36, DIN_MENU[1]], [0.47, DIN_MENU[2]], [0.58, DIN_MENU[3]], [0.78, DIN_MENU[4]], [1, DIN_MENU[5]]]; /* DINNER_COLOR_CLEAR: the cooked band's color by doneness, on the ladder's colors */
   const rampAt = (R, d) => { d = clamp(d, 0, 1); for (let i = 1; i < R.length; i++) if (d <= R[i][0]) { const [a, ca] = R[i - 1], [b, cb] = R[i]; return mix3(ca, cb, (d - a) / (b - a)); } return R[R.length - 1][1]; };
   const insAt = (d) => (DINNER_ROAST_STYLE ? rampAt(SEAR_IN, d) : mix3([214, 104, 112], [160, 110, 92], clamp((d - 0.4) * 1.6, 0, 1))); /* the slices' inside */
   const dinStage = (sec, fire) => (fire ? 'Burnt' : sec < 2.5 ? 'Raw' : DIN_STEAK[sec < 5.5 ? 0 : sec < 7.5 ? 1 : sec < 9.5 ? 2 : sec < 12.25 ? 3 : sec < 16 ? 4 : 5].n); /* the nearest named doneness to a cook (seconds a side) */
   /* the target plate's pieces. cutFace: a cut steak's face (the seared crust round the edge, an ember edge once it is charred, the cooked band fading into
      the center's color, a strip of fat at one end, faint grain and a juice gloss); chip: the plate's swatch, half seared top with grill marks, half cut face */
+  /* DLK: the faceted ribeye's 2D outline, a chunky 12-sided slab (the 3D slice's rounded-box profile with a little fixed wobble), inset by k px */
+  const dlkPath = (c, x, y, w, h, k) => { c.beginPath(); for (let i = 0; i < 12; i++) { const a = (i + 0.5) / 12 * TAU, ca = Math.cos(a), sa = Math.sin(a), j = 1 + 0.05 * (dinHash(i * 7 + 3) - 0.5);
+    const px = x + Math.sign(ca) * Math.pow(Math.abs(ca), 0.45) * (w / 2 - k) * j, py = y + Math.sign(sa) * Math.pow(Math.abs(sa), 0.35) * (h / 2 - k) * j; if (i) c.lineTo(px, py); else c.moveTo(px, py); } c.closePath(); };
+  /* DLK: low-poly light on a 2D steak face: a fan of wedges from a point up and left of the middle, each a touch lighter or darker */
+  const dlkFacets = (c, x, y, w, h) => { const ox = x - w * 0.12, oy = y - h * 0.14; for (let i = 0; i < 7; i++) { const a0 = i / 7 * TAU, a1 = (i + 1) / 7 * TAU, s = dinHash(i * 13 + 5);
+    c.fillStyle = s > 0.5 ? `rgba(255,236,214,${(0.03 + 0.07 * (s - 0.5)).toFixed(3)})` : `rgba(20,8,4,${(0.03 + 0.1 * (0.5 - s)).toFixed(3)})`; c.beginPath(); c.moveTo(ox, oy); c.lineTo(ox + Math.cos(a0) * w, oy + Math.sin(a0) * w); c.lineTo(ox + Math.cos(a1) * w, oy + Math.sin(a1) * w); c.closePath(); c.fill(); } };
   const cutFace = (c, x, y, w, h, d, burnt) => { const ch = burnt || d > 0.9, r = h * 0.32, ct = Math.max(2.5, h * 0.09), crust = burnt ? [18, 12, 10] : rampAt(SEAR, d), core = burnt ? [96, 66, 50] : rampAt(SEAR_IN, d);
-    const bf = burnt ? 1 : clamp((d - 0.1) / 0.7, 0, 1), ring = mix3(SEAR_BAND, core, 0.25 + 0.6 * clamp((d - 0.55) / 0.45, 0, 1)), path = (k) => { c.beginPath(); c.roundRect(x - w / 2 + k, y - h / 2 + k, w - 2 * k, h - 2 * k, Math.max(1, r - k * 0.6)); };
+    const bf = burnt ? 1 : clamp((d - 0.1) / 0.7, 0, 1), ring = mix3(SEAR_BAND, core, 0.25 + 0.6 * clamp((d - 0.55) / 0.45, 0, 1)), path = (k) => { if (DLK) { dlkPath(c, x, y, w, h, k); return; } c.beginPath(); c.roundRect(x - w / 2 + k, y - h / 2 + k, w - 2 * k, h - 2 * k, Math.max(1, r - k * 0.6)); };
     c.save(); if (ch) { c.shadowColor = 'rgba(255,110,40,0.75)'; c.shadowBlur = 7; } path(0); c.fillStyle = rgb(crust); c.fill(); c.shadowBlur = 0;
     if (ch) { c.strokeStyle = 'rgba(255,128,48,0.9)'; c.lineWidth = 1.5; path(1); c.stroke(); }
     path(ct); c.save(); c.clip(); c.fillStyle = rgb(ring); c.fillRect(x - w / 2, y - h / 2, w, h);
     { const e = clamp(0.3 + 0.62 * (1 - bf), 0.08, 0.92); c.save(); c.translate(x, y); c.scale(w / h, 1); const g = c.createRadialGradient(0, 0, 0, 0, 0, h * 0.52); g.addColorStop(0, rgb(core)); g.addColorStop(e * 0.8, rgb(core)); g.addColorStop(Math.min(0.99, e + 0.06), rgb(mix3(core, ring, 0.55))); g.addColorStop(1, rgb(ring)); c.fillStyle = g; c.fillRect(-h, -h, h * 2, h * 2); c.restore(); }
-    c.fillStyle = rgb(mix3([238, 218, 196], crust, burnt ? 0.5 : 0.18)); c.beginPath(); c.ellipse(x - w / 2 + ct, y + h * 0.05, w * 0.07, h * 0.42, 0, 0, TAU); c.fill(); /* the fat at one end */
+    if (DLK) { const e = x - w / 2 + ct; c.fillStyle = rgb(dinFat(DLK, burnt ? 1 : d, crust)); c.beginPath(); c.moveTo(e - 2, y - h * 0.4); c.lineTo(e + w * 0.1, y - h * 0.3); c.lineTo(e + w * 0.13, y + h * 0.04); c.lineTo(e + w * 0.09, y + h * 0.36); c.lineTo(e - 2, y + h * 0.42); c.closePath(); c.fill(); dlkFacets(c, x, y, w, h); } /* the golden fat cap at one end, faceted light */
+    else { c.fillStyle = rgb(mix3([238, 218, 196], crust, burnt ? 0.5 : 0.18)); c.beginPath(); c.ellipse(x - w / 2 + ct, y + h * 0.05, w * 0.07, h * 0.42, 0, 0, TAU); c.fill(); } /* the fat at one end */
     c.strokeStyle = 'rgba(60,20,16,0.12)'; c.lineWidth = 1; for (let k = -2; k <= 2; k++) { c.beginPath(); c.moveTo(x + k * w * 0.16 - h * 0.25, y + h * 0.5); c.lineTo(x + k * w * 0.16 + h * 0.25, y - h * 0.5); c.stroke(); } /* grain */
     c.fillStyle = 'rgba(255,255,255,0.14)'; c.beginPath(); c.ellipse(x - w * 0.12, y - h * 0.22, w * 0.15, h * 0.07, -0.12, 0, TAU); c.fill(); c.restore(); /* juice gloss */
     c.strokeStyle = 'rgba(253,248,234,0.8)'; c.lineWidth = 2; path(0); c.stroke(); c.restore(); };
-  const crustChip = (c, x, y, w, h, d) => { const ch = d > 0.9, col = rampAt(SEAR, d), core = rampAt(SEAR_IN, d), sx = x + w * 0.12; c.save(); c.beginPath(); c.ellipse(x, y, w / 2, h / 2, 0, 0, TAU); if (ch) { c.shadowColor = 'rgba(255,110,40,0.8)'; c.shadowBlur = 6; c.fillStyle = rgb(col); c.fill(); c.shadowBlur = 0; }
+  const crustChip = (c, x, y, w, h, d) => { const ch = d > 0.9, col = rampAt(SEAR, d), core = rampAt(SEAR_IN, d), sx = x + w * 0.12;
+    if (DLK) { /* the faceted ribeye: the seared top (a golden fat cap at the left end, crosshatched grill marks, faceted light), the cut half at the right */
+      c.save(); dlkPath(c, x, y, w, h, 0); if (ch) { c.shadowColor = 'rgba(255,110,40,0.8)'; c.shadowBlur = 6; } c.fillStyle = rgb(col); c.fill(); c.shadowBlur = 0; c.save(); c.clip();
+      c.fillStyle = rgb(dinFat(DLK, d * 0.6, col)); c.beginPath(); c.moveTo(x - w / 2, y - h / 2); c.lineTo(x - w * 0.37, y - h / 2); c.lineTo(x - w * 0.35, y - h * 0.05); c.lineTo(x - w * 0.38, y + h / 2); c.lineTo(x - w / 2, y + h / 2); c.closePath(); c.fill();
+      dlkFacets(c, x, y, w, h); c.strokeStyle = rgb(mix3(col, DLK.mark, 0.8)); c.lineCap = 'round'; c.lineWidth = Math.max(1.4, h * 0.065);
+      for (let k = 0; k < 3; k++) { const cx = x - w * 0.22 + k * w * 0.12; c.beginPath(); c.moveTo(cx - h * 0.22, y + h * 0.42); c.lineTo(cx + h * 0.22, y - h * 0.42); c.stroke(); }
+      c.lineWidth = Math.max(1.1, h * 0.05); for (let k = -1; k <= 1; k += 2) { c.beginPath(); c.moveTo(x - w * 0.34, y + k * h * 0.2 - h * 0.08); c.lineTo(sx, y + k * h * 0.2 + h * 0.08); c.stroke(); }
+      { const g = c.createRadialGradient(sx + w * 0.2, y, 0, sx + w * 0.2, y, h * 0.62); g.addColorStop(0, rgb(core)); g.addColorStop(0.55, rgb(core)); g.addColorStop(1, rgb(mix3(core, SEAR_BAND, 0.5))); c.fillStyle = g; c.beginPath(); c.moveTo(sx, y - h); c.lineTo(x + w, y - h); c.lineTo(x + w, y + h); c.lineTo(sx - h * 0.25, y + h); c.closePath(); c.fill();
+        c.strokeStyle = rgb(col); c.lineWidth = 2.5; c.beginPath(); c.moveTo(sx, y - h); c.lineTo(sx - h * 0.25, y + h); c.stroke(); }
+      c.fillStyle = 'rgba(255,255,255,0.18)'; c.beginPath(); c.moveTo(x + w * 0.16, y - h * 0.22); c.lineTo(x + w * 0.34, y - h * 0.26); c.lineTo(x + w * 0.3, y - h * 0.12); c.closePath(); c.fill(); c.restore();
+      dlkPath(c, x, y, w, h, 0); c.strokeStyle = ch ? 'rgba(255,140,60,0.95)' : 'rgba(253,248,234,0.8)'; c.lineWidth = 2; c.lineJoin = 'round'; c.stroke(); c.restore(); return; }
+    c.save(); c.beginPath(); c.ellipse(x, y, w / 2, h / 2, 0, 0, TAU); if (ch) { c.shadowColor = 'rgba(255,110,40,0.8)'; c.shadowBlur = 6; c.fillStyle = rgb(col); c.fill(); c.shadowBlur = 0; }
     c.save(); c.clip(); c.fillStyle = rgb(col); c.fillRect(x - w / 2, y - h / 2, w, h); c.fillStyle = 'rgba(255,240,220,0.12)'; c.fillRect(x - w / 2, y - h / 2, w, h * 0.3);
     c.strokeStyle = rgb(mix3(col, [20, 10, 8], 0.6)); c.lineWidth = Math.max(2, h * 0.1); for (let k = -1; k <= 0; k++) { const cx = x + k * w * 0.24 - w * 0.04; c.beginPath(); c.moveTo(cx - h * 0.3, y + h * 0.6); c.lineTo(cx + h * 0.3, y - h * 0.6); c.stroke(); } /* grill marks on the seared half */
     { const g = c.createRadialGradient(sx + w * 0.2, y, 0, sx + w * 0.2, y, h * 0.62); g.addColorStop(0, rgb(core)); g.addColorStop(0.55, rgb(core)); g.addColorStop(1, rgb(mix3(core, SEAR_BAND, 0.5))); c.fillStyle = g; c.beginPath(); c.moveTo(sx, y - h); c.lineTo(x + w, y - h); c.lineTo(x + w, y + h); c.lineTo(sx - h * 0.25, y + h); c.closePath(); c.fill();
@@ -75395,6 +75492,93 @@ const CampMini = (() => {
       for (let q = 0; q < 3; q++) { a2 += (dinHash(m * 5 + q) - 0.5) * 0.9; const p2 = [p[0] + Math.cos(a2) * ln / 3, p[1] + Math.sin(a2) * ln / 3], wd = 0.008 + 0.006 * (q === 1 ? 1 : 0), nx = -Math.sin(a2) * wd, ny = Math.cos(a2) * wd; if (!inPoly(Fp, p2[0], p2[1])) break;
         quad(L([p[0] - nx, p[1] - ny], dome(p) - 0.008), L([p2[0] - nx, p2[1] - ny], dome(p2) - 0.008), L([p2[0] + nx, p2[1] + ny], dome(p2) - 0.008), L([p[0] + nx, p[1] + ny], dome(p) - 0.008), 'mb', up); p = p2; } }
     return T; }
+  /* DINNER_STEAK_LOOK: the steak in look 1 / 2 / 3 (DIN_LOOK), in steakTopo3's parts plus 'shn' (a wet or glossy streak), 'bone' / 'boneS' (the T's top and
+     sides) and 'herb' / 'herbS' (the sprig's needles and stem). The outline is the STEAK spline sampled at even angles round a center (it is star-shaped
+     about it), so the top's rings, the fat rim, the cap and the lobes are clean bands along the spokes. Levels as steakTopo3 (0 top .. 1 bottom). */
+  function steakTopoL(look, side) {
+    const P = DIN_LOOK[look - 1], N = P.N, T = [], c = look === 3 ? [0.32, 0.06] : [0.05, 0.06], n0 = STEAK.length, S = [], a0 = look === 3 ? -Math.PI / 2 : 0;
+    for (let k = 0; k < 96; k++) { const f = k / 96 * n0, i = Math.floor(f), t = f - i, P0 = STEAK[(i - 1 + n0) % n0], P1 = STEAK[i], P2 = STEAK[(i + 1) % n0], P3 = STEAK[(i + 2) % n0];
+      const cr = (a, b, q, d) => 0.5 * (2 * b + (q - a) * t + (2 * a - 5 * b + 4 * q - d) * t * t + (3 * b - a - 3 * q + d) * t * t * t); S.push([cr(P0[0], P1[0], P2[0], P3[0]), cr(P0[1], P1[1], P2[1], P3[1])]); }
+    const ray = (a) => { const dx = Math.cos(a), dy = Math.sin(a); let best = 0; /* the outline's distance from the center along a direction */
+      for (let i = 0; i < S.length; i++) { const A = S[i], B = S[(i + 1) % S.length], ex = B[0] - A[0], ey = B[1] - A[1], den = dx * ey - dy * ex; if (Math.abs(den) < 1e-9) continue;
+        const qx = A[0] - c[0], qy = A[1] - c[1], tt = (qx * ey - qy * ex) / den, u = (qx * dy - qy * dx) / den; if (tt > 0 && u >= 0 && u <= 1) best = Math.max(best, tt); } return best; };
+    const AN = (k) => a0 + k / N * TAU, R = [];
+    for (let k = 0; k < N; k++) R.push(ray(AN(k)) * (1 + P.wob * (Math.sin(k * 2.3 + 0.7) + 0.6 * Math.sin(k * 5.1 + 1.3))));
+    const rA = (a) => { let f = ((a - a0) / TAU % 1 + 1) % 1 * N; const i = Math.floor(f) % N; f -= Math.floor(f); return R[i] + (R[(i + 1) % N] - R[i]) * f; }; /* the outline's radius at any angle */
+    const capA = P.capA === undefined ? Math.atan2(-0.72, -0.5) : side < 0 ? Math.PI - P.capA : P.capA, bumpA = (a) => { if (!P.capW) return 0; const d = Math.atan2(Math.sin(a - capA), Math.cos(a - capA)); return Math.pow(Math.max(0, Math.cos(clamp(d / P.capW, -1, 1) * Math.PI / 2)), 2); }, bump = (k) => bumpA(AN(k));
+    const fjit = (k, s) => (P.fj && s > 0.01 && s < 0.94 ? P.fj * (dinHash(k * 37 + Math.round(s * 1000) * 7) - 0.5) : 0); /* the facets: each inner vertex nudged up or down (look 2) */
+    const lvS = (s) => 0.02 - P.dome * (1 - s * s), at = (k, s) => { const a = AN(k), r = R[k % N] * s; return [c[0] + Math.cos(a) * r, c[1] + Math.sin(a) * r, lvS(s) + fjit(k % N, s)]; };
+    const sOf = (x, y) => Math.hypot(x - c[0], y - c[1]) / Math.max(1e-6, rA(Math.atan2(y - c[1], x - c[0]))), lvAt = (x, y) => lvS(Math.min(1, sOf(x, y)));
+    const add = (a, b, d, part, r) => { const w = [a, b, d].map(([u, v, l]) => [u, -l, v]), ux = w[1][0] - w[0][0], uy = w[1][1] - w[0][1], uz = w[1][2] - w[0][2], vx = w[2][0] - w[0][0], vy = w[2][1] - w[0][1], vz = w[2][2] - w[0][2];
+      if ((uy * vz - uz * vy) * r[0] + (uz * vx - ux * vz) * r[1] + (ux * vy - uy * vx) * r[2] < 0) T.push([a, d, b, part]); else T.push([a, b, d, part]); };
+    const quad = (a, b, q, d, part, r) => { add(a, b, q, part, r); add(a, q, d, part, r); }, up = [0, 1, 0], dn = [0, -1, 0], B = [0.12, 0.34, 0.62, 0.86], SW = (l) => 0.955 + 0.045 * l;
+    const sOb = 0.95, sR = (k) => sOb - P.ring / R[k % N], sC = (k) => sR(k) - P.capT * bump(k), sS = (k) => sC(k) - P.seam * Math.sqrt(bump(k));
+    const lobe = (k) => (look === 3 ? (k < N / 2 ? 'cap' : 'meat') : 'meat'); /* look 3: the stem of the T parts the tenderloin (cap) from the strip */
+    for (let k = 0; k < N; k++) { const k1 = k + 1, bm = (bump(k) + bump(k1)) / 2, ad = (AN(k) + AN(k1)) / 2, sr = [Math.cos(ad), 0, Math.sin(ad)], fside = bm > 0.35, lb = lobe(k);
+      quad(at(k, sOb), at(k1, sOb), at(k1, sR(k1)), at(k, sR(k)), 'fat', up); /* the fat rim (a fixed width round the outline) */
+      let s0 = (q) => sR(q);
+      if (look === 1 && bm > 0.02) { quad(at(k, sR(k)), at(k1, sR(k1)), at(k1, sC(k1)), at(k, sC(k)), 'cap', up); quad(at(k, sC(k)), at(k1, sC(k1)), at(k1, sS(k1)), at(k, sS(k)), 'seam', up); s0 = sS; }
+      else if (look === 2 && bm > 0.02) { quad(at(k, sR(k)), at(k1, sR(k1)), at(k1, sC(k1)), at(k, sC(k)), 'fat', up); s0 = sC; } /* the thick fat cap */
+      const rings = look === 2 ? [0.64, 0.34] : [0.56];
+      quad(at(k, s0(k)), at(k1, s0(k1)), at(k1, rings[0]), at(k, rings[0]), lb, up);
+      for (let j = 0; j + 1 < rings.length; j++) quad(at(k, rings[j]), at(k1, rings[j]), at(k1, rings[j + 1]), at(k, rings[j + 1]), lb, up);
+      add([c[0], c[1], lvS(0)], at(k, rings[rings.length - 1]), at(k1, rings[rings.length - 1]), lb === 'cap' ? 'cap' : 'core', up);
+      /* the sides: a rounded top edge (two rows in looks 1 and 3), three rows of wall, the bottom edge and the bottom */
+      const sd = (q, l) => { const a = AN(q), r = R[q % N] * SW(l); return [c[0] + Math.cos(a) * r, c[1] + Math.sin(a) * r, l]; }, sdTop = (q) => at(q, sOb);
+      if (P.lip) { const mid = (q) => { const a = AN(q), r = R[q % N] * 0.978; return [c[0] + Math.cos(a) * r, c[1] + Math.sin(a) * r, 0.035]; }; quad(sd(k, B[0]), sd(k1, B[0]), mid(k1), mid(k), 'rimT', sr); quad(mid(k), mid(k1), sdTop(k1), sdTop(k), 'rimT', sr); }
+      else quad(sd(k, B[0]), sd(k1, B[0]), sdTop(k1), sdTop(k), 'rimT', sr);
+      for (let j = 0; j < 3; j++) quad(sd(k, B[j]), sd(k1, B[j]), sd(k1, B[j + 1]), sd(k, B[j + 1]), (fside ? 'f' : 's') + 'TMB'[j], sr);
+      const bt = (q) => { const a = AN(q), r = R[q % N] * 0.95; return [c[0] + Math.cos(a) * r, c[1] + Math.sin(a) * r, 1]; };
+      quad(sd(k, B[3]), sd(k1, B[3]), bt(k1), bt(k), 'rimB', sr); add([c[0], c[1], 1], bt(k), bt(k1), 'bot', dn); }
+    /* a flat ribbon lifted just off the top along a polyline (fat swooshes, streaks, the shine): width per point, tapered ends */
+    const ribbon = (pts, wd, part, lift) => { for (let i = 0; i + 1 < pts.length; i++) { const p = pts[i], q = pts[i + 1], dx = q[0] - p[0], dy = q[1] - p[1], ln = Math.hypot(dx, dy) || 1, w0 = wd[i], w1 = wd[i + 1];
+        const n0x = -dy / ln * w0, n0y = dx / ln * w0, n1x = -dy / ln * w1, n1y = dx / ln * w1, Lf = (x, y) => [x, y, lvAt(x, y) - lift];
+        quad(Lf(p[0] - n0x, p[1] - n0y), Lf(q[0] - n1x, q[1] - n1y), Lf(q[0] + n1x, q[1] + n1y), Lf(p[0] + n0x, p[1] + n0y), part, up); } };
+    const curve = (A, Bc, C, n) => Array.from({ length: n + 1 }, (_, i) => { const t = i / n, m = 1 - t; return [m * m * A[0] + 2 * m * t * Bc[0] + t * t * C[0], m * m * A[1] + 2 * m * t * Bc[1] + t * t * C[1]]; });
+    const taper = (n, w) => Array.from({ length: n + 1 }, (_, i) => w * Math.pow(Math.sin(Math.PI * (0.08 + 0.84 * i / n)), 0.7));
+    /* the bone (look 3): an ivory T standing a little proud of the meat, its top following the dome, its sides sunk a little into the meat */
+    const bones = [];
+    if (look === 3) { const r0 = rA(-Math.PI / 2), r1 = rA(Math.PI / 2), cy = c[1] - r0 * 0.7, sy = c[1] + r1 * 0.62, H = 0.04;
+      const top = (x, y) => [x, y, lvAt(x, y) - H], foot = (x, y) => [x, y, lvAt(x, y) + 0.02];
+      const wall = (P0, P1, n) => quad(foot(P0[0], P0[1]), foot(P1[0], P1[1]), top(P1[0], P1[1]), top(P0[0], P0[1]), 'boneS', n);
+      /* the vertebra: a rounded bar along the far edge (a convex outline: a fan top and walls) */
+      const VB = Array.from({ length: 14 }, (_, i) => { const a = i / 14 * TAU, ca = Math.cos(a), sa = Math.sin(a); return [c[0] - 0.04 + Math.sign(ca) * Math.pow(Math.abs(ca), 0.6) * 0.29, cy + Math.sign(sa) * Math.pow(Math.abs(sa), 0.8) * 0.085]; });
+      const vc = [c[0] - 0.04, cy];
+      for (let i = 0; i < VB.length; i++) { const P0 = VB[i], P1 = VB[(i + 1) % VB.length]; add(top(vc[0], vc[1]), top(P0[0], P0[1]), top(P1[0], P1[1]), 'bone', up); wall(P0, P1, [(P0[0] + P1[0]) / 2 - vc[0], 0, (P0[1] + P1[1]) / 2 - vc[1]]); }
+      /* the stem: a tapered, gently curved blade from the bar toward the near edge, parting the strip from the tenderloin */
+      const M = 7, SP = Array.from({ length: M + 1 }, (_, i) => { const t = i / M; return [c[0] + 0.035 * Math.sin(t * Math.PI), cy + (sy - cy) * t, 0.062 * (1 - 0.5 * t)]; });
+      const side = (i, sg) => { const a = SP[Math.max(0, i - 1)], b = SP[Math.min(M, i + 1)], dx = b[0] - a[0], dy = b[1] - a[1], ln = Math.hypot(dx, dy); return [SP[i][0] - dy / ln * SP[i][2] * sg, SP[i][1] + dx / ln * SP[i][2] * sg]; };
+      for (let i = 0; i < M; i++) { const A0 = side(i, -1), A1 = side(i, 1), B0 = side(i + 1, -1), B1 = side(i + 1, 1); quad(top(...A0), top(...B0), top(...B1), top(...A1), 'bone', up); wall(A0, B0, [-1, 0, 0]); wall(B1, A1, [1, 0, 0]); }
+      { const E0 = side(M, -1), E1 = side(M, 1); wall(E0, E1, [0, 0, 1]); }
+      bones.push([[vc[0] - 0.29, cy], [vc[0] + 0.29, cy], 0.085], [[c[0], cy], [c[0] + 0.03, sy], 0.062]); } /* for the grill marks' clipping */
+    const nearBone = (x, y, m) => bones.some(([p, q, hw]) => { const dx = q[0] - p[0], dy = q[1] - p[1], l2 = dx * dx + dy * dy, t = clamp(((x - p[0]) * dx + (y - p[1]) * dy) / l2, 0, 1); return Math.hypot(x - p[0] - dx * t, y - p[1] - dy * t) < hw + m; });
+    /* the grill marks, lifted just off each face, clipped to the meat inside the fat rim (and off the bone) */
+    const inner = (x, y) => sOf(x, y) < sOb - (P.ring + 0.04) / rA(Math.atan2(y - c[1], x - c[0])) && !nearBone(x, y, 0.025);
+    const strip = (ax, ay, dx, dy, wd, top, hal, cw) => { const ln = Math.hypot(dx, dy); dx /= ln; dy /= ln; const nx = -dy * wd, ny = dx * wd, runs = []; let run = null; const kx = cw ? -dy * cw : nx, ky = cw ? dx * cw : ny; /* hal: the halo under a mark (DINNER_MARK_HALO); cw: the width both are clipped by */
+      for (let s = -1.6; s <= 1.6001; s += 0.01) { const x = ax + dx * s, y = ay + dy * s, ok = inner(x, y) && inner(x + kx, y + ky) && inner(x - kx, y - ky); if (ok) { if (!run) run = [s, s]; else run[1] = s; } else if (run) { runs.push(run); run = null; } }
+      if (run) runs.push(run);
+      for (let [s0, s1] of runs) { s0 += 0.015; s1 -= 0.015; if (s1 - s0 < 0.2) continue; const NS = Math.max(2, Math.ceil((s1 - s0) / 0.1)); /* no stubs */
+        for (let q = 0; q < NS; q++) { const sa = s0 + (s1 - s0) * q / NS, sb = s0 + (s1 - s0) * (q + 1) / NS, pts = [[ax + dx * sa - nx, ay + dy * sa - ny], [ax + dx * sb - nx, ay + dy * sb - ny], [ax + dx * sb + nx, ay + dy * sb + ny], [ax + dx * sa + nx, ay + dy * sa + ny]];
+          if (hal) quad(...pts.map((p) => [p[0], p[1], top ? lvAt(p[0], p[1]) - 0.022 : 1.02]), top ? 'qT' : 'qB', top ? up : dn); /* the halo sits just under the marks (both ways) */
+          else quad(...pts.map((p) => [p[0], p[1], top ? lvAt(p[0], p[1]) - (P.fj ? 0.03 : 0.014) : 1.03]), top ? 'gT' : 'gB', top ? up : dn); } } };
+    for (const top of [true, false]) {
+      if (look === 2 && DINNER_MARK_HALO) { for (let k = -2; k <= 2; k++) { strip(c[0] + k * 0.34 + 0.1, c[1], 0.45, 1, 0.046, top, true, 0.046); strip(c[0] + k * 0.34 + 0.1, c[1], 0.45, 1, 0.026, top, false, 0.046); }
+        for (let k = -1; k <= 1; k++) { strip(c[0], c[1] + k * 0.32, 1, -0.32, 0.036, top, true, 0.036); strip(c[0], c[1] + k * 0.32, 1, -0.32, 0.019, top, false, 0.036); } }
+      else if (look === 2) { for (let k = -2; k <= 2; k++) strip(c[0] + k * 0.34 + 0.1, c[1], 0.45, 1, 0.022, top); for (let k = -1; k <= 1; k++) strip(c[0], c[1] + k * 0.32, 1, -0.32, 0.016, top); }
+      else if (look === 1) for (let k = -2; k <= 2; k++) strip(c[0] + k * 0.36 + 0.12, c[1], 0.5, 1, 0.034, top);
+      else for (let k = -2; k <= 1; k++) strip(c[0] + k * 0.3 - 0.2, c[1], 1, 0.8, 0.028, top); }
+    /* the dressing on the top: look 1 a fat swoosh in the eye and a shine; look 2 a few fat streaks and the sprig; look 3 a shine on each lobe */
+    if (look === 1) { ribbon(curve([c[0] - 0.42, c[1] + 0.22], [c[0] - 0.05, c[1] - 0.12], [c[0] + 0.42, c[1] + 0.06], 8), taper(8, 0.048), 'seam', 0.012);
+      ribbon(curve([c[0] + 0.2, c[1] + 0.3], [c[0] + 0.42, c[1] + 0.3], [c[0] + 0.56, c[1] + 0.14], 5), taper(5, 0.018), 'shn', 0.012); }
+    if (look === 3) { ribbon(curve([c[0] - 0.75, c[1] + 0.2], [c[0] - 0.55, c[1] + 0.34], [c[0] - 0.3, c[1] + 0.32], 5), taper(5, 0.018), 'shn', 0.012);
+      ribbon(curve([c[0] + 0.18, c[1] + 0.32], [c[0] + 0.34, c[1] + 0.3], [c[0] + 0.44, c[1] + 0.16], 4), taper(4, 0.014), 'shn', 0.012); }
+    if (look === 2) { for (const [A, Bc, C] of [[[-0.5, 0.25], [-0.3, 0.05], [-0.08, 0.12]], [[0.25, -0.25], [0.42, -0.1], [0.5, 0.15]], [[-0.15, -0.3], [0, -0.22], [0.12, -0.32]]]) ribbon(curve(A, Bc, C, 4), taper(4, 0.02), 'mb', 0.03);
+      /* the rosemary sprig: a stem with needles either side, lying across the eye (hidden inside the steak unless it rests: see steakPut) */
+      const st = curve([-0.42, 0.34], [0.02, 0.14], [0.46, 0.26], 6), lift = 0.12; ribbon(st, st.map(() => 0.014), 'herbS', lift);
+      for (let i = 0; i < 12; i++) { const t = 0.08 + 0.84 * i / 11, j = Math.min(5, Math.floor(t * 6)), f = t * 6 - j, p = [st[j][0] + (st[j + 1][0] - st[j][0]) * f, st[j][1] + (st[j + 1][1] - st[j][1]) * f], dx = st[j + 1][0] - st[j][0], dy = st[j + 1][1] - st[j][1], ln = Math.hypot(dx, dy);
+        for (const sg of [-1, 1]) { const tx = dx / ln, ty = dy / ln, nx = -ty * sg, ny = tx * sg, L1 = 0.11 * (1 - 0.35 * Math.abs(t - 0.5)), tip = [p[0] + (nx * 0.85 + tx * 0.5) * L1, p[1] + (ny * 0.85 + ty * 0.5) * L1], w = 0.018, base = lvAt(p[0], p[1]) - lift;
+          add([p[0] - tx * w, p[1] - ty * w, base], [p[0] + tx * w, p[1] + ty * w, base], [tip[0], tip[1], base - 0.05], 'herb', up); } } }
+    return T; }
   /* DINNER_REUSE_FIRE: the table scene burns the camp's own fire under the grate (campFireLend, kept low by lendY, sized by the cook's heat) instead of
      building its own flame cones; 0 = the old cones */
   const DINNER_REUSE_FIRE = 1;
@@ -75504,7 +75688,7 @@ const CampMini = (() => {
         triOut(P, Cl, [0, th - 0.003, 0], G2[k], G2[k1], [0, 1, 0], k % 2 ? wood : wood2); triOut(P, Cl, O[k], O[k1], B[k1], n, sideC); triOut(P, Cl, O[k], B[k1], B[k], n, sideC); triOut(P, Cl, [0, 0, 0], B[k], B[k1], [0, -1, 0], bot); }
       return triGeo(P, Cl); })());
     /* the steak: fixed topology, positions written per frame (see steakTopo) */
-    const TOPO = DINNER_MODELS ? (DINNER_STEAK_MODEL ? steakTopo3() : steakTopo2()) : steakTopo(), steakG = new T.BufferGeometry(); steakG.setAttribute('position', new T.BufferAttribute(new Float32Array(TOPO.length * 9), 3)); steakG.setAttribute('color', new T.BufferAttribute(new Float32Array(TOPO.length * 9), 3)); const steak = mk(steakG);
+    const TOPO = DINNER_MODELS ? (DINNER_STEAK_MODEL ? (DINNER_STEAK_LOOK ? steakTopoL(DINNER_STEAK_LOOK, sd) : steakTopo3()) : steakTopo2()) : steakTopo(), steakG = new T.BufferGeometry(); steakG.setAttribute('position', new T.BufferAttribute(new Float32Array(TOPO.length * 9), 3)); steakG.setAttribute('color', new T.BufferAttribute(new Float32Array(TOPO.length * 9), 3)); const steak = mk(steakG);
     const shaker = (isSalt) => mk(mrg(isSalt ? [{ geo: new T.CylinderGeometry(0.021, 0.023, 0.068, 10), col: '#efe8d8', m: at(0, 0.034, 0) }, { geo: new T.CylinderGeometry(0.019, 0.022, 0.016, 10), col: '#b9bec2', m: at(0, 0.076, 0) }, { geo: new T.SphereGeometry(0.019, 8, 4, 0, TAU, 0, Math.PI / 2), col: '#c9ced2', m: at(0, 0.083, 0) }]
       : [{ geo: new T.CylinderGeometry(0.024, 0.024, 0.06, 7), col: '#4f7a34', m: at(0, 0.03, 0) }, { geo: new T.CylinderGeometry(0.0245, 0.0245, 0.022, 7), col: '#f2ead6', m: at(0, 0.03, 0) }, { geo: new T.CylinderGeometry(0.026, 0.026, 0.012, 7), col: '#2f4a20', m: at(0, 0.066, 0) }]));
     const salt = shaker(true), thyme = shaker(false);
@@ -75530,13 +75714,16 @@ const CampMini = (() => {
     /* DINNER_STEAK_MODEL: a slice as a long strip tipped onto its cut face (unit size as above): a beveled crust edge, the cooked band, the center, a
        raised juice gloss, the fat at its +z end; sliceR names each triangle's role for the eat course's colors */
     let sliceR = null;
-    const sliceG2 = DINNER_STEAK_MODEL ? (() => { const P = [], Cl = [], R = [], N = 16, c = new T.Color(), pt = (k, y, s) => { const a = k / N * TAU, ca = Math.cos(a), sa = Math.sin(a); return [Math.sign(ca) * Math.pow(Math.abs(ca), 0.4) * 0.5 * s, y, Math.sign(sa) * Math.pow(Math.abs(sa), 0.3) * 0.5 * s * (1 + 0.04 * ca)]; };
-      const tri = (a, b, d, n, r) => { triOut(P, Cl, a, b, d, n, c); R.push(r); };
-      for (let k = 0; k < N; k++) { const k1 = (k + 1) % N, fat = pt(k, 0, 1)[2] > 0.36 && pt(k1, 0, 1)[2] > 0.36, n = [Math.cos((k + 0.5) / N * TAU), 0, Math.sin((k + 0.5) / N * TAU)];
+    /* DLK (the faceted ribeye): ten chunky sides with a fixed wobble, the cut face's rings a little uneven (facets that catch the light), a thicker fat
+       cap that runs down the +z end's walls */
+    const sliceG2 = DINNER_STEAK_MODEL ? (() => { const P = [], Cl = [], R = [], DL = !!DLK, N = DL ? 10 : 16, c = new T.Color(), jr = (k) => (DL ? 1 + 0.08 * (dinHash(k * 11 + 2) - 0.5) : 1), jy = (k, y) => (DL && y > 0.9 ? y + 0.03 * (dinHash(k * 5 + Math.round(y * 100)) - 0.5) : y);
+      const pt = (k, y, s) => { const a = k / N * TAU, ca = Math.cos(a), sa = Math.sin(a), j = jr(k % N); return [Math.sign(ca) * Math.pow(Math.abs(ca), 0.4) * 0.5 * s * j, jy(k % N, y), Math.sign(sa) * Math.pow(Math.abs(sa), 0.3) * 0.5 * s * (1 + 0.04 * ca) * j]; };
+      const tri = (a, b, d, n, r) => { triOut(P, Cl, a, b, d, n, c); R.push(r); }, fz = DL ? 0.3 : 0.36;
+      for (let k = 0; k < N; k++) { const k1 = (k + 1) % N, fat = pt(k, 0, 1)[2] > fz && pt(k1, 0, 1)[2] > fz, n = [Math.cos((k + 0.5) / N * TAU), 0, Math.sin((k + 0.5) / N * TAU)];
         tri([0, 1, 0], pt(k, 0.99, 0.6), pt(k1, 0.99, 0.6), [0, 1, 0], 'c');
         tri(pt(k, 0.99, 0.6), pt(k1, 0.99, 0.6), pt(k1, 0.96, 0.9), [0, 1, 0], 'b'); tri(pt(k, 0.99, 0.6), pt(k1, 0.96, 0.9), pt(k, 0.96, 0.9), [0, 1, 0], 'b');
         tri(pt(k, 0.96, 0.9), pt(k1, 0.96, 0.9), pt(k1, 0.86, 1), [0, 1, 0], fat ? 'f' : 'k'); tri(pt(k, 0.96, 0.9), pt(k1, 0.86, 1), pt(k, 0.86, 1), [0, 1, 0], fat ? 'f' : 'k'); /* the fat edges the slice's +z end */
-        tri(pt(k, 0.86, 1), pt(k1, 0.86, 1), pt(k1, 0, 1), n, 's'); tri(pt(k, 0.86, 1), pt(k1, 0, 1), pt(k, 0, 1), n, 's'); tri([0, 0, 0], pt(k, 0, 1), pt(k1, 0, 1), [0, -1, 0], 'd'); }
+        tri(pt(k, 0.86, 1), pt(k1, 0.86, 1), pt(k1, 0, 1), n, DL && fat ? 'f' : 's'); tri(pt(k, 0.86, 1), pt(k1, 0, 1), pt(k, 0, 1), n, DL && fat ? 'f' : 's'); tri([0, 0, 0], pt(k, 0, 1), pt(k1, 0, 1), [0, -1, 0], 'd'); }
       for (const [gx, gz, gw, gl] of [[-0.14, -0.12, 0.035, 0.12]]) { const y = 1.01; tri([gx - gw, y, gz - gl], [gx + gw, y, gz - gl], [gx + gw, y, gz + gl], [0, 1, 0], 'g'); tri([gx - gw, y, gz - gl], [gx + gw, y, gz + gl], [gx - gw, y, gz + gl], [0, 1, 0], 'g'); } /* the juice gloss */
       sliceR = R; return triGeo(P, Cl); })() : null;
     const slices = Array.from({ length: 6 }, () => mk(sliceG2 || sliceG));
@@ -75664,17 +75851,55 @@ const CampMini = (() => {
     const fireScr = (out) => { va.set(D3.FIRE[0], 0.2, D3.FIRE[2]).project(D3.cam); out[0] = (va.x + 1) / 2 * G.W; out[1] = (1 - va.y) / 2 * G.H; return out; }, FSP = [0, 0];
     const SKC = DINNER_MODELS ? Array.from({ length: 13 }, () => new THREE.Color()) : null, CHAR = [74, 40, 22];
     const MDLC = DINNER_STEAK_MODEL && DINNER_MODELS ? [new THREE.Color(), new THREE.Color(), new THREE.Color()] : null, BANDC = DINNER_ROAST_STYLE && DINNER_MODELS ? [new THREE.Color(), new THREE.Color(), new THREE.Color()] : null, SIDEK = { sT: 1, sM: 1, sB: 1, fT: 1, fM: 1, fB: 1, rimT: 1, rimB: 1 };
-    function steakPaint(top, bot, mid, raw, dT, dB, bB, bT, lit) { /* top / bot: 0..255 colors of the two faces, mid: the sides; raw: marbled. DINNER_MODELS: dT / dB the faces' doneness (the grill marks).
-        DINNER_ROAST_STYLE: bB / bT (0..~0.5 of the side's height) the browning band climbing the sides from the bottom face / the top face, in that face's color */
-      if (DINNER_MODELS) { const key = top.map(Math.round) + '|' + bot.map(Math.round) + '|' + mid.map(Math.round) + (raw ? 'r' : '') + '|' + Math.round((dT || 0) * 50) + '|' + Math.round((dB || 0) * 50) + (bB !== undefined ? '|' + Math.round(bB * 80) + '|' + Math.round(bT * 80) + '|' + Math.round((lit || 1) * 20) : ''); if (key === steakKey) return; steakKey = key;
+    const BANDX = DINNER_COLOR_CLEAR && BANDC ? [new THREE.Color()] : null;
+    /* DINNER_STEAK_LOOK: the extra roles' colors (cap, ribbons, shine, bone, bone side, needles, stem, top edge) and what steakPut shows: t / b = the grill
+       marks on the top / bottom face (hidden until that face has seared), h = the sprig (only while the cooked steak rests between courses) */
+    const LKC = DINNER_STEAK_LOOK && MDLC ? Array.from({ length: 11 }, () => new THREE.Color()) : null, STKV = { t: false, b: false, h: false, k: '', F: null }; /* k / F: the flags and the placement steakPut last wrote */
+    const MHL = DINNER_MARK_HALO && DINNER_STEAK_LOOK === 2 && LKC; /* LKC[9] / [10]: the marks' halos (DINNER_MARK_HALO) */
+    /* DINNER_PAN_AUTO: the light on an up-facing face at the steak (linear, per channel), from the stage's sky, sun, fire and fill; the fire's size
+       comes from fireL.base (its intensity without the flicker). panK() -> the per-channel scale against DIN_PAN_REF (null when off or no scene) */
+    const PANL = DINNER_PAN_AUTO && LKC ? { hemi: null, sun: null, ref: null, now: new THREE.Color(), ref0: new THREE.Color(), k: new THREE.Color(), p: new THREE.Vector3(), q: new THREE.Vector3(), s: new THREE.Vector3(), key: '' } : null;
+    const panLight = (out, skyC, skyI, sunC, sunI, sunP, fireI) => { const sy = sunP.y / (sunP.length() || 1), p = PANL.p, d = PANL.q.copy(D3.fireL.position).sub(p), fd = d.length(), att = 1 / Math.max(fd * fd, 0.01) * Math.pow(clamp(1 - Math.pow(fd / 12, 4), 0, 1), 2), fy = Math.max(0, d.y / Math.max(fd, 1e-4)), fl = Math.max(0, 6 / Math.hypot(4, 6, 9)), FC = FIRE_U.uFireC.value;
+      return out.setRGB(skyC.r * skyI + sunC.r * sunI * Math.max(0, sy) + FC.r * fireI * att * fy + FILL_STAGE.r * fl, skyC.g * skyI + sunC.g * sunI * Math.max(0, sy) + FC.g * fireI * att * fy + FILL_STAGE.g * fl, skyC.b * skyI + sunC.b * sunI * Math.max(0, sy) + FC.b * fireI * att * fy + FILL_STAGE.b * fl); };
+    const panK = () => { if (!PANL || !D3.fireL || !D3.steak) return null;
+      if (!PANL.ref) { for (const o of D3.scene.children) { if (o.isHemisphereLight && !PANL.hemi) PANL.hemi = o; if (o.isDirectionalLight && !PANL.sun) PANL.sun = o; } if (!PANL.hemi || !PANL.sun) return null; const R = DIN_PAN_REF; PANL.ref = [new THREE.Color(R[0]), R[1], new THREE.Color(R[2]), R[3], new THREE.Vector3(R[4][0], R[4][1], R[4][2]), R[5], R[6]]; }
+      const R = PANL.ref, H = PANL.hemi, Sn = PANL.sun, fb = D3.fireL.base !== undefined ? D3.fireL.base : D3.fireL.intensity, ex = renderer.toneMappingExposure || 1; D3.steak.getWorldPosition(PANL.p);
+      const a = panLight(PANL.ref0, R[0], R[1], R[2], R[3], R[4], R[5]), b = panLight(PANL.now, H.color, H.intensity, Sn.color, Sn.intensity, PANL.s.copy(Sn.position).sub(Sn.target.position), fb), q =(v) => Math.round(v * 64) / 64;
+      PANL.k.setRGB(q(clamp(a.r * R[6] / Math.max(1e-4, b.r * ex), DIN_PAN_K[0], DIN_PAN_K[1])), q(clamp(a.g * R[6] / Math.max(1e-4, b.g * ex), DIN_PAN_K[0], DIN_PAN_K[1])), q(clamp(a.b * R[6] / Math.max(1e-4, b.b * ex), DIN_PAN_K[0], DIN_PAN_K[1])));
+      PANL.key = PANL.k.r + ',' + PANL.k.g + ',' + PANL.k.b; return PANL.k; };
+    function steakPaint(top, bot, mid, raw, dT, dB, bB, bT, lit, bx) { /* top / bot: 0..255 colors of the two faces, mid: the sides; raw: marbled. DINNER_MODELS: dT / dB the faces' doneness (the grill marks).
+        DINNER_ROAST_STYLE: bB / bT (0..~0.5 of the side's height) the browning band climbing the sides from the bottom face / the top face, in that face's color.
+        DINNER_COLOR_CLEAR: bx = [the bottom band's color, the top band's color] (0..255): the sides take mid plain, the bands those colors, a crust line at the bottom face */
+      if (DINNER_MODELS) { if (LKC) { STKV.t = (dT || 0) > 0.05; STKV.b = (dB || 0) > 0.05; if (STKV.F && STKV.k !== `${STKV.t}${STKV.b}${STKV.h}`) steakPut(STKV.F); } /* the marks follow this paint at once */ const PK = lit !== undefined && PANL ? panK() : null; const key = (PK ? PANL.key + '|' : '') + top.map(Math.round) + '|' + bot.map(Math.round) + '|' + mid.map(Math.round) + (raw ? 'r' : '') + '|' + Math.round((dT || 0) * 50) + '|' + Math.round((dB || 0) * 50) + (bB !== undefined ? '|' + Math.round(bB * 80) + '|' + Math.round(bT * 80) + '|' + Math.round((lit || 1) * 20) : '') + (bx ? '|' + bx[0].map(Math.round) + '|' + bx[1].map(Math.round) : ''); if (key === steakKey) return; steakKey = key;
         const [cT, cF, cB, cM, sT, sB, fT, fM, fB, rB, gT, gB] = SKC, mk = (k) => clamp(((k || 0) - 0.12) * 1.1, 0, 0.6);
         srgb(top, cT); srgb(mix3(FAT, top, raw ? 0 : 0.62), cF).multiplyScalar(raw ? 0.92 : 0.9); srgb(bot, cB); srgb(mid, cM); srgb(mix3(mid, top, raw ? 0.3 : 0.7), sT); srgb(mix3(mid, bot, raw ? 0.3 : 0.7), sB);
         srgb(mix3(FAT, top, raw ? 0.06 : 0.42), fT); srgb(mix3(FAT, mid, 0.12), fM); srgb(mix3(FAT, bot, raw ? 0.06 : 0.42), fB); srgb(mix3(FAT, bot, raw ? 0.1 : 0.5), rB).multiplyScalar(0.88);
         srgb(mix3(top, CHAR, mk(dT)), gT); srgb(mix3(bot, CHAR, mk(dB)), gB);
+        if (LKC) { /* DINNER_STEAK_LOOK: fresh raw meat that hands over to the sear ramp as a face browns, white fat that turns golden, bold marks */
+          const LK = DIN_LOOK[DINNER_STEAK_LOOK - 1], S0 = MEAT[0][1], fw = (q) => clamp(1 - Math.hypot(q[0] - S0[0], q[1] - S0[1], q[2] - S0[2]) / 70, 0, 1), d0 = dT || 0, d1 = dB || 0;
+          const topF = mix3(top, LK.raw, fw(top)), botF = mix3(bot, LK.raw, fw(bot)), midF = mid === DIN_CLR.raw ? DIN_CLR.sraw : raw ? [170, 38, 56] : mid, mkL = (d) => (d > 0.05 ? clamp(0.4 + d * 1.1, 0, 0.92) : 0);
+          const fatOf = (d, face) => dinFat(LK, d, face);
+          const fatT = fatOf(d0, topF); srgb(topF, cT); srgb(botF, cB); srgb(midF, cM); srgb(fatT, cF); srgb(fatT, fT); srgb(fatOf(d1, botF), fB); srgb(mix3(fatOf((d0 + d1) * 0.35, LK.gold), midF, 0.08), fM);
+          srgb(mix3(midF, topF, raw ? 0.3 : 0.6), sT); srgb(mix3(midF, botF, raw ? 0.3 : 0.6), sB); srgb(mix3(midF, botF, 0.55), rB).multiplyScalar(0.9);
+          if (MHL) { /* DINNER_MARK_HALO: past medium the bars go a deeper char and their halo a caramel lighter than the crust */ const dk = (d) => clamp((d - 0.45) / 0.35, 0, 1), mc = (d) => mix3(LK.mark, DIN_MARK[1], dk(d)), mw = (d) => (d > 0.05 ? clamp(0.4 + d * 1.1, 0, 0.92) + 0.06 * dk(d) : 0);
+            srgb(mix3(topF, mc(d0), mw(d0)), gT); srgb(mix3(botF, mc(d1), mw(d1)), gB); srgb(mix3(topF, DIN_MARK[0], DIN_MARK[2] * clamp((d0 - 0.45) / 0.3, 0, 1)), LKC[9]); srgb(mix3(botF, DIN_MARK[0], DIN_MARK[2] * clamp((d1 - 0.45) / 0.3, 0, 1)), LKC[10]); }
+          else { srgb(mix3(topF, LK.mark, mkL(d0)), gT); srgb(mix3(botF, LK.mark, mkL(d1)), gB); }
+          srgb(mix3(mix3(top, [0, 0, 0], 0.1), LK.cap, fw(top)), LKC[0]); srgb(mix3(fatT, LK.fat, 0.25), LKC[1]); srgb(mix3(topF, [255, 238, 230], raw ? 0.34 : 0.24), LKC[2]);
+          srgb(mix3([240, 230, 206], [206, 166, 112], clamp(d0 * 1.1, 0, 0.8)), LKC[3]); LKC[4].copy(LKC[3]).multiplyScalar(0.7); srgb([78, 138, 60], LKC[5]); srgb([104, 90, 52], LKC[6]);
+          srgb(LK.lip ? mix3(mix3(fatT, [234, 192, 158], 0.5), topF, raw ? 0 : clamp(d0 * 0.8, 0, 0.45)) : mix3(midF, topF, 0.6), LKC[7]); /* the lip a warm peach-cream (the lavender sky lights it from the side) */
+          if (lit !== undefined) { const pc = LKC[8].setRGB(LK.pan[0], LK.pan[1], LK.pan[2]); if (PK) pc.multiply(PK); for (const q of MHL ? [cT, gT, LKC[0], LKC[2], LKC[5], LKC[6], LKC[9]] : [cT, gT, LKC[0], LKC[2], LKC[5], LKC[6]]) q.multiply(pc); pc.setRGB(LK.panF[0], LK.panF[1], LK.panF[2]); if (PK) pc.multiply(PK);
+            for (const q of [cF, fT, LKC[1], LKC[3]]) { q.multiply(pc); q.r = Math.min(1, q.r); q.g = Math.min(1, q.g); q.b = Math.min(1, q.b); } LKC[7].multiply(pc.setRGB(0.5, 0.62, 0.72)); if (PK) LKC[7].multiply(PK); } } /* DINNER_PAN_AUTO: PK scales the deepening by the light that is really there */ /* in the pan (the sear passes lit) the fire light sits just over the steak: the up-facing colors are deepened so the meat still reads red and the crust brown */
         const col = D3.steakG.attributes.color.array, c = SKC[12]; let o = 0; if (MDLC) { MDLC[0].copy(cT).multiplyScalar(raw ? 0.86 : 0.9); srgb(mix3(FAT, top, raw ? 0.18 : 0.9), MDLC[1]); srgb(mix3(FAT, top, raw ? 0.1 : 0.62), MDLC[2]); } /* the cap muscle a shade deeper; the marbling bright when raw, nearly gone once cooked */
-        D3.TOPO.forEach((tr, i) => { const k = tr[3]; if (MDLC && (k === 'cap' || k === 'seam' || k === 'mb')) c.copy(k === 'cap' ? MDLC[0] : k === 'seam' ? MDLC[2] : MDLC[1]); else c.copy(k === 'fat' ? cF : k === 'rimT' ? fT : k === 'sT' ? sT : k === 'sM' ? cM : k === 'sB' ? sB : k === 'fT' ? fT : k === 'fM' ? fM : k === 'fB' ? fB : k === 'rimB' ? rB : k === 'bot' ? cB : k === 'gT' ? gT : k === 'gB' ? gB : cT);
-          if (k === 'meat' || k === 'core' || k === 'bot' || k === 'cap') c.multiplyScalar(raw ? 0.9 + 0.18 * hsh(i) : 0.95 + 0.08 * hsh(i)); else if (k === 'rimT') c.multiplyScalar(0.94); if (raw && k === 'core' && hsh(i * 3) < 0.3) c.lerp(cF, 0.14);
-          if (lit && (k === 'bot' || k === 'gB' || k === 'rimB')) c.multiplyScalar(lit); /* DINNER_ROAST_STYLE: the seared face lifted into view is lit by the fire (it faces down, away from the key light) */
+        D3.TOPO.forEach((tr, i) => { const k = tr[3];
+          if (LKC) { const J = DIN_LOOK[DINNER_STEAK_LOOK - 1][raw ? 'jit' : 'cj']; /* DINNER_STEAK_LOOK: each role its color, a little per-facet light on the meat */
+            c.copy(k === 'cap' ? LKC[0] : k === 'seam' || k === 'mb' ? LKC[1] : k === 'shn' ? LKC[2] : k === 'bone' ? LKC[3] : k === 'boneS' ? LKC[4] : k === 'herb' ? LKC[5] : k === 'herbS' ? LKC[6] : k === 'rimT' ? LKC[7] : k === 'fat' ? cF : k === 'sT' ? sT : k === 'sM' ? cM : k === 'sB' ? sB : k === 'fT' ? fT : k === 'fM' ? fM : k === 'fB' ? fB : k === 'rimB' ? rB : k === 'bot' ? cB : k === 'gT' ? gT : k === 'gB' ? gB : k === 'qT' ? LKC[9] : k === 'qB' ? LKC[10] : cT);
+            if (J && (k === 'meat' || k === 'core' || k === 'bot' || k === 'cap' || (k === 'fat' && DINNER_STEAK_LOOK === 2))) c.multiplyScalar(1 - J / 2 + J * hsh(i)); }
+          else { if (MDLC && (k === 'cap' || k === 'seam' || k === 'mb')) c.copy(k === 'cap' ? MDLC[0] : k === 'seam' ? MDLC[2] : MDLC[1]); else c.copy(k === 'fat' ? cF : k === 'rimT' ? fT : k === 'sT' ? sT : k === 'sM' ? cM : k === 'sB' ? sB : k === 'fT' ? fT : k === 'fM' ? fM : k === 'fB' ? fB : k === 'rimB' ? rB : k === 'bot' ? cB : k === 'gT' ? gT : k === 'gB' ? gB : cT);
+          if (k === 'meat' || k === 'core' || k === 'bot' || k === 'cap') c.multiplyScalar(raw ? 0.9 + 0.18 * hsh(i) : 0.95 + 0.08 * hsh(i)); else if (k === 'rimT') c.multiplyScalar(0.94); if (raw && k === 'core' && hsh(i * 3) < 0.3) c.lerp(cF, 0.14); }
+          if (lit && (k === 'bot' || k === 'gB' || k === 'rimB' || k === 'qB')) c.multiplyScalar(lit); /* DINNER_ROAST_STYLE: the seared face lifted into view is lit by the fire (it faces down, away from the key light) */
+          if (BANDX && bx && bB !== undefined && SIDEK[k]) { const [vx, bc, tc] = BANDC, cr = BANDX[0], fat = k[0] === 'f' && k !== 'fat', e = DIN_CLR.edge; /* DINNER_COLOR_CLEAR: plain sides, bands in the ladder's colors, the bottom band over the top one */
+            if (k !== 'rimT') c.copy(fat ? fM : cM); srgb(bx[0], bc).multiplyScalar(DIN_CLR.lift); srgb(bx[1], tc).multiplyScalar(DIN_CLR.lift); srgb(bot, cr).multiplyScalar(0.8); if (fat) { bc.lerp(cF, 0.18); tc.lerp(cF, 0.18); }
+            for (let j = 0; j < 3; j++) { const l = tr[j][2], wb = bB > 0.005 ? clamp((l - 1 + bB) / e + 0.5, 0, 1) : 0, wt = bT > 0.005 ? clamp((bT - l) / e + 0.5, 0, 1) : 0; vx.copy(c).lerp(tc, wt).lerp(bc, wb); if (bB > 0.005 && l > 0.99) vx.copy(cr); col[o++] = vx.r; col[o++] = vx.g; col[o++] = vx.b; } return; }
           if (BANDC && bB !== undefined && SIDEK[k]) { const [vx, bc, tc] = BANDC; srgb(mix3(bot, SEAR_BAND, 0.3), bc).multiplyScalar(0.72); srgb(mix3(top, SEAR_BAND, 0.3), tc).multiplyScalar(0.72); /* the cooked band: the crust's color grayed a little, against the raw pink */ const fat = k[0] === 'f' && k !== 'fat'; if (fat) { bc.lerp(cF, 0.35); tc.lerp(cF, 0.35); } /* per vertex: the band's edge sits between the side's rows and climbs smoothly */
             for (let j = 0; j < 3; j++) { const l = tr[j][2], wb = bB > 0.005 ? clamp((l - 1 + bB) / 0.18 + 0.5, 0, 1) : 0, wt = bT > 0.005 ? clamp((bT - l) / 0.18 + 0.5, 0, 1) : 0; vx.copy(c).lerp(bc, wb).lerp(tc, wt); col[o++] = vx.r; col[o++] = vx.g; col[o++] = vx.b; } return; }
           for (let j = 0; j < 3; j++) { col[o++] = c.r; col[o++] = c.g; col[o++] = c.b; } });
@@ -75685,7 +75910,10 @@ const CampMini = (() => {
         for (let j = 0; j < 3; j++) { col[o++] = c.r; col[o++] = c.g; col[o++] = c.b; } });
       D3.steakG.attributes.color.needsUpdate = true; }
     function steakPut(F) { /* F(u, v, level) -> a Vector3 in the steak mesh's space */
-      const pos = D3.steakG.attributes.position.array; let o = 0; for (const tr of D3.TOPO) for (let j = 0; j < 3; j++) { const p = tr[j], q = F(p[0], p[1], p[2]); pos[o++] = q.x; pos[o++] = q.y; pos[o++] = q.z; }
+      const pos = D3.steakG.attributes.position.array; let o = 0;
+      if (LKC) { STKV.F = F; STKV.k = `${STKV.t}${STKV.b}${STKV.h}`; for (const tr of D3.TOPO) { const k = tr[3], dl = k === 'gT' || k === 'qT' ? (STKV.t ? 0 : 0.09) : k === 'gB' || k === 'qB' ? (STKV.b ? 0 : -0.09) : k[0] === 'h' ? (STKV.h ? 0 : 0.5) : 0; /* DINNER_STEAK_LOOK: hidden parts sink inside the steak */
+          for (let j = 0; j < 3; j++) { const p = tr[j], q = F(p[0], p[1], p[2] + dl); pos[o++] = q.x; pos[o++] = q.y; pos[o++] = q.z; } } }
+      else for (const tr of D3.TOPO) for (let j = 0; j < 3; j++) { const p = tr[j], q = F(p[0], p[1], p[2]); pos[o++] = q.x; pos[o++] = q.y; pos[o++] = q.z; }
       D3.steakG.attributes.position.needsUpdate = true; }
     const steakLocal = () => { steakPut(DINNER_MODELS ? (u, v, lv) => vc.set(u, 0.5 - lv, v) : (u, v, lv) => vc.set(u, lv ? -0.5 : 0.5, v)); }, steakOnBoard = (g, wpp) => { steakPut((u, v, lv) => { onY(g.bx + u * g.s, g.by + v * g.s, TOPY, vc); if (DINNER_MODELS) vc.y -= STK_T * lv; else if (lv) vc.y -= DN.STEAK_T; return vc; }); D3.steak.position.set(0, 0, 0); D3.steak.rotation.set(0, 0, 0); D3.steak.scale.set(1, 1, 1); };
     function boardAt(g, wpp) { onY(g.bx, g.by, DN.RUN, vb); D3.board.position.copy(vb); D3.board.rotation.set(0, 0, 0); D3.board.scale.set(g.bw * wpp, 1, g.bh * wpp / Math.sin(PITCH_B)); }
@@ -75696,7 +75924,7 @@ const CampMini = (() => {
       const R = DN.RUN, sd = side, eating = pi >= 4 && mode !== 'card', played = (k) => typeof scores[k] === 'number', cooked = played(2) || pi > 2 && !(scores[2] === null);
       if (D3.tongs) D3.tongs.visible = false; potAt(PK.pot[0] * sd, R, PK.pot[1], 0.068, 0); mugAt(PK.mug[0] * sd, R, PK.mug[1], DN.MUG_W, DN.MUG_W, played(0) ? clamp(meal.fills[0], 0, 1) : 0);
       const B = eating ? PK.board4 : PK.board; D3.board.position.set(B[0] * sd, R, B[1]); D3.board.rotation.set(0, 0, 0); D3.board.scale.set(0.37, 1, 0.23);
-      D3.steak.visible = !(eating || mode === 'done' && played(4)); steakLocal(); D3.steak.position.set(B[0] * sd, R + DN.BOARD_T + STK_T / 2, B[1]); D3.steak.rotation.set(0, 0, 0); D3.steak.scale.set(DN.STEAK_W / 2, STK_T, DN.STEAK_W / 2);
+      D3.steak.visible = !(eating || mode === 'done' && played(4)); if (LKC) STKV.h = DINNER_STEAK_LOOK === 2 && cooked && played(2); steakLocal(); D3.steak.position.set(B[0] * sd, R + DN.BOARD_T + STK_T / 2, B[1]); D3.steak.rotation.set(0, 0, 0); D3.steak.scale.set(DN.STEAK_W / 2, STK_T, DN.STEAK_W / 2);
       if (cooked && played(2)) { const d = (meal.dA + meal.dB) / 2; steakPaint(meatAt(d), meatAt(d), mix3([214, 120, 120], [190, 110, 90], 0.5), false, d, d); } else steakPaint(MEAT[0][1], MEAT[0][1], [214, 150, 140], true, 0, 0);
       D3.salt.position.set(PK.salt[0] * sd, R, PK.salt[1]); D3.salt.rotation.set(0, 0, 0); D3.thyme.position.set(PK.thyme[0] * sd, R, PK.thyme[1]); D3.thyme.rotation.set(0, 0, 0);
       D3.plate.position.set(PK.plate[0] * sd, R, PK.plate[1]); D3.plate.scale.setScalar(DN.PLATE_W); for (const m of D3.slices) m.visible = false;
@@ -75705,7 +75933,7 @@ const CampMini = (() => {
       if (eating) D3.knife.position.set(-0.36 * sd, R + 0.002, -0.24); D3.salt.scale.setScalar(1); D3.thyme.scale.setScalar(1); }
     function place3d() { const W = G.W, H = G.H, live = (mode === 'play' || mode === 'outro') && cur && cur.lens;
       if (live) aim(cur.lens()); else aim({ pitch: 0.24, pt: [0, DN.TY, 0], sx: W / 2, sy: H * 0.66, wpp: 3.4 / W }); /* between courses: the whole table, the fire at the side */
-      park(); if (live) cur.place3d(); D3.sync(t); }
+      park(); if (live) { if (LKC) STKV.h = false; cur.place3d(); } D3.sync(t); }
     /* ---- the painted backdrop, cached per size ---- */
     let bg = null, bgW = 0, bgH = 0;
     const backdrop = (W, H) => { if (bg && bgW === W && bgH === H) return bg; bgW = W; bgH = H; if (!bg) bg = document.createElement('canvas'); bg.width = Math.max(1, Math.round(W)); bg.height = Math.max(1, Math.round(H)); const c = bg.getContext('2d');
@@ -75726,7 +75954,7 @@ const CampMini = (() => {
       const s = w / 2, P = STEAK.map(([u, v]) => [x + u * s, y + v * s]); c.save(); if (ang) { c.translate(x, y); c.rotate(ang); c.translate(-x, -y); }
       const M = STEAK.map(([u, v]) => [x + (u * 0.9 + 0.05) * s, y + (v * 0.86 + 0.06) * s]);
       if (!D3) { c.fillStyle = 'rgba(20,10,6,0.35)'; c.beginPath(); P.forEach((p, j) => (j ? c.lineTo(p[0] + 4, p[1] + 6) : c.moveTo(p[0] + 4, p[1] + 6))); c.closePath(); c.fill(); /* its shadow on the board */
-        poly(c, P, raw ? '#efd6c2' : rgb(mix3([239, 214, 194], col, 0.55))); poly(c, M, rgb(col)); } /* the fat cap shows round the edge (the 3D slab draws both) */
+        poly(c, P, DLK ? rgb(raw ? DLK.fat : dinFat(DLK, 0.5, col)) : raw ? '#efd6c2' : rgb(mix3([239, 214, 194], col, 0.55))); poly(c, M, rgb(col)); } /* the fat cap shows round the edge (the 3D slab draws both; DLK: white raw, golden cooked) */
       c.save(); c.beginPath(); M.forEach((p, j) => (j ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1]))); c.closePath(); c.clip();
       if (!D3) { c.fillStyle = 'rgba(255,255,255,0.07)'; c.beginPath(); c.moveTo(x - s, y - s); c.lineTo(x + s * 0.2, y - s); c.lineTo(x - s * 0.4, y + s); c.lineTo(x - s, y + s); c.closePath(); c.fill(); /* facets */
         c.fillStyle = 'rgba(0,0,0,0.08)'; c.beginPath(); c.moveTo(x + s * 0.5, y - s); c.lineTo(x + s, y - s); c.lineTo(x + s, y + s); c.lineTo(x + s * 0.1, y + s); c.closePath(); c.fill(); }
@@ -75916,15 +76144,23 @@ const CampMini = (() => {
       if (DEBUG && G.opts && G.opts.steak !== undefined) tk = clamp(G.opts.steak | 0, 0, DIN_STEAK.length - 1);
       const TG = DIN_STEAK[tk], trim = 1 - 0.1 * G.d, lo = TG.lo * trim, hi = TG.hi * trim, tg = TG.c / DIN_SEC, RATE = 1 / DIN_SEC;
       const qOf = (d) => { const e = d * DIN_SEC - TG.c; return Math.pow(clamp(1 - Math.abs(e) / (e < 0 ? lo : hi), 0, 1), ROAST_EXP); }; /* the roast's curve, in seconds */
-      const band = (d) => (d > 0.004 ? clamp(0.08 + 0.6 * d / 0.95, 0, 0.66) : 0); /* how far up the side the browning has climbed */
+      const CC = DINNER_COLOR_CLEAR && DINNER_MODELS, inWin = (d) => { const s = d * DIN_SEC - TG.c; return s >= -lo && s <= hi; }; /* DINNER_DONE_GLOW: inside the target's scoring window */
+      const band = (d) => (d > 0.004 ? (CC ? clamp(DIN_CLR.h0 + DIN_CLR.h1 * d, 0, DIN_CLR.max) : clamp(0.08 + 0.6 * d / 0.95, 0, 0.66)) : 0); /* how far up the side the browning has climbed */
       const P = { ph: 'cook', side: 0, st: 'wait', stT: 0, h: 0, d: 0, d2: 0, hold: false, sizT: 0, q: [], sec: [], flip: 0, hinted: false, pkT: 0, pk: 0 };
       const puffs = []; const L = () => { const W = G.W, H = G.H, u = Math.min(W, H); return { W, H, u, px: W / 2, py: H * 0.74, pw: clamp(u * 0.62, 180, 460) }; };
       const scr3 = (x, y, z, out) => { va.set(x, y, z).project(D3.cam); out[0] = (va.x + 1) / 2 * G.W; out[1] = (1 - va.y) / 2 * G.H; return out; }, SP3 = [0, 0]; /* a point of the pan scene on the 2D layer */
-      let tl = 0, met = false; /* DINNER_MODELS: the tip that shows the seared face (a lift or a peek, 0..1); DINNER_FX: the steak has met the pan on this press */
+      let tl = 0, met = false, glow = 0; /* DINNER_MODELS: the tip that shows the seared face (a lift or a peek, 0..1); DINNER_FX: the steak has met the pan on this press; DINNER_DONE_GLOW: the rim's fade 0..1 */
+      const BX = [[0, 0, 0], [0, 0, 0]], HL = [], HP = [], VH = DINNER_DONE_GLOW ? new THREE.Vector3() : null; /* DINNER_COLOR_CLEAR: the two bands' colors; DINNER_DONE_GLOW: the steak's outline on the 2D layer */
+      const steakHull = () => { /* the convex outline of the steak mesh projected onto the 2D layer (one corner per triangle is enough: every corner is shared) */
+        const pos = D3.steakG.attributes.position.array, m = D3.steak.matrixWorld; D3.steak.updateMatrixWorld(); let n = 0;
+        for (let i = 0; i < pos.length; i += 9) { VH.set(pos[i], pos[i + 1], pos[i + 2]).applyMatrix4(m).project(D3.cam); const p = HP[n] || (HP[n] = [0, 0]); p[0] = (VH.x + 1) / 2 * G.W; p[1] = (1 - VH.y) / 2 * G.H; n++; }
+        const pts = HP.slice(0, n).sort((p, q) => p[0] - q[0] || p[1] - q[1]), cr = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]); HL.length = 0;
+        for (let pass = 0; pass < 2; pass++) { const s0 = HL.length; for (let j = 0; j < n; j++) { const p = pts[pass ? n - 1 - j : j]; while (HL.length >= s0 + 2 && cr(HL[HL.length - 2], HL[HL.length - 1], p) <= 0) HL.pop(); HL.push(p); } HL.pop(); }
+        return HL; };
       const done1 = (fire) => { const q = fire ? 0 : qOf(P.d); P.q.push(q); P.sec.push(P.d * DIN_SEC); if (P.side === 0) meal.dA = Math.min(1, P.d); else meal.dB = Math.min(1, P.d); if (fire) meal.burnt = true;
         word = fire ? 'It caught fire!' : q >= 0.9 ? 'Spot on!' : q >= 0.7 ? 'Close!' : q >= 0.4 ? 'Not bad' : P.d < tg ? 'Underdone' : 'Overdone'; wordQ = q >= 0.4 ? q : 0.6; G.cue(fire ? 'miss' : q >= 0.9 ? 'success' : q >= 0.6 ? 'good' : 'miss'); if (q >= 0.7) G.kick(q); P.st = 'show'; P.stT = 0;
         if (DINNER_FX && FXB && q >= 0.7) { const g = L(); fxBurst(g.px, g.py - g.u * 0.3, q >= 0.9 ? 12 : 6, 120, 30, 0.6, FXC.glint, 2, 0, true); } };
-      const slab = (g) => { const sw = g.pw * 0.66, lift = (1 - P.h) * g.u * 0.07 + /* held just over the pan by the tongs (the target plate sits above it) */ (P.st === 'flip' ? Math.sin(Math.PI * clamp(P.stT / 0.5, 0, 1)) * g.u * 0.12 : 0) + (rm ? 0 : P.pk * sw * DIN_PEEK.lift), th = clamp(g.u * 0.085, 18, 46); /* a thick ribeye: more side for the band to climb */ return { sx: g.px, sy: g.py - 10 - lift, sw, th, flipA: P.st === 'flip' ? Math.PI * clamp(P.stT / 0.5, 0, 1) : 0 }; };
+      const slab = (g) => { const sw = g.pw * 0.66, lift = (1 - P.h) * g.u * 0.07 + /* held just over the pan by the tongs (the target plate sits above it) */ (P.st === 'flip' ? Math.sin(Math.PI * clamp(P.stT / 0.5, 0, 1)) * g.u * 0.12 : 0) + (rm ? 0 : P.pk * sw * DIN_PEEK.lift), th = clamp(g.u * 0.085, 18, 46) * (CC ? DIN_CLR.th : 1); /* a thick ribeye: more side for the band to climb */ return { sx: g.px, sy: g.py - 10 - lift, sw, th, flipA: P.st === 'flip' ? Math.PI * clamp(P.stT / 0.5, 0, 1) : 0 }; };
       const faces = () => { const fl2 = P.st === 'flip'; return fl2 ? [MEAT[0][1], meatAt(meal.dA), band(meal.dA), 0] : P.side === 0 ? [MEAT[0][1], meatAt(P.d), band(P.d), 0] : [meatAt(meal.dA * 0.98), meatAt(P.d), band(P.d), band(meal.dA)]; }; /* top, bottom (in the pan), the two bands */
       const plate = (c, W, H) => { /* the target, shown from the first frame (before the press): the roast's plate, on the side away from the hand */
         const bw = clamp(W * 0.3, 290, 330), bh = 108, x0 = side > 0 ? 26 : W - 26 - bw, y0 = Math.max(84, H * 0.25 - 44), /* under the back button, lined up with it */ cw = 48, ch = 32, cx = x0 + 16 + cw / 2, cy = y0 + 44, tx = x0 + 16 + cw + 12, fs = Math.round(clamp(H * 0.065, 22, 30));
@@ -75936,15 +76172,20 @@ const CampMini = (() => {
           if (k === DIN_STEAK.length - 1) { c.strokeStyle = 'rgba(255,128,48,0.95)'; c.lineWidth = 1.5; c.beginPath(); c.roundRect(x + 2, ly - 1, cl - 4, 10, 5); c.stroke(); } /* the charred cell's ember edge */
           if (on) { c.strokeStyle = '#ffd27a'; c.lineWidth = 2.5; c.beginPath(); c.roundRect(x + 0.5, ly - 2.5, cl - 1, 13, 6.5); c.stroke(); } c.restore();
           label(c, S.s, x + cl / 2, ly + 20, 9, 'ui', on ? '#ffd27a' : 'rgba(253,248,234,0.62)'); });
+        if (CC && DINNER_COLOR_CLEAR > 1 && (P.st === 'cook' || P.st === 'lift' || P.st === 'show')) { const s = P.d * DIN_SEC, k = s < 2.5 ? -1 : s < 5.5 ? 0 : s < 7.5 ? 1 : s < 9.5 ? 2 : s < 12.25 ? 3 : s < 16 ? 4 : 5; /* the cell the steak has reached (dinStage's steps) */
+          if (k >= 0) { const x = lx + k * cl; c.strokeStyle = '#fdf8ea'; c.lineWidth = 1.5; c.beginPath(); c.roundRect(x + 1.5, ly - 2, cl - 3, 12, 6); c.stroke(); c.fillStyle = '#fdf8ea'; c.beginPath(); c.arc(x + cl / 2, ly + 12.5, 2, 0, TAU); c.fill(); } }
         { const mx = lx + (tk + 0.5) * cl; c.fillStyle = '#ffd27a'; c.beginPath(); c.moveTo(mx, ly - 4); c.lineTo(mx - 6, ly - 11); c.lineTo(mx + 6, ly - 11); c.closePath(); c.fill(); } };
       return { P, outroT: DIN_OUTRO, start() { G.prog('Sear · side 1 / 2'); },
         lens() { const g = L(); return { pitch: DINNER_PAN_FIRE ? DIN_PAN_PITCH : DINNER_MODELS ? 0.2 : 0, pt: [D3.FIRE[0], DN.PAN_FLOOR, D3.FIRE[2]], sx: g.W / 2, sy: g.py, wpp: DN.PAN_W / g.pw }; },
         place3d() { const g = L(), wpp = DN.PAN_W / g.pw, S2 = slab(g); onZ(S2.sx, S2.sy - S2.th / 2, D3.FIRE[2], vb); steakLocal(); D3.steak.visible = true; D3.steak.position.copy(vb); D3.steak.rotation.set(S2.flipA + (DINNER_MODELS ? -0.85 * tl : 0), 0, 0); D3.steak.scale.set(S2.sw * wpp / 2, S2.th * wpp, S2.sw * wpp / 2);
-          const fl2 = P.st === 'flip', [top, bot, bB, bT] = faces(), mid = mix3([214, 120, 120], [190, 110, 90], P.side ? 0.5 : 0.2); steakPaint(top, bot, mid, P.side === 0 && P.d < 0.05 && !fl2, fl2 || P.side === 0 ? 0 : meal.dA * 0.98, fl2 ? meal.dA : P.d, bB, bT, 1 + 1.1 * tl); if (DINNER_PAN_FIRE) { const hot = P.h * (0.6 + 0.4 * clamp(P.d / 0.8, 0, 1)); D3.heat = DIN_FIRE[0] + DIN_FIRE[1] * hot; D3.spread = 1 + DIN_FIRE[2] * hot; } else D3.heat = 0.7 + 0.35 * P.h; /* DINNER_PAN_FIRE: wider (round the pan) and a little taller with the heat, never through its floor */ D3.glowK = 0.04; /* taller with the heat; the fire's haze kept off the steak (its crust is the cue) */
+          const fl2 = P.st === 'flip', [top, bot, bB, bT] = faces(), mid = CC ? DIN_CLR.raw : mix3([214, 120, 120], [190, 110, 90], P.side ? 0.5 : 0.2);
+          if (CC) { BX[0] = rampAt(DIN_LAD, fl2 ? meal.dA : P.d); BX[1] = rampAt(DIN_LAD, P.side && !fl2 ? meal.dA : 0); }
+          steakPaint(top, bot, mid, P.side === 0 && P.d < 0.05 && !fl2, fl2 || P.side === 0 ? 0 : meal.dA * 0.98, fl2 ? meal.dA : P.d, bB, bT, 1 + 1.1 * tl, CC ? BX : undefined); if (DINNER_PAN_FIRE) { const hot = P.h * (0.6 + 0.4 * clamp(P.d / 0.8, 0, 1)); D3.heat = DIN_FIRE[0] + DIN_FIRE[1] * hot; D3.spread = 1 + DIN_FIRE[2] * hot; } else D3.heat = 0.7 + 0.35 * P.h; /* DINNER_PAN_FIRE: wider (round the pan) and a little taller with the heat, never through its floor */ D3.glowK = 0.04; /* taller with the heat; the fire's haze kept off the steak (its crust is the cue) */
           if (D3.tongsGrip) { D3.steak.updateMatrixWorld(); D3.tongsGrip(D3.steak, side); } else if (D3.tongsPut) { const tz = D3.FIRE[2] + 0.012, ex = S2.sx - side * g.W * 0.45; D3.tongsPut([onZ(S2.sx - side * S2.sw * 0.4, S2.sy - S2.th * 0.9, tz, TGV[0]), onZ(S2.sx - side * S2.sw * 0.4, S2.sy - S2.th * 0.1, tz, TGV[1])], [onZ(ex, S2.sy - g.u * 0.4, tz, TGV[2]), onZ(ex, S2.sy - g.u * 0.36, tz, TGV[3])], 0.0035); } },
         act(dn) { if (P.st === 'wait' && dn) { P.st = 'cook'; P.hold = true; G.buzz(8); } else if (P.st === 'cook') { if (dn) P.hold = true; else if (P.hold) { P.hold = false; P.st = 'lift'; G.cue('sizzle', 0.5); G.buzz(12); } } },
         update(dt) { const g = L(); P.stT += dt;
-          if (P.st === 'cook' && P.h > 0.85) { P.pkT += dt; const u = P.pkT - DIN_PEEK.first, m = u % DIN_PEEK.every; P.pk = u > 0 && m < DIN_PEEK.len ? Math.sin(Math.PI * m / DIN_PEEK.len) : 0; } else P.pk = Math.max(0, P.pk - dt * 4); /* the tongs lift the near edge now and then: the seared face shows */
+          if (DINNER_DONE_GLOW) glow = clamp(glow + dt * ((P.st === 'cook' || P.st === 'lift') && inWin(P.d) ? 6 : -4), 0, 1);
+          if (P.st === 'cook' && P.h > 0.85 && !DINNER_AUTOPEEK_OFF) { P.pkT += dt; const u = P.pkT - DIN_PEEK.first, m = u % DIN_PEEK.every; P.pk = u > 0 && m < DIN_PEEK.len ? Math.sin(Math.PI * m / DIN_PEEK.len) : 0; } else P.pk = Math.max(0, P.pk - dt * 4); /* the tongs lift the near edge now and then: the seared face shows */
           if (DINNER_MODELS) { const tt = rm ? 0 : P.st === 'lift' ? clamp((1 - P.h) * 1.25, 0, 1) : P.st === 'show' ? 1 : P.st === 'flip' ? 1 - clamp(P.stT / 0.3, 0, 1) : DIN_PEEK.tilt * P.pk; tl += (tt - tl) * (1 - Math.exp(-dt * 9)); }
           if (DINNER_FX && FXB) { if (P.st === 'cook' && P.h > 0.55 && !met) { met = true; fxBurst(g.px, g.py - 8, 16, 170, 130, 0.5, FXC.fat, 1.8, 600, true); if (!rm) for (let k = 0; k < 3; k++) puffs.push({ x: g.px + (FR() - 0.5) * g.pw * 0.5, y: g.py - 14, t: 0 }); } else if (P.st !== 'cook') met = false; }
           if (FXB && !rm && FR() < dt * (DINNER_PAN_FIRE ? 6 + 12 * P.h * (0.5 + clamp(P.d, 0, 1)) : 6)) { fireScr(FSP); fxAdd(g.px + (FR() < 0.5 ? -1 : 1) * g.pw * (0.45 + 0.15 * FR()), FSP[1], (FR() - 0.5) * 30, -40 - 60 * FR(), 1.4 + FR(), FR() < 0.5 ? FXC.ember[0] : FXC.ember[1], 1.3 + FR(), -15, true); }
@@ -75980,7 +76221,7 @@ const CampMini = (() => {
             c.fillStyle = '#23272b'; c.beginPath(); c.moveTo(g.px + side * g.pw * 0.45, g.py - 2); c.lineTo(g.px + side * g.pw * 0.98, g.py - 16); c.lineTo(g.px + side * g.pw * 1.0, g.py - 6); c.lineTo(g.px + side * g.pw * 0.45, g.py + 8); c.closePath(); c.fill();
             poly(c, [[g.px - g.pw / 2, g.py - 4], [g.px + g.pw / 2, g.py - 4], [g.px + g.pw * 0.44, g.py + g.pw * 0.11], [g.px - g.pw * 0.44, g.py + g.pw * 0.11]], '#2e3236'); poly(c, [[g.px - g.pw / 2, g.py - 4], [g.px + g.pw / 2, g.py - 4], [g.px + g.pw * 0.47, g.py + 3], [g.px - g.pw * 0.47, g.py + 3]], '#4a5056');
             c.fillStyle = 'rgba(255,120,40,0.18)'; c.fillRect(g.px - g.pw * 0.44, g.py - 6, g.pw * 0.88, 3);
-            const [top, bot, bB, bT] = faces(), mid = mix3([214, 120, 120], [190, 110, 90], P.side ? 0.5 : 0.2);
+            const [top, bot0, bB, bT] = faces(), mid = CC ? DIN_CLR.raw : mix3([214, 120, 120], [190, 110, 90], P.side ? 0.5 : 0.2), bot = CC ? rampAt(DIN_LAD, P.st === 'flip' ? meal.dA : P.d) : bot0;
             c.save(); c.translate(sx, sy - th / 2); c.scale(1, Math.cos(flipA) || 0.02); /* the slab in side view: the band climbs from the pan */
             poly(c, [[-sw / 2, -th / 2], [sw / 2, -th / 2], [sw / 2 + 4, -th / 6], [sw / 2, th / 2], [-sw / 2, th / 2], [-sw / 2 - 4, -th / 6]], rgb(mid));
             poly(c, [[-sw / 2, -th / 2], [sw / 2, -th / 2], [sw / 2 - 6, -th / 2 - th * 0.35], [-sw / 2 + 6, -th / 2 - th * 0.35]], rgb(top));
@@ -75995,6 +76236,16 @@ const CampMini = (() => {
             for (const [x, z, ph] of pts) { const up = ph > 5 ? 1 - P.h : 1; if (up < 0.05) continue; scr3(D3.FIRE[0] + x, DN.PAN_FLOOR + 0.0135, D3.FIRE[2] + z, SP3); const a = (rm ? 0.6 : 0.5 + 0.5 * Math.sin(t * 2.1 + ph * 1.7)) * up * (0.12 + 0.12 * P.h), rx = g.pw * (ph > 5 ? 0.12 : 0.05), ry = rx * 0.32;
               const gg = c.createRadialGradient(SP3[0], SP3[1], 0, SP3[0], SP3[1], rx); gg.addColorStop(0, `rgba(255,236,200,${a})`); gg.addColorStop(1, 'rgba(255,236,200,0)'); c.fillStyle = gg; c.beginPath(); c.ellipse(SP3[0] + (rm ? 0 : Math.sin(t * 0.7 + ph) * rx * 0.25), SP3[1], rx, ry, 0, 0, TAU); c.fill(); }
             c.restore(); }
+          if (DINNER_DONE_GLOW && glow > 0.01) { const a = glow * (rm ? 0.9 : 0.82 + 0.18 * Math.sin(t * 4.2)), hl = D3 && D3.steak ? steakHull() : null; c.save(); c.globalCompositeOperation = 'lighter'; c.lineJoin = 'round'; c.beginPath(); /* the rim: the steak's outline on the 2D layer */
+            if (hl && hl.length > 2) { c.moveTo(hl[0][0], hl[0][1]); for (let k = 1; k < hl.length; k++) c.lineTo(hl[k][0], hl[k][1]); c.closePath(); } else c.roundRect(sx - sw / 2 - 3, sy - th * 1.6, sw + 6, th * 1.9, 10);
+            c.shadowColor = `rgba(255,196,84,${a})`; c.shadowBlur = 16; c.strokeStyle = `rgba(255,206,110,${0.9 * a})`; c.lineWidth = 3.5; c.stroke(); c.shadowBlur = 0; c.strokeStyle = `rgba(255,244,214,${0.7 * a})`; c.lineWidth = 1.3; c.stroke(); c.restore(); }
+          if (CC && DINNER_COLOR_CLEAR > 1 && (P.st === 'wait' || P.st === 'cook' || P.st === 'lift')) { /* the hold-against swatch: the steak's side as it should look at the target, beside the pan away from the tongs */
+            const w = DIN_CLR.sw, h = Math.round(w * 0.74), x = clamp(g.px + side * (g.pw * 0.5 + w * 0.5 + 22), w / 2 + 14, W - w / 2 - 14) - w / 2, y = clamp(sy - th * 0.6 - h / 2, 8, H - h - 30), tH = h * 0.36, sH = h - tH, bH = sH * band(tg);
+            c.save(); c.fillStyle = 'rgba(11,21,23,0.55)'; c.beginPath(); c.roundRect(x - 8, y - 8, w + 16, h + 30, 12); c.fill();
+            c.beginPath(); c.roundRect(x, y, w, h, 8); c.save(); c.clip(); c.fillStyle = rgb(DIN_CLR.sraw); c.fillRect(x, y, w, h); c.fillStyle = rgb(rampAt(DIN_LAD, tg)); c.fillRect(x, y + h - bH, w, bH);
+            c.fillStyle = rgb(mix3(rampAt(SEAR, tg), [0, 0, 0], 0.2)); c.fillRect(x, y + h - Math.max(3, sH * 0.1), w, Math.max(3, sH * 0.1)); /* the crust line */
+            c.fillStyle = rgb(faces()[0]); c.beginPath(); c.ellipse(x + w / 2, y, w * 0.62, tH, 0, 0, TAU); c.fill(); c.fillStyle = 'rgba(255,255,255,0.12)'; c.fillRect(x, y + tH - 1, w, 1.5); c.restore(); /* the top face, seen a little from above */
+            c.strokeStyle = 'rgba(253,248,234,0.8)'; c.lineWidth = 2; c.beginPath(); c.roundRect(x, y, w, h, 8); c.stroke(); c.restore(); label(c, 'TARGET', x + w / 2, y + h + 12, 9, 'ui', 'rgba(253,248,234,0.85)'); }
           plate(c, W, H);
           for (let k = 0; k < 2; k++) { const q = P.q[k]; c.fillStyle = q === undefined ? 'rgba(255,232,196,0.18)' : q >= 0.9 ? '#f3c56b' : q >= 0.6 ? '#e9c88a' : 'rgba(255,232,196,0.35)'; c.beginPath(); c.arc(W / 2 + (k - 0.5) * 26, H - 16, 6, 0, TAU); c.fill(); } } };
     }
@@ -76080,8 +76331,10 @@ const CampMini = (() => {
         place3d() { const g = L(), sd = side, SB = DN.RUN + 0.0066, ST2 = 0.016; onY(g.px, g.py, DN.RUN, vb); D3.plate.position.copy(vb); D3.plate.scale.setScalar(DN.PLATE_W);
           const d = (meal.dA + meal.dB) / 2, col = meatAt(d), ins = insAt(d), key = col.map(Math.round) + '|' + ins.map(Math.round);
           if (key !== sliceKey) { sliceKey = key; const ca = srgb(col), ci = srgb(ins), cm = srgb(mix3(ins, col, 0.5)), cd = srgb(col).multiplyScalar(0.8), arr = D3.sliceG.attributes.color.array;
-            const SR = D3.sliceR, cg = SR ? ci.clone().lerp(new THREE.Color(1, 0.96, 0.92), 0.16) : null, cs = SR ? ca.clone().multiplyScalar(0.82) : null, cf = SR ? srgb(mix3([238, 218, 196], col, 0.25)) : null; /* DINNER_STEAK_MODEL: the strip's roles */
-            for (let i = 0; i < arr.length / 9; i++) { const k = i % 6, r = SR && SR[i], c = SR ? (r === 'c' ? ci : r === 'g' ? cg : r === 'b' ? cm : r === 'k' ? ca : r === 's' ? cs : r === 'f' ? cf : cd) : k === 0 ? ci : k < 3 ? cm : k < 5 ? ca : cd; for (let j = 0; j < 3; j++) { arr[i * 9 + j * 3] = c.r; arr[i * 9 + j * 3 + 1] = c.g; arr[i * 9 + j * 3 + 2] = c.b; } } D3.sliceG.attributes.color.needsUpdate = true; }
+            const SR = D3.sliceR, cg = SR ? ci.clone().lerp(new THREE.Color(1, 0.96, 0.92), 0.16) : null, cs = SR ? ca.clone().multiplyScalar(0.82) : null, cf = SR ? srgb(DLK ? dinFat(DLK, d * 0.6, col) : mix3([238, 218, 196], col, 0.25)) : null; /* DINNER_STEAK_MODEL: the strip's roles (DLK: the fat a lighter gold than the pan's cap) */
+            const cmk = DLK && SR ? srgb(mix3(col, DLK.mark, 0.3)) : null, cj = new THREE.Color(); /* DLK: a darker crust line round the cut face; a little per-facet light (the steak's cooked jitter) */
+            for (let i = 0; i < arr.length / 9; i++) { const k = i % 6, r = SR && SR[i]; let c = SR ? (r === 'c' ? ci : r === 'g' ? cg : r === 'b' ? cm : r === 'k' ? cmk || ca : r === 's' ? cs : r === 'f' ? cf : cd) : k === 0 ? ci : k < 3 ? cm : k < 5 ? ca : cd;
+              if (cmk && r !== 'g') c = cj.copy(c).multiplyScalar(1 - DLK.cj / 2 + DLK.cj * hsh(i)); for (let j = 0; j < 3; j++) { arr[i * 9 + j * 3] = c.r; arr[i * 9 + j * 3 + 1] = c.g; arr[i * 9 + j * 3 + 2] = c.b; } } D3.sliceG.attributes.color.needsUpdate = true; }
           D3.slices.forEach((m, k) => { if (k >= NS || P.gone.includes(k)) { m.visible = false; return; } const [x, y] = sliceAt(g, k), [w, h, a] = sliceDims(g, k); m.visible = true;
             onY(x - w / 2, y, SB + ST2, vc); onY(x + w / 2, y, SB + ST2, vd); const ww = vc.distanceTo(vd); onY(x, y - h / 2, SB + ST2, vc); onY(x, y + h / 2, SB + ST2, vd); const dd = Math.min(vc.distanceTo(vd), DN.PLATE_W * 0.62);
             onY(x, y, SB + ST2, vb); m.position.set(vb.x, SB, vb.z); m.rotation.set(0, -a, 0); m.scale.set(ww, ST2, dd); });
@@ -76116,7 +76369,7 @@ const CampMini = (() => {
             c.save(); c.translate(x, y); c.rotate(a); /* each slice tipped onto its cut face: a crust rim round a rosy middle, fanned a little */
             const R2 = [[-w / 2, -h / 2 + 4], [-w / 2 + 4, -h / 2], [w / 2 - 4, -h / 2], [w / 2, -h / 2 + 4], [w / 2, h / 2 - 4], [w / 2 - 4, h / 2], [-w / 2 + 4, h / 2], [-w / 2, h / 2 - 4]];
             c.fillStyle = 'rgba(20,10,6,0.25)'; c.beginPath(); R2.forEach((p, m) => (m ? c.lineTo(p[0] + 3, p[1] + 4) : c.moveTo(p[0] + 3, p[1] + 4))); c.closePath(); c.fill();
-            poly(c, R2, rgb(col)); const cw2 = Math.max(4, w - Math.max(5, w * 0.24)), chh = h - Math.max(7, h * 0.16), gi = c.createLinearGradient(0, -chh / 2, 0, chh / 2); gi.addColorStop(0, rgb(mix3(ins, col, 0.35))); gi.addColorStop(0.5, rgb(ins)); gi.addColorStop(1, rgb(mix3(ins, col, 0.35)));
+            poly(c, R2, rgb(col)); if (DLK) { c.fillStyle = rgb(dinFat(DLK, (meal.dA + meal.dB) / 2, col)); c.fillRect(-w / 2 + 2, h / 2 - Math.max(4, h * 0.16), w - 4, Math.max(4, h * 0.16) - 2); } /* DLK: the golden fat at the slice's end */ const cw2 = Math.max(4, w - Math.max(5, w * 0.24)), chh = h - Math.max(7, h * 0.16), gi = c.createLinearGradient(0, -chh / 2, 0, chh / 2); gi.addColorStop(0, rgb(mix3(ins, col, 0.35))); gi.addColorStop(0.5, rgb(ins)); gi.addColorStop(1, rgb(mix3(ins, col, 0.35)));
             c.fillStyle = gi; c.beginPath(); c.roundRect(-cw2 / 2, -chh / 2, cw2, chh, Math.min(cw2, chh) * 0.3); c.fill(); c.fillStyle = 'rgba(255,255,255,0.12)'; c.fillRect(-cw2 / 2 + 2, -chh / 2 + 3, Math.max(1, cw2 * 0.2), chh * 0.5); c.restore(); } } /* the 3D plate, slices and mug replace the painted ones */
           /* the ring: closes on the next bite over two beats */
           const RR = clamp(g.u * 0.07, 22, 48);
@@ -77518,9 +77771,9 @@ const CampMini = (() => {
             const D = Dh(), y = by + P.MOUTH; c.strokeStyle = 'rgba(255,209,102,0.55)'; c.lineWidth = 2; c.setLineDash([6, 5]); c.beginPath(); let on = false;
             for (let j = 0; j <= 16; j++) { const cb = cbAt(j / 16), p = proj(xaL * (D + cb) / D, y, zt - cb); if (!p) continue; if (on) c.lineTo(p[0], p[1]); else { c.moveTo(p[0], p[1]); on = true; } } c.stroke(); c.setLineDash([]);
             const u = uAt(G.clock), cb = cbAt(u); ring(c, xaL * (D + cb) / D, y, zt - cb, 0.95);
-            /* the slim gauge beside the far box: the rail stood upright (its near end at the bottom), the white notch where it crosses the cup */
+            /* the slim gauge beside the far box: the rail stood upright (its near end at the bottom), the white notch where it crosses the cup (none with WASHERS_PWR_LINE_OFF) */
             const bp = proj(0.62, by + 0.2, zt); if (bp) { const gh = Math.max(60, H * 0.2), gx = Math.min(W - 20, bp[0] + 6), gy = bp[1] - gh, c0 = CAL[round].cb[0], c1 = CAL[round].cb[32], f = clamp((cb - c0) / (c1 - c0), 0, 1), fc = clamp(-c0 / (c1 - c0), 0, 1);
-              c.fillStyle = 'rgba(20,14,10,0.6)'; c.beginPath(); c.roundRect(gx - 4, gy - 4, 10, gh + 8, 5); c.fill(); c.fillStyle = 'rgba(255,209,102,0.92)'; c.fillRect(gx - 1, gy + gh * (1 - f), 4, gh * f); c.fillStyle = '#fdf8ea'; c.fillRect(gx - 4, gy + gh * (1 - fc) - 1, 10, 3); } }
+              c.fillStyle = 'rgba(20,14,10,0.6)'; c.beginPath(); c.roundRect(gx - 4, gy - 4, 10, gh + 8, 5); c.fill(); c.fillStyle = 'rgba(255,209,102,0.92)'; c.fillRect(gx - 1, gy + gh * (1 - f), 4, gh * f); if (!WASHERS_PWR_LINE_OFF) { c.fillStyle = '#fdf8ea'; c.fillRect(gx - 4, gy + gh * (1 - fc) - 1, 10, 3); } } }
           else if (st !== 'swing') ring(c, lxN, by + P.MOUTH, zt, 0.95); /* aiming: the ring on the cup's line, where the washer would cross the mouth now */
           c.restore(); }
         /* the tally, bottom left: points, cups, the first washer's how-to */
