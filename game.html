@@ -102,7 +102,11 @@
   body.popClear:has(#campScr:not([hidden])) #pop { left: var(--sl); right: calc(min(40 * var(--vw), 360px) + var(--sr) + 14px); } /* in camp the popup (the washers find, an XP note) sits in the free part of the screen, never under the right-hand panel (POP_CLEAR) */
   body.popClear.lefty:has(#campScr:not([hidden])) #pop { left: calc(min(40 * var(--vw), 360px) + var(--sl) + 14px); right: var(--sr); }
   body.popCenter #pop.secret { top: 50% !important; left: 0 !important; right: 0 !important; transform: translateY(-50%); z-index: 120; font-size: clamp(36px, calc(6.8 * var(--vw)), 58px); line-height: 1.05; text-shadow: 0 2px 0 rgba(0,0,0,0.5), 0 0 14px rgba(0,0,0,0.75), 0 0 34px rgba(0,0,0,0.55); } /* POP_CENTER: the washers find is large, centered on the window and above the camp panel, tab bar and toasts; it never takes input (.hud is pointer-events none) */
-  body:has(#banner.show) #pop { top: calc(var(--st) + 44px + 76px); } /* the arrival banner (mountain name + code) and the 'New mountain' popup used to overlap; the popup now sits just under the banner while it shows */
+  body.secScrim #pop.secret { top: 50%; transform: translateY(-50%); z-index: 120; padding: 16px 12px 18px; font-size: clamp(28px, calc(5 * var(--vw)), 44px); line-height: 1.05;
+    text-shadow: 0 2px 0 rgba(0,0,0,0.5); } /* SECRET_BANNER_SCRIM: in the free part of the camp screen (the POP_CLEAR sides) */
+  body.secScrim #pop.secret::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.66) 26%, rgba(0,0,0,.66) 74%, rgba(0,0,0,0) 100%);
+    -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 15%, #000 85%, transparent 100%); mask-image: linear-gradient(90deg, transparent 0%, #000 15%, #000 85%, transparent 100%); } /* the dark band behind the text, feathered on all four sides (vertical in the fill, horizontal in the mask) */
+  body:not(.plateTR):has(#banner.show) #pop { top: calc(var(--st) + 44px + 76px); } /* the arrival banner (mountain name + code) and the 'New mountain' popup used to overlap; the popup now sits just under the banner while it shows */
   #pop.petFind { top: calc(var(--st, 0px) + 7%); text-shadow: 0 2px 0 rgba(0,0,0,0.5), 0 0 12px rgba(0,0,0,0.55); } #pop.petFind .pfImg svg { width: 1.4em; height: 1.4em; vertical-align: -0.32em; margin-right: 0.22em; filter: drop-shadow(0 2px 1px rgba(0,0,0,0.45)); } /* a companion find on the ride (FIND_FX) */
   #pop .sub { display: block; font: 600 0.42em var(--f-ui); letter-spacing: .06em; text-transform: none; opacity: 0.9; margin-top: 4px; }
   #meter { display: none; }
@@ -117,9 +121,35 @@
   #banner.show { transform: translate(-50%, 0); opacity: 1; }
   #banner b { display: block; font: italic 900 24px/1.05 var(--f-disp); letter-spacing: 0.04em; text-transform: uppercase; }
   #banner span { font: 500 11px var(--f-ui); letter-spacing: .04em; color: var(--cream-70); }
+  /* COURSE_PLATE_TR (body.plateTR): the arrival plate top right, the title over one caps line (trail · camps · the code in gold), a gold bar on the screen-edge side; slides in, fades out */
+  body.plateTR #banner { top: calc(var(--st) + 4px); right: var(--sr); left: auto; max-width: calc(100vw - var(--sl) - var(--sr) - 60px); transform: translateX(24px); border: 0; border-right: 3px solid #f3c56b; border-radius: 12px 4px 4px 12px; box-shadow: 0 2px 10px rgba(0,0,0,.18);
+    background: rgba(20,14,10,0.62); padding: 9px 16px 10px 14px; text-align: right; transition: transform 0s .3s, opacity .3s; }
+  body.plateTR #banner.show { transform: translateX(0); opacity: 1; transition: transform .35s var(--ease-pop), opacity .25s; }
+  body.plateTR #banner b { font: italic 900 26px/1 var(--f-disp); letter-spacing: 0.04em; white-space: nowrap; }
+  body.plateTR #banner .bnCap { display: block; margin-top: 7px; font: 500 12px/1 var(--f-ui); letter-spacing: .1em; text-transform: uppercase; color: var(--cream-70); white-space: nowrap; }
+  body.plateTR #banner .bnCap span { font: inherit; letter-spacing: inherit; color: inherit; }
+  body.plateTR #banner .bnCap i { font-style: normal; font-weight: 700; letter-spacing: .06em; color: #f3c56b; }
+  body.plateTR #banner.noCode .bnDot, body.plateTR #banner.noCode .bnCap i { display: none; }
+  body.plateTR #banner.gro::before { display: none; } /* the gold edge bar is its frame (no accent ring) */
+  body.plateTR:has(#pauseMenu:not([hidden])) #banner, body.plateTR:has(#setScr:not([hidden])) #banner { visibility: hidden; } /* never over the pause sheet */
+  /* HUD_SIZE: Settings 'HUD size' Large / Larger sets body.hudz and --hz (1.25 / 1.5): only the HUD text and chips grow (timer, score plate, buff chips, LEGS / ARMS readout, arrival banner or plate), every position stays; the trick popup and the points over the rider stay as they are; Normal sets no class */
+  body.hudz #hTime { font-size: calc(36px * var(--hz)); }
+  body.hudz #hScore { font-size: calc(28px * var(--hz)); } body.hudz #hScore small { font-size: calc(10px * var(--hz)); }
+  body.hudz #hBuffs { max-width: calc(100% - var(--sl) - var(--sr) - 46px - 150px * var(--hz)); } body.hudz #hBuffs .bc { zoom: var(--hz); }
+  body.hudz #hLimbs { font-size: calc(10px * var(--hz)); }
+  body.hudz #banner { box-sizing: border-box; width: max-content; max-width: calc(100 * var(--vw) - 32px); } /* the centered banner (plate off) would otherwise wrap the bigger name at half the window; the top-right plate has its own rules below */
+  body.hudz #banner b { font-size: calc(24px * var(--hz)); } body.hudz #banner span { font-size: calc(11px * var(--hz)); }
+  /* HUD_SIZE with the top-right plate: the plate stays right-anchored with its own width limit (clear of the pause button), the title grows with --hz up to 34 px, the caps line up to 16 px */
+  body.plateTR.hudz #banner { width: auto; max-width: calc(100vw - var(--sl) - var(--sr) - 60px); padding-top: 8px; padding-bottom: 8px; } /* a little tighter, so on a phone the plate ends above the trick popup's line */
+  body.plateTR.hudz #banner b { font-size: min(calc(26px * var(--hz)), 34px); }
+  body.plateTR.hudz #banner .bnCap { margin-top: 5px; font-size: min(calc(12px * var(--hz)), 16px); }
+  body.plateTR:has(#banner.show) #hScore { opacity: 0; } /* the plate and the score plate share the top-right corner: the score steps aside while the plate shows (a camp arrival, SAVED) */
+  /* HUD_SIZE outline (body.hudOl): a thin dark rim around the HUD letters so they read over a bright sky */
+  body.hudOl #hud, body.hudOl #banner { text-shadow: -1px -1px 0 rgba(0,0,0,.8), 1px -1px 0 rgba(0,0,0,.8), -1px 1px 0 rgba(0,0,0,.8), 1px 1px 0 rgba(0,0,0,.8), 0 0 3px rgba(0,0,0,.7), 0 2px 6px rgba(0,0,0,.55); }
   /* tutorial prompt: one pill at the top center (never over the pedal pad or the stick); the Skip chip sits top left beside the pause button and is the only part that takes taps */
   #tutBar { position: fixed; z-index: 4; top: calc(var(--st) + 34px); left: 50%; transform: translateX(-50%); display: none; align-items: center; gap: 8px; pointer-events: none; }
   body.tutOn:not(.scrOn):not(.onTitle) #tutBar.live { display: flex; }
+  body.pcHint:not(.scrOn):not(.onTitle) #tutBar.live { display: flex; } /* the keyboard first-ride hint (PC_FIRST_HINT) uses the tutorial's pill */
   #tutPill { position: relative; display: flex; align-items: center; gap: 8px; min-height: 36px; max-width: calc(100 * var(--vw) - 360px); box-sizing: border-box; padding: 6px 14px 6px 10px; border-radius: 99px; background: rgba(20,14,10,.74);
     color: var(--cream); font: 600 13px/1.25 var(--f-ui); letter-spacing: .02em; white-space: nowrap; pointer-events: none; opacity: 0; transform: translateY(-6px); transition: opacity .3s var(--ease-out), transform .3s var(--ease-out); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
   #tutPill.on { opacity: 1; transform: none; }
@@ -470,6 +500,8 @@
   #toast { position: fixed; z-index: 8; left: 50%; bottom: calc(var(--sb) + 20px); transform: translateX(-50%); background: var(--glass-solid); border: 1px solid var(--acc1); border-radius: 99px; padding: 8px 16px; font: 600 13px var(--f-ui); opacity: 0; transition: opacity .2s; pointer-events: none; }
   #toast.on { opacity: 1; }
   #campScr:not([hidden]) ~ #toast { bottom: auto; top: calc(var(--st) + 8px); } /* in camp the toast sits top center, between the header and the points chip, clear of the tab bar and the panel */
+  body.ovlFix #campScr:not([hidden]) ~ #toast { top: calc(var(--st) + 50px); left: var(--sl); transform: none; } body.ovlFix.lefty #campScr:not([hidden]) ~ #toast { left: auto; right: var(--sr); } /* OVERLAP_FIX: under the header on its own side, clear of the header text and the panel */
+  body.ovlFix:has(#pauseMenu:not([hidden])) #banner { display: none; } /* OVERLAP_FIX: the arrival plate never sits under the pause card (with COURSE_PLATE_TR on, its own visibility rule does the same job; both stay so each switch works alone) */
   @media (max-height: 340px) { #titleScr h1 { font-size: 56px; } .mb.pri { min-height: 48px; } #titleScr .menu { gap: 6px; } }
   /* the stacked layout is for PORTRAIT only: keyed on orientation, not width, so a 640 x 360 landscape phone keeps the landscape title and results */
   @media (max-width: 640px) and (orientation: portrait) { #titleScr .logo { max-width: 90%; top: 30%; } #titleScr .menu { top: auto; bottom: calc(var(--sb) + 24px); transform: none; right: 50%; margin-right: -140px; }
@@ -513,6 +545,11 @@
   body.fc2 #endOv .share .mb, body.fc2 #endOv .share .mb#btnCopyCode, body.fc2 #endOv .share .mb#btnFav { grid-row: 2; width: auto; min-width: 0; min-height: 52px; flex-direction: column; gap: 3px; padding: 4px 2px; font: 700 10.5px/1.1 var(--f-ui); letter-spacing: .05em; }
   body.fc2 #endOv .share .mb svg { width: 20px; height: 20px; } body.fc2 #endOv .share .mb .fi { font-size: 20px; line-height: 20px; }
   body.fc2 #endOv .share .mb#btnFav.on { color: var(--acc1); }
+  body.finCode #eDelta { display: none; } /* FINISH_CODE: the left side shows the time and the mountain code only */
+  body.finCode.finBest #eDelta.best, body.finCode.finBest #eDelta.slow { display: block; margin-top: 8px; padding: 0; border: 0; border-radius: 0; background: none; color: #f3c56b; font: italic 800 16px/1.2 var(--f-disp); letter-spacing: .06em; }
+  body.fc2.finCode.finBest:has(#eDelta.best, #eDelta.slow) #endOv .share { row-gap: 14px; } /* FINISH_BEST_LINE: a later run's best-time line, plain gold text under the time (a first run shows none) */
+  body.fc2.finCode #endOv .share { row-gap: 26px; } body.fc2.finCode #endOv .share small { font: italic 800 24px/1.15 var(--f-disp); letter-spacing: .08em; color: var(--cream); opacity: 1; overflow: visible; padding-bottom: 2px;
+    text-decoration: underline 2px var(--acc1); text-underline-offset: 6px; } body.fc2.finCode #endOv .share small code { font: inherit; } /* the code to copy / share: large, cream, an orange underline */
   body.fc2:not(.tutEnd) #btnAgain { background: rgba(20,14,10,.55); color: var(--cream); border: 1px solid rgba(253,248,234,.22); box-shadow: none; }
   body.fc2:not(.tutEnd) #btnAgain:hover { border-color: var(--accLine); }
   body.fc2:not(.tutEnd) #btnNew2 { background: var(--accGrad); color: var(--accInk); border-color: transparent; text-shadow: none; box-shadow: 0 6px 18px rgba(240,112,42,.28), inset 0 1px 0 rgba(255,255,255,.35); }
@@ -535,7 +572,7 @@
   .cm-prog { position: absolute; left: 50%; top: calc(var(--st, 0px) + 16px); transform: translateX(-50%); padding: 8px 18px; border-radius: 99px; background: rgba(20,14,10,.6); border: 1px solid rgba(253,248,234,.18);
     font: 700 12px/1 var(--f-ui, sans-serif); letter-spacing: .14em; text-transform: uppercase; color: rgba(253,248,234,.9); white-space: nowrap; pointer-events: none; z-index: 2; }
   .cm-prog:empty { display: none; }
-  .cm-prog { font-variant-numeric: tabular-nums; } .cm-prog.hot { color: #f3c56b; }
+  .cm-prog { font-variant-numeric: tabular-nums; } .cm-prog.hot { color: #f3c56b; } .cm-prog .u { text-transform: none; }
   .cm-instr { position: absolute; left: 50%; bottom: calc(var(--sb, 0px) + 16px); transform: translateX(-50%); max-width: min(calc(88 * var(--vw)), 620px); text-align: center; padding: 9px 18px; border-radius: 14px; background: rgba(20,14,10,.6); border: 1px solid rgba(253,248,234,.14);
     font: 500 14px/1.3 var(--f-ui, sans-serif); color: rgba(253,248,234,.92); pointer-events: none; transition: opacity .7s; z-index: 2; }
   .cm-instr.gone { opacity: 0; }
@@ -867,6 +904,7 @@
   body.scrFit :is(#pauseMenu, #setScr, #endOv, #campScr, #banner, #toast, #tutBar) { zoom: var(--uzt, var(--uz, 1)); --vh: calc(1vh / var(--uzt, var(--uz, 1))); --vw: calc(1vw / var(--uzt, var(--uz, 1))); }
   /* the pills keep their distance from the window edge in the HUD's own size, so the bigger pause button, skip chip and limb legend never cover them */
   body.scrFit #tutBar { top: calc((var(--st) + 34px) * var(--uz, 1) / var(--uzt, var(--uz, 1))); } body.scrFit #banner { top: calc((var(--st) + 44px) * var(--uz, 1) / var(--uzt, var(--uz, 1))); }
+  body.plateTR.scrFit #banner { top: calc((var(--st) + 4px) * var(--uz, 1) / var(--uzt, var(--uz, 1))); right: calc(var(--sr) * var(--uz, 1) / var(--uzt, var(--uz, 1))); }
   body.scrFit #toast { bottom: calc((var(--sb) + 20px) * var(--uz, 1) / var(--uzt, var(--uz, 1))); }
 </style>
 
@@ -930,7 +968,7 @@
   <div class="favCard" id="tFavs" hidden><div class="fvh">Favorites</div><div class="fvl" id="tFavList"></div><button class="mb sm" id="tFavClose">Close</button></div>
   <div id="tapGo" role="status">Tap to start</div>
   <button class="ico" id="mute" role="switch" aria-checked="true" aria-label="Sound"><svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg><svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M17 9l5 6M22 9l-5 6"/></svg></button>
-  <div class="foot"><span id="verTag">v0.57.0</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span></div>
+  <div class="foot"><span id="verTag">v0.58.0</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span></div>
   <button id="btnNew" hidden>New mountain</button>
 </div>
 
@@ -966,6 +1004,8 @@
   <div class="srow"><span>Blood</span><button class="sw" id="bBlood" role="switch" aria-checked="true" aria-label="Crash blood"></button></div>
   <div class="srow"><span>Quality <small id="qNow">auto</small></span><div class="seg" data-set="quality"><button data-v="auto">Auto</button><button data-v="2">High</button><button data-v="1">Medium</button><button data-v="0">Low</button></div></div>
   <div class="srow" id="uizRow"><span>UI size</span><div class="seg" data-set="uiz"><button data-v="auto">Auto</button><button data-v="0.8">Small</button><button data-v="1.25">Medium</button><button data-v="1.5">Large</button><button data-v="2">X-Large</button></div></div>
+  <div class="srow" id="hudzRow"><span>HUD size</span><div class="seg" data-set="hudz"><button data-v="1">Normal</button><button data-v="1.25">Large</button><button data-v="1.5">Larger</button></div></div>
+  <div class="srow" id="hudoRow"><span>HUD outline <small>easier to read on bright sky</small></span><div class="seg" data-set="hudo"><button data-v="off">Off</button><button data-v="on">On</button></div></div>
   <div class="srow"><span>FPS overlay</span><button class="sw" id="bFps" role="switch" aria-checked="false" aria-label="FPS overlay"></button></div>
   </div></div>
   <div class="sgs" data-sec="games"><button class="sgrp sgh" type="button" aria-expanded="false" aria-controls="sb_games"><span>Camp &amp; games</span><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5l4 4 4-4"/></svg></button><div class="sgb" id="sb_games" hidden>
@@ -54686,6 +54726,8 @@ const PEEK_CLIMB = ['cat', 'raccoon', 'squirrel', 'owl']; /* PEEK_SIMPLE: the an
 const PETS_SEAT_BOX = 1; /* 1 = a seat is in view only when the animal's whole body box (not one head point) clears the camp UI, the bike, the figures and the board kiosk; 0 = the two-point test */
 const FIND_FX = 1; /* 1 = a find on the ride shows '<Animal> found!' with its tile picture high on the screen (popup, 1.6 s) and a gold sparkle bursts from the bush (the ride's own GRIT and DUST particle pools: no draw call, no program); 0 = the find is heard only */
 const COMP_INFO_FIT = 1; /* 1 = the Companion page's info line is two short lines (where it was found, with the camp number; then flips and camps together) that fit the panel; a ride find keeps the number of the camp it sits at first; 0 = one line cut with an ellipsis */
+const PALS_BUTTONS = 1; /* 1 = the Pals page buttons say 'Ride with <name>' / 'Leave <name> at camp' and 'Basket: On' / 'Basket: Off' (a toggle showing the current
+   state; the status line and the toast say 'basket off' the same way); 0 = 'Ride with nobody' / 'No basket' / 'Put basket on'. Words only: the actions are unchanged */
 const PALS_LABEL = 1; /* 1 = in the camp's Bike & Rider menu the animals' tile and their page are titled Pals (the word everywhere else stays companion); 0 = titled Companion */
 const PETS_SEAT_VIEW = 1; /* 1 = when no seat passes the in-view box test, the animal takes the free spot whose center is on screen in the camp's free area, nearest the fire; 0 = the first spot in the list */
 const PETS_CAMP_SCALE = 1.25; /* the seated camp animals' size (their spot test, spacing and body box grow with it); 1 = the old size */
@@ -55059,6 +55101,20 @@ const PETW_PICK_BIG = 1.5625; /* the glade stump's shaped pick-up reach (PETW_PI
 const PETW_GLADE_SOFT = 1; /* 1: everything the glade owns is solid the same soft way as the stump (pushed out and slid round, never a crash): the ring's trees and boulders
    and any forest tree or rock standing inside the ring (hitObstacle skips them), the ring's shrubs and dead scrub, the standing stones, the fallen log, and a circle
    PETW_GLADE_RING_R m round the stump (kept PETW_GLADE_RING_IN m inside the way-in reach, so touching it takes the basket); 0 = the colliders as before */
+const PETW_GLADE_TOUCH = 1; /* 1: the stump and everything the glade owns is solid at its drawn shape and never throws the rider: each solid's footprint is the 2D convex hull of its
+   own drawn vertices between PETW_TOUCH_LO and PETW_TOUCH_HI m over the ground: the stump with its buttresses, a ring tree's trunk, a ring boulder (and with PETW_TOUCH_SHRUBS /
+   PETW_TOUCH_LOW the shrubs, dead scrub, standing stones and the log); the bike's five circles are held at that surface (moved out by exactly their overlap, no shove) and a bike running into it simply stops there: no slide round
+   it, no turn of the nose, no bounce, no knock, no shake; the rider steers and pedals away. No circle round the stump (petwStumpSoft runs petwTouch on the ride; the camp's
+   stump keeps the soft hit); a forest tree or rock standing in the ring keeps the soft field exactly as before (petwGladeSoft with only those); in the air above a solid's
+   top it is cleared; never a crash (hitObstacle keeps skipping what petwGladeSolids marked, so PETW_GLADE_SOFT stays 1); the pick-up reach is unchanged; 0 = the soft solids as before */
+const PETW_TOUCH_SHRUBS = 0; /* with PETW_GLADE_TOUCH: 1 = the ring's leafy shrubs and dead scrub are solid too (the same tight corners); 0 = the bike rides through them, never a crash */
+const PETW_TOUCH_LOW = 0; /* with PETW_GLADE_TOUCH: 1 = the low standing stones and the fallen log are solid too (they make tight corners a bike can wedge into with no way to back out); 0 = the bike rides through them, never a crash */
+const PETW_TOUCH_CREEP = 2, PETW_TOUCH_ALONG = 0.5; /* m/s and the nose's share into the surface (about 30 deg) under which a bike pulling away from a touch at a walk may roll along it instead of stopping */
+const PETW_TOUCH_LO = 0.06, PETW_TOUCH_HI = 1.3; /* m over the ground under each vertex: the band whose drawn vertices make a solid's footprint (ground-flat roots and decals below it, canopies above it) */
+const PETW_GHOST_CANOPY = 1; /* with PETW_GLADE_TOUCH: while the bike is at a ring tree's trunk or within PETW_CANOPY_NEAR m of it, that tree's canopy draws in toward the trunk
+   (x PETW_CANOPY_K across) and lifts PETW_CANOPY_LIFT m so the rider stays in view, over PETW_CANOPY_IN s, and opens back over PETW_CANOPY_OUT s after the bike leaves; only the
+   ring's own trees, never a forest tree; its own vertices in the terrain buffer are moved (no draw call, no material); reduced motion: half the change, at once; 0 = none */
+const PETW_CANOPY_NEAR = 1.0, PETW_CANOPY_K = 0.4, PETW_CANOPY_LIFT = 0.8, PETW_CANOPY_IN = 0.25, PETW_CANOPY_OUT = 0.4; /* m past the trunk's collider, share kept across, m, s, s */
 const PETW_BASKET_FLOAT = 1; /* 1: the grand stump's wire basket hovers over the cut like a pickup: its center PETW_FL_LIFT m over the cut, tilted PETW_FL_TILT rad toward a corner,
    turning once every PETW_FL_SPIN s about the vertical (the tilt kept) and bobbing PETW_FL_BOB m either way every PETW_FL_BOBT s; at the find it rises PETW_FL_POP m with an extra
    half turn while the lantern flares. Reduced motion: held still, lifted and tilted. Look only: its own vertices in the terrain buffer are moved (no draw call, no material),
@@ -55082,7 +55138,7 @@ function petwSoftHit(dt, best, nx, nz, ex, ez) { /* the soft response shared by 
   else { S.vel.x -= nx * vn; S.vel.z -= nz * vn; if (S.grounded) S.speed = S.vel.x * fx + S.vel.z * fz; } /* rolling back into it: the push only */
   if (!S.stumpT || S.t - S.stumpT > 0.4) { S.stumpT = S.t; S.shake = Math.max(S.shake || 0, 0.05); sfx.land && sfx.land(2); } }
 function petwStumpSoft(dt) { /* PETW_STUMP_SOFT: the basket's stump against the bike, after the other colliders of the step; never bails */
-  const W = S.course && S.course.petsW, B = W && W.basket; if (!B || !B.dim || !(B.dim.top > -1e9)) return;
+  const W = S.course && S.course.petsW, B = W && W.basket; if (PETW_GLADE_TOUCH && B && !B.camp) { petwTouch(); return; } /* the camp's stump keeps the soft hit */ if (!B || !B.dim || !(B.dim.top > -1e9)) return;
   const ex = S.pos.x - B.x, ez = S.pos.z - B.z; if (ex * ex + ez * ez > 16 || (!S.grounded && S.pos.y > B.dim.top + 0.05) || S.pos.y < B.y - 3) return;
   const Rc = B.dim.r * PETW_SOFT_R, fx = Math.cos(S.yaw), fz = -Math.sin(S.yaw);
   let best = 1e9, bx = 0, bz = 0; for (let q = 0; q < 5; q++) { const px = S.pos.x + fx * CC_T[q], pz = S.pos.z + fz * CC_T[q], d = Math.hypot(px - B.x, pz - B.z) - Rc - CC_R[q]; if (d < best) { best = d; bx = px; bz = pz; } }
@@ -55102,16 +55158,16 @@ function petwGladeSoft(dt) { /* PETW_GLADE_SOFT: the glade's solids as one smoot
      solids near it (a gap narrower than about the bike's width is filled, corners are rounded) and its way out is the blend of their normals; in the air above a solid's top it is cleared (on the ground, on a slope too, it never is); never bails */
   const W = S.course && S.course.petsW, B = W && W.basket, G = B && B.gs; if (!G || B.camp) return;
   if (Math.abs(S.pos.x - B.x) > B.gsR || Math.abs(S.pos.z - B.z) > B.gsR) return;
-  const fx = Math.cos(S.yaw), fz = -Math.sin(S.yaw), k = PETW_GLADE_SMOOTH; let best = 1e9, bnx = 0, bnz = 0, bex = 0, bez = 0;
-  for (let q = 0; q < 5; q++) { const px = S.pos.x + fx * CC_T[q], pz = S.pos.z + fz * CC_T[q]; let sw = 0, wx = 0, wz = 0, dmin = 1e9, ex = 0, ez = 0;
+  const fx = Math.cos(S.yaw), fz = -Math.sin(S.yaw), k = PETW_GLADE_SMOOTH; let best = 1e9, bnx = 0, bnz = 0, bex = 0, bez = 0, bg = null;
+  for (let q = 0; q < 5; q++) { const px = S.pos.x + fx * CC_T[q], pz = S.pos.z + fz * CC_T[q]; let sw = 0, wx = 0, wz = 0, dmin = 1e9, ex = 0, ez = 0, gm = null;
     for (const g of G) { if (!S.grounded && S.pos.y > g.top + 0.05) continue; const ox = g.o ? g.o.x : g.x, oz = g.o ? g.o.z : g.z, reach = (g.L || 0) + g.r + 1.5;
       if (Math.abs(px - ox) > reach || Math.abs(pz - oz) > reach) continue; let qx = ox, qz = oz;
       if (g.L) { const t = Math.max(-g.L, Math.min(g.L, (px - ox) * g.dx + (pz - oz) * g.dz)); qx = ox + g.dx * t; qz = oz + g.dz * t; } /* the log: its axis's nearest point */
       const dd = Math.hypot(px - qx, pz - qz), d = dd - g.r; if (d > 1.5) continue; const w = Math.exp(-d / k); sw += w;
-      if (dd > 1e-6) { wx += w * (px - qx) / dd; wz += w * (pz - qz) / dd; } else { wx -= w * fx; wz -= w * fz; } if (d < dmin) { dmin = d; ex = S.pos.x - qx; ez = S.pos.z - qz; } }
+      if (dd > 1e-6) { wx += w * (px - qx) / dd; wz += w * (pz - qz) / dd; } else { wx -= w * fx; wz -= w * fz; } if (d < dmin) { dmin = d; ex = S.pos.x - qx; ez = S.pos.z - qz; gm = g; } }
     if (sw <= 0) continue; const D = -k * Math.log(sw) - CC_R[q]; /* the soft minimum, less the circle's radius */
-    if (D < best) { const nl = Math.hypot(wx, wz); best = D; if (nl > 1e-6) { bnx = wx / nl; bnz = wz / nl; } else { bnx = -fx; bnz = -fz; } bex = ex; bez = ez; } }
-  if (best < 0) petwSoftHit(dt, best, bnx, bnz, bex, bez); }
+    if (D < best) { const nl = Math.hypot(wx, wz); best = D; if (nl > 1e-6) { bnx = wx / nl; bnz = wz / nl; } else { bnx = -fx; bnz = -fz; } bex = ex; bez = ez; bg = gm; } }
+  if (best < 0 && !(PETW_GLADE_TOUCH && !(bg && bg.o && !bg.o.petw))) petwSoftHit(dt, best, bnx, bnz, bex, bez); } /* PETW_GLADE_TOUCH: only where a forest tree or rock standing in the ring is the nearest solid (the field itself as before) */
 function petwPickIn(B, q, p, ux, uz, L2) { /* PETW_PICK_V2: this frame's travel segment q..p within the shaped reach: its closest point to the stump, and its end */
   const t = L2 > 1e-9 ? Math.max(0, Math.min(1, ((B.x - q.x) * ux + (B.z - q.z) * uz) / L2)) : 0, cx = q.x + ux * t, cz = q.z + uz * t;
   return Math.hypot(cx - B.x, cz - B.z) < petwReach(B, cx, cz) || Math.hypot(p.x - B.x, p.z - B.z) < petwReach(B, p.x, p.z); }
@@ -55462,9 +55518,9 @@ function petwGlade(course, B, out) { /* PETW_SPECIAL: standing stones, wildflowe
   const gapOff = (a) => Math.abs(Math.atan2(Math.sin(a - B.th), Math.cos(a - B.th)));
   if (!dry) { const nS = 9, r0 = B.rr - 1.45; /* a low ring of mossy standing stones just inside the trees, open at the gap */
     for (let s = 0; s < nS; s++) { const a = B.th + (s + 0.5) * Math.PI * 2 / nS + (hv(s) - 0.5) * 0.25; if (gapOff(a) < 0.8 + 0.25 * (B.pw - 1)) continue; const r = r0 + (hv(s + 20) - 0.5) * 0.3, x = B.x + Math.cos(a) * r, z = B.z + Math.sin(a) * r;
-      if (!offWay(x, z, 1.2)) continue; const h = 0.5 + hv(s + 40) * 0.35, w = 0.26 + hv(s + 60) * 0.12, y = gridTriH(x, z); if (PETW_GLADE_SOFT) (B.gs || (B.gs = [])).push({ x, z, r: w * 1.05, top: y + h });
-      out.push({ geo: new THREE.DodecahedronGeometry(1, 0), col: ['#8e928b', '#9a9c94', '#848a84'][s % 3], m: petwM(x, y + h * 0.42, z, (hv(s + 80) - 0.5) * 0.2, a, (hv(s + 90) - 0.5) * 0.2, w, h * 0.55, w * 0.8) });
-      out.push({ geo: new THREE.DodecahedronGeometry(1, 0), col: s % 2 ? '#6f8f4a' : '#7c9a50', m: petwM(x, y + h * 0.86, z, 0, a + 0.5, 0, w * 0.86, h * 0.14, w * 0.72) }); } } /* a moss cap */
+      if (!offWay(x, z, 1.2)) continue; const h = 0.5 + hv(s + 40) * 0.35, w = 0.26 + hv(s + 60) * 0.12, y = gridTriH(x, z), sr = PETW_TOUCH_LOW ? petwTR({ stone: 1 }) : undefined; if (PETW_GLADE_SOFT) (B.gs || (B.gs = [])).push({ x, z, r: w * 1.05, top: y + h });
+      out.push({ geo: new THREE.DodecahedronGeometry(1, 0), col: ['#8e928b', '#9a9c94', '#848a84'][s % 3], m: petwM(x, y + h * 0.42, z, (hv(s + 80) - 0.5) * 0.2, a, (hv(s + 90) - 0.5) * 0.2, w, h * 0.55, w * 0.8), role: sr });
+      out.push({ geo: new THREE.DodecahedronGeometry(1, 0), col: s % 2 ? '#6f8f4a' : '#7c9a50', m: petwM(x, y + h * 0.86, z, 0, a + 0.5, 0, w * 0.86, h * 0.14, w * 0.72), role: sr }); } } /* a moss cap */
   const fc = PETW_FLOWER[dry ? 'scrub' : 'pine'], stem = dry ? '#8d8a58' : '#5d8a44', cl = [[B.th + Math.PI + 0.9, STUMP_GRAND && B.dim ? B.dim.fp + 0.7 : 1.25, 11]]; /* one clump by the stump, a few more out in the glade */
   for (let k = 0; k < 4; k++) cl.push([B.th + Math.PI * 0.45 + k * 1.35 + (hv(100 + k) - 0.5) * 0.5, 2.3 + hv(110 + k) * (B.rr - 4.2), 7 + Math.floor(hv(120 + k) * 4)]);
   cl.forEach(([a, r, n], c) => { const cx = B.x + Math.cos(a) * r, cz = B.z + Math.sin(a) * r; if (!offWay(cx, cz, 0.9)) return; const col = fc[(c + Math.floor(hv(130) * 4)) % 4], col2 = fc[(c + 2 + Math.floor(hv(130) * 4)) % 4];
@@ -55473,31 +55529,31 @@ function petwGlade(course, B, out) { /* PETW_SPECIAL: standing stones, wildflowe
       out.push({ geo: new THREE.IcosahedronGeometry(0.09, 0), col: f % 3 === 2 ? col2 : col, m: petwM(x, y + h, z, fa, fa * 2, 0, 1, 0.6, 1) }); } });
   const la = B.th + Math.PI * 1.35 + (hv(500) - 0.5) * 0.4, lr = B.rr - 2.3, lx = B.x + Math.cos(la) * lr, lz = B.z + Math.sin(la) * lr; /* a fallen log, lying along the ring */
   if (offWay(lx, lz, 1.6)) { const L = 2.2, dx = -Math.sin(la), dz = Math.cos(la), h1 = gridTriH(lx - dx * L / 2, lz - dz * L / 2), h2 = gridTriH(lx + dx * L / 2, lz + dz * L / 2), dir = new THREE.Vector3(dx * L, h2 - h1, dz * L).normalize();
-    const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir), p = new THREE.Vector3(lx, (h1 + h2) / 2 + 0.13, lz), bark = dry ? '#94805f' : '#6a4a33', end = dry ? '#d2bf98' : '#c49a6c';
+    const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir), p = new THREE.Vector3(lx, (h1 + h2) / 2 + 0.13, lz), bark = dry ? '#94805f' : '#6a4a33', end = dry ? '#d2bf98' : '#c49a6c', lr2 = PETW_TOUCH_LOW ? petwTR({ log: 1 }) : undefined;
     if (PETW_GLADE_SOFT) (B.gs || (B.gs = [])).push({ x: lx, z: lz, dx, dz, L: L / 2, r: 0.2, top: p.y + 0.25 }); /* the log: a capsule along its axis */
-    out.push({ geo: new THREE.CylinderGeometry(0.17, 0.2, L, 7), col: bark, m: new THREE.Matrix4().compose(p, q, new THREE.Vector3(1, 1, 1)) });
-    for (const e of [-1, 1]) out.push({ geo: new THREE.CylinderGeometry(e < 0 ? 0.185 : 0.155, e < 0 ? 0.185 : 0.155, 0.02, 7), col: end, m: new THREE.Matrix4().compose(p.clone().addScaledVector(dir, e * (L / 2 + 0.005)), q, new THREE.Vector3(1, 1, 1)) });
-    if (!dry) out.push({ geo: new THREE.DodecahedronGeometry(1, 0), col: '#6f8f4a', m: petwM(lx, p.y + 0.15, lz, 0, -la, 0, 0.16, 0.05, 0.5) }); } }
+    out.push({ geo: new THREE.CylinderGeometry(0.17, 0.2, L, 7), col: bark, m: new THREE.Matrix4().compose(p, q, new THREE.Vector3(1, 1, 1)), role: lr2 });
+    for (const e of [-1, 1]) out.push({ geo: new THREE.CylinderGeometry(e < 0 ? 0.185 : 0.155, e < 0 ? 0.185 : 0.155, 0.02, 7), col: end, m: new THREE.Matrix4().compose(p.clone().addScaledVector(dir, e * (L / 2 + 0.005)), q, new THREE.Vector3(1, 1, 1)), role: lr2 });
+    if (!dry) out.push({ geo: new THREE.DodecahedronGeometry(1, 0), col: '#6f8f4a', m: petwM(lx, p.y + 0.15, lz, 0, -la, 0, 0.16, 0.05, 0.5), role: lr2 }); } }
 function petwBuild(course, surf, W) { /* every piece into the terrain buffers (one group per thing that moves or goes), the ring trees into the forest meshes, the paint into the ground colors */
   const theme = course.theme, pal = PETW_COL[theme] || PETW_COL.pine, groups = [];
   const B = W.basket;
   if (B) { const lit = (B.tries || 0) >= PETW_GLOW_UP ? '#ffe2a0' : '#ffd890', o = { stump: [], basket: [], glass: [] }, lp = petwStumpParts(B.x, gridTriH(B.x, B.z), B.z, o, lit, theme), st = { name: 'stump', x: B.x, z: B.z, parts: o.stump }, bk = { name: 'basket', x: B.x, z: B.z, parts: o.basket }, gl = { name: 'glass', x: B.x, z: B.z, parts: o.glass, glow: 1 };
-    B.lp = lp; if (o.dim) { B.dim = o.dim; B.pickR = STUMP_RING_BIG ? Math.max(o.dim.pick, STUMP_PICK_R) : o.dim.pick; } if (o.lv) B.lv = o.lv; groups.push(st, bk, gl); B.G = { st, bk, gl };
+    B.lp = lp; if (o.dim) { B.dim = o.dim; B.pickR = STUMP_RING_BIG ? Math.max(o.dim.pick, STUMP_PICK_R) : o.dim.pick; } if (o.lv) B.lv = o.lv; groups.push(st, bk, gl); B.G = { st, bk, gl }; if (PETW_GLADE_TOUCH && !B.camp) { const so = { stump: 1 }; for (const p of o.stump) p.role = so; } /* the stump's footprint (petwTouchSetup) */
     if (PETW_BASKET_FLOAT && o.dim && o.bkN) { B.bkN = o.bkN; B.bry = o.bry; bk.pad = PETW_FL_LIFT + PETW_FL_BOB + PETW_FL_POP + 0.2; } /* the tile's box takes in the hover */
     if (!B.camp) { const dress = { name: 'clearing', x: B.x, z: B.z, parts: [] }, P2 = dress.parts, Rd = mulberry32(B.dseed || ((B.x * 1000) | 0)), dry = theme === 'scrub';
       for (let k = 0; k < 230; k++) { const a = Rd() * 6.283, r = Math.sqrt(Rd()) * (B.rr - 0.6), x = B.x + Math.cos(a) * r, z = B.z + Math.sin(a) * r; if (Math.hypot(x - B.x, z - B.z) < 0.6) continue; const g0 = gridTriH(x, z), nb = 4 + Math.floor(Rd() * 3);
         const keep = (!PETW_SPECIAL || k % PETW_SCATTER === 0) && !(STUMP_GRAND && B.dim && Math.hypot(x - B.x, z - B.z) < B.dim.fp + 0.15); /* with PETW_SPECIAL only a light scatter is kept; every draw still happens, so the shrubs after it stay where they were */
         for (let q = 0; q < nb; q++) { const h = 0.26 + Rd() * (dry ? 0.24 : 0.34), a2 = q * 1.7 + Rd(), ci = Math.floor(Rd() * 3); if (keep) P2.push({ geo: new THREE.ConeGeometry(0.06, h, 3, 1, true), col: pal.g[ci], m: petwM(x + Math.cos(a2) * 0.08, g0 + h / 2 - 0.03, z + Math.sin(a2) * 0.08, Math.sin(a2) * 0.35, a2, -Math.cos(a2) * 0.35, 1) }); } } /* tufts of blades */
       for (let k = 0; k < 16 && !dry; k++) { const a = Rd() * 6.283, r = 1 + Rd() * (B.rr - 2), x = B.x + Math.cos(a) * r, z = B.z + Math.sin(a) * r, g0 = gridTriH(x, z); if (!(STUMP_GRAND && B.dim && Math.hypot(x - B.x, z - B.z) < B.dim.fp + 0.15)) P2.push({ geo: new THREE.IcosahedronGeometry(0.045, 0), col: k % 3 ? '#f4efe0' : '#f0c94a', m: petwM(x, g0 + 0.24, z, 0, k, 0, 1) }); }
-      for (const H of B.shrubs) { const n2 = 2; for (let q = 0; q < n2; q++) { const ox = (Rd() - 0.5) * 0.6, oz = (Rd() - 0.5) * 0.6; P2.push({ geo: new THREE.IcosahedronGeometry(H.r, 1), col: pal.s[Math.floor(Rd() * 3)], m: petwM(H.x + ox, H.y + H.h * 0.45 - q * 0.1, H.z + oz, Rd(), Rd() * 6, 0, 1, H.h / (H.r * 2) * 1.1, 1) }); } }
-      for (const T of B.ring) if (T.kind === 'boulder') { P2.push({ geo: new THREE.DodecahedronGeometry(1, 0), col: ['#9a8c74', '#8f8470', '#a49580'][Math.floor(Rd() * 3)], m: petwM(T.x, T.y + T.s * 0.45, T.z, Rd(), T.ry, Rd() * 0.3, T.s * 1.25, T.s * 1.0, T.s * 1.1) }); }
-        else if (T.kind === 'scrub') { for (let q = 0; q < 11; q++) { const a = q * 0.57 + T.ry, l = 0.8 + Rd() * 0.9, tl = 0.35 + Rd() * 0.4; P2.push({ geo: new THREE.CylinderGeometry(0.015, 0.035, l, 4), col: q % 2 ? '#6e5a42' : '#806c52', m: petwM(T.x + Math.cos(a) * l * 0.18, T.y + l * 0.42, T.z + Math.sin(a) * l * 0.18, Math.cos(a) * tl, 0, -Math.sin(a) * tl, 1) }); } } /* a dead bush: bare gray-brown stems fanning out */
+      for (const H of B.shrubs) { const n2 = 2; for (let q = 0; q < n2; q++) { const ox = (Rd() - 0.5) * 0.6, oz = (Rd() - 0.5) * 0.6; P2.push({ geo: new THREE.IcosahedronGeometry(H.r, 1), col: pal.s[Math.floor(Rd() * 3)], m: petwM(H.x + ox, H.y + H.h * 0.45 - q * 0.1, H.z + oz, Rd(), Rd() * 6, 0, 1, H.h / (H.r * 2) * 1.1, 1), role: PETW_TOUCH_SHRUBS ? petwTR(H) : undefined }); } }
+      for (const T of B.ring) if (T.kind === 'boulder') { P2.push({ geo: new THREE.DodecahedronGeometry(1, 0), col: ['#9a8c74', '#8f8470', '#a49580'][Math.floor(Rd() * 3)], m: petwM(T.x, T.y + T.s * 0.45, T.z, Rd(), T.ry, Rd() * 0.3, T.s * 1.25, T.s * 1.0, T.s * 1.1), role: petwTR(T) }); }
+        else if (T.kind === 'scrub') { for (let q = 0; q < 11; q++) { const a = q * 0.57 + T.ry, l = 0.8 + Rd() * 0.9, tl = 0.35 + Rd() * 0.4; P2.push({ geo: new THREE.CylinderGeometry(0.015, 0.035, l, 4), col: q % 2 ? '#6e5a42' : '#806c52', m: petwM(T.x + Math.cos(a) * l * 0.18, T.y + l * 0.42, T.z + Math.sin(a) * l * 0.18, Math.cos(a) * tl, 0, -Math.sin(a) * tl, 1), role: PETW_TOUCH_SHRUBS ? petwTR(T) : undefined }); } } /* a dead bush: bare gray-brown stems fanning out */
       petwRingTrees(course, B, P2);
       if (PETW_SPECIAL) petwGlade(course, B, P2);
       if (PETW_GLADE_SOFT) petwGladeSolids(course, B);
       const pile = { name: 'pile', x: B.mx, z: B.mz, parts: [] }, Q = course.pts[B.mi], side = B.sd, px = B.mx + Q.vx * side * 0.9 - Q.fx * 1.1 * B.pw, pz = B.mz + Q.vz * side * 0.9 - Q.fz * 1.1 * B.pw, g1 = gridTriH(px, pz); /* the stone pile beside the mouth (the trail side is never touched) */
       [[0, 0.07, 0, 0.16], [0.13, 0.06, 0.05, 0.12], [-0.1, 0.05, 0.09, 0.11], [0.02, 0.18, 0.01, 0.1], [0.0, 0.27, 0.0, 0.07]].forEach(([u, v, w, r], k) => pile.parts.push({ geo: new THREE.DodecahedronGeometry(r, 0), col: ['#8b9096', '#9aa0a6', '#7f858c', '#a3a8ad', '#8f949a'][k], m: petwM(px + u, g1 + v, pz + w, k * 0.6, k, 0.2, 1, 0.62, 1) }));
-      B.pile = [px, pz]; groups.push(dress, pile);
+      B.pile = [px, pz]; groups.push(dress, pile); if (PETW_GLADE_TOUCH && PETW_GHOST_CANOPY) { B.G.cl = dress; dress.pad = PETW_CANOPY_LIFT; } /* the tile's box takes in the lift */
       if (PETW_TORCH) { const T = petwTorchSpot(course, surf, B); if (T) { const tp = { name: 'torch', x: T.x, z: T.z, parts: [] }, tf = { name: 'flame', x: T.x, z: T.z, parts: [] }; petwTorchParts(T, tp.parts, tf.parts); B.torch = T; B.G.tp = tp; B.G.tf = tf; groups.push(tp, tf); } }
       if (PETW_DECOR) { const dc = { name: 'decor', x: B.mx, z: B.mz, parts: [] }; petwDecor(course, surf, B, dc.parts); if (dc.parts.length) groups.push(dc); } }
   }
@@ -55505,9 +55561,9 @@ function petwBuild(course, surf, W) { /* every piece into the terrain buffers (o
   if (W.bush) { const g = { name: 'bush', x: W.bush.x, z: W.bush.z, parts: [] }; W.bush.blobs = petwBushParts(W.bush.x, gridTriH(W.bush.x, W.bush.z) - 0.05, W.bush.z, theme, g.parts); groups.push(g); W.bush.G = g; bushG.push(g);
     if (BUSH_FLOWERS) { let nb = 0; for (const p of g.parts) nb += p.geo.index ? p.geo.index.count : p.geo.attributes.position.count; W.bush.nb = nb; W.bush.dxz = new Float32Array(W.bush.blobs.length * 2); W.bush.fl = bushFlowers(course, W.bush, gridTriH(W.bush.x, W.bush.z) - 0.05, theme, g.parts, nb); } } /* the blobs first (the rustle splits them evenly), the blooms after them */
   for (const D2 of W.decoys) { const g = { name: 'decoy', x: D2.x, z: D2.z, parts: [] }; petwBushParts(D2.x, gridTriH(D2.x, D2.z) - 0.05, D2.z, theme, g.parts); groups.push(g); }
-  for (const g of groups) { g.g = mergeParts(g.parts); for (const p of g.parts) p.geo.dispose(); g.parts = null; }
+  for (const g of groups) { g.g = mergeParts(g.parts); if (g.g.userData.ranges) g.rg = g.g.userData.ranges; for (const p of g.parts) p.geo.dispose(); g.parts = null; }
   if (!petwTerrAppend(groups)) { W.basket = null; W.bush = null; W.decoys = []; return; }
-  W.groups = groups;
+  W.groups = groups; if (B && B.G.cl && B.G.cl.rg) petwCanopySetup(B); if (PETW_GLADE_TOUCH && B) petwTouchSetup(B, groups);
   if (B && B.G.gl) { const g = B.G.gl, ca = g.attr.c; g.c0 = Float32Array.from(ca.array.subarray(g.v0 * 3, (g.v0 + g.n) * 3)); petwLamp(B, 1); } /* the lantern glass: colors over 1 so the Lambert light leaves it glowing */
   if (B && B.G.tf) { const g = B.G.tf; g.c0 = Float32Array.from(g.attr.c.array.subarray(g.v0 * 3, (g.v0 + g.n) * 3)); petwFlame(B, 1); if (TORCH_FIRE_V2) g.p0 = Float32Array.from(g.attr.p.array.subarray(g.v0 * 3, (g.v0 + g.n) * 3)); } /* the torch's flame, glowing the same way */
   if (W.bush) { const g = W.bush.G; g.p0 = Float32Array.from(g.attr.p.array.subarray(g.v0 * 3, (g.v0 + g.n) * 3));
@@ -55684,10 +55740,10 @@ function petwRingTrees(course, B, out) { /* the ring's trees: the forest's own t
   const def = { pl: '#2f5a3a', ph: '#3a6a44', tr: '#5a4130', rd: '#4f7f3f' }; for (const k in col) if (!col[k]) col[k] = new THREE.Color(def[k]);
   const gPL = new THREE.ConeGeometry(1, 1.0, 7).translate(0, 0.9, 0), gPH = new THREE.ConeGeometry(0.7, 0.9, 7).translate(0, 1.55, 0), gTR = new THREE.CylinderGeometry(0.1, 0.15, 0.8, 5).translate(0, 0.4, 0), gRD = new THREE.IcosahedronGeometry(0.9, 0).translate(0, 1.5, 0);
   const yA = new THREE.Vector3(0, 1, 0), q = new THREE.Quaternion(), tint = (k, x, z) => col[k].clone().offsetHSL(0, 0, (hash2(Math.round(x * 4), Math.round(z * 4), 7486) - 0.5) * 0.06);
-  for (const T of B.ring) { if (T.kind !== 'pine' && T.kind !== 'round') continue; q.setFromAxisAngle(yA, T.ry); const s = T.s, p = new THREE.Vector3(T.x, T.y - 0.1, T.z);
-    if (T.kind === 'pine') { const m = new THREE.Matrix4().compose(p, q, new THREE.Vector3(s * 0.9, s * 1.5, s * 0.9)); out.push({ geo: gPL.clone(), col: tint('pl', T.x, T.z), m }, { geo: gPH.clone(), col: tint('ph', T.x, T.z), m: m.clone() }); }
-    else out.push({ geo: gRD.clone(), col: tint('rd', T.x, T.z), m: new THREE.Matrix4().compose(p, q, new THREE.Vector3(s * 0.8, s, s * 0.8)) });
-    out.push({ geo: gTR.clone(), col: tint('tr', T.x, T.z), m: new THREE.Matrix4().compose(p, q, new THREE.Vector3(s * 0.7, s * 1.2, s * 0.7)) });
+  for (const T of B.ring) { if (T.kind !== 'pine' && T.kind !== 'round') continue; q.setFromAxisAngle(yA, T.ry); const s = T.s, p = new THREE.Vector3(T.x, T.y - 0.1, T.z), role = PETW_GLADE_TOUCH && PETW_GHOST_CANOPY ? T : undefined; /* the canopy's parts keep their vertex range (petwCanopySetup) */
+    if (T.kind === 'pine') { const m = new THREE.Matrix4().compose(p, q, new THREE.Vector3(s * 0.9, s * 1.5, s * 0.9)); out.push({ geo: gPL.clone(), col: tint('pl', T.x, T.z), m, role }, { geo: gPH.clone(), col: tint('ph', T.x, T.z), m: m.clone(), role }); }
+    else out.push({ geo: gRD.clone(), col: tint('rd', T.x, T.z), m: new THREE.Matrix4().compose(p, q, new THREE.Vector3(s * 0.8, s, s * 0.8)), role });
+    out.push({ geo: gTR.clone(), col: tint('tr', T.x, T.z), m: new THREE.Matrix4().compose(p, q, new THREE.Vector3(s * 0.7, s * 1.2, s * 0.7)), role: petwTR({ trunk: T }) });
     const key = Math.floor(T.x / 4) + ',' + Math.floor(T.z / 4); if (!course.obst.has(key)) course.obst.set(key, []); course.obst.get(key).push({ x: T.x, z: T.z, r: 0.35 + s * 0.06, rv: (T.kind === 'pine' ? 0.9 : 0.72) * s, tree: true, petw: 1 }); }
   for (const T of B.ring) if (T.kind === 'boulder') { const key = Math.floor(T.x / 4) + ',' + Math.floor(T.z / 4); if (!course.obst.has(key)) course.obst.set(key, []); course.obst.get(key).push({ x: T.x, z: T.z, r: T.s * 1.0, rv: T.s * 1.25, top: T.y + T.s * 1.45, petw: 1 }); }
   for (const g of [gPL, gPH, gTR, gRD]) g.dispose(); PETW.parts = null; }
@@ -55767,8 +55823,56 @@ function petwFloat(W, B) { /* PETW_BASKET_FLOAT: this frame's hover pose of the 
   const c = Math.cos(ang), s = Math.sin(ang), P = F.p0, a = g.attr.p.array, y = F.cy + dy;
   for (let i = 0, o = g.v0 * 3; i < F.n; i++, o += 3) { const x = P[i * 3], z = P[i * 3 + 2]; a[o] = F.cx + x * c + z * s; a[o + 1] = y + P[i * 3 + 1]; a[o + 2] = F.cz - x * s + z * c; }
   F.dy = dy - F.rc; F.set = rm ? 2 : 1; g.attr.p.addUpdateRange(g.v0 * 3, F.n * 3); g.attr.p.needsUpdate = true; } /* F.dy: how far the wire's center rides over its seat on the cut (the rim halo follows it) */
+function petwCanopySetup(B) { /* PETW_GHOST_CANOPY: each ring tree's canopy range in the terrain buffer (its parts sit next to each other) and its rest positions */
+  const g = B.G.cl, a = g.attr.p.array, by = new Map();
+  for (const r of g.rg) { if (r.role.kind !== 'pine' && r.role.kind !== 'round') continue; const v0 = g.v0 + r.o, c = by.get(r.role); if (c) c.n = v0 + r.n - c.v0; else by.set(r.role, { T: r.role, v0, n: r.n, k: 0, r: 0.35 + r.role.s * 0.06 + PETW_CANOPY_NEAR }); }
+  B.cn = [...by.values()]; for (const c of B.cn) c.p0 = Float32Array.from(a.subarray(c.v0 * 3, (c.v0 + c.n) * 3)); }
+function petwCanopy(B, dt) { /* PETW_GHOST_CANOPY: draw a ring tree's canopy in and up while the bike is at its trunk, back out after (only a tree whose pose changed is uploaded) */
+  const g = B.G.cl, a = g.attr.p.array, rm = reduceMotion.matches, fx = Math.cos(S.yaw), fz = -Math.sin(S.yaw);
+  if ((Math.abs(S.pos.x - B.x) > B.rr + 6 || Math.abs(S.pos.z - B.z) > B.rr + 6) && B.cn.every(c => !c.k)) return;
+  for (const c of B.cn) { const T = c.T; let d = 1e9; for (const t of [CC_T[0], 0, CC_T[4]]) d = Math.min(d, Math.hypot(S.pos.x + fx * t - T.x, S.pos.z + fz * t - T.z));
+    const want = !S.camp && d < c.r ? 1 : 0, k0 = c.k; c.k = rm ? want : want > c.k ? Math.min(1, c.k + dt / PETW_CANOPY_IN) : Math.max(0, c.k - dt / PETW_CANOPY_OUT); if (c.k === k0) continue;
+    const e = c.k * c.k * (3 - 2 * c.k) * (rm ? 0.5 : 1), f = 1 - (1 - PETW_CANOPY_K) * e, ly = PETW_CANOPY_LIFT * e, P = c.p0;
+    for (let i = 0, o = c.v0 * 3; i < c.n; i++, o += 3) { a[o] = T.x + (P[i * 3] - T.x) * f; a[o + 1] = P[i * 3 + 1] + ly; a[o + 2] = T.z + (P[i * 3 + 2] - T.z) * f; }
+    g.attr.p.addUpdateRange(c.v0 * 3, c.n * 3); g.attr.p.needsUpdate = true; } }
+function petwTR(o) { return PETW_GLADE_TOUCH ? o : undefined; } /* PETW_GLADE_TOUCH: a solid's parts keep their vertex range (mergeParts' role ranges) */
+function petwHull(P) { /* the 2D convex hull (monotone chain, turning left in x / z) of the flat [x, z, ...] list P */
+  const n = P.length / 2, I = []; for (let i = 0; i < n; i++) I.push(i); I.sort((a, b) => P[a * 2] - P[b * 2] || P[a * 2 + 1] - P[b * 2 + 1]);
+  const cr = (o, a, b) => (P[a * 2] - P[o * 2]) * (P[b * 2 + 1] - P[o * 2 + 1]) - (P[a * 2 + 1] - P[o * 2 + 1]) * (P[b * 2] - P[o * 2]), lo = [], hi = [];
+  for (const i of I) { while (lo.length > 1 && cr(lo[lo.length - 2], lo[lo.length - 1], i) <= 0) lo.pop(); lo.push(i); }
+  for (let k = I.length - 1; k >= 0; k--) { const i = I[k]; while (hi.length > 1 && cr(hi[hi.length - 2], hi[hi.length - 1], i) <= 0) hi.pop(); hi.push(i); }
+  const H = lo.slice(0, -1).concat(hi.slice(0, -1)), out = new Float32Array(H.length * 2); H.forEach((i, k) => { out[k * 2] = P[i * 2]; out[k * 2 + 1] = P[i * 2 + 1]; }); return out; }
+function petwTouchSetup(B, groups) { /* PETW_GLADE_TOUCH: each glade solid's footprint from its own drawn vertices (B.ts) */
+  const by = new Map(), L = [];
+  for (const g of groups) if (g.rg && g.attr) { const A = g.attr.p.array; for (const r of g.rg) { if (r.role.kind === 'pine' || r.role.kind === 'round') continue; let e = by.get(r.role); if (!e) by.set(r.role, e = { P: [], top: -1e9, k: r.role.stump ? 'stump' : r.role.trunk ? 'trunk' : r.role.stone ? 'stone' : r.role.log ? 'log' : r.role.kind || 'shrub' });
+    const hv = new Float32Array(r.n); for (let k = 0; k < r.n; k++) { const v = g.v0 + r.o + k, x = A[v * 3], y = A[v * 3 + 1], z = A[v * 3 + 2]; hv[k] = y - gridTriH(x, z); if (y > e.top) e.top = y; if (hv[k] > PETW_TOUCH_LO && hv[k] < PETW_TOUCH_HI) e.P.push(x, z); }
+    for (let k = 0; k + 2 < r.n; k += 3) for (const [i, j] of [[k, k + 1], [k + 1, k + 2], [k + 2, k]]) for (const lv of [PETW_TOUCH_LO, PETW_TOUCH_HI]) if ((hv[i] - lv) * (hv[j] - lv) < 0) { /* an edge through the band's floor or roof (a tall trunk has no vertex inside the band) */
+      const t = (lv - hv[i]) / (hv[j] - hv[i]), a = (g.v0 + r.o + i) * 3, b = (g.v0 + r.o + j) * 3; e.P.push(A[a] + (A[b] - A[a]) * t, A[a + 2] + (A[b + 2] - A[a + 2]) * t); } } }
+  for (const e of by.values()) { if (e.P.length < 6) continue; const h = petwHull(e.P), n = h.length / 2; if (n < 3) continue; let x = 0, z = 0, r = 0; for (let i = 0; i < n; i++) { x += h[i * 2] / n; z += h[i * 2 + 1] / n; }
+    for (let i = 0; i < n; i++) r = Math.max(r, Math.hypot(h[i * 2] - x, h[i * 2 + 1] - z)); L.push({ x, z, r, top: e.top, h, k: e.k }); }
+  let R = 0; for (const g of L) R = Math.max(R, Math.abs(g.x - B.x) + g.r, Math.abs(g.z - B.z) + g.r); B.ts = L; B.tsR = R + 2; }
+const _ptN = { nx: 0, nz: 0 };
+function petwSd(g, px, pz, o) { /* signed distance (m) from (px, pz) to a solid's footprint (negative inside) and the way out in o */
+  const h = g.h, n = h.length / 2; let bd = 1e9, bx = 0, bz = 0, em = -1e9, ex = 0, ez = 0;
+  for (let i = 0; i < n; i++) { const j = (i + 1) % n, ax = h[i * 2], az = h[i * 2 + 1], ux = h[j * 2] - ax, uz = h[j * 2 + 1] - az, l2 = ux * ux + uz * uz, l = Math.sqrt(l2); if (l < 1e-6) continue;
+    const s = ((px - ax) * uz - (pz - az) * ux) / l; if (s > em) { em = s; ex = uz / l; ez = -ux / l; } /* the edge's outward side */
+    const t = Math.max(0, Math.min(1, ((px - ax) * ux + (pz - az) * uz) / l2)), qx = ax + ux * t, qz = az + uz * t, d = Math.hypot(px - qx, pz - qz); if (d < bd) { bd = d; bx = qx; bz = qz; } }
+  if (em <= 0) { o.nx = ex; o.nz = ez; return em; } o.nx = (px - bx) / (bd || 1); o.nz = (pz - bz) / (bd || 1); return bd; }
+function petwTouch() { /* PETW_GLADE_TOUCH: the bike's five circles against the glade's drawn footprints: held at the surface (out by exactly the overlap) and stopped there */
+  const W = S.course && S.course.petsW, B = W && W.basket, G = B && B.ts; if (!G || Math.abs(S.pos.x - B.x) > B.tsR || Math.abs(S.pos.z - B.z) > B.tsR) return;
+  const o = _ptN, deep = () => { const fx = Math.cos(S.yaw), fz = -Math.sin(S.yaw); let best = 0, nx = 0, nz = 0;
+    for (let q = 0; q < 5; q++) { const px = S.pos.x + fx * CC_T[q], pz = S.pos.z + fz * CC_T[q], cr = CC_R[q];
+      for (const g of G) { if (!S.grounded && S.pos.y > g.top + 0.05) continue; if (Math.abs(px - g.x) > g.r + cr || Math.abs(pz - g.z) > g.r + cr) continue;
+        const d = petwSd(g, px, pz, o) - cr; if (d < best) { best = d; nx = o.nx; nz = o.nz; } } }
+    o.d = best; o.mx = nx; o.mz = nz; return best; };
+  let it = 0; for (; it < 12 && deep() < -1e-4; it++) { const nx = o.mx, nz = o.mz; S.pos.x -= nx * o.d; S.pos.z -= nz * o.d; PETW.touchN = (PETW.touchN || 0) + 1;
+    const vn = S.vel.x * nx + S.vel.z * nz; if (vn < 0) { if (Math.hypot(S.vel.x, S.vel.z) > PETW_TOUCH_CREEP || Math.cos(S.yaw) * nx - Math.sin(S.yaw) * nz < -PETW_TOUCH_ALONG) { S.vel.x = 0; S.vel.z = 0; S.speed = 0; } else { S.vel.x -= nx * vn; S.vel.z -= nz * vn; } } }
+    /* running into it stops the bike there (no slide round it); pulling away at a walk with the nose out along it or away, only the push into it is dropped; moving away is left alone */
+  if (it === 12) deep(); const P = PETW.tp || (PETW.tp = { x: 0, z: 0, yaw: 0, t: -1 });
+  if (it && o.d < -0.002 && S.t - P.t < 0.05) { S.pos.x = P.x; S.pos.z = P.z; S.yaw = P.yaw; S.vel.x = 0; S.vel.z = 0; S.speed = 0; P.t = S.t; return; } /* wedged between two solids (or turned into one): the last free pose */
+  if (o.d >= -0.002) { P.x = S.pos.x; P.z = S.pos.z; P.yaw = S.yaw; P.t = S.t; } }
 function petwAnim(W, dt) { /* the lantern's flare (0.6 s, then the basket and lantern go), the real bush's rustle (now and then, while near) and its shake at the catch */
-  const B = W.basket; if (B && B.got && W.flare >= 0) { W.flare += dt; const t = W.flare; if (t < 0.6) petwLamp(B, 1 + 2.2 * Math.sin(Math.min(1, t / 0.6) * Math.PI)); else { petwHide(B.G.bk); petwHide(B.G.gl); W.flare = -1; } }
+  const B = W.basket; if (PETW_GLADE_TOUCH && PETW_GHOST_CANOPY && B && B.cn) petwCanopy(B, dt); if (B && B.got && W.flare >= 0) { W.flare += dt; const t = W.flare; if (t < 0.6) petwLamp(B, 1 + 2.2 * Math.sin(Math.min(1, t / 0.6) * Math.PI)); else { petwHide(B.G.bk); petwHide(B.G.gl); W.flare = -1; } }
   if (PETW_BASKET_FLOAT && B && B.fl) petwFloat(W, B);
   if (B && B.G && B.G.tf && B.G.tf.c0 && !S.camp && Math.hypot(S.pos.x - B.torch.x, S.pos.z - B.torch.z) < 90) { const t = PETW.t, am = reduceMotion.matches ? 0.3 : 1; /* the torch flickers while the rider is near (its own few colors uploaded) */
     if (TORCH_FIRE_V2) tfTick(B, dt, Math.hypot(S.pos.x - B.torch.x, S.pos.z - B.torch.z)); else petwFlame(B, 1 + am * (0.1 * Math.sin(t * 11.3) + 0.07 * Math.sin(t * 17.9 + 1.3) + 0.05 * Math.sin(t * 5.1 + 0.4))); }
@@ -56002,6 +56106,16 @@ const THEMES = [
     pal: [['meadow', -0.07, -0.16, 0.06], ['lush', -0.07, -0.14, 0.05], ['verge', -0.07, -0.14, 0.05], ['forest', -0.05, -0.14, 0.05], ['dry', -0.09, 0.1, 0.07], ['sand', -0.03, 0.08, 0.02], ['rock', -0.03, 0.06, 0.03], ['floor', -0.05, -0.08, 0.06]], tree: { pineLow: [-0.04, -0.08, 0.0], pineHigh: [-0.04, -0.08, 0.0], round: [-0.09, -0.06, 0.02], trunk: [0.0, -0.06, 0.06] },
     fog: '#d3cfc0', fogK: 1.15, sky: '#fbf6ea', bermK: 1.25, microK: 1.25, sbW: [1, 1.6, 1, 1, 1.2, 0.8], mcW: [1.8, 1, 1, 1, 1.6, 1, 1.2], cpW: [1, 0.8, 0.8, 1.6, 1, 0.6, 1.4, 0.6], water: [0.55, 0.15, 0.12, 0.13, 0.05] },
 ];
+/* GROUND_TINT_SLIGHT: 1 = three themes that started alike get a slight extra ground shift on top of their pal offsets (colors only, no draw, no stream):
+   Rocky Canyon a little warmer / tan with warm-gray rock (lerp toward a warm gray: a hue offset on a near-gray is unstable), Dry Scrub a little toward
+   straw / ocher, Alpine Meadow a little more saturated green. Entries: [color, dh, ds, dl] for offsetHSL or [color, '#target', amount] for a lerp.
+   The tread colors (dirt, packed, fresh) are not touched. GROUND_TINT_K scales every shift (1 = as listed, 0 = none); 0 = the old ground colors */
+const GROUND_TINT_SLIGHT = 1, GROUND_TINT_K = 1.0;
+const GROUND_TINT = {
+  canyon: [['meadow', -0.08, 0.06, 0], ['lush', -0.08, 0.06, 0], ['verge', -0.08, 0.05, 0], ['edge', -0.04, 0.04, 0.01], ['forest', -0.06, 0.04, -0.01], ['dry', -0.02, 0.04, 0.01], ['rock', '#b8886a', 0.55], ['rock2', '#8e6a54', 0.55]],
+  scrub: [['meadow', -0.035, 0.07, 0], ['lush', -0.035, 0.07, 0], ['verge', -0.035, 0.06, 0], ['forest', -0.03, 0.05, 0], ['floor', -0.03, 0.05, -0.01], ['dry', -0.02, 0.06, 0.01]],
+  alpine: [['meadow', 0, 0.08, 0], ['lush', 0, 0.08, 0], ['verge', 0, 0.07, 0], ['forest', 0, 0.06, 0], ['dry', 0, 0.06, 0]],
+};
 /* tutorial: seed + helpers. The tutorial is one fixed mountain: MTN-BASICS (parseInt('BASICS', 36)). Random, New mountain and Daily seeds stay
    under 60,000,000 (at most five base-36 digits), so no rolled mountain can ever land on it. Everything tutorial-only keys off this seed:
    buildCourse lays the authored course for it, and isTut() tells the rest of the game it is being ridden. TUT_ALIAS: words the Enter code box
@@ -58536,6 +58650,22 @@ function animateCrossings() { /* lamps and arms of every crossing, from the run 
       pa.needsUpdate = true; } /* the arms' ranges only (the crossing's buffer also holds the train) */
   }
 }
+/* HELP_TEXT_CLEAN: 1 = the shorter how-to texts for Washers and the Firefly Jar (a mouse gets its own Firefly text, instr.m); 0 = the texts as before */
+const HELP_TEXT_CLEAN = 1;
+/* ZEN_CARD_UNIFIED: 1 = the zen garden opens on the same centered dark card as the other games (TAP / CLICK / PRESS A TO START), the long how-to
+   (with the free rake line) lives behind its '?'; 0 = the top-right caption and the 'touch the sand to begin' line as before */
+const ZEN_CARD_UNIFIED = 1;
+/* TRAILBUILD_HINT: 1 = Trail Build's bottom hint sits in a dark pill, 14 px cream text with 'gold slot' in gold; 0 = the small plain caps line */
+const TRAILBUILD_HINT = 1;
+/* START_PROPS_N: a few signature props in the first ~60 m of a Rocky Canyon, Alpine Meadow or Dry Scrub ride (own stream seed + 7633, placed after
+   every other draw, off the tread and the jump corridors, merged into the dressing sections); 0 = none */
+const START_PROPS_N = 5;
+/* GROUND_FACET_K: 1 = the open ground's per-facet lightness noise twice as wide (+-0.05) plus a mild lightness contrast, so flat ground reads crisper;
+   0 = the ground colors as before */
+const GROUND_FACET_K = 1.0;
+/* COURSE_PLATE_TR: 1 = the arrival plate sits top right (title, a thin gold line, the code chip and the trail / camps caps), hidden while paused;
+   0 = the centered banner as before */
+const COURSE_PLATE_TR = 1;
 function buildWorld(course, surf) {
   if (world) { scene.remove(world); if (campProps && campProps.grp.parent) campProps.grp.parent.remove(campProps.grp); disposeSubtree(world); }
   while (clouds.children.length) { const c = clouds.children[0]; clouds.remove(c); disposeSubtree(c); }
@@ -58555,8 +58685,10 @@ function buildWorld(course, surf) {
     mud: new THREE.Color('#5a4535'), mud2: new THREE.Color('#4a3a2e'), leaf: new THREE.Color(course.theme === 'autumn' ? '#c0773a' : '#8d6a44'), leaf2: new THREE.Color(course.theme === 'autumn' ? '#a4522c' : '#75583a'), leafY: new THREE.Color(course.theme === 'autumn' ? '#c99a3e' : '#9a7a4c'), /* painted mud and fallen leaves (GROUND 4 / 5): bright on the autumn theme, browner needles and old leaves elsewhere */
   };
   if (course.dial && course.dial.pal) for (const [k, h, sa, l] of course.dial.pal) if (C[k]) C[k].offsetHSL(h, sa, l); /* the theme's palette shift on the ground / rock colors */
+  if (GROUND_TINT_SLIGHT && GROUND_TINT_K > 0 && GROUND_TINT[course.theme]) for (const [k, a, b, c] of GROUND_TINT[course.theme]) if (C[k]) { if (typeof a === 'string') C[k].lerp(new THREE.Color(a), b * GROUND_TINT_K); else C[k].offsetHSL(a * GROUND_TINT_K, b * GROUND_TINT_K, c * GROUND_TINT_K); }
   const ZBc = course.grid.ZB, TIER = course.tier, PDc = course.grid.PD, WTc = course.grid.WT, GTc = course.grid.GT;
   const snowLine = maxH - 14 * ((course.dial && course.dial.snowS) || 1), tmp = new THREE.Color(); /* the snow line breathes a little per map */
+  const gfHsl = { h: 0, s: 0, l: 0 }; /* GROUND_FACET_K scratch */
   const XH = course.grid.XH || null, HgX = XH ? Hg.map((v, k) => v + XH[k]) : Hg; /* a level crossing's carve is drawn from the start; Hg itself takes it once the world is placed */
   for (let iz = 0; iz < NZ; iz++) for (let ix = 0; ix < NX; ix++) {
     const k = iz * NX + ix; const h = HgX[k];
@@ -58593,7 +58725,9 @@ function buildWorld(course, surf) {
       if (gp > 0.5) tmp.offsetHSL(0, 0, (hash2(ix * 3 + 1, iz * 3 + 2, seed + 19) - 0.5) * 0.06); /* speckle reads as blades from the camera distance */
       { const dr = fbm(x * 0.012, z * 0.012, seed + 88, 2) - 0.5; tmp.offsetHSL(dr * 0.07, dr * 0.35, dr * 0.12); } /* a slow ~80 m drift in hue / saturation / lightness over the open ground, so a hillside is never one flat green */
     }
-    if (W[k] < 0.5) tmp.offsetHSL(0, 0, (hash2(ix, iz, seed + 9) - 0.5) * 0.05); /* a little per-facet lightness noise breaks the flat sheets up */
+    if (W[k] < 0.5) { if (GROUND_FACET_K && !(PDc && PDc[k])) { tmp.getHSL(gfHsl); const gfO = W[k] <= 0.05 && LN[k] <= 0.25 && slope <= 0.95 && h >= WATER + 1.2 && !(ZBc && ZBc[k]) && !(GTc && GTc[k]) && gfHsl.l < 0.8;
+        tmp.offsetHSL(0, 0, (hash2(ix, iz, seed + 9) - 0.5) * 0.05 * (1 + GROUND_FACET_K) + (gfO ? (gfHsl.l - 0.22) * 0.08 * GROUND_FACET_K : 0)); } /* off the camp pad / lane: wider facet noise; on the open grass also a mild contrast round a low pivot (lifts the ground a touch off the darker tread) */
+      else tmp.offsetHSL(0, 0, (hash2(ix, iz, seed + 9) - 0.5) * 0.05); } /* a little per-facet lightness noise breaks the flat sheets up */
     if (WTc && WTc[k] > 0) tmp.multiplyScalar(1 - 0.34 * WTc[k]); /* the tread is dark and wet through a ford and a little past it */
     col[k * 3] = tmp.r; col[k * 3 + 1] = tmp.g; col[k * 3 + 2] = tmp.b;
   }
@@ -60776,6 +60910,49 @@ function buildWorld(course, surf) {
     pl.count = ph.count = np; rd.count = nr; tr.count = nt;
     for (const im of [pl, ph, tr, rd]) { im.instanceMatrix.needsUpdate = true; if (im.instanceColor) im.instanceColor.needsUpdate = true; }
   }
+  }
+  if (START_PROPS_N > 0 && !course.tut && (course.theme === 'canyon' || course.theme === 'alpine' || course.theme === 'scrub')) startProps();
+  /* the ride's first ~60 m get a few props that say which mountain this is: Rocky Canyon stacked slabs, a low red outcrop, dry tufts; Alpine Meadow
+     flower patches, bright stones, a taller pine at the edge; Dry Scrub sagebrush, a bleached stump, pale rocks. Own stream (seed + 7633), drawn after
+     every other placement; ankle-high pieces carry no collider (like the small scatter rocks) and stay 1.2 m or more off the tread; a pine stands
+     5.5 m or more out with a tree collider. The low pieces join the dressing sections (statParts, merged per 90 m by mergeStatic, cleared by the
+     same passes as the jump dressing); a pine goes into the forest's own meshes. */
+  function startProps() {
+    const R = mulberry32(seed + 7633), V3 = THREE.Vector3, Q = THREE.Quaternion, parts = course.statParts || (course.statParts = []);
+    const KINDS = { canyon: ['slabs', 'outcrop', 'tufts', 'slabs', 'tufts', 'outcrop'], alpine: ['flowers', 'stones', 'pine', 'flowers', 'stones', 'pine'], scrub: ['sage', 'stump', 'pale', 'sage', 'pale', 'sage'] }[course.theme];
+    const tuftG2 = new THREE.ConeGeometry(0.15, 0.36, 3), dotG = new THREE.IcosahedronGeometry(0.07, 0), blobG = new THREE.IcosahedronGeometry(1, 0), stumpG = new THREE.CylinderGeometry(0.2, 0.27, 0.42, 6);
+    const TCp = MAXTB + CAPT, gone = [];
+    const free = (x, z, r) => { for (const g of gone) if (Math.hypot(g[0] - x, g[1] - z) < g[2] + r + 0.4) return false;
+      for (let dx = -1; dx <= 1; dx++) for (let dz = -1; dz <= 1; dz++) { const L = obst.get((Math.floor(x / 4) + dx) + ',' + (Math.floor(z / 4) + dz)); if (L) for (const o of L) if (Math.hypot(o.x - x, o.z - z) < (o.rv || o.r) + r + 0.3) return false; }
+      for (const d of course.decor || []) if (Math.hypot(d.x - x, d.z - z) < (d.rv || d.r || 0.3) + r + 0.2) return false; return true; };
+    const ok = (x, z, i, r, clr) => { const sf = surf(x, z); if (!sf || sf.water || sf.road || sf.shoulder || (sf.line || 0) > 0.05) return null;
+      const ix = Math.round((x - X0) / CELL), iz = Math.round((z - Z0) / CELL); if (ix < 1 || iz < 1 || ix > NX - 2 || iz > NZ - 2) return null; const k = iz * NX + ix;
+      if (NI[k] >= 0 && DI[k] < pts[NI[k]].hw + clr + r) return null; if (LN[k] > 0.05 || (course.grid.CL && course.grid.CL[k]) || (course.grid.PD && course.grid.PD[k])) return null;
+      if (Math.hypot(Hg[k + 1] - Hg[k - 1], Hg[k + NX] - Hg[k - NX]) / (2 * CELL) > 0.7 || sf.h > snowLine - 2) return null;
+      if (nearShortcut(x, z) < 2.5 || laneDist(x, z) < 3 || inIsland(x, z) || onApron(k) || onLine(x, z) || onOtherTrail(x, z, i, 1.6 + r) || !jumpOK(x, z, r, r) || !free(x, z, r)) return null;
+      return sf; };
+    const put = (geo, col, x, y, z, sx, sy, sz, q) => parts.push({ geo, col, m: new THREE.Matrix4().compose(new V3(x, y, z), q || new Q(), new V3(sx, sy, sz)), ax: x, az: z, inst: true });
+    const yaw = (a, t = 0) => new Q().setFromEuler(new THREE.Euler(t, a, t * 0.6));
+    let nPine = 0; course.startProps = []; /* course.startProps is not read by the game: it is the test hook tests\round2_checks.py reads to find the start props */
+    for (let n = 0; n < Math.min(START_PROPS_N, 12); n++) { const kind = KINDS[n % KINDS.length], pine = kind === 'pine';
+      for (let t = 0; t < 14; t++) { const i = 3 + Math.floor(R() * R() * 57), P = pts[Math.min(pts.length - 1, i)], sd = R() < 0.5 ? -1 : 1, u = R(), al = (R() - 0.5) * 2, a = R() * 6.283, v = R(), w = R();
+        const o = sd * (P.hw + (pine ? 5.5 + u * 4 : kind === 'outcrop' ? 2.4 + u * 3 : 1.3 + u * 3.2)), x = P.x + P.rx * o + P.fx * al, z = P.z + P.rz * o + P.fz * al;
+        if (pine) { if (nPine >= 2 || np >= TCp || nt >= TCp * 2) break; const scl = (2.5 + v * 0.7) * TSCL; const sf = ok(x, z, i, 0.9 * scl, 4.6); if (!sf) continue; const fit = treeFit(x, z, 0.9 * scl); if (!fit) continue;
+          const sc = scl * fit, tv = w, m4p = new THREE.Matrix4(); m4p.compose(new V3(x, sf.h - 0.1, z), yaw(a), new V3(sc * 0.9, sc * 1.5, sc * 0.9)); pl.setMatrixAt(np, m4p); ph.setMatrixAt(np, m4p); tint(pl, np, HSL.pineLow, tv, x, z); tint(ph, np, HSL.pineHigh, tv, x, z); np++;
+          m4p.compose(new V3(x, sf.h - 0.1, z), yaw(a), new V3(sc * 0.7, sc * 1.2, sc * 0.7)); trunkTint(nt, tv); tr.setMatrixAt(nt++, m4p);
+          addObst(x, z, 0.35 + sc * 0.06, 0.9 * sc); const O = obst.get(Math.floor(x / 4) + ',' + Math.floor(z / 4)).at(-1); O.tree = true; nPine++;
+          pl.count = ph.count = np; tr.count = nt; for (const im of [pl, ph, tr]) { im.instanceMatrix.needsUpdate = true; if (im.instanceColor) im.instanceColor.needsUpdate = true; }
+          gone.push([x, z, 0.9 * sc]); course.startProps.push({ kind, x, z, i }); break; }
+        const r = kind === 'outcrop' ? 1.0 : kind === 'slabs' ? 0.8 : 0.6, sf = ok(x, z, i, r, 1.2); if (!sf) continue; const y = sf.h;
+        if (kind === 'slabs') { const C3 = ['#b07a58', '#9c6a4c', '#c48e69']; let yy = y - 0.04; for (let s2 = 0, ns = 2 + Math.floor(v * 2); s2 < ns; s2++) { const k2 = 1 - s2 * 0.22, th = 0.16 + w * 0.05; put(rockG, C3[s2 % 3], x + (s2 ? (v - 0.5) * 0.2 : 0), yy + th * 0.5, z + (s2 ? (w - 0.5) * 0.2 : 0), 0.9 * k2, th / 1.6 * 1.25, 0.7 * k2, yaw(a + s2 * 0.7, 0.04)); yy += th * 0.95; } }
+        else if (kind === 'outcrop') { const C3 = ['#9b5a3e', '#a8664a', '#8a4f37']; for (let s2 = 0; s2 < 3; s2++) { const ang = a + s2 * 2.1, d2 = s2 ? 0.45 + v * 0.2 : 0, k2 = s2 ? 0.55 : 0.85; put(rockG, C3[s2], x + Math.cos(ang) * d2, y - 0.05, z + Math.sin(ang) * d2, k2 * 1.1, k2 * 0.55, k2 * 0.9, yaw(ang, 0.2)); } }
+        else if (kind === 'tufts' || kind === 'flowers') { const dry = kind === 'tufts', TC3 = dry ? ['#c8b072', '#b59c5f', '#d6c38a'] : ['#6f9a4c', '#7fa857', '#5f8a42'], FC3 = ['#ffffff', '#ffe066', '#fff3c2'];
+          for (let s2 = 0; s2 < 6; s2++) { const ang = a + s2 * 1.1, d2 = 0.15 + ((s2 * 0.37 + v) % 1) * 0.5, sc = 0.8 + ((s2 * 0.53 + w) % 1) * 0.6; put(tuftG2, TC3[s2 % 3], x + Math.cos(ang) * d2, y + 0.1, z + Math.sin(ang) * d2, sc, sc * (dry ? 1.3 : 1.0), sc, yaw(ang)); }
+          if (!dry) for (let s2 = 0; s2 < 7; s2++) { const ang = a + s2 * 0.9 + 0.4, d2 = 0.1 + ((s2 * 0.29 + w) % 1) * 0.55; put(dotG, FC3[s2 % 2 ? 1 : 0], x + Math.cos(ang) * d2, y + 0.24 + (s2 % 3) * 0.03, z + Math.sin(ang) * d2, 1, 1, 1); } }
+        else if (kind === 'stones' || kind === 'pale') { const C3 = kind === 'stones' ? ['#e4e1d8', '#d2cec2', '#c3c6c9'] : ['#d8ccb0', '#cbbd9e', '#e2d8c0']; for (let s2 = 0; s2 < 3; s2++) { const ang = a + s2 * 2.3, d2 = s2 ? 0.35 + v * 0.3 : 0, k2 = (s2 ? 0.2 : 0.32) * (0.9 + w * 0.3); put(rockG, C3[s2], x + Math.cos(ang) * d2, y + k2 * 0.15, z + Math.sin(ang) * d2, k2, k2 * 0.6, k2 * 0.85, yaw(ang, 0.3)); } }
+        else if (kind === 'sage') { const C3 = ['#8e9a78', '#a0a888', '#7f8c6c']; for (let s2 = 0; s2 < 3; s2++) { const ang = a + s2 * 2.1, d2 = s2 ? 0.32 : 0, k2 = s2 ? 0.26 : 0.36; put(blobG, C3[s2], x + Math.cos(ang) * d2, y + k2 * 0.45, z + Math.sin(ang) * d2, k2 * (1.1 + v * 0.2), k2 * 0.75, k2, yaw(ang, 0.1)); } }
+        else if (kind === 'stump') { put(stumpG, '#d3cab4', x, y + 0.17, z, 1, 1, 1, yaw(a, 0.05)); put(dotG, '#bfb397', x + 0.18, y + 0.05, z - 0.1, 2.2, 1.2, 1.6); }
+        gone.push([x, z, r]); course.startProps.push({ kind, x, z, i, r }); break; } } /* not added to course.decor: the pets' glade search reads that list and keeps its spots */
   }
   if (XH) for (let k = 0; k < Hg.length; k++) Hg[k] += XH[k]; /* the crossing's carve under the ride from here on (clearCross drops what stood on it) */
   course.stillOn = true; /* the world is placed: from here on surf() reports still water (ponds, lakes, bridge pools) and a crossing's ramp lane */
@@ -64005,7 +64182,7 @@ const cuteDogOwn = () => [
   { k: 'h', c: [0.05, 0.235, 0], r: [0.08, 0.074, 0.084], rot: [0.1, -0.35, 0], seg: [10, 7], p: 'head', f: [
     { k: 'e', at: [0.86, -0.32, 0], r: [0.042, 0.03, 0.036], seg: [8, 5], p: 'muz' }, /* the muzzle bump */
     { k: 'e', at: [1.38, -0.2, 0], r: [0.011, 0.009, 0.012], seg: [5, 3], p: 'nose', ns: true }, /* the button nose */
-    { k: 'e', at: [0.72, -0.66, 0], r: [0.032, 0.026, 0.034], seg: [6, 4], p: 'gold' }, /* the moustache / beard */
+    { k: 'e', at: [0.72, -0.66, 0], r: [0.032, 0.026, 0.034], seg: [6, 4], p: 'gold' }, /* the mustache / beard */
     { k: 'e', at: [-0.05, -0.42, 0.84], r: [0.032, 0.054, 0.016], rot: [-0.18, 0, 0.12], seg: [6, 4], p: 'fall', mir: true }, /* the side fall */
     { k: 'eye', uy: -0.04, uz: 0.47, s: [0.009, 0.022, 0.022], c: 'eye', gl: 0.006, mir: true },
     { k: 'ear', at: [-0.12, 0.8, 0.42], tip: [0.01, 0.04, 0.016], r: 0.02, cF: 'deep', cI: 'pink', cB: 'deep', th: 0.55, mir: true, a3ear: true },
@@ -65798,6 +65975,10 @@ const S = {
    never bakes it and stays silent); near(o) fills o = { x, y, z, v } with the nearest point of the nearest running train (world meters) and the train's
    speed (m/s) and returns true, or returns false (trainNear, next to animateTrains) */
 const trainAudioFeed = { on: () => TRAINS.mode !== 'off', near: (o) => trainNear(o) };
+/* 1 = the subtler day birds (quieter and darker, almost no echo or reverb, bouts in irregular spells and lulls, now and then a visitor species, each call a little different); 0 = the previous birds exactly */
+const BIRDS_SUBTLE = 1;
+/* 1 = the trail's own cricket layer plays only toward a camp and at dusk (the ride is daytime: no crickets out on the trail), and every cricket bed is a quiet hint (MIX.crickHint). 0 = the previous crickets exactly */
+const CRICKETS_DUSK_ONLY = 1;
 
 /* ---------- sound: everything synthesized live (tires, wind, skids, landings, freewheel, campfires) ---------- */
 const sfx = (() => {
@@ -65828,6 +66009,7 @@ const sfx = (() => {
     squeak: 1,         /* faint brake squeal, brake applied at speed only, throttled */
     birds: 0.6, insects: 1, water: 1, fire: 1, floor: 1, /* per-layer trims inside the nature bus; no wind / gust / rush layers (a steady noise bed reads as ocean) */
     birdsRide: 1.4, birdsCamp: 0.7, /* bird calls (and the woodpecker) x this out on the trail / at a camp and in camp mode, blended by closeness (birdNear) */
+    crickHint: 0.42,   /* with CRICKETS_DUSK_ONLY: every cricket bed (near a camp, in camp mode, the dusk bed) x this (-7.5 dB), a hint under the fire and the music */
     crickRide: 0.6,    /* the trail's own cricket layer x this away from camps; within 16 m of a camp and in camp mode it is back to full, so the camp bed is unchanged */
     dusk: 1,           /* the dusk bed (crickets, tree frogs, owl, far night birds, leaf ticks, creek drops) inside camp mode / mini games: sfx.dusk(on), sfx.camp.enter() */
     duskMusic: 0.72,   /* music x this while the dusk scene is on (and it plays its quieter camp variant) */
@@ -65848,7 +66030,7 @@ const sfx = (() => {
   const bird = { next: 8, left: 0, sp: null, pan: 0, dist: 0.6, gap: 3, ans: 0, busy: 0 };
   let campBus, campLp, campCp = null, campKind = -1, campR = Math.random, campAud = 0, campK = 0, campLoop = null, campLoopT = 0, campBufs = {}, campN = {}, gtrPat = null;
   const ls0 = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
-  const PERSIST_BASE = 37; /* nodes built by init outside the music graph (36 on low quality: no cicadas); + 1 once the fire body loop is baked; + 17 (organic music) or + 20 (MusicClassic) */
+  const PERSIST_BASE = 37 + (BIRDS_SUBTLE ? 2 : 0); /* nodes built by init outside the music graph (36 on low quality: no cicadas; + 2 for the subtle birds' reverb path); + 1 once the fire body loop is baked; + 17 (organic music) or + 20 (MusicClassic) */
   let persist = 0, newNodes = [], fireIn = null, fireLp = null, firePan = null, bodyG = null, bodySrc = null;
   let useClassic = ls0('holdon.classic') === '1', engK = 1, engSwT = -99, CLS = null; /* alt track: engK = the organic engine's share of the crossfade (1 = organic, 0 = classic) */
   const ls = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch (e) { } } };
@@ -66002,7 +66184,7 @@ const sfx = (() => {
     wpBuf = [0, 1].map(kind => { const n = (sr * (kind ? 2.4 : 1.1)) | 0, b = ctx.createBuffer(1, n, sr), d = b.getChannelData(0); const taps = kind ? [0, 0.42, 0.75, 1.35, 1.7, 2.1] : Array.from({ length: 16 + Math.floor(rnd() * 6) }, (_, i) => i * (0.052 + i * 0.0009));
       taps.forEach((t0, i) => { const a = kind ? 0.8 : 0.9 - i * 0.025, s0 = (t0 * sr) | 0, fr = 1250 + rnd() * 250; for (let j = 0; j < 0.03 * sr && s0 + j < n; j++) { const t = j / sr; d[s0 + j] += a * (Math.sin(2 * Math.PI * fr * t) * Math.exp(-t * 260) * 0.7 + (rnd() * 2 - 1) * Math.exp(-t * 1400) * 0.5 + Math.sin(2 * Math.PI * 520 * t) * Math.exp(-t * 120) * 0.25); } }); return b; });
     /* reverb: one synthesized IR (2 nodes). 1.8 s, pre-delay 12 ms, early taps at 7-41 ms, dark low band tau 0.3 s, bright band 0.11 s: a room, not a hall */
-    verbIn = ctx.createGain(); verbIn.gain.value = MIX.verb; natVerb = ctx.createGain(); natVerb.gain.value = MIX.nature; natVerb.connect(verbIn); { const conv = ctx.createConvolver(), n = (sr * 1.8) | 0, b = ctx.createBuffer(2, n, sr), pre = (0.012 * sr) | 0;
+    verbIn = ctx.createGain(); verbIn.gain.value = MIX.verb; natVerb = ctx.createGain(); natVerb.gain.value = MIX.nature; natVerb.connect(verbIn); if (BIRDS_SUBTLE) { const d = ctx.createDelay(0.05), c = ctx.createBiquadFilter(); d.delayTime.value = 0.012; c.type = 'lowpass'; c.frequency.value = 3500; c.Q.value = 0.5; d.connect(c).connect(natVerb); birdVerb = d; } /* the subtle birds' send: 12 ms more pre-delay and a 3.5 kHz high cut, so the tail reads as space, not an echo */ { const conv = ctx.createConvolver(), n = (sr * 1.8) | 0, b = ctx.createBuffer(2, n, sr), pre = (0.012 * sr) | 0;
       for (let c = 0; c < 2; c++) { const dd = b.getChannelData(c); let lp = 0; for (let i = pre; i < n; i++) { const t = (i - pre) / sr, x = rnd() * 2 - 1; lp += 0.16 * (x - lp); const on = Math.min(1, t / 0.02), fade = i > n * 0.85 ? (n - i) / (n * 0.15) : 1; dd[i] = on * fade * (lp * 2.6 * Math.exp(-t / 0.3) + (x - lp) * 0.55 * Math.exp(-t / 0.11)); }
         [7, 11, 17, 23, 31, 41].forEach((ms, k) => { const at = (((ms + (c ? 1.3 : 0) + rnd()) * sr / 1000) | 0); dd[at] += (rnd() < 0.5 ? -1 : 1) * (0.85 - k * 0.1); }); }
       conv.buffer = b; verbIn.connect(conv); conv.connect(comp); }
@@ -66033,7 +66215,7 @@ const sfx = (() => {
   function dropNew() { /* tear the organic engine's graph down (after the crossfade to MusicClassic); notes still ringing are silent by then */
     if (!musBus) return; for (const n of newNodes) { try { n.disconnect(); } catch (e) { } last.delete(n.gain); last.delete(n.frequency); } persist -= newNodes.length; newNodes = [];
     musBus = tilt = padSend = panB = echoIn = dly = lpf = titleBus = titleLp = wLp = null; bakeQ.length = 0; }
-  let wpBuf = null, natVerb, lastErr = '', jangBuf = null, tickBuf = null;
+  let wpBuf = null, natVerb, birdVerb = null, lastErr = '', jangBuf = null, tickBuf = null;
   let crankLast = null, crankRest = 1, crankTicks = 0, brPrev = 0, sqCool = 0, sqHeld = 0, sqN = 0, tickN = 0, pedOn = false; /* bike state */
   /* ---- one-shot budget: a 30/s token bucket and a live-node cap (low priority: ticks, birds, pops) ---- */
   const shot = (hi) => { if (!ctx || muted) return false; if (!hi && (tok < 1 || liveN > 32)) return false; tok = Math.max(0, tok - 1); shotsS++; return true; };
@@ -66466,34 +66648,76 @@ const sfx = (() => {
     o.frequency.setValueAtTime(f, t); o.frequency.linearRampToValueAtTime(f * (0.96 + rnd() * 0.02), t + dur); o2.frequency.setValueAtTime(f * 1.007, t); o2.frequency.linearRampToValueAtTime(f * 1.007 * 0.97, t + dur); /* two close partials beat at ~20-25 Hz: a pad-on-rotor chirp, not a pure whistle */
     g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(a, t + 0.04); g.gain.setTargetAtTime(a * 0.7, t + 0.04, dur * 0.4); g.gain.setTargetAtTime(0.0001, t + dur * 0.75, 0.03);
     o.connect(g); o2.connect(g); g.connect(master); o.start(t); o2.start(t); o.stop(t + dur + 0.25); o2.stop(t + dur + 0.25); track(3, o); sqN++; }
-  /* a distant voice: gain -> air absorption (low-pass by distance) -> pan -> nature bus, plus a reverb send that grows with distance (5 nodes) */
-  function farOut(pan, dist, n) { const g = ctx.createGain(), lp = ctx.createBiquadFilter(), p = ctx.createStereoPanner ? ctx.createStereoPanner() : null, sd = ctx.createGain();
-    lp.type = n || 'lowpass'; lp.frequency.value = lerp(7200, 2500, dist); /* near calls a little less bright */ lp.Q.value = 0.7; sd.gain.value = lerp(0.12, 0.6, dist); g.connect(lp); if (p) { p.pan.value = clamp(pan, -1, 1); lp.connect(p).connect(natBus); p.connect(sd); } else { lp.connect(natBus); lp.connect(sd); } sd.connect(natVerb); return { g, lp }; }
+  /* a distant voice: gain -> air absorption (low-pass by distance) -> pan -> nature bus, plus a reverb send that grows with distance (5 nodes).
+     pre = the subtle birds' send: tapped before the panner into the short bird reverb path (birdVerb) instead of after it */
+  function farOut(pan, dist, n, pre) { const g = ctx.createGain(), lp = ctx.createBiquadFilter(), p = ctx.createStereoPanner ? ctx.createStereoPanner() : null, sd = ctx.createGain();
+    lp.type = n || 'lowpass'; lp.frequency.value = lerp(7200, 2500, dist); /* near calls a little less bright */ lp.Q.value = 0.7; sd.gain.value = lerp(0.12, 0.6, dist); g.connect(lp); if (p) { p.pan.value = clamp(pan, -1, 1); lp.connect(p).connect(natBus); (pre ? lp : p).connect(sd); } else { lp.connect(natBus); lp.connect(sd); } sd.connect(pre && birdVerb ? birdVerb : natVerb); return { g, lp, sd }; }
   /* birds: recipes write frequency/gain automation on one oscillator from a per-call seed, so an echo is the same call again, later, darker */
-  const birdNear = () => lerp(MIX.birdsRide, MIX.birdsCamp, Math.max(clamp(1 - nearCamp / 16, 0, 1), duskK)); /* louder on the trail, softer at a camp (the dusk bed owns the camp) */
-  function birdCall(sp, t, pan, dist, k, seed) {
-    if (!shot(false)) return 0; const R = mulberry32(seed), o = ctx.createOscillator(), { g, lp } = farOut(pan, dist), A = 0.054 * MIX.birds * birdNear() * k * lerp(1, 0.3, dist), F = o.frequency, G = g.gain; let T = 0;
-    G.setValueAtTime(0, t); const note = (s, d, f0, f1, a, at = 0.012) => { F.setValueAtTime(f0, s); F.linearRampToValueAtTime(f1, s + d); at = Math.min(d * 0.45, Math.max(0.02, at * 2.5)); G.setValueAtTime(0, s); G.linearRampToValueAtTime(a, s + at); /* softer onsets */ G.setTargetAtTime(0, s + d - Math.min(d * 0.5, 0.04), 0.012); T = Math.max(T, s + d - t); };
+  /* the subtle birds' trims: level on the trail and at a camp (on top of the steeper distance law in birdCall), the onset softening (x the recipe's attack),
+     the share of bouts sung by a visitor species and the ceiling of the air low-pass (keeps the 6 kHz chips soft) */
+  const BS = { ride: 0.87, camp: 1, at: 3.2, visit: 0.22, lpMax: 6500 };
+  const birdNear = () => BIRDS_SUBTLE ? lerp(MIX.birdsRide * BS.ride, MIX.birdsCamp * BS.camp, Math.max(clamp(1 - nearCamp / 16, 0, 1), duskK)) : lerp(MIX.birdsRide, MIX.birdsCamp, Math.max(clamp(1 - nearCamp / 16, 0, 1), duskK)); /* louder on the trail, softer at a camp (the dusk bed owns the camp) */
+  /* subtle birds: a second stream from the same seed varies each call (pitch +-1.5 % on top of the bird's own pitch pv, tempo 0.92-1.10, level +-2.5 dB, note count +-20 %);
+     level falls 15 dB over the distance range (dist^0.8), the air low-pass runs 9 kHz near -> 3 kHz far but never below 1.6 x the call's top pitch (and never above BS.lpMax),
+     the reverb send is 0.04 -> 0.2 (a dry call with a little space, no hall), loud species are capped at the base level */
+  function birdCall(sp, t, pan, dist, k, seed, pv) {
+    if (!shot(false)) return 0; const R = mulberry32(seed), o = ctx.createOscillator(), { g, lp, sd } = farOut(pan, dist, undefined, BIRDS_SUBTLE), F = o.frequency, G = g.gain; let T = 0, fx = 0;
+    const V = BIRDS_SUBTLE ? mulberry32((seed ^ 0x5B1D5) >>> 0) : null, pf = V ? (pv || 1) * (0.985 + V() * 0.03) : 1, tf = V ? 0.92 + V() * 0.18 : 1, nk = V ? 0.8 + V() * 0.4 : 1;
+    const A = V ? 0.054 * MIX.birds * birdNear() * k * Math.pow(10, -0.75 * Math.pow(dist, 0.8)) * Math.pow(10, (V() * 5 - 2.5) / 20) : 0.054 * MIX.birds * birdNear() * k * lerp(1, 0.3, dist);
+    const cap = (x) => V ? Math.min(1, x) : x, cnt = (n) => V ? Math.max(1, Math.round(n * nk)) : n;
+    if (V) sd.gain.value = lerp(0.04, 0.2, dist);
+    G.setValueAtTime(0, t); const note = (s, d, f0, f1, a, at = 0.012) => { if (V) { s = t + (s - t) * tf; d *= tf; f0 *= pf; f1 *= pf; fx = Math.max(fx, f0, f1); } F.setValueAtTime(f0, s); F.linearRampToValueAtTime(f1, s + d); at = Math.min(d * 0.45, Math.max(0.02, at * (V ? BS.at * (1 + 0.5 * dist) : 2.5))); G.setValueAtTime(0, s); G.linearRampToValueAtTime(a, s + at); /* softer onsets */ G.setTargetAtTime(0, s + d - Math.min(d * 0.5, 0.04), 0.012); T = Math.max(T, s + d - t); };
     if (sp === 'chick') { const f = 3800 + R() * 300; note(t, 0.3, f, f * 0.98, A, 0.03); note(t + 0.36, 0.32, f * 0.84, f * 0.82, A * 0.85, 0.03); if (R() < 0.4) note(t + 0.74, 0.18, f * 0.84, f * 0.83, A * 0.6, 0.02); }
-    else if (sp === 'warble') { let s = t; const n = 3 + Math.floor(R() * 4); for (let i = 0; i < n; i++) { const f = 2200 + R() * 1100, d = 0.09 + R() * 0.07; note(s, d, f * 0.9, f * (1.1 + R() * 0.15), A * (0.7 + R() * 0.3)); s += d + 0.04 + R() * 0.06; } }
-    else if (sp === 'trill') { const n = 12 + Math.floor(R() * 10), rate = 14 + R() * 5, f = 4200 + R() * 700; /* 4.2-4.9 kHz */ for (let i = 0; i < n; i++) note(t + i / rate, 0.035, f * 1.12, f * 0.9, A * (1 - i / n * 0.5), 0.005); }
-    else if (sp === 'thrush') { o.type = 'triangle'; const b = 1300 + R() * 500; note(t, 0.22, b, b * 1.02, A * 0.8, 0.04); let s = t + 0.3; const n = 5 + Math.floor(R() * 4); let f = 2400 + R() * 800; for (let i = 0; i < n; i++) { f *= R() < 0.6 ? 1.09 : 0.93; note(s, 0.055, f, f * 1.03, A * 0.7); s += 0.06; } lp.frequency.value = Math.min(lp.frequency.value, 5200); }
-    else if (sp === 'dove') { const f = 470 + R() * 60; note(t, 0.28, f * 0.95, f * 1.18, A * 1.4, 0.08); for (let i = 0; i < 3; i++) note(t + 0.5 + i * 0.52, 0.4, f * 1.05, f * 0.98, A * 1.2, 0.1); }
-    else if (sp === 'chip') { const n = 2 + Math.floor(R() * 3); for (let i = 0; i < n; i++) note(t + i * (0.35 + R() * 0.3), 0.024, 6200, 4600, A * 0.7, 0.004); } /* the chip 6.2 -> 4.6 kHz */
-    else if (sp === 'crow') { o.type = 'sawtooth'; lp.type = 'bandpass'; lp.frequency.value = 1150; lp.Q.value = 1.8; const f = 430 + R() * 90, n = 2 + Math.floor(R() * 2); for (let i = 0; i < n; i++) note(t + i * (0.38 + R() * 0.1), 0.26, f * 1.08, f * 0.9, A * 1.35, 0.03); } /* the crow, a softer caw onset */
-    else if (sp === 'hawk') { o.type = 'sawtooth'; lp.type = 'bandpass'; lp.frequency.value = 2600; lp.Q.value = 2.5; note(t, 1.5, 2700, 1850, A * 1.0, 0.18); }
-    else if (sp === 'whip') { lp.frequency.value = Math.min(lp.frequency.value, 3800); const b = 1250 + R() * 150, n = 2 + Math.floor(R() * 2); for (let i = 0; i < n; i++) { const s = t + i * 0.95; note(s, 0.07, b, b * 1.05, A * 0.6, 0.02); note(s + 0.13, 0.12, b * 0.82, b * 0.8, A * 0.5, 0.03); note(s + 0.3, 0.3, b * 1.1, b * 1.75, A * 0.9, 0.05); } } /* dusk: a far whip-poor-will */
+    else if (sp === 'warble') { let s = t; const n = cnt(3 + Math.floor(R() * 4)); for (let i = 0; i < n; i++) { const f = 2200 + R() * 1100, d = 0.09 + R() * 0.07; note(s, d, f * 0.9, f * (1.1 + R() * 0.15), A * (0.7 + R() * 0.3)); s += d + 0.04 + R() * 0.06; } }
+    else if (sp === 'trill') { const n = cnt(12 + Math.floor(R() * 10)), rate = (14 + R() * 5) * (V ? 0.85 : 1), f = (4200 + R() * 700) * (V ? 0.88 : 1); /* 4.2-4.9 kHz; subtle: a slower, lower junco-like trill */ for (let i = 0; i < n; i++) note(t + i / rate, 0.035, f * 1.12, f * 0.9, A * (V ? 0.6 : 1) * (1 - i / n * 0.5), 0.005); }
+    else if (sp === 'thrush') { o.type = 'triangle'; const b = 1300 + R() * 500; note(t, 0.22, b, b * 1.02, A * 0.8, 0.04); let s = t + 0.3; const n = cnt(5 + Math.floor(R() * 4)); let f = 2400 + R() * 800; for (let i = 0; i < n; i++) { f *= R() < 0.6 ? 1.09 : 0.93; note(s, 0.055, f, f * 1.03, A * 0.7); s += 0.06; } lp.frequency.value = Math.min(lp.frequency.value, 5200); }
+    else if (sp === 'dove') { const f = 470 + R() * 60; note(t, 0.28, f * 0.95, f * 1.18, A * cap(1.4), 0.08); for (let i = 0; i < cnt(3); i++) note(t + 0.5 + i * 0.52, 0.4, f * 1.05, f * 0.98, A * cap(1.2), 0.1); }
+    else if (sp === 'chip') { const n = cnt(2 + Math.floor(R() * 3)); for (let i = 0; i < n; i++) note(t + i * (0.35 + R() * 0.3), 0.024, 6200, 4600, A * (V ? 0.5 : 0.7), 0.004); } /* the chip 6.2 -> 4.6 kHz (subtle: softer, it is the brightest call) */
+    else if (sp === 'crow') { o.type = 'sawtooth'; lp.type = 'bandpass'; lp.frequency.value = 1150; lp.Q.value = 1.8; const f = 430 + R() * 90, n = cnt(2 + Math.floor(R() * 2)); for (let i = 0; i < n; i++) note(t + i * (0.38 + R() * 0.1), 0.26, f * 1.08, f * 0.9, A * cap(1.35), 0.03); } /* the crow, a softer caw onset */
+    else if (sp === 'hawk') { o.type = 'sawtooth'; lp.type = 'bandpass'; lp.frequency.value = 2600; lp.Q.value = 2.5; note(t, 1.5, 2700, 1850, A * (V ? 0.6 : 1.0), 0.18); }
+    else if (sp === 'whip') { lp.frequency.value = Math.min(lp.frequency.value, 3800); const b = 1250 + R() * 150, n = cnt(2 + Math.floor(R() * 2)); for (let i = 0; i < n; i++) { const s = t + i * 0.95; note(s, 0.07, b, b * 1.05, A * 0.6, 0.02); note(s + 0.13, 0.12, b * 0.82, b * 0.8, A * 0.5, 0.03); note(s + 0.3, 0.3, b * 1.1, b * 1.75, A * 0.9, 0.05); } } /* dusk: a far whip-poor-will */
     else if (sp === 'nthrush') { o.type = 'triangle'; lp.frequency.value = Math.min(lp.frequency.value, 4200); const f = 1500 + R() * 400; let s = t; [[1, 0.28], [1.34, 0.2], [1.19, 0.22], [1.5, 0.35]].forEach(([k, d], i) => { if (i === 3 && R() < 0.4) return; note(s, d, f * k, f * k * (i === 3 ? 1.06 : 0.99), A * (0.8 - 0.1 * i), 0.05); s += d + 0.05; }); } /* dusk: a flutey thrush phrase, far off */
-    else if (sp === 'owl') { const f = 340 + R() * 50; [[0, 0.3], [0.62, 0.2], [0.86, 0.2], [1.2, 0.6]].forEach(([s, d], i) => note(t + s, d, f * (i === 3 ? 1.02 : 1), f * (i === 3 ? 0.9 : 0.99), A * 1.5, 0.07)); }
+    else if (sp === 'owl') { const f = 340 + R() * 50; [[0, 0.3], [0.62, 0.2], [0.86, 0.2], [1.2, 0.6]].forEach(([s, d], i) => note(t + s, d, f * (i === 3 ? 1.02 : 1), f * (i === 3 ? 0.9 : 0.99), A * cap(1.5), 0.07)); }
+    /* the visitors (subtle birds only): white-throated sparrow (a long whistle, a higher one, then soft triplets), robin (2-4 caroled phrases),
+       nuthatch (a nasal 'yank' run, band-passed), pika (a short 'eenk', rocky ground) */
+    else if (sp === 'wtspar') { const f = 2750 + R() * 300, m = cnt(2 + Math.floor(R() * 3)); note(t, 0.6, f, f, A * 0.6, 0.05); note(t + 0.8, 0.45, f * 1.14, f * 1.14, A * 0.55, 0.05); for (let i = 0; i < m; i++) for (let j = 0; j < 3; j++) note(t + 1.4 + i * 0.3 + j * 0.08, 0.06, f * 1.07, f * 1.07, A * 0.5, 0.012); }
+    else if (sp === 'robin') { const P = [[2600, 3200], [3400, 2800], [2500, 3000], [3300, 2700]], m = Math.min(4, cnt(2 + Math.floor(R() * 2))), j0 = Math.floor(R() * 4), fr = 0.9 + R() * 0.15; let s = t; for (let i = 0; i < m; i++) { const [a, b] = P[(j0 + i) % 4], d = 0.2 + R() * 0.1; note(s, d, a * fr, b * fr, A * 0.7, 0.03); s += d + 0.1 + R() * 0.15; } }
+    else if (sp === 'nuth') { o.type = 'triangle'; lp.type = 'bandpass'; lp.frequency.value = 1800; lp.Q.value = 0.9; const f = 1300 + R() * 200, m = cnt(3 + Math.floor(R() * 3)); for (let i = 0; i < m; i++) note(t + i * (0.28 + R() * 0.07), i ? 0.1 : 0.16, f, f * 1.25, A * 0.55, 0.02); }
+    else if (sp === 'pika') { const f = 2200 + R() * 200; note(t, 0.09, f, f * 0.87, A * 0.5, 0.012); if (R() < 0.3) note(t + 0.3, 0.08, f * 0.97, f * 0.85, A * 0.4, 0.012); }
+    if (V && lp.type === 'lowpass') lp.frequency.value = Math.min(BS.lpMax, Math.max(9000 * Math.pow(1 / 3, dist), 1.6 * fx)); /* subtle birds: this air cut replaces the per-species caps above (thrush 5200, whip 3800, nthrush 4200), which only apply with BIRDS_SUBTLE 0 */
     o.connect(g); o.start(t); o.stop(t + T + 0.2); track(6, o); return T;
   }
-  function pickSpecies() { let tot = 0; const w = {}; for (const k in N.w) { let x = N.w[k]; if (k === 'crow' || k === 'hawk') x *= 0.3 + 3 * expo; else if (k === 'chick' || k === 'thrush') x *= 0.4 + tree; else if (k === 'dove' || k === 'warble') x *= 0.6 + 0.6 * (1 - alt); w[k] = x; tot += x; } let u = rnd() * tot, lastK = 'chip'; for (const k in w) { lastK = k; u -= w[k]; if (u <= 0) return k; } return lastK; }
-  const GAP = { chick: [2.5, 5], warble: [3, 6], trill: [4, 8], thrush: [3.5, 7], dove: [4, 7], chip: [1.5, 3], crow: [3, 6], hawk: [8, 14] };
-  function call(sp, pan, dist, k = 1) { const t = ctx.currentTime + 0.02; if (t < bird.busy) return; const seed = (rnd() * 4294967296) >>> 0, T = birdCall(sp, t, pan, dist, k, seed); if (!T) return;
+  function pickSpecies() { let tot = 0; const w = {}; for (const k in N.w) { let x = N.w[k]; if (k === 'crow' || k === 'hawk') x *= BIRDS_SUBTLE ? Math.min(2, 0.3 + 3 * expo) : 0.3 + 3 * expo; else if (k === 'chick' || k === 'thrush') x *= 0.4 + tree; else if (k === 'dove' || k === 'warble') x *= 0.6 + 0.6 * (1 - alt); w[k] = x; tot += x; } let u = rnd() * tot, lastK = 'chip'; for (const k in w) { lastK = k; u -= w[k]; if (u <= 0) return k; } return lastK; }
+  const GAP = { chick: [2.5, 5], warble: [3, 6], trill: [4, 8], thrush: [3.5, 7], dove: [4, 7], chip: [1.5, 3], crow: [3, 6], hawk: [8, 14], wtspar: [7, 11], robin: [2, 4], nuth: [2.5, 5], pika: [4, 8] };
+  /* subtle birds: an activity state drifts between an ordinary stretch (1, 60-150 s), a busy spell (2, 20-50 s) and a quiet lull with no new bouts (0, 60-150 s);
+     bouts arrive as a Poisson process (exponential gaps, mean 30 s ordinary / 14 s busy); each species keeps a 'territory' (side, distance, its own pitch +-4 %)
+     so the same bird comes back from the same place; about one bout in 4-5 is a visitor from outside this mountain's 2-3 species (quiet singers mostly, the
+     harsh crow / hawk rare, the pika only on rocky high ground; never the same visitor twice in a row); 1-5 calls a bout, never the last bout's species and count
+     again; one bout in five gets a reply from a neighbor of the same kind at another pitch; a hawk is followed by 20-45 s of quiet. All of it draws from
+     Math.random, never a world stream */
+  const BIRD_VIS = ['thrush', 'wtspar', 'chick', 'trill', 'pika', 'nuth', 'robin', 'crow', 'hawk'], BIRD_VW = { crow: 0.25, hawk: 0.12, pika: 0.7 };
+  const bs = { act: 1, actT: 70, lastSp: null, lastN: 0, lastVis: null, terr: {} };
+  function birdAct() { const u = rnd(), a = bs.act; bs.act = a === 0 ? (u < 0.7 ? 1 : 2) : a === 2 ? (u < 0.7 ? 1 : 0) : (u < 0.3 ? 2 : u < 0.6 ? 0 : 1);
+    bs.actT = bs.act === 0 ? 60 + rnd() * 90 : bs.act === 2 ? 20 + rnd() * 30 : 60 + rnd() * 90; }
+  function boutGap() { const b = bs.act === 2; return clamp(-Math.log(1 - rnd()) * (b ? 14 : 30), b ? 4 : 6, b ? 45 : 100); }
+  function boutSubtle() {
+    let sp = null;
+    if (rnd() < BS.visit) { let tot = 0; const w = {}; for (const k of BIRD_VIS) if (!(k in N.w) && k !== bs.lastVis && k !== bs.lastSp && (k !== 'pika' || alt > 0.55 || expo > 0.5)) { w[k] = BIRD_VW[k] || 1; tot += w[k]; }
+      let u = rnd() * tot; for (const k in w) { sp = k; if ((u -= w[k]) <= 0) break; } if (sp) bs.lastVis = sp; }
+    if (!sp) { sp = pickSpecies(); if (sp === bs.lastSp && rnd() < 0.5) sp = pickSpecies(); }
+    const mx = sp === 'hawk' ? 2 : 5; let n; { const u = rnd(); n = sp === 'hawk' ? (u < 0.75 ? 1 : 2) : u < 0.25 ? 1 : u < 0.55 ? 2 : u < 0.8 ? 3 : u < 0.92 ? 4 : 5; }
+    if (sp === bs.lastSp && n === bs.lastN) n = n % mx + 1;
+    let tr = bs.terr[sp]; if (!tr || rnd() < 0.3) tr = bs.terr[sp] = { pan: rnd() * 1.4 - 0.7, dist: sp === 'hawk' ? 0.5 + rnd() * 0.5 : Math.pow(rnd(), 0.6), pf: 0.96 + rnd() * 0.08 };
+    bird.sp = sp; bird.left = n; bird.gap = 0.1; bird.pan = clamp(tr.pan + (rnd() - 0.5) * 0.1, -0.7, 0.7); bird.dist = tr.dist; bird.pf = tr.pf; bird.tmp = 0.85 + rnd() * 0.35; bird.rep = rnd() < 0.2; bs.lastSp = sp; bs.lastN = n;
+    bird.next = boutGap(); if (sp === 'hawk') bird.next = Math.max(bird.next, 20 + rnd() * 25 + n * 12); }
+  function call(sp, pan, dist, k = 1, pv) { const t = ctx.currentTime + 0.02; if (t < bird.busy) return; const seed = (rnd() * 4294967296) >>> 0, T = birdCall(sp, t, pan, dist, k, seed, pv); if (!T) return;
+    if (BIRDS_SUBTLE) { bird.busy = t + 1.2; return; } /* subtle: onsets at least 1.2 s apart, no valley echo, no music dip */
     bird.busy = t + T + 2.5; /* never back-to-back - at least 2.5 s of quiet after any call before the next */
     if (dist > 0.65 || expo > 0.6) birdCall(sp, t + 0.3 + dist * 0.4 + expo * 0.2, -pan * 0.6, 1, 0.22 * k, seed); /* valley echo: the same call, later, darker, from the other side */
     natDuck = MIX.natureDuck; natDuckT = t + T + 0.4; }
-  function woodpecker() { if (!shot(false) || !wpBuf) return; const s = ctx.createBufferSource(), kind = rnd() < 0.65 ? 0 : 1, dist = 0.55 + rnd() * 0.45, { g } = farOut(rnd() * 1.8 - 0.9, dist); s.buffer = wpBuf[kind]; s.playbackRate.value = 0.88 + rnd() * 0.24; g.gain.value = 0.08 * MIX.birds * birdNear() * lerp(1, 0.35, dist); s.connect(g); s.start(); track(6, s); natDuck = MIX.natureDuck; natDuckT = ctx.currentTime + 1.5; }
+  function woodpecker() { if (!shot(false) || !wpBuf) return; const s = ctx.createBufferSource(), kind = rnd() < 0.65 ? 0 : 1, dist = 0.55 + rnd() * 0.45, { g, lp, sd } = farOut(rnd() * 1.8 - 0.9, dist, undefined, BIRDS_SUBTLE); s.buffer = wpBuf[kind]; s.playbackRate.value = 0.88 + rnd() * 0.24; g.gain.value = 0.08 * MIX.birds * birdNear() * lerp(1, 0.35, dist); s.connect(g); s.start(); track(6, s);
+    if (BIRDS_SUBTLE) { lp.frequency.value = 9000 * Math.pow(1 / 3, dist); sd.gain.value = lerp(0.04, 0.2, dist); return; } /* subtle: the same air and send as the calls, no music dip */
+    natDuck = MIX.natureDuck; natDuckT = ctx.currentTime + 1.5; }
   function creak() { if (!shot(false)) return; const t = ctx.currentTime, d = 0.25 + rnd() * 0.45, o = ctx.createOscillator(), fl = ctx.createBiquadFilter(), g = ctx.createGain(), f = 45 + rnd() * 35; o.type = 'sawtooth';
     o.frequency.setValueAtTime(f, t); for (let i = 1; i <= 6; i++) o.frequency.linearRampToValueAtTime(f * (0.8 + rnd() * 0.5), t + d * i / 6); fl.type = 'bandpass'; fl.frequency.value = 650 + rnd() * 500; fl.Q.value = 8;
     g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.05 + rnd() * 0.04, t + d * 0.3); g.gain.linearRampToValueAtTime(0.0001, t + d); o.connect(fl).connect(g).connect(master); o.start(t); o.stop(t + d + 0.05); track(3, o); }
@@ -66979,16 +67203,17 @@ const sfx = (() => {
     /* no wind of any kind */
     /* birds: bouts from one bird at one spot (2-6 calls), sometimes an answer from further off, then quiet; fewer at speed, none in a bail */
     const quietB = S.crashed || pz || sp > 0.8 * VCAP;
-    if (bird.left > 0) { bird.gap -= dt; if (bird.gap <= 0) { bird.left--; bird.gap = Math.max(4, 1.5 * (GAP[bird.sp][0] + rnd() * (GAP[bird.sp][1] - GAP[bird.sp][0]))); if (!quietB) { call(bird.sp, bird.pan, bird.dist); if (rnd() < 0.1) bird.ans = 3 + rnd() * 2; } } }
-    if (bird.ans > 0 && (bird.ans -= dt) <= 0 && !quietB) call(bird.sp, -bird.pan * 0.7, Math.min(1, bird.dist + 0.3), 0.8); /* sometimes a second bird answers from further off */
-    else { bird.next -= dt * N.birds * (nearCamp < 16 ? 0.35 : 1) * (1 - 0.9 * duskK) * (0.6 + 0.6 * tree) / (quality < 1 ? 2 : 1); /* day birds step back at dusk */ if (bird.next <= 0) { bird.next = 12 + rnd() * 30; bird.sp = pickSpecies(); bird.left = bird.sp === 'hawk' ? 1 : 1 + Math.floor(rnd() * 3); /* sparse bouts (12-42 s apart), 1-3 calls each, spaced wide */ bird.gap = 0.1; bird.pan = rnd() * 1.8 - 0.9; bird.dist = Math.pow(rnd(), 0.6); } }
-    woodNext -= dt; if (woodNext <= 0) { woodNext = 45 + rnd() * 60; if (N.wood && tree > 0.3 && duskK < 0.3 && !quietB && ctx.currentTime > bird.busy) { woodpecker(); bird.busy = ctx.currentTime + 4; } }
+    if (BIRDS_SUBTLE && (bs.actT -= dt) <= 0) birdAct(); /* the subtle birds' busy / ordinary / lull spells run on wall time */
+    if (bird.left > 0) { bird.gap -= dt; if (bird.gap <= 0) { bird.left--; bird.gap = BIRDS_SUBTLE ? Math.max(3, bird.tmp * (GAP[bird.sp][0] + rnd() * (GAP[bird.sp][1] - GAP[bird.sp][0])) * (1.1 + 0.8 * rnd())) : Math.max(4, 1.5 * (GAP[bird.sp][0] + rnd() * (GAP[bird.sp][1] - GAP[bird.sp][0]))); if (!quietB) { call(bird.sp, bird.pan, bird.dist, 1, bird.pf); if (BIRDS_SUBTLE ? bird.rep && bird.left === 0 : rnd() < 0.1) { bird.ans = BIRDS_SUBTLE ? 1.5 + rnd() * 3.5 : 3 + rnd() * 2; bird.rep = false; } } } }
+    if (bird.ans > 0 && (bird.ans -= dt) <= 0 && !quietB) call(bird.sp, -bird.pan * 0.7, Math.min(1, bird.dist + 0.3), BIRDS_SUBTLE ? 0.7 : 0.8, BIRDS_SUBTLE ? bird.pf * (rnd() < 0.5 ? 0.93 : 1.07) : undefined); /* sometimes a second bird answers from further off */
+    else { if (!BIRDS_SUBTLE || bs.act) bird.next -= dt * N.birds * (nearCamp < 16 ? 0.35 : 1) * (1 - 0.9 * duskK) * (0.6 + 0.6 * tree) / (quality < 1 ? 2 : 1); /* day birds step back at dusk */ if (bird.next <= 0) { if (BIRDS_SUBTLE) boutSubtle(); else { bird.next = 12 + rnd() * 30; bird.sp = pickSpecies(); bird.left = bird.sp === 'hawk' ? 1 : 1 + Math.floor(rnd() * 3); /* sparse bouts (12-42 s apart), 1-3 calls each, spaced wide */ bird.gap = 0.1; bird.pan = rnd() * 1.8 - 0.9; bird.dist = Math.pow(rnd(), 0.6); } } }
+    woodNext -= dt; if (woodNext <= 0) { woodNext = BIRDS_SUBTLE ? 150 + rnd() * 150 : 45 + rnd() * 60; if (N.wood && tree > 0.3 && duskK < 0.3 && !quietB && ctx.currentTime > bird.busy && (!BIRDS_SUBTLE || bs.act)) { woodpecker(); bird.busy = ctx.currentTime + 4; } }
     /* forest floor: a leaf or twig ticking down now and then under the trees */
     floorNext -= dt * (0.4 + tree) * (1 - sn); if (floorNext <= 0) { floorNext = 1.5 + rnd() * 4; if (!pz) burst(0.006 + rnd() * 0.012, 'highpass', 2500 + rnd() * 3500, 0.022 * MIX.floor * (0.3 + rnd()), 1, natBus, false); }
     /* insects: crickets (map flag, meadows, low ground, always at camp), cicadas (warm broadleaf maps) swelling in and out on slow gates */
     const camp = clamp(1 - nearCamp / 16, 0, 1);
     if (rnd() < dt / (crOn ? 40 : 12)) crOn = !crOn; if (rnd() < dt / (ciOn ? 30 : 50)) ciOn = !ciOn;
-    tgt(crickG.gain, MIX.insects * Math.max((N.crick && crOn ? 0.09 * (1 - 0.4 * tree) * (1 - 0.4 * alt) * lerp(MIX.crickRide, 1, Math.max(camp, duskK)) : 0) + 0.05 * camp, 0.055 * MIX.dusk * duskK) * (1 - 0.7 * sn) * (S.crashed ? 0.3 : 1), t, duskOn ? 1 : 2.5); /* dusk keeps a soft, steady cricket bed */
+    tgt(crickG.gain, MIX.insects * Math.max((N.crick && crOn ? 0.09 * (1 - 0.4 * tree) * (1 - 0.4 * alt) * lerp(MIX.crickRide, 1, Math.max(camp, duskK)) * (CRICKETS_DUSK_ONLY ? Math.max(camp, duskK) : 1) : 0) + 0.05 * camp, 0.055 * MIX.dusk * duskK) * (1 - 0.7 * sn) * (S.crashed ? 0.3 : 1) * (CRICKETS_DUSK_ONLY ? MIX.crickHint : 1), t, duskOn ? 1 : 2.5); /* dusk keeps a soft, steady cricket bed */
     if (cicaG) tgt(cicaG.gain, MIX.insects * (N.cicada && ciOn ? 0.035 * (1 - 0.4 * alt) * (0.4 + tree) : 0) * (1 - 0.6 * sn) * (1 - camp) * (1 - duskK), t, 3);
     /* water: stream burble (two bands, AM + a wandering band = gurgle) and falls, panned by the camera's right vector, darker with distance */
     { const inF = on && s0 && s0.road && S.course && S.course.ford && S.course.ford[s0.i];
@@ -67096,7 +67321,7 @@ function newRun(seed, opts) {
   S.start = { idx: 6 };
   resetRun();
   $('seedCode').textContent = seedToCode(seed); $('seedCode2').textContent = seedToCode(seed); if (!isTut()) rememberTheme(S.course.theme); /* the tutorial's Alpine Meadow does not count toward the recent-theme rotation */
-  { const ST = { flow: 'Flow trail', jumpline: 'Jump line', technical: 'Technical', mixed: 'All-mountain' }, nC = S.course.checkpoints.length; showBanner(S.course.themeName || ST[S.course.style] || 'Mountain', seedToCode(seed) + ' · ' + (ST[S.course.style] || '') + ' · ' + nC + (nC === 1 ? ' camp' : ' camps')); } /* the theme name is the banner title, the style on the line under it */
+  { const ST = { flow: 'Flow trail', jumpline: 'Jump line', technical: 'Technical', mixed: 'All-mountain' }, nC = S.course.checkpoints.length; if (COURSE_PLATE_TR) showBanner(S.course.themeName || ST[S.course.style] || 'Mountain', (ST[S.course.style] ? ST[S.course.style] + ' · ' : '') + nC + (nC === 1 ? ' camp' : ' camps'), seedToCode(seed)); else showBanner(S.course.themeName || ST[S.course.style] || 'Mountain', seedToCode(seed) + ' · ' + (ST[S.course.style] || '') + ' · ' + nC + (nC === 1 ? ' camp' : ' camps')); } /* the theme name is the banner title, the style on the line under it */
   if (CONTINUE_LAST && opts && opts.chosen) { const ah = autoHash(); if (ah && ah.code === seedToCode(seed)) lsDel('holdon.autohash'); } /* a mountain the player picked (typed code, favorite, Daily, Continue) is never the game's own stamp, so a reload keeps it */
   else if (START_RANDOM && !isTut() && codeToSeed(location.hash.slice(1)) !== seed) rememberAutoHash(seedToCode(seed)); /* the game is about to change the URL code itself (an honored link already shows its code and is not recorded) */
   try { if (/^https?:$/.test(location.protocol)) history.replaceState(null, '', '#' + seedToCode(seed)); } catch (e) { }
@@ -67365,7 +67590,14 @@ const MECH_SPIN_MUTE = 1; /* 1: the mechanic's front-wheel spin sound is gone (a
 const WSH_NOTE_TXT = 1; /* 1: the Activities note reads 'Washers is available at this camp'; 0: 'A secret: only this camp has it' */
 const WSH_POP_HOLD_PLUS = 2; /* seconds added to the hold of the washers 'SECRET FOUND' popup (0: the usual 1.6 s) */
 const POP_CENTER = 1; /* 1: the washers 'SECRET FOUND' popup is large, centered and above every camp overlay; 0: the POP_CLEAR layout (smaller, beside the panel) */
-document.body.classList.toggle('popCenter', !!POP_CENTER);
+/* SECRET_BANNER_SCRIM: 1 = the washers 'SECRET FOUND' popup sits in the free part of the camp screen (beside the right-hand panel, never over it) on a
+   soft dark band only as tall as its text, and a press on the camp panel or tab bar fades it at once; 0 = the POP_CENTER layout */
+const SECRET_BANNER_SCRIM = 1;
+document.body.classList.toggle('popCenter', !!POP_CENTER && !SECRET_BANNER_SCRIM); document.body.classList.toggle('secScrim', !!SECRET_BANNER_SCRIM);
+/* OVERLAP_FIX: 1 = the camp toast sits under the camp header (not over its text), the arrival plate hides while the pause card is open, the Fly depth bar's
+   top label moves beside the bar when the back button would cover it (mouse) and the Roast target panel steps right of the back button; 0 = as before */
+const OVERLAP_FIX = 1;
+document.body.classList.toggle('ovlFix', !!OVERLAP_FIX);
 const PROG_ZOOM = 1; /* 1: the top progress bar zooms with the desktop UI scale like the rest of the HUD; 0: it stays a fixed 3 px line at every window size */
 document.body.classList.toggle('progZ', !!PROG_ZOOM);
 const CONT_WRAP = 1; /* 1: the title's Continue button puts its camp / code / time line on a second row when the one-line label is wider than the menu; 0: one line (a long one widens every menu button) */
@@ -67384,6 +67616,13 @@ if (FS_RESYNC) { const fsV = new THREE.Vector2(), fsSync = () => { renderer.getS
   /* a devicePixelRatio change without a window resize (a monitor change, some browser zoom paths): a media query on the current ratio fires once, then it is set again for the new one */
   const dprWatch = () => { try { matchMedia('(resolution: ' + (window.devicePixelRatio || 1) + 'dppx)').addEventListener('change', () => { fsSync(); dprWatch(); }, { once: true }); } catch (e) { } }; dprWatch(); }
 if (ZONES_OK) { const r = document.getElementById('uizRow'); r.hidden = true; r.style.display = 'none'; } /* the UI size row is for desktop; phones keep the fixed layout */
+const HUD_SIZE = 1; /* 1: Settings has 'HUD size' (Normal / Large / Larger: the HUD text and chips at 1 / 1.25 / 1.5, phone and desktop) and 'HUD outline' rows, saved in holdon.hudsize = { z, ol };
+   0: no rows, no classes, the HUD as before */
+const HUDZ = (() => { const o = { z: 1, ol: 0 }; if (!HUD_SIZE) return o; let s = null; try { s = JSON.parse(localStorage.getItem('holdon.hudsize') || 'null'); } catch (e) { s = null; }
+  if (s && typeof s === 'object' && !Array.isArray(s)) { if (s.z === 1.25 || s.z === 1.5) o.z = s.z; if (s.ol === 1) o.ol = 1; } return o; })();
+const saveHudz = () => { try { localStorage.setItem('holdon.hudsize', JSON.stringify(HUDZ)); } catch (e) { } };
+const applyHudz = () => { if (!HUD_SIZE) return; document.documentElement.style.setProperty('--hz', String(HUDZ.z)); document.body.classList.toggle('hudz', HUDZ.z !== 1); document.body.classList.toggle('hudOl', !!HUDZ.ol); };
+if (HUD_SIZE) applyHudz(); else for (const id of ['hudzRow', 'hudoRow']) { const r = document.getElementById(id); if (r) r.remove(); }
 const touchState = () => (S.touch = S.touch || { active: false, held: false, tap: 0, hard: false, hop: 0 }); /* the physics owns the reset (newRun / reset); this only creates it when missing */
 let padUsed = false;
 const haptic = (() => { let lastT = 0; return (p) => { if (!UIO.haptics || !padUsed || !zonesOn || !navigator.vibrate) return; const t = performance.now(); if (t - lastT < 60) return; lastT = t; try { navigator.vibrate(p); } catch (e) { } }; })();
@@ -67564,6 +67803,7 @@ const coach = (() => {
   return {
     tapped() { if (stage === 4) mark(4); },
     airTouch() { },
+    has(b) { return !!(bits & b); }, learn(b) { if (!(bits & b)) { bits |= b; save(); } }, /* the keyboard hint (PC_FIRST_HINT) shares the steer / pedal bits */
     done() { bits = 31; save(); for (const el of [C.steer, C.pedal, C.air, C.ghost]) set(el, false); },
     reset() { bits = 0; save(); heldT = stageT = steerT = 0; stage = -1; },
     tick(dt) {
@@ -67661,13 +67901,36 @@ const tut = (() => {
         case 'camp': { const c = campCp(); if (c && c.found && key !== 'rest') show('rest'); break; }
       }
       if (vis) { shownT += dt; if (okT > 0) okT -= dt;
-        const fade = done ? okT <= 0 && shownT >= 4 : S0.id === 'final' ? shownT >= 5 : shownT >= 6 && i > S0.a + 40; /* min 4 s; fades after 6 s once past the stage's first 40 samples; the last one says its line for 5 s */
+        const fade = done ? okT <= 0 && shownT >= 4 : S0.id === 'final' ? shownT >= 5 : PC_FIRST_HINT && S0.id === 'pedal' && pedT === 0 && variant() === 'key' ? false : shownT >= 6 && i > S0.a + 40; /* a keyboard player who has not pedaled yet keeps the pedal prompt */ /* min 4 s; fades after 6 s once past the stage's first 40 samples; the last one says its line for 5 s */
         if (fade) vis = false; }
       if (vis && up) render(st);
       if (pill.classList.contains('on') !== (vis && up)) pill.classList.toggle('on', vis && up);
     },
     state: () => ({ on, fin, k, key, done, vis, hops, gapN, id: k >= 0 && stages() ? stages()[k].id : null }),
     hint: () => text('trick', variant()), /* the end card's trick line in the active device's words */
+    dirty() { html = ''; }, /* another writer used the pill (PC_FIRST_HINT): the next render writes it again */
+  };
+})();
+/* PC_FIRST_HINT: 1 = on a keyboard / mouse machine (no touch zones) a normal ride shows the first-run coach in the tutorial's pill: 'Hold W to pedal', then
+   'A / D to steer'. Each line stays until its key is really pressed and is then never shown again (the touch coach's pedal / steer bits in holdon.coach,
+   so Settings > Show again brings it back). Not in the tutorial (it has its own prompts), not while the arrival banner shows, not with a gamepad
+   (the touch coach does not cover the pad either); 0 = no keyboard hint (as before). */
+const PC_FIRST_HINT = 1;
+const pcCoach = (() => {
+  const bar = $('tutBar'), pill = $('tutPill'), ban = $('banner');
+  const TXT = { 2: 'Hold <kbd>W</kbd> to pedal', 1: '<kbd>A</kbd> / <kbd>D</kbd> to steer' };
+  let on = false, cur = 0;
+  const show = (v) => { if (v === on) return; on = v; document.body.classList.toggle('pcHint', v); bar.classList.toggle('live', v); pill.classList.toggle('on', v); };
+  return {
+    tick() {
+      if (!PC_FIRST_HINT || ZONES_OK || zonesOn) return;
+      const live = !isTut() && screen === null && S.running && !S.paused && !S.finished && !S.crashed && !S.camp && inDev.dev !== 'pad' && inDev.dev !== 'touch';
+      if (live && !coach.has(2) && (keys.has('w') || keys.has('arrowup'))) coach.learn(2);
+      if (live && coach.has(2) && !coach.has(1) && (keys.has('a') || keys.has('d') || keys.has('arrowleft') || keys.has('arrowright'))) coach.learn(1);
+      const want = !coach.has(2) ? 2 : !coach.has(1) ? 1 : 0, up = live && want > 0 && !ban.classList.contains('show');
+      if (up && want !== cur) { cur = want; tut.dirty(); pill.classList.remove('ok'); pill.innerHTML = '<span class="tx">' + TXT[want] + '</span>'; }
+      show(up); if (!up) cur = 0;
+    },
   };
 })();
 bindTouch('bLeft', 'left'); bindTouch('bRight', 'right'); bindTouch('bGas', 'gas'); bindTouch('bBrake', 'brake'); bindTouch('bLegs', 'legs'); bindTouch('bArms', 'arms'); bindTouch('bJump', 'jump');
@@ -67745,6 +68008,7 @@ function applyLimbInput(inp) {
 
 /* ---------- helpers ---------- */
 const popEl = $('pop'); let popT = 0;
+if (SECRET_BANNER_SCRIM) addEventListener('pointerdown', (e) => { if (popT > 0.25 && popEl.classList.contains('secret') && e.target && e.target.closest && e.target.closest('#campScr')) popT = 0.25; }, true); /* a press on the camp panel or tabs fades the found-secret popup */
 function popup(text, sub = '', color = 'var(--ink)', cls = '') { popEl.className = cls ? 'hud ' + cls : 'hud'; popEl.innerHTML = text + (sub ? `<span class="sub">${sub}</span>` : ''); popEl.style.color = color; popT = 1.6; }
 function slopeAlong(px, pz, fx, fz) {
   let a = S.surf(px + fx * 0.6, pz + fz * 0.6), b = S.surf(px - fx * 0.6, pz - fz * 0.6); const c = S.surf(px, pz);
@@ -68377,7 +68641,7 @@ function rearGraze() { /* airborne: the rear tire on the top of a low rock kicks
   const rx = S.pos.x - Math.cos(S.yaw) * BK_R, rz = S.pos.z + Math.sin(S.yaw) * BK_R, cx = Math.floor(rx / 4), cz = Math.floor(rz / 4), yR = tireLow(-BK_R);
   for (let dx = -1; dx <= 1; dx++) for (let dz = -1; dz <= 1; dz++) {
     const list = o.get((cx + dx) + ',' + (cz + dz)); if (!list) continue;
-    for (const b of list) { if (b.top === undefined || b.what || b === S.bounceObj || Math.hypot(b.x - rx, b.z - rz) > b.r * TOP_FOOT + 0.15) continue;
+    for (const b of list) { if (b.top === undefined || b.what || b === S.bounceObj || (PETW_GLADE_TOUCH && b.gsoft && b.petw) || Math.hypot(b.x - rx, b.z - rz) > b.r * TOP_FOOT + 0.15) continue;
       const depth = b.top - yR; if (depth < 0 || depth > GRAZE_DEPTH) continue;
       const v = S.speed, sc = b.ramp ? 0.99 : Math.max(0.9, 1 - 2.5 / v); /* a ramped hop log costs a fast rider next to nothing */ S.vel.y += Math.max(1.5, Math.min(3, 0.2 * v));
       S.vel.x *= sc; S.vel.z *= sc; S.speed = Math.hypot(S.vel.x, S.vel.z);
@@ -68917,7 +69181,8 @@ function fadeForeground(dt) {
 
 /* ---------- HUD ---------- */
 let bannerT = 0;
-function showBanner(t, sub) { $('bnT').textContent = t; $('bnS').textContent = sub; $('banner').classList.add('show'); bannerT = 2.6; }
+function showBanner(t, sub, code) { $('bnT').textContent = t; $('bnS').textContent = sub; if (COURSE_PLATE_TR) { $('bnC').textContent = code || ''; $('banner').classList.toggle('noCode', !code); } $('banner').classList.add('show'); bannerT = 2.6; }
+if (COURSE_PLATE_TR) { document.body.classList.add('plateTR'); const bn = $('banner'), sp = $('bnS'), row = document.createElement('div'), dot = document.createElement('span'), cd = document.createElement('i'); row.className = 'bnCap'; dot.className = 'bnDot'; dot.textContent = ' · '; cd.id = 'bnC'; row.append(sp, dot, cd); bn.append(row); } /* the plate's caps line: trail · camps · the code */
 const _rv = new THREE.Vector3();
 const _rs = [0, 0], _rs2 = [0, 0]; /* two scratch results, so a caller holding one can ask for a second point */
 function riderScreen(up = 2.0, out = _rs) { _rv.copy(S.crashed ? rp[1] : S.pos); _rv.y += up; _rv.project(camera); out[0] = (_rv.x + 1) / 2 * innerWidth / UIZ; out[1] = (1 - _rv.y) / 2 * innerHeight / UIZ; return out; } /* #rfx is zoomed, so its px coordinates are screen px / UIZ */
@@ -69690,6 +69955,10 @@ const SETTERS = {
   meal: (v) => { if (v === 'both' || v === 'xp' || v === 'off') { KITCHEN.mode = v; saveKitchen(); } }, /* 'Full Belly': On / Off (Dinner's XP bonus) */
   trains: (v) => { if (TRAIN_MODES.includes(v)) { TRAINS.mode = v; saveTrains(); } }, /* how often trains run; Off and the trench's railbed take effect on the next mountain (a running train stops at once) */
 };
+if (HUD_SIZE) Object.assign(SETTERS, {
+  hudz: (v) => { const k = +v; if (k === 1 || k === 1.25 || k === 1.5) { HUDZ.z = k; saveHudz(); applyHudz(); } },
+  hudo: (v) => { if (v === 'on' || v === 'off') { HUDZ.ol = v === 'on' ? 1 : 0; saveHudz(); applyHudz(); } },
+});
 const toggleFps = () => { Q.showFps = !Q.showFps; try { localStorage.setItem('holdon.fps', Q.showFps ? '1' : '0'); } catch (e) { } syncSettings(); };
 $('bFps').addEventListener('click', toggleFps);
 if ($('pmFps')) $('pmFps').addEventListener('click', toggleFps); /* DEV copy */
@@ -69707,6 +69976,7 @@ const SETSEC = (() => { let o = {}; try { o = JSON.parse(localStorage.getItem('h
   return { open: (id, on) => { const g = document.querySelector(`#setScr .sgs[data-sec="${id}"]`); if (g) apply(g, on !== false); } }; })();
 function syncSettings() {
   const vals = { steer: steerScreen ? 'screen' : 'bike', cam: String(camPreset), mode: S.mode, layout: zonesOn ? 'zones' : 'buttons', hand: UIO.hand, pedal: UIO.pedal, size: String(UIO.size), sens: sensShown(), quality: Q.mode, uiz: uizK() ? String(uizK()) : 'auto', meal: bellyOff() ? 'off' : 'xp', instr: instrMode(), trains: TRAINS.mode };
+  if (HUD_SIZE) { vals.hudz = String(HUDZ.z); vals.hudo = HUDZ.ol ? 'on' : 'off'; }
   $('bFps').setAttribute('aria-checked', String(!!Q.showFps)); if ($('pmFps')) $('pmFps').setAttribute('aria-checked', String(!!Q.showFps)); if ($('pmHaptic')) $('pmHaptic').setAttribute('aria-checked', String(!!UIO.haptics)); if ($('pmFeel')) $('pmFeel').setAttribute('aria-checked', String(!!PROF.classic)); $('qNow').textContent = Q.mode === 'auto' ? 'auto · ' + Q_LEVELS[Q.level].name.toLowerCase() : Q_LEVELS[Q.level].name.toLowerCase();
   for (const g of document.querySelectorAll('#setScr .seg')) for (const b of g.children) b.setAttribute('aria-pressed', String(b.dataset.v === vals[g.dataset.set]));
   const snd = !sfx.isMuted(); $('bMute').setAttribute('aria-checked', String(snd)); $('mute').setAttribute('aria-checked', String(snd)); $('pmSnd').setAttribute('aria-checked', String(snd));
@@ -69731,7 +70001,7 @@ function openResults() {
   try { const v = parseFloat(localStorage.getItem(bestKey())); if (Number.isFinite(v)) prev = v; if (!isTut() && (prev === null || t < prev)) { localStorage.setItem(bestKey(), String(t)); pruneBest(bestKey()); } } catch (e) { } /* the tutorial keeps no best time */
   if (!isTut()) favBest(code, t);
   const d = $('eDelta'); d.className = '';
-  if (prev === null) { d.textContent = 'FIRST RUN ON ' + code; d.classList.add('first'); }
+  if (prev === null) { d.textContent = WORDING_FIX ? 'FIRST RUN ON THIS MOUNTAIN' : 'FIRST RUN ON ' + code; d.classList.add('first'); } /* WORDING_FIX: the code shows once, under it */
   else if (t < prev) { d.textContent = '▼ NEW BEST −' + (prev - t).toFixed(1) + ' s'; d.classList.add('best'); }
   else { d.textContent = '▲ +' + (t - prev).toFixed(1) + ' s · best ' + fmtTime(prev); d.classList.add('slow'); }
   endAnim = { t0: performance.now(), time: t, bonus: endNum('bonus', 'eBonus'), tricks: endNum('tricks', 'eTricks'), bails: endNum('bails', 'eBails'), total: endNum('total', 'eTotal'), done: false };
@@ -70046,7 +70316,7 @@ function uiTick(dt) {
     if (S.grounded) airAcc = 0;
   }
   prevG = S.grounded; prevCrash = S.crashed; prevBerm = !!S.onBerm;
-  pad.tick(dt); coach.tick(dt); tut.tick(dt);
+  pad.tick(dt); coach.tick(dt); tut.tick(dt); pcCoach.tick();
 }
 /* ---- active input device. The on-screen pause / back buttons only matter for touch and mouse: once a gamepad stick or button, or any key, is the
    latest input, body.devKb hides them; a touch, a click or a real mouse move brings them back at once. Esc, B and Start keep working either way.
@@ -70076,6 +70346,22 @@ const devWord = (k) => { const pd = inDev.pad;
   switch (k) { case 'start': return pd ? `Press ${padA()} to start` : 'Tap to start'; case 'skip': return pd ? `press ${padA()} to skip` : 'tap to skip';
     case 'bz': return pd ? `Press ${padB()} to go back` : 'Tap to go back'; case 'soak': return pd ? `Press ${padB()} to go back` : 'Tap anywhere to go back';
     case 'cont': return pd ? `Press ${padA()} to continue` : 'Tap to continue'; } return ''; };
+/* TAP_VERB_PC: 1 = on a mouse machine (no coarse pointer) the mini game cards, their start / continue prompts and their idle hints say Click where they
+   say Tap / Touch (only the verb changes; a pad keeps its own words, a touch on a touch laptop keeps Tap); 0 = Tap everywhere (as before) */
+const TAP_VERB_PC = 1;
+const MOUSE_PC = !matchMedia('(pointer: coarse)').matches;
+const clickWord = (s) => TAP_VERB_PC && MOUSE_PC && typeof s === 'string' && !inDev.pad && inDev.dev !== 'touch' ? s.replace(/\bTap\b/g, 'Click').replace(/\btap\b/g, 'click').replace(/\bTouch\b/g, 'Click').replace(/\btouch\b/g, 'click') : s;
+/* WORDING_FIX: 1 = the Settings row for the T key reads 'Let go mode' (the Controls page's name for that key; Hold / Toggle unchanged), the Skills panel
+   counts 'points' like the camp header, the Stars timer keeps a lowercase 's' in the uppercase pill, and the finish card's first-run line no longer repeats
+   the mountain code shown under it (that line is hidden while FINISH_CODE is on, so it only shows with FINISH_CODE 0); 0 = the old words */
+const WORDING_FIX = 1;
+/* FINISH_CODE: 1 = the finish card's left side drops the first-run / best-time pill (the XP line on the right already says first finish here) and shows the
+   mountain code large in its place, above the Share / Copy code / Favorite row; 0 = the pill and the small gray code (as before) */
+const FINISH_CODE = 1; document.body.classList.toggle('finCode', !!FINISH_CODE);
+/* FINISH_BEST_LINE: 1 = with FINISH_CODE, a later run keeps its best-time line ('NEW BEST -x s' / '+x s · best m:ss.s', the pill's own text) as a small
+   gold line under the time; a first run shows none; 0 = no best-time line on the left */
+const FINISH_BEST_LINE = 1; document.body.classList.toggle('finBest', !!FINISH_BEST_LINE);
+if (WORDING_FIX) { const r = document.querySelector('.seg[data-set="mode"]'), sp = r && r.previousElementSibling; if (sp && sp.firstChild && sp.firstChild.nodeType === 3) sp.firstChild.textContent = 'Let go mode '; }
 /* the static prompts follow the active device (the mini games and the overlays subscribe in their own code) */
 inDev.on(() => { const a = $('tapGo'), b = $('eSkip'); if (a) a.textContent = devWord('start'); if (b) b.textContent = devWord('skip'); });
 inDev.on(() => { if (TUT_TRICK_NOTE && document.body.classList.contains('tutEnd')) $('eTutTrick').innerHTML = tut.hint(); }); /* the end card's trick line follows the device */
@@ -72062,17 +72348,20 @@ const campUI = (() => {
     if (COMP_INFO_FIT) return `<b>${esc(PET_NAME[id])}<em>${esc(petPerkTxt(id))}</em></b><span>${at ? 'Found on ' + esc(at) : 'Found on the trail'}</span><span>${B.f} flip${B.f === 1 ? '' : 's'} · ${B.c} camp${B.c === 1 ? '' : 's'} together</span>`;
     return `<b>${esc(PET_NAME[id])}<em>${esc(petPerkTxt(id))}</em></b><span>${at ? 'Found on ' + esc(at) + ' · ' : ''}${B.f} flip${B.f === 1 ? '' : 's'} · ${B.c} camp${B.c === 1 ? '' : 's'} together</span>`; };
   const petsFoot = () => { const id = petPick(), own = PETS.owned.includes(id), r = petsRider();
-    const ride = !own ? 'Not found yet' : r === id ? 'Ride with nobody' : 'Ride with ' + PET_NAME[id];
-    return `<button class="mb sm pri${own ? '' : ' dis'}" id="ckPetRide" aria-disabled="${!own}">${esc(ride)}</button><button class="mb sm" id="ckPetBasket">${PETS.basketOn ? 'No basket' : 'Put basket on'}</button>`; };
+    const ride = !own ? 'Not found yet' : r === id ? (PALS_BUTTONS ? 'Leave ' + PET_NAME[id] + ' at camp' : 'Ride with nobody') : 'Ride with ' + PET_NAME[id];
+    const bk = PALS_BUTTONS ? 'Basket: ' + (PETS.basketOn ? 'On' : 'Off') : PETS.basketOn ? 'No basket' : 'Put basket on';
+    return `<button class="mb sm pri${own ? '' : ' dis'}" id="ckPetRide" aria-disabled="${!own}">${esc(ride)}</button><button class="mb sm" id="ckPetBasket"${PALS_BUTTONS ? ` aria-pressed="${!!PETS.basketOn}"` : ''}>${bk}</button>`; };
   const petsHTML = () => { const r = petsRider(), sel = petPick();
-    return `<div class="pt">${backBtn()}<b>${PALS_LABEL ? 'Pals' : 'Companion'}</b><span class="m">${PETS.owned.length} / ${PET_IDS.length} found${PETS.basketOn ? '' : ' · no basket'}</span></div>
+    return `<div class="pt">${backBtn()}<b>${PALS_LABEL ? 'Pals' : 'Companion'}</b><span class="m">${PETS.owned.length} / ${PET_IDS.length} found${PETS.basketOn ? '' : PALS_BUTTONS ? ' · basket off' : ' · no basket'}</span></div>
       <div class="pgrid" id="ckPets">${PET_IDS.map(id => { const own = PETS.owned.includes(id); return `<button class="pet${own ? '' : ' off'}${r === id ? ' rd' : ''}" data-pet="${id}" aria-pressed="${id === sel}" aria-label="${own ? esc(PET_NAME[id]) : 'Not found yet'}">${petSvg(id, own)}<i>${own ? esc(PET_NAME[id]) : '?'}</i></button>`; }).join('')}</div>
       <div class="pinfo${COMP_INFO_FIT ? ' fit' : ''}" id="ckPetInfo">${petsInfo()}</div><div class="pfoot" id="ckPetFoot">${petsFoot()}</div>
-      ${hint([[['dpad4'], 'Move'], [['A'], 'Ride with'], [['B'], 'Back']])}`; };
+      ${hint([[['dpad4'], 'Move'], [['A'], petsHintA()], [['B'], 'Back']])}`; };
+  const petsHintA = () => (PALS_BUTTONS && PETS.owned.includes(petPick()) && petsRider() === petPick() ? 'Leave at camp' : 'Ride with'); /* the pad hint follows the ride button (PALS_BUTTONS) */
   const petsPaint = () => { if (!S.camp || S.camp.tab !== 'look' || V.sub !== 'pets' || pn.dataset.tab === 'res' || game) return; const g = $('ckPets'); if (!g) return; const sel = petPick(), r = petsRider();
     for (const b of g.children) { const id = b.dataset.pet, own = PETS.owned.includes(id); b.setAttribute('aria-pressed', String(id === sel)); b.classList.toggle('rd', r === id); if (own === b.classList.contains('off')) { b.classList.toggle('off', !own); b.innerHTML = petSvg(id, own) + `<i>${own ? esc(PET_NAME[id]) : '?'}</i>`; b.setAttribute('aria-label', own ? PET_NAME[id] : 'Not found yet'); } }
     $('ckPetInfo').innerHTML = petsInfo(); const f = $('ckPetFoot'), had = gpMenu.cur && gpMenu.cur.id; f.innerHTML = petsFoot(); if (had === 'ckPetRide' || had === 'ckPetBasket') gpMenu.aim($(had));
-    const m = pn.querySelector('.pt .m'); if (m) m.textContent = PETS.owned.length + ' / ' + PET_IDS.length + ' found' + (PETS.basketOn ? '' : ' · no basket'); };
+    if (PALS_BUTTONS) { const ha = pn.querySelectorAll('.chint .hi em')[1]; if (ha) ha.textContent = petsHintA(); }
+    const m = pn.querySelector('.pt .m'); if (m) m.textContent = PETS.owned.length + ' / ' + PET_IDS.length + ' found' + (PETS.basketOn ? '' : PALS_BUTTONS ? ' · basket off' : ' · no basket'); };
   let petObs = null; /* the pad / key ring on a tile selects it (gpMenu marks the ringed item with .gpf) */
   const petsWatch = () => { if (petObs) { petObs.disconnect(); petObs = null; } const g = $('ckPets'); if (!g || typeof MutationObserver === 'undefined') return;
     petObs = new MutationObserver(() => { const b = g.querySelector('.pet.gpf'); if (b && b.dataset.pet !== V.pet) { V.pet = b.dataset.pet; petsPaint(); } }); petObs.observe(g, { subtree: true, attributes: true, attributeFilter: ['class'] }); };
@@ -72139,7 +72428,7 @@ const campUI = (() => {
       const eff = Math.round((skillFactor(id, d) / SKILL.M0[id] - 1) * 100), what = d >= SKILL.PIPS ? 'max ' + SKILL.what[id] : eff > 0 ? '+' + eff + '% ' + SKILL.what[id] : 'no bonus yet';
       return `<div class="sk${d !== c ? ' dirty' : ''}" title="${esc(what)}" data-sk="${id}"><span class="nm">${esc(SKILL.name[id])}${(() => { const b = PROF.classic ? 0 : buffAdd(id); return b ? `<i class="bf" title="camp buff: ${Math.ceil(Math.max(...BUFF_KEYS.filter(k => BUFF_DEF[k].stat === id && PROF.buff[k]).map(buffLeft)))} s of riding left">+${Math.round(b * 100)}%</i>` : ''; })()}${(() => { const q = COMPANIONS_ON ? petsPerk(id) : 0; return q ? `<i class="bf" title="${esc(PET_NAME[petsRider()] || '')} in the basket">+${Math.round(q * 100)}%</i>` : ''; })()}</span><span class="pips" aria-label="${d} of 10">${pips}</span><span class="v">${d}</span>
         <span class="seg pm" data-set="sk:${id}"><button data-v="-1" ${d <= 0 || PROF.classic ? 'disabled' : ''} aria-label="less ${esc(SKILL.name[id])}">&minus;</button><button data-v="1" ${(d >= SKILL.PIPS || n <= 0 || PROF.classic) ? 'disabled' : ''} aria-label="more ${esc(SKILL.name[id])}">+</button></span></div>`; }).join('');
-    return `<div class="pt"><b>Skills</b><span class="ptc${n > 0 ? ' has' : ''}" title="LV ${L}">${n} pt${n === 1 ? '' : 's'}</span>${PROF.classic ? '<span class="m cf">Classic feel</span>' : ''}</div>
+    return `<div class="pt"><b>Skills</b><span class="ptc${n > 0 ? ' has' : ''}" title="LV ${L}">${n} ${WORDING_FIX ? 'point' : 'pt'}${n === 1 ? '' : 's'}</span>${PROF.classic ? '<span class="m cf">Classic feel</span>' : ''}</div>
       <div class="sks${PROF.classic ? ' off' : ''}">${rows}</div>${PAD_MENU_FIX ? hint([[['dpadH'], 'Adjust'], [['dpadV'], 'Next row'], [['B'], 'Back']]) : ''}
       <div class="foot"><button class="mb sm" id="ckResetAll" ${used ? '' : 'disabled'}>Reset</button><button class="mb sm pri" id="ckConfirm" ${dirty ? '' : 'disabled'}>Confirm</button></div>`; };
   /* ---- Activities ---- */
@@ -72271,7 +72560,7 @@ const campUI = (() => {
     const card = T.closest('.acard'); if (card) { if (moved) return; const i = +card.dataset.i; if (i === V.act) startGame(card.dataset.game); else setCar(i); return; }
     const ed = T.closest('.edge'); if (ed) { setCar(V.act + +ed.dataset.step); return; } const dot = T.closest('[data-dot]'); if (dot) { setCar(+dot.dataset.dot); return; }
     const op = T.closest('[data-open]'); if (op) { openSub(op.dataset.open, 'col'); return; }
-    if (COMPANIONS_ON) { const pt = T.closest('.pet[data-pet]'); if (pt) { petPress(pt.dataset.pet); return; } if (T.closest('#ckPetRide')) { petRide(); return; } if (T.closest('#ckPetBasket')) { if (petsBasketToggle()) { petsPaint(); sfx.cue('tick'); toast(PETS.basketOn ? 'Basket on' : 'No basket: the animals wait at camp'); } return; } }
+    if (COMPANIONS_ON) { const pt = T.closest('.pet[data-pet]'); if (pt) { petPress(pt.dataset.pet); return; } if (T.closest('#ckPetRide')) { petRide(); return; } if (T.closest('#ckPetBasket')) { if (petsBasketToggle()) { petsPaint(); sfx.cue('tick'); toast(PALS_BUTTONS ? (PETS.basketOn ? 'Basket: On' : 'Basket: Off · the animals wait at camp') : PETS.basketOn ? 'Basket on' : 'No basket: the animals wait at camp'); } return; } }
     if (T.closest('#ckSubBack')) { subBack(); return; }
     const chip = T.closest('.chip'); if (chip) { V.part[V.sub] = +chip.dataset.i; for (const b of chip.parentElement.children) b.setAttribute('aria-pressed', String(b === chip)); chip.scrollIntoView({ block: 'nearest', inline: 'nearest' }); paintCol(); return; }
     const pre = T.closest('.pre'); if (pre) { setCol(pre.dataset.v); return; }
@@ -72436,7 +72725,7 @@ const CampMini = (() => {
       chips: [[['A'], 'Hold to toast']], help: [{ g: 'A', label: 'Hold: lower', btn: 0, hold: 0.9 }],
       result: ['Charcoal chef', 'Toasty', 'Golden', 'Perfectly golden'], cam: { pos: [1.3, 1.3, 1.4], look: [-0.1, 0.3, -0.1], hfov: 68 }, /* first-person-ish from the seated log, low over the fire (the rider + bike hidden) */
       fx: { cam: 'drift', amp: 0.5 }, fire: 0.62 },
-    { id: 'fly', name: 'Firefly Jar', play: fly, instr: { t: 'Right thumb: drag to swing the jar through the fireflies. Left thumb: slide the depth bar (W / S with a mouse) to bring it nearer or farther, level with the amber dots. Keep it moving smoothly: a still or jerky jar lets them out. Hold the lid (Space or the right mouse button) to lock them in.', p: 'The right stick swings the jar through the fireflies; the left stick sends it nearer or farther, level with the amber dots on the depth bar. Keep it moving smoothly: a still or jerky jar lets them out. Hold A to close the lid and lock them in.' },
+    { id: 'fly', name: 'Firefly Jar', play: fly, instr: HELP_TEXT_CLEAN ? { t: 'Drag to swing the jar through the fireflies. Slide the depth bar to match the amber dots. Hold the lid to lock them in.', m: 'Drag to swing the jar. W / S moves it nearer or farther: match the amber dots. Hold Space to close the lid.', p: 'Right stick swings the jar. Left stick sets the depth: match the amber dots. Hold A to close the lid.' } : { t: 'Right thumb: drag to swing the jar through the fireflies. Left thumb: slide the depth bar (W / S with a mouse) to bring it nearer or farther, level with the amber dots. Keep it moving smoothly: a still or jerky jar lets them out. Hold the lid (Space or the right mouse button) to lock them in.', p: 'The right stick swings the jar through the fireflies; the left stick sends it nearer or farther, level with the amber dots on the depth bar. Keep it moving smoothly: a still or jerky jar lets them out. Hold A to close the lid and lock them in.' },
       chips: [[['stick'], 'Right: swing · left: depth'], [['A'], 'Hold to close']], help: [{ g: 'stick', label: 'R swing · L depth' }, { g: 'A', label: 'Hold: close lid', btn: 0, hold: 0.5 }],
       result: ['Empty jar', 'A few sparks', 'Glowing jar', 'Firefly lantern'], cam: { pos: [0.3, 1.9, 1.5], look: [-0.9447, 0.8604, -3.2294], hfov: 72 }, /* the Stargazing eye pitched 12 deg down over the shared meadow (its own scene, MINI_VIEW) */
       fx: { cam: 'drift', amp: 0.6, own: true }, fire: 0.2 },
@@ -72445,13 +72734,13 @@ const CampMini = (() => {
       result: ['Cloudy night', 'Stargazer', 'Skywatcher', 'Astronomer'], cam: { pos: [0.3, 1.9, 1.5], look: [-0.2, 4.25, -0.4], hfov: 72 }, /* high and pitched ~51 deg up: mostly sky, the treetops only along the bottom edge, clear of the figures and the moon */
       fx: { cam: 'drift', amp: 0.7 }, fire: 0.3 }
   ].concat(WASHERS_ON ? [
-    WASHERS_V2 && WASHERS_V3 ? { id: 'washers', name: 'Washers', play: washersV3, secret: true, instr: { t: 'The hand sways: press when the gold ring sits on the cup to lock the aim. Hold to pull back and let go when the ring reaches the cup. Cup 3, box 1.', p: 'The hand sways: press A when the gold ring sits on the cup to lock the aim. Hold A to pull back and let go when the ring reaches the cup. Cup 3, box 1.' },
-      chips: [[['A'], 'Press: aim'], [['A'], 'Hold, let go: throw']], help: [{ g: 'A', label: 'Press: aim, hold: power', btn: 0 }],
+    WASHERS_V2 && WASHERS_V3 ? { id: 'washers', name: 'Washers', play: washersV3, secret: true, instr: HELP_TEXT_CLEAN ? { t: 'Hold when the ring is over the cup to lock your aim. Release to set the power and throw.', p: 'Hold A when the ring is over the cup to lock your aim. Release to set the power and throw.' } : { t: 'The hand sways: press when the gold ring sits on the cup to lock the aim. Hold to pull back and let go when the ring reaches the cup. Cup 3, box 1.', p: 'The hand sways: press A when the gold ring sits on the cup to lock the aim. Hold A to pull back and let go when the ring reaches the cup. Cup 3, box 1.' },
+      chips: HELP_TEXT_CLEAN ? [[['A'], 'Hold: aim'], [['A'], 'Release: throw']] : [[['A'], 'Press: aim'], [['A'], 'Hold, let go: throw']], help: [{ g: 'A', label: HELP_TEXT_CLEAN ? 'Hold: aim, release: throw' : 'Press: aim, hold: power', btn: 0 }], /* the pad chips say what the card says (HELP_TEXT_CLEAN) */
       result: ['Clang', 'On the board', 'Cup collector', 'Ringer'], fx: { cam: 'drift', amp: 0.6, own: true }, fire: 0.3 } :
-    WASHERS_V2 ? { id: 'washers', name: 'Washers', play: washersV2, secret: true, instr: { t: 'The hand sways. Hold to stop it when the gold ring sits on the cup: the washer goes. Cup 3, box 1.', p: 'The hand sways. Hold A to stop it when the gold ring sits on the cup: the washer goes. Cup 3, box 1.' },
+    WASHERS_V2 ? { id: 'washers', name: 'Washers', play: washersV2, secret: true, instr: HELP_TEXT_CLEAN ? { t: 'The hand sways. Hold to stop it when the gold ring sits on the cup: the washer goes.', p: 'The hand sways. Hold A to stop it when the gold ring sits on the cup: the washer goes.' } : { t: 'The hand sways. Hold to stop it when the gold ring sits on the cup: the washer goes. Cup 3, box 1.', p: 'The hand sways. Hold A to stop it when the gold ring sits on the cup: the washer goes. Cup 3, box 1.' },
       chips: [[['A'], 'Hold: toss']], help: [{ g: 'A', label: 'Hold: toss', btn: 0 }],
       result: ['Clang', 'On the board', 'Cup collector', 'Ringer'], fx: { cam: 'drift', amp: 0.6, own: true }, fire: 0.3 } :
-    { id: 'washers', name: 'Washers', play: washers, secret: true, instr: { t: 'A / D or slide to aim. Hold to wind up, let go in the gold. Cup 3, box 1.', p: 'Stick aims. Hold A to wind up, let go in the gold. Cup 3, box 1.' }, /* secret: never in the normal card list (ids); the host adds it at the mountain's washers camp */
+    { id: 'washers', name: 'Washers', play: washers, secret: true, instr: HELP_TEXT_CLEAN ? { t: 'A / D or slide to aim. Hold to wind up, let go in the gold.', p: 'Stick aims. Hold A to wind up, let go in the gold.' } : { t: 'A / D or slide to aim. Hold to wind up, let go in the gold. Cup 3, box 1.', p: 'Stick aims. Hold A to wind up, let go in the gold. Cup 3, box 1.' }, /* secret: never in the normal card list (ids); the host adds it at the mountain's washers camp */
       chips: [[['stick', 'dpadH'], 'Aim'], [['A'], 'Hold: wind up']], help: [{ g: 'stick', label: 'Aim' }, { g: 'A', label: 'Hold: toss', btn: 0, hold: 0.6 }],
       result: ['Clang', 'On the board', 'Cup collector', 'Ringer'], fx: { cam: 'drift', amp: 0.6, own: true }, fire: 0.3 }] : []); /* its own lawn (MINI_VIEW): no camp lens */
   const DEF = {}, IDS = [], NAMES = {}, INSTR = {}, CHIPS = {}, RESULT = {}, GAMES = {}, GAME_FX = {}; /* the per-id views of the registry the shell and the games read */
@@ -72720,7 +73009,7 @@ const CampMini = (() => {
           c.save(); c.fillStyle = 'rgba(11,21,23,0.5)'; c.beginPath(); c.roundRect(ix - rr - 8, iy - rr - 8, rr * 2 + 16, rr * 2 + 30, 12); c.fill(); c.restore();
           toastDisc(c, ix, iy, rr, tg.v); label(c, 'TARGET', ix, iy + rr + 12, 9, 'ui', 'rgba(253,248,234,0.85)'); }
         /* the target for this marshmallow: name + swatch (top, under the progress pill) */
-        { const fs = Math.round(clamp(H * 0.075, 22, 34)), r2 = clamp(H * 0.035, 11, 16), gap = 12, ty = Math.max(96, H * 0.25); c.font = `italic 800 ${fs}px ${FONT.disp}`; const tw = c.measureText(tg.n.toUpperCase()).width, bw = tw + r2 * 2 + gap + 32, x0 = G.side > 0 ? 16 : W - 16 - bw;
+        { const fs = Math.round(clamp(H * 0.075, 22, 34)), r2 = clamp(H * 0.035, 11, 16), gap = 12, ty = Math.max(96, H * 0.25); c.font = `italic 800 ${fs}px ${FONT.disp}`; const tw = c.measureText(tg.n.toUpperCase()).width, bw = tw + r2 * 2 + gap + 32, x0 = G.side > 0 ? (OVERLAP_FIX && ty - 40 < G.backB + 6 ? G.backR + 12 : 16) : W - 16 - bw; /* OVERLAP_FIX: right of the back button when it would cover the panel */
           c.fillStyle = 'rgba(11,21,23,0.55)'; c.beginPath(); c.roundRect(x0, ty - 40, bw, 88, 16); c.fill(); label(c, 'TARGET FOR THIS ONE', x0 + 16, ty - 24, 10, 'ui', 'rgba(253,248,234,0.7)', 'left');
           toastDisc(c, x0 + 16 + r2, ty + 3, r2, tg.v); ladder(c, x0 + 16, ty + 36, bw - 32, 5, tg.v); label(c, tg.n.toUpperCase(), x0 + 16 + r2 * 2 + gap, ty + 2, fs, 'disp', '#fdf8ea', 'left'); }
         if (st === 'show' && !G.ended) { /* the pull-up score: your color beside the target's, a word and the closeness */
@@ -73529,7 +73818,13 @@ const CampMini = (() => {
           c.fillStyle = 'rgba(11,21,23,0.5)'; c.beginPath(); c.roundRect(x0 - 8, y0 - 12, n * gx + 8, 24, 10); c.fill();
           for (let k = 0; k < n; k++) { let col = 'rgba(255,232,196,0.18)'; if (phase === 'fit') { if (placed[B.pre + k]) col = '#d8b27e'; else if (k === j) col = 'rgba(255,209,102,0.7)'; } else { const q = nails[k]; if (q.done) col = q.bent ? '#e8846e' : q.q >= 1 ? '#f3c56b' : '#e9c88a'; else if (k === ni) col = 'rgba(253,248,234,0.75)'; }
             c.fillStyle = col; c.beginPath(); c.arc(x0 + k * gx + gx / 2 - 4, y0, Math.min(5, gx * 0.32), 0, TAU); c.fill(); } }
-        if (G.clock > 2.5 && phase !== 'done') label(c, phase === 'fit' ? (G.pad ? 'D-PAD PICKS · A FITS · B DROPS' : G.touch ? 'TAP A PLANK, THEN THE GOLD SLOT' : 'A / D PICK · SPACE FITS · OR CLICK') : (G.pad ? 'HOLD A · LET GO IN THE GOLD' : G.touch ? 'HOLD ANYWHERE · LET GO IN THE GOLD' : 'HOLD SPACE OR CLICK · LET GO IN THE GOLD'), W / 2, H * 0.94, 11, 'ui', 'rgba(253,248,234,0.75)');
+        if (TRAILBUILD_HINT && G.clock > 2.5 && phase !== 'done') { /* the bottom hint in a dark pill, the gold keyword in gold */
+          const txt = phase === 'fit' ? (G.pad ? 'D-PAD PICKS · A FITS · B DROPS' : G.touch ? 'Tap a plank, then the gold slot' : inDev.dev === 'key' ? 'A / D PICK · SPACE FITS · OR CLICK' : 'Click a plank, then the gold slot') : (G.pad ? 'HOLD A · LET GO IN THE GOLD' : G.touch ? 'HOLD ANYWHERE · LET GO IN THE GOLD' : 'HOLD SPACE OR CLICK · LET GO IN THE GOLD');
+          const mt = /gold slot|GOLD/.exec(txt), a1 = mt ? txt.slice(0, mt.index) : txt, a2 = mt ? mt[0] : '', a3 = mt ? txt.slice(mt.index + a2.length) : '';
+          c.save(); c.font = `700 14px ${FONT.ui}`; c.textBaseline = 'middle'; c.textAlign = 'left'; const w1 = c.measureText(a1).width, w2 = c.measureText(a2).width, w3 = c.measureText(a3).width, tw = w1 + w2 + w3, ph = 30, pw = tw + 36, py = H - 12 - ph, px = W / 2 - pw / 2;
+          c.fillStyle = 'rgba(36,22,14,0.85)'; c.beginPath(); c.roundRect(px, py, pw, ph, ph / 2); c.fill(); const ty = py + ph / 2 + 1, tx = W / 2 - tw / 2;
+          c.fillStyle = '#fdf8ea'; c.fillText(a1, tx, ty); c.fillStyle = '#f3c56b'; c.fillText(a2, tx + w1, ty); c.fillStyle = '#fdf8ea'; c.fillText(a3, tx + w1 + w2, ty); c.restore(); }
+        else if (G.clock > 2.5 && phase !== 'done') label(c, phase === 'fit' ? (G.pad ? 'D-PAD PICKS · A FITS · B DROPS' : G.touch ? 'TAP A PLANK, THEN THE GOLD SLOT' : 'A / D PICK · SPACE FITS · OR CLICK') : (G.pad ? 'HOLD A · LET GO IN THE GOLD' : G.touch ? 'HOLD ANYWHERE · LET GO IN THE GOLD' : 'HOLD SPACE OR CLICK · LET GO IN THE GOLD'), W / 2, H * 0.94, 11, 'ui', 'rgba(253,248,234,0.75)');
       }
     };
   }
@@ -73796,7 +74091,9 @@ const CampMini = (() => {
           c.fillStyle = 'rgba(243,197,107,0.9)'; for (const f of F) if ((f.st === 'free' || f.st === 'glide') && f.r === rd) { c.beginPath(); c.arc(dx + 10, yOfU(f.p[2] - cu, y0, y1), 3, 0, TAU); c.fill(); }
           c.strokeStyle = '#f3c56b'; c.lineWidth = 2; c.beginPath(); c.arc(dx, yOfU(pu, y0, y1), 12, 0, TAU); c.stroke();
           c.fillStyle = 'rgba(253,248,234,0.92)'; c.beginPath(); c.arc(dx, yOfU(tu, y0, y1), 8, 0, TAU); c.fill();
-          label(c, ky[0], dx, y0 - 15, 8, 'ui', 'rgba(253,248,234,0.7)'); label(c, ky[1], dx, y1 + 16, 8, 'ui', 'rgba(253,248,234,0.7)'); c.restore(); }
+          if (OVERLAP_FIX && !G.touch && !G.pad && y0 - 26 < G.backB + 6) label(c, ky[0], dx + (dx < G.W / 2 ? 38 : -38), y0 + 3, 8, 'ui', 'rgba(253,248,234,0.7)'); /* the back button covers the bar's top end: the label sits beside it */
+          else label(c, ky[0], dx, y0 - 15, 8, 'ui', 'rgba(253,248,234,0.7)');
+          label(c, ky[1], dx, y1 + 16, 8, 'ui', 'rgba(253,248,234,0.7)'); c.restore(); }
         if (dep) { const [dx, y0, y1] = depAt(), pos = (live && G.clock > 0 ? '' : 'n') + (dx - 32) + ',' + (y0 - DPD) + ',' + (y1 - y0 + 2 * DPD); if (pos !== depPos) { depPos = pos; dep.style.display = pos[0] === 'n' ? 'none' : ''; dep.style.left = (dx - 32) + 'px'; dep.style.top = (y0 - DPD) + 'px'; dep.style.height = (y1 - y0 + 2 * DPD) + 'px'; } }
         if (st === 'intro') { const k = clamp(stT / 0.3, 0, 1) * clamp((1.2 - stT) / 0.3, 0, 1); if (k > 0) { c.globalAlpha = k; label(c, `ROUND ${rd + 1} / ${NR}`, W / 2, H * 0.3, Math.round(clamp(H * 0.09, 22, 40)), 'disp', 'rgba(253,248,234,0.92)'); c.globalAlpha = 1; } }
         if (st === 'play' || st === 'tail') { const n = insideN(); if (n) label(c, `${n} IN THE JAR`, W / 2, H - 18, 12, 'ui', 'rgba(243,197,107,0.85)'); }
@@ -74108,6 +74405,7 @@ const CampMini = (() => {
       for (let i = 0; i < 4; i++) { const p = c[i], q = c[(i + 1) % 4]; a += p[0] * q[1] - q[0] * p[1]; } const pps = Math.sqrt(Math.abs(a) / 2 / (TW * TH)) * (G.uz || 1);
       return pps > 0 && isFinite(pps) ? clamp(cf.ppsRef / pps, 1, cf.kMax) : 1; };
     let st = 'pick', stT = 0, t = 0, idle = 0, playT = 0, hinted = false, grainT = 0, spd = 0, progS = '', last = null, noteT = 3, helpT = 3.2;
+    if (ZEN_CARD_UNIFIED) helpT = 0; /* the start card carries the short how-to; the '?' keeps the long one */
     let vig = null, vigW = 0, vigH = 0, held = false, actOn = false, cxp = 0, cyp = 0, cvx = 0, cvy = 0, curOn = false, curInit = false, pills = [];
     const hitPill = (x, y) => pills.find((b) => x >= b.x - 6 && x <= b.x + b.w + 6 && y >= b.y - 6 && y <= b.y + b.h + 6) || null;
     function begin() { if (st !== 'pick') return; st = 'rake'; stT = 0; playT = 0; idle = 0; held = false; actOn = false; G.help.set(ZEN_PAD_DONE ? CHIPS.zen.concat([{ g: 'Y', label: 'Done', btn: 3 }]) : CHIPS.zen); G.cue('page'); const c = Hm ? zenApply(Hm, TW / 2, TH / 2) : [G.W / 2, G.H / 2]; cxp = c[0]; cyp = c[1]; cvx = cvy = 0; progS = ''; }
@@ -74194,7 +74492,7 @@ const CampMini = (() => {
           if (st === 'rake' && !free()) { const k = clamp(1 - playT / PLAY_T, 0, 1), ty = cy + ch + 6; c.fillStyle = 'rgba(255,232,196,0.18)'; c.beginPath(); c.roundRect(sx0, ty - 2, span, 4, 2); c.fill(); c.fillStyle = k < 0.2 ? '#ff8a3d' : 'rgba(243,197,107,0.85)'; c.beginPath(); c.roundRect(sx0, ty - 2, span * k, 4, 2); c.fill(); } /* the time left */
           if (st === 'pick' || noteT > 0) { c.save(); c.globalAlpha = st === 'pick' ? 1 : clamp(noteT / 0.5, 0, 1); /* the design's meaning and difficulty: a small caption at the bottom center (for a moment after a switch while raking) */
             const cap = `${ci + 1}/${ND + 1}  ·  ${D.note}${D.d ? '  ·  ' + LV[D.d] : ''}`; label(c, cap, W / 2, by + bh / 2 + (st === 'pick' ? 10 : 0), 12, 'ui', 'rgba(253,248,234,0.88)'); c.restore(); } }
-        if (st === 'pick') label(c, pad ? 'Left / right: pattern  ·  A: set the rake down' : ky ? 'Click the sand to begin' : 'Touch the sand to begin', W / 2, by + bh / 2 - 10, 13, 'ui', 'rgba(253,248,234,0.8)');
+        if (st === 'pick' && !ZEN_CARD_UNIFIED) label(c, pad ? 'Left / right: pattern  ·  A: set the rake down' : ky ? 'Click the sand to begin' : 'Touch the sand to begin', W / 2, by + bh / 2 - 10, 13, 'ui', 'rgba(253,248,234,0.8)');
         if (st === 'rake' || st === 'complete') { const right = G.side > 0;
           const Dn = { id: 'done', x: right ? W - m - dw : m, y: by, w: dw, h: bh }, Un = { id: 'undo', x: right ? m : W - m - uw, y: by, w: uw, h: bh }; pills.push(Dn); if (hist.length) pills.push(Un);
           if (ZEN_PAD_DONE && pad) { const on = curOver(Dn), gx = Dn.x + 22, gy = Dn.y + Dn.h / 2; pill(Dn, '', on); label(c, 'Done', Dn.x + Dn.w / 2 + 12, gy + 1, 17, 'ui', on ? '#1b1410' : '#fdf8ea'); /* the pad's Y glyph (padGlyph's colors) on the button it presses */
@@ -74204,10 +74502,20 @@ const CampMini = (() => {
           if (curOn && st === 'rake') { c.save(); c.strokeStyle = actOn ? '#fff4d6' : 'rgba(243,197,107,0.9)'; c.lineWidth = actOn ? 2.6 : 2; if (!actOn) c.setLineDash([4, 5]); c.beginPath(); c.arc(cxp, cyp, 13, 0, TAU); c.stroke(); c.setLineDash([]); c.fillStyle = 'rgba(255,244,214,0.9)'; c.beginPath(); c.arc(cxp, cyp, 2.2, 0, TAU); c.fill(); c.restore(); } } /* the pad / key cursor */
         if (st === 'pick' || st === 'rake') { /* the how-to: a small caption at the top right edge for the first seconds, then a '?' that shows it again */
           const qb = { id: 'help', x: qx, y: 14, w: 36, h: 36 }; pills.push(qb); pill(qb, '', helpT > 0 || curOver(qb)); label(c, '?', qb.x + 18, qb.y + 19, 18, 'ui', helpT > 0 || curOver(qb) ? '#1b1410' : '#fdf8ea');
-          if (helpT > 0) { const txt = pad ? INSTR.zen.p : INSTR.zen.t, mw = Math.min(260, W * 0.3), words = txt.split(' '), lines = []; let ln = ''; c.font = `700 12px ${FONT.ui}`;
+          if (helpT > 0) { const txt = pad ? INSTR.zen.p : clickWord(INSTR.zen.t), mw = Math.min(260, W * 0.3), words = txt.split(' '), lines = []; let ln = ''; c.font = `700 12px ${FONT.ui}`;
             for (const wd of words) { const tr = ln ? ln + ' ' + wd : wd; if (c.measureText(tr).width > mw && ln) { lines.push(ln); ln = wd; } else ln = tr; } if (ln) lines.push(ln);
             const bw2 = mw + 20, bh2 = lines.length * 16 + 14, bx2 = clamp(qb.x + qb.w - bw2, 10, W - 10 - bw2), by2 = qb.y + qb.h + 16; c.save(); c.globalAlpha = clamp(helpT / 0.4, 0, 1); c.fillStyle = 'rgba(20,14,10,0.62)'; c.beginPath(); c.roundRect(bx2, by2, bw2, bh2, 10); c.fill();
             lines.forEach((l, i) => label(c, l, bx2 + 10, by2 + 15 + i * 16, 12, 'ui', 'rgba(253,248,234,0.9)', 'left')); c.restore(); } }
+        if (ZEN_CARD_UNIFIED && st === 'pick' && helpT <= 0) { /* the start card: centered, dark, the other games' look (.cm-instr.wait), with its yellow start line */
+          const sm = H <= 420, fs = sm ? 14 : 16, gs = sm ? 17 : 20, lh = Math.round(fs * 1.3), px = sm ? 18 : 22, py = sm ? 10 : 14, mw = Math.min(W * 0.8, 520) - 2 * px;
+          const head = pad ? null : 'Pick a pattern with the arrows.', body = pad ? `Left / right: pattern  ·  ${padA()}: set the rake down` : `${ky ? 'Click' : 'Tap'} the sand to set the rake down, then drag along the faint lines. Steady strokes score best.`;
+          const go = (pad ? `Press ${padA()} to start` : ky ? 'Click to start' : 'Tap to start').toUpperCase(), lines = head ? [head] : [];
+          c.font = `500 ${fs}px ${FONT.ui}`; let ln = ''; for (const wd of body.split(' ')) { const tr = ln ? ln + ' ' + wd : wd; if (c.measureText(tr).width > mw && ln) { lines.push(ln); ln = wd; } else ln = tr; } if (ln) lines.push(ln);
+          let tw = 0; for (const l of lines) tw = Math.max(tw, c.measureText(l).width); c.font = `italic 800 ${gs}px ${FONT.disp}`; tw = Math.max(tw, c.measureText(go).width + gs * 0.08 * go.length);
+          const cw = Math.ceil(tw) + 2 * px, chh = lines.length * lh + (sm ? 6 : 8) + gs + 2 * py, cx0 = W / 2 - cw / 2, cy0 = H / 2 - chh / 2;
+          c.save(); c.fillStyle = 'rgba(20,14,10,0.66)'; c.beginPath(); c.roundRect(cx0, cy0, cw, chh, 14); c.fill(); c.strokeStyle = 'rgba(253,248,234,0.14)'; c.lineWidth = 1; c.stroke();
+          c.fillStyle = 'rgba(253,248,234,0.92)'; c.font = `500 ${fs}px ${FONT.ui}`; c.textAlign = 'center'; c.textBaseline = 'middle'; lines.forEach((l, i) => c.fillText(l, W / 2, cy0 + py + lh * (i + 0.5)));
+          c.fillStyle = '#ffd24a'; c.font = `italic 800 ${gs}px ${FONT.disp}`; if ('letterSpacing' in c) c.letterSpacing = `${(gs * 0.08).toFixed(1)}px`; c.fillText(go, W / 2, cy0 + py + lines.length * lh + (sm ? 6 : 8) + gs / 2); c.restore(); }
       }
     };
   }
@@ -74554,7 +74862,7 @@ const CampMini = (() => {
     const PR = [3.0, 2.2], pond = { x: EX + FX * 10.5 + RX * 2.4, z: EZ + FZ * 10.5 + RZ * 2.4, wl: 0 }; pond.wl = gy(pond.x, pond.z) - 0.04;
     const pondR = (x, z) => { const dx = x - pond.x, dz = z - pond.z; return Math.hypot((dx * RX + dz * RZ) / PR[0], (dx * FX + dz * FZ) / PR[1]); }; /* 1 on the water's rim */
     const gb = (x, z) => { const y = gy(x, z), r = pondR(x, z); if (r >= 1.45) return y; const t = clamp((r - 1) / 0.45, 0, 1); return y - (1 - t * t * (3 - 2 * t)) * Math.max(0, y - pond.wl + 0.14); }; /* the ground with the pond's bowl */
-    { /* the trees (stream seed + 7124): a mixed wood of pines, round low-poly broadleaves (olive, ochre, rust, sage), birches and bushes, each painted darker at
+    { /* the trees (stream seed + 7124): a mixed wood of pines, round low-poly broadleaves (olive, ocher, rust, sage), birches and bushes, each painted darker at
          its foot, lighter at its crown and with a warm rim on the sunset side. A far line 24-46 m out across the view (their crowns under 7 deg, against the
          mountains), side groves 10-22 m out that frame the view, and bushes 10-16 m out to the sides, tall spruces 18-28 m out whose tips line the Stargazing lens's bottom edge; nothing stands in the play volume (the fireflies stay
          within ~8 m). Every crown ends under CAP (deg above the eye, by the angle off the look direction): the Stargazing lens (50 deg up; 62 on a
@@ -76511,7 +76819,7 @@ const CampMini = (() => {
     const PAR_BASE = 1.3, PAR_LINK = 0.65, parOf = () => PAR_BASE + PAR_LINK * E.length;
     const speedOf = (tm) => { const pr = parOf(); return tm <= pr ? 1 : Math.max(0, 1 - 0.9 * (tm - pr) / pr); };
     const roundScore = () => clamp((1 - 0.14 * miss) * speedOf(rt), 0.35, 1);
-    let clockSeen = -1; const clockShow = () => { const pr = parOf(); G.prog(`Sky ${r + 1} / ${N} · ${rt.toFixed(1)} / ${Math.round(pr)} s`, rt > pr); }; /* the running timer lives in the progress pill (turns amber past par) */
+    let clockSeen = -1; const clockShow = () => { const pr = parOf(); if (WORDING_FIX) G.prog(`Sky ${r + 1} / ${N} · ${rt.toFixed(1)} / ${Math.round(pr)} `, rt > pr, 's'); else G.prog(`Sky ${r + 1} / ${N} · ${rt.toFixed(1)} / ${Math.round(pr)} s`, rt > pr); }; /* the running timer lives in the progress pill (turns amber past par) */
     function connect(ei, from) { const to = other(ei, from); E[ei].done = true; drawn.push({ e: ei, from, to }); lit.add(to); tip = to; idle = 0; G.buzz(8); G.cue('note', drawn.length - 1);
       if (drawn.length >= E.length) { st = 'shown'; stT = 0; const q = roundScore(); sc.push(q); newly = constMark(cur.id); G.cue(q > 0.8 ? 'success' : 'good', q > 0.95); G.buzz([20, 30, 20]); } else hint(); }
     function pick(j) { /* a press on star j: a lit star anchors a line there; an unlit one joins through an undone link to a lit star (the tip first); else a miss */
@@ -77779,7 +78087,7 @@ const CampMini = (() => {
         /* the tally, bottom left: points, cups, the first washer's how-to */
         const fs = 12, cw = (txt) => { c.font = `700 ${fs}px ${FONT.ui}`; return c.measureText(txt).width + 18; }, chip = (txt, x, y, hot) => { const w = cw(txt); c.fillStyle = hot ? 'rgba(232,118,46,0.92)' : 'rgba(20,14,10,0.74)'; c.beginPath(); c.roundRect(x, y, w, 26, 13); c.fill(); label(c, txt, x + w / 2, y + 13, fs, 'ui', '#fdf8ea'); return x + w + 6; };
         const x0 = Math.max(16, W * 0.025); let cx = chip(`${pts} pts`, x0, H - 40, true); cx = chip(`${cups} cup${cups === 1 ? '' : 's'}`, cx, H - 40);
-        if (n < 1) { const tip = G.pad ? 'Press A to lock the aim. Hold A to pull back, let go on the ring.' : 'Press to lock the aim. Hold to pull back, let go on the ring.'; if (cx + cw(tip) <= W - 16) chip(tip, cx, H - 40); else chip(tip, x0, H - 72); }
+        if (n < 1) { const tip = HELP_TEXT_CLEAN ? (G.pad ? 'Hold A when the ring is over the cup. Release to throw.' : 'Hold when the ring is over the cup. Release to throw.') : G.pad ? 'Press A to lock the aim. Hold A to pull back, let go on the ring.' : 'Press to lock the aim. Hold to pull back, let go on the ring.'; /* the first washer's tip in the card's words (HELP_TEXT_CLEAN) */ if (cx + cw(tip) <= W - 16) chip(tip, cx, H - 40); else chip(tip, x0, H - 72); }
       }
     };
   }
@@ -77810,11 +78118,12 @@ const CampMini = (() => {
     const fx = GAME_FX[id] && GAME_FX[id].cam === 'drift' ? GAME_FX[id] : null; if (fx) CAM_DRIFT.reset();
     let bike = null; if (id === 'tune' && opts.bike3d) { try { bike = TuneBike(opts.bike3d); } catch (e) { console.error('CampMini tune bike', e); bike = null; } }
     let ptrKind = ''; /* pointerType of the last press on the game ('touch', 'pen', 'mouse') */
+    let backR = 64, backB = 64; /* OVERLAP_FIX: the back button's edges (resize) */
     const G = {
       auto: opts.auto !== undefined ? !!opts.auto : (typeof miniAutoOn === 'function' ? miniAutoOn() : false), /* the auto-finish assists (Settings) */
-      rng, seed, opts, river: opts.river || null, d: clamp((level - 1) / 4, 0, 1), side, left, fontDisp, fontUi, ax: 0, ay: 0, touch: matchMedia('(pointer: coarse)').matches, get W() { return W; }, get H() { return H; }, get pad() { return inDev.pad; }, get ptrKind() { return ptrKind; },
-      cue, prog: (s, hot) => { progEl.textContent = s; progEl.classList.toggle('hot', !!hot); }, buzz, help,
-      float: (text, fx, fy, soft) => { const el = document.createElement('div'); el.className = 'cm-fl' + (soft ? ' soft' : '') + (FLOAT_AA ? ' aa' : ''); el.textContent = text; el.style.left = fx * 100 + '%'; el.style.top = fy * 100 + '%'; root.appendChild(el); floats.push({ el, t: 0 }); },
+      rng, seed, opts, river: opts.river || null, d: clamp((level - 1) / 4, 0, 1), side, left, fontDisp, fontUi, ax: 0, ay: 0, touch: matchMedia('(pointer: coarse)').matches, get W() { return W; }, get H() { return H; }, get pad() { return inDev.pad; }, get ptrKind() { return ptrKind; }, get backR() { return backR; }, get backB() { return backB; },
+      cue, prog: (s, hot, unit) => { progEl.textContent = s; if (unit) { const u = document.createElement('span'); u.className = 'u'; u.textContent = unit; progEl.appendChild(u); } progEl.classList.toggle('hot', !!hot); }, buzz, help, /* unit: a trailing unit kept lowercase in the uppercase pill */
+      float: (text, fx, fy, soft) => { const el = document.createElement('div'); el.className = 'cm-fl' + (soft ? ' soft' : '') + (FLOAT_AA ? ' aa' : ''); el.textContent = clickWord(text); el.style.left = fx * 100 + '%'; el.style.top = fy * 100 + '%'; root.appendChild(el); floats.push({ el, t: 0 }); },
       dom: (tag, cls) => { const el = document.createElement(tag); el.className = cls; root.appendChild(el); return el; },
       cam: (p) => { try { hooks.cam(p && fx && !fx.own ? Object.assign({ drift: fx.amp }, p) : p); } catch (e) { /* host without a camera */ } }, kick: (a) => { if (fx) CAM_DRIFT.kick(a); }, /* a small settle push-in after a hit (drift games only) */
       fire: (v) => { try { hooks.fire(v); } catch (e) { /* noop */ } },
@@ -77836,8 +78145,9 @@ const CampMini = (() => {
     function dismiss() { if (!waiting) return; waiting = false; acc = 0; frameNow = performance.now(); instrEl.classList.remove('wait'); instrEl.querySelector('.go').textContent = ''; instrMark(id); }
     function setAct(src, v) { flags[src] = v; const now = flags.key || flags.pad || flags.ptr; if (now === actNow) return; actNow = now; if (ended) { if (now && endT > 0.7) finalize(false); return; } if (game.act) game.act(now); }
     function dir(dx, dy) { if (!ended) inputs++; if (!ended && game.dir) game.dir(dx, dy); }
-    function devWording() { const pd = inDev.pad; if (!instrGone) instrEl.querySelector('.t').textContent = pd ? padTxt(INSTR[id].p) : INSTR[id].t; if (waiting) instrEl.querySelector('.go').textContent = devWord('start'); const sm = endEl.querySelector('small'); if (sm) sm.textContent = devWord('cont'); } /* the how-to, start and continue prompts follow the last-used device (pad: controller wording, both ways) */
+    function devWording() { const pd = inDev.pad; if (!instrGone) instrEl.querySelector('.t').textContent = pd ? padTxt(INSTR[id].p) : clickWord(INSTR[id].t); if (waiting) instrEl.querySelector('.go').textContent = clickWord(devWord('start')); const sm = endEl.querySelector('small'); if (sm) sm.textContent = clickWord(devWord('cont')); } /* the how-to, start and continue prompts follow the last-used device (pad: controller wording, both ways) */
     offs.push(inDev.on(devWording)); devWording();
+    if (HELP_TEXT_CLEAN && INSTR[id].m) { const mouseWording = () => { if (!instrGone && !inDev.pad && inDev.dev !== 'touch' && !MOBILE) instrEl.querySelector('.t').textContent = INSTR[id].m; }; offs.push(inDev.on(mouseWording)); mouseWording(); } /* a game with its own mouse how-to (instr.m) shows it on a mouse and keyboard */
     function showEnd() {
       let cd = null; try { cd = game.card ? game.card(score) : null; } catch (e) { cd = null; } /* a game may word its own card (the zen garden: the design, accuracy, smoothness; free rake shows no stars) */
       const n = starsOf(score, id); endEl.querySelectorAll('svg').forEach((e, j) => e.classList.toggle('on', j < n)); endEl.querySelector('.cm-big').style.display = cd && cd.free ? 'none' : ''; endEl.querySelector('h3').textContent = (cd && cd.title) || RESULT[id][n];
@@ -77854,7 +78164,8 @@ const CampMini = (() => {
     }
     /* sizing: cmZ() is the zoom the game's screen is drawn at (SCREEN_FIT: the camp stops at the fitting size, so a bigger saved UI size does not reach it) */
     const cmZ = () => (SCREEN_FIT && !ZONES_OK ? Math.min(UIZ, ctlScale()) : UIZ);
-    function resize() { const r = root.getBoundingClientRect(); dpr = Math.min(2, window.devicePixelRatio || 1); uz = cmZ(); W = Math.max(1, r.width / uz); H = Math.max(1, r.height / uz); cv.width = Math.round(W * uz * dpr); cv.height = Math.round(H * uz * dpr); } /* the panel is zoomed: games draw in its design pixels (W, H), the buffer holds real pixels */
+    function resize() { const r = root.getBoundingClientRect(); dpr = Math.min(2, window.devicePixelRatio || 1); uz = cmZ(); W = Math.max(1, r.width / uz); H = Math.max(1, r.height / uz); cv.width = Math.round(W * uz * dpr); cv.height = Math.round(H * uz * dpr);
+      if (OVERLAP_FIX) { const b = back.getBoundingClientRect(); backR = (b.right - r.left) / uz; backB = (b.bottom - r.top) / uz; } } /* the back button's right / bottom edge in design pixels (the games keep their panels clear of it) */ /* the panel is zoomed: games draw in its design pixels (W, H), the buffer holds real pixels */
     let ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(resize) : null; if (ro) { ro.observe(root); dbg.ro++; } else on(window, 'resize', resize); resize();
     function draw() { if (uz !== cmZ()) resize(); c2.setTransform(dpr * uz, 0, 0, dpr * uz, 0, 0); c2.clearRect(0, 0, W, H); game.draw(c2, W, H); }
     /* input: pointer (the whole screen; the back button is the only DOM control) */
