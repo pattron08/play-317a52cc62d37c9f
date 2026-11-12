@@ -985,7 +985,7 @@
   <div class="favCard" id="tFavs" hidden><div class="fvh">Favorites</div><div class="fvl" id="tFavList"></div><button class="mb sm" id="tFavClose">Close</button></div>
   <div id="tapGo" role="status" hidden>Press to start</div>
   <button class="ico" id="mute" role="switch" aria-checked="true" aria-label="Sound"><svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg><svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M17 9l5 6M22 9l-5 6"/></svg></button>
-  <div class="foot"><span id="verTag">v0.66.0</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span><span id="medalTag"></span></div>
+  <div class="foot"><span id="verTag">v0.68.0</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span><span id="medalTag"></span></div>
   <button id="btnNew" hidden>New mountain</button>
 </div>
 
@@ -56277,12 +56277,13 @@ const isTut = () => !!(S && S.course && S.course.seed === TUT_SEED);
 function themeOf(seed) { if (seed === TUT_SEED) return THEMES.find(T => T.id === 'alpine'); /* the tutorial is always the bright, sparse Alpine Meadow (no draw for it) */
   const rt = mulberry32(seed + 4242); let r = rt(), tot = 0; for (const T of THEMES) tot += T.w; r *= tot; for (const T of THEMES) { r -= T.w; if (r <= 0) return T; } return THEMES[THEMES.length - 1]; }
 /* does the trail cross itself in plan with a real height difference (a tread running under another)? Two samples >= 40 apart whose
-   treads overlap (center distance < hw + hw + 0.5) with > 2.5 m between them. 8 m buckets, so it costs ~1 ms on a 1900-sample trail. */
+   treads overlap (center distance < hw + hw + 0.5) with > 2.5 m between them. 8 m buckets, so it costs ~1 ms on a 1900-sample trail. A bucket's key is
+   one number, (cx + 32768) * 65536 + (cz + 32768): one key per bucket while |z| < 262 km (the map is a few km), and the lists only ever get looked up */
 function trailSelfCross(pts) {
   const cell = 8, M = new Map();
-  for (let j = 0; j < pts.length; j++) { const k = Math.floor(pts[j].x / cell) + ',' + Math.floor(pts[j].z / cell); let L = M.get(k); if (!L) M.set(k, L = []); L.push(j); }
+  for (let j = 0; j < pts.length; j++) { const k = (Math.floor(pts[j].x / cell) + 32768) * 65536 + (Math.floor(pts[j].z / cell) + 32768); let L = M.get(k); if (!L) M.set(k, L = []); L.push(j); }
   for (let i = 0; i < pts.length; i++) { const Q = pts[i], cx = Math.floor(Q.x / cell), cz = Math.floor(Q.z / cell);
-    for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) { const L = M.get((cx + a) + ',' + (cz + b)); if (!L) continue;
+    for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) { const L = M.get((cx + a + 32768) * 65536 + (cz + b + 32768)); if (!L) continue;
       for (const j of L) { if (j <= i + 40) continue; const P = pts[j]; if (Math.abs(P.y - Q.y) > 2.5 && Math.hypot(P.x - Q.x, P.z - Q.z) < Q.hw + P.hw + 0.5) return [i, j]; } } }
   return null;
 }
@@ -57233,7 +57234,7 @@ function* buildCourseGen(seed, fixK = 0, noMir = 0, four = 0) { /* noMir: bit i 
   for (let q = 0; q < n; q++) { const j = hasZ ? order[q] : q; OJ[q] = j; OX[q] = pts[j].x; OZ[q] = pts[j].z; OS[q] = hasZ ? stretch[j] : 0; }
   let nearD = 0; const nearQ = (x, z, q0, q1) => { let bq = -1, bd = Infinity; for (let q = q0; q <= q1; q++) { const dx = x - OX[q], dz = z - OZ[q], dd = dx * dx + dz * dz; if (dd < bd) { bd = dd; bq = q; } } nearD = bd; return bq; }; /* the nearest sample in the window (small functions optimize; the big one did not) */
   const otherQ = (x, z, q0, q1, bj, sb) => { let qd = Infinity, qj = -1; for (let q = q0; q <= q1; q++) { const j = OJ[q]; if (OS[q] === sb || Math.abs(j - bj) <= 40) continue; const dx = x - OX[q], dz = z - OZ[q], dd = dx * dx + dz * dz; if (dd < qd) { qd = dd; qj = j; } } return qj; };
-  const W = new Float32Array(NX * NZ), LN = new Float32Array(NX * NZ), ZB = new Uint8Array(NX * NZ), QJ = hasZ ? new Int32Array(NX * NZ).fill(-1) : null; const PD = new Uint8Array(NX * NZ), WT = new Float32Array(NX * NZ); /* PD 1 = camp pad (lighter worn dirt), 2 = loop lane (darker); WT = wet tread at a ford, 0..1 */ /* ZB: zone band class per cell for the coloring (1 lip stripe, 2 rock face, 3 dark base, 4 talus, 5 island) */
+  const W = new Float32Array(NX * NZ), LN = new Float32Array(NX * NZ), ZB = new Uint8Array(NX * NZ); const PD = new Uint8Array(NX * NZ), WT = new Float32Array(NX * NZ); /* PD 1 = camp pad (lighter worn dirt), 2 = loop lane (darker); WT = wet tread at a ford, 0..1 */ /* ZB: zone band class per cell for the coloring (1 lip stripe, 2 rock face, 3 dark base, 4 talus, 5 island) */
   /* chicken lines: which trail samples have a ride-around on the valley side */
   const lineAt = new Uint8Array(n); for (const [a, b] of lines) for (let i = Math.max(0, a); i <= Math.min(n - 1, b); i++) lineAt[i] = 1;
   const PIN = new Uint8Array(NX * NZ); /* cells the smoothing pass must not touch (trail, kickers, lines) */
@@ -57354,7 +57355,7 @@ function* buildCourseGen(seed, fixK = 0, noMir = 0, four = 0) { /* noMir: bit i 
     const P = pts[bj], dx = x - P.x, dz = z - P.z;
     const lat = dx * P.rx + dz * P.rz, along = dx * P.fx + dz * P.fz, latV = lat * P.vs;
     const d = Math.hypot(lat, Math.max(0, Math.abs(along) - 0.6));
-    NI[k] = bj; DI[k] = d; OF[k] = latV; if (QJ) QJ[k] = qj;
+    NI[k] = bj; DI[k] = d; OF[k] = latV;
     /* natural ground relative to the trail: calm right next to the trail, wilder further out */
     const hi = 1 - P.prog, nb = (fbm(x * 0.022, z * 0.022, seed + 5, 3) - 0.5) * THEME.roughK; /* theme roughness on the natural ground (calm near the tread) */
     let nat = P.base;
@@ -57476,7 +57477,7 @@ function* buildCourseGen(seed, fixK = 0, noMir = 0, four = 0) { /* noMir: bit i 
       return !(checkpoints.some(c => hit(c.idx - CAMP.laneIn - 20, c.idx + CAMP.laneOut + 30)) || jumps.some(J => hit(J.lip - 30, (J.land || J.lip + 20) + 25)) || bridges.some(B => hit(B.a - 20, B.b + 20)) ||
         splits.some(F => hit(F.a - 25 + 10 * RS, F.b + 25 - 10 * RS)) || shortcuts.some(S2 => hit(Math.min(S2.a, S2.b) - 12, Math.max(S2.a, S2.b) + 12)) || setPieces.some(R => hit(R.a - 10 + 4 * RS, R.b + 15 - 7 * RS)) ||
         streams.some(St => St.i !== undefined ? hit(St.i - 40, St.i + 40) : hit(St.a - 30, St.b + 30)) || drops.some(Dp => hit(Dp.a - 40 + 20 * RS, Dp.b + 40 - 20 * RS))); };
-    const tryDrops = (rd, want, tries, dOf, sOf) => { for (let t = 0; t < tries && drops.length < want; t++) {
+    const tryDrops = function* (rd, want, tries, dOf, sOf) { for (let t = 0; t < tries && drops.length < want; t++) { if (t && !(t & 15)) yield; /* a pause every 16 tries (a sliced build); nothing is drawn across it */
       const sL = sOf ? sOf(t) : 120 + Math.floor(rd() * Math.max(1, n - 320)), D = dOf(rd()), ang = [0, 15, 30][Math.floor(rd() * 3)], Ls0 = 6 + Math.floor(rd() * 5), e0 = 3.2 + rd() * 1.5, long = rd() < 0.3;
       const RI = RLX > 2 ? 20 : 30; /* the run-in along the shoulder before the lip */
       if (!freeAt(sL - RI - 2, sL + 4)) continue;
@@ -57504,17 +57505,17 @@ function* buildCourseGen(seed, fixK = 0, noMir = 0, four = 0) { /* noMir: bit i 
         const w = wl, g = lipY - D - tA * Math.min(s, Ls), h0 = Hg[k]; Hg[k] = h0 * (1 - w) + Math.min(h0, g) * w;
         if (h0 - Hg[k] > 0.6 && w < 0.95) ZB[k] = 2; }
       Dp.tA = tA; Dp.y0 = pts[sL].y; Dp.short = RLX > 0; drops.push(Dp); quiet.push([Dp.a, Dp.b + 6]); } };
-    tryDrops(rd, want, 300, q => 1 + Math.round(18 * Math.pow(q, 1.6)) / 2);
+    yield* tryDrops(rd, want, 300, q => 1 + Math.round(18 * Math.pow(q, 1.6)) / 2);
     /* the short tier (own stream, seed + 7432): up to two more 1-3 m rock drop-offs, so a map carries 2-4, with the spacing to set pieces,
        forks and other drops relaxed (every camp, jump, bridge, stream, zone and the finish keep their full margins) */
     if (!TUT) { const rd2 = mulberry32(seed + 7432), want2 = 2 + Math.floor(rd2() * 3), cand = []; for (let i = 120; i < n - 200; i += 4) cand.push(i);
       for (let i = cand.length - 1; i > 0; i--) { const j = Math.floor(rd2() * (i + 1)), t = cand[i]; cand[i] = cand[j]; cand[j] = t; } /* every 4th sample, in a seeded order: a scan, not a lottery */
-      RLX = 1; tryDrops(rd2, Math.min(4, Math.max(want2, drops.length + 2)), cand.length, q => 1 + Math.round(4 * q) / 2, (t) => cand[t]);
-      if (drops.length < 2) { RLX = 2; tryDrops(rd2, 2, cand.length, q => 1 + Math.round(4 * q) / 2, (t) => cand[t]); }
+      RLX = 1; yield* tryDrops(rd2, Math.min(4, Math.max(want2, drops.length + 2)), cand.length, q => 1 + Math.round(4 * q) / 2, (t) => cand[t]);
+      if (drops.length < 2) { RLX = 2; yield* tryDrops(rd2, 2, cand.length, q => 1 + Math.round(4 * q) / 2, (t) => cand[t]); }
       if (drops.length < 2) { /* last resort for a short or crowded map (own stream, seed + 7450): every 2nd sample, a 20 m run-in instead of 30 m, the tight tier's margins */
         const rd3 = mulberry32(seed + 7450), c3 = []; for (let i = 120; i < n - 200; i += 2) c3.push(i);
         for (let i = c3.length - 1; i > 0; i--) { const j = Math.floor(rd3() * (i + 1)), t = c3[i]; c3[i] = c3[j]; c3[j] = t; }
-        RLX = 3; tryDrops(rd3, 2, c3.length, q => 1 + Math.round(4 * q) / 2, (t) => c3[t]); } RLX = 0; } /* a crowded map: one more scan with the set-piece, fork and drop margins at their tightest and 0.75 rad of heading allowed */ /* the short tier lands within 40 m or ends in a short pit; it may sit 0.6 rad off the lip's heading */
+        RLX = 3; yield* tryDrops(rd3, 2, c3.length, q => 1 + Math.round(4 * q) / 2, (t) => c3[t]); } RLX = 0; } /* a crowded map: one more scan with the set-piece, fork and drop margins at their tightest and 0.75 rad of heading allowed */ /* the short tier lands within 40 m or ends in a short pit; it may sit 0.6 rad off the lip's heading */
     for (const Dp of drops) Dp.lip = mulberry32(seed + 7435 + Dp.sL)() < 0.5 ? 'rock' : 'log'; /* the lip's look (own stream per drop) */
   }
   yield;
@@ -57699,14 +57700,15 @@ function* buildCourseGen(seed, fixK = 0, noMir = 0, four = 0) { /* noMir: bit i 
       H3[k] = HgO[k] + (avg - HgO[k]) * a;
     } };
   yield;
+  const SMG = new Float32Array(NX * NZ); /* the sweeps' scratch grid: each sweep copies its source in, smooths into it and copies it back before the next sweep starts (one grid instead of six copies) */
   for (let pass = 0; pass < 2; pass++) {
-    const H2 = Hg.slice();
+    const H2 = SMG; H2.set(Hg);
     for (let iz = 1; iz < NZ - 1; iz += 12) { smoothHg(H2, iz, Math.min(NZ - 1, iz + 12)); yield; }
     Hg.set(H2);
-    if (dHEon) { const D2 = dHE.slice(); /* the camp edge rule's difference takes the same pass (the pass is linear), its own band cells held like the plain ones */
+    if (dHEon) { const D2 = SMG; D2.set(dHE); /* the camp edge rule's difference takes the same pass (the pass is linear), its own band cells held like the plain ones */
       for (let iz = 1; iz < NZ - 1; iz += 12) { smoothHE(D2, iz, Math.min(NZ - 1, iz + 12)); yield; }
       dHE.set(D2); }
-    const H3 = HgO.slice(); /* the same pass on HgO */
+    const H3 = SMG; H3.set(HgO); /* the same pass on HgO */
     for (let iz = 1; iz < NZ - 1; iz += 12) { smoothHO(H3, iz, Math.min(NZ - 1, iz + 12)); yield; }
     HgO.set(H3);
   }
@@ -58090,19 +58092,20 @@ function* buildCourseGen(seed, fixK = 0, noMir = 0, four = 0) { /* noMir: bit i 
   /* a mirrored or reshaped sweeper must sit on plain ground: no pit, gully, stream bed or wall (over 3.5 m off the tread height) within 8 m of
      the loop's tread, no still water there and no other trail within 12 m. A loop that fails is rebuilt as the plain valley-side one
      (deterministic per seed; the other sweepers keep their pick). */
-  if ((FORKS_MIRROR_P > 0 || 1) && !TUT) { let bad = 0; const fit = (SC, fi, i0) => { /* samples i0 .. i0 + 31 of sweeper fi */
-      for (let i = i0; i <= i0 + 31 && i <= SC.b + 2 && !((bad >> fi) & 1); i++) { const P = pts[i];
+  if ((FORKS_MIRROR_P > 0 || 1) && !TUT) { let bad = 0; const fit = (SC, fi, i0) => { /* samples i0 .. i0 + 7 of sweeper fi */
+      for (let i = i0; i <= i0 + 7 && i <= SC.b + 2 && !((bad >> fi) & 1); i++) { const P = pts[i];
         for (let d = P.hw + 1; d <= P.hw + 8; d += 1.5) for (const sd of [-1, 1]) { const x = P.x + P.rx * d * sd, z = P.z + P.rz * d * sd, ix = Math.round((x - X0) / CELL), iz = Math.round((z - Z0) / CELL); if (ix < 0 || iz < 0 || ix >= NX || iz >= NZ) continue;
           const k = iz * NX + ix; if (Math.abs(Hg[k] - P.y) > 3.5 || (PL && PL[k] > -1e8 && PL[k] < 1e8)) bad |= 1 << fi; }
-        for (let j = 0; j < n; j += 2) if (Math.abs(j - i) > 90 && Math.hypot(pts[j].x - P.x, pts[j].z - P.z) < P.hw + pts[j].hw + 12) { bad |= 1 << fi; break; } } };
-    for (let fi = 0; fi < shortcuts.length; fi++) { const SC = shortcuts[fi]; if (!(SC.mir || SC.shape) || fi >= 30) continue; for (let i0 = SC.a - 2; i0 <= SC.b + 2 && !((bad >> fi) & 1); i0 += 32) { fit(SC, fi, i0); yield; } }
+        for (let j = 0; j < n; j += 2) { if (Math.abs(j - i) <= 90) continue; const Pj = pts[j], dx = Pj.x - P.x, dz = Pj.z - P.z, lim = P.hw + Pj.hw + 12; /* hypot >= the larger of |dx|, |dz|: the box test only skips samples the hypot test would reject */
+          if (Math.abs(dx) < lim && Math.abs(dz) < lim && Math.hypot(dx, dz) < lim) { bad |= 1 << fi; break; } } } };
+    for (let fi = 0; fi < shortcuts.length; fi++) { const SC = shortcuts[fi]; if (!(SC.mir || SC.shape) || fi >= 30) continue; for (let i0 = SC.a - 2; i0 <= SC.b + 2 && !((bad >> fi) & 1); i0 += 8) { fit(SC, fi, i0); yield; } }
     if (bad) { bcMemo.note(seed, fixK, noMir | bad, four); return yield* buildCourseGen(seed, fixK, noMir | bad, four); } }
   yield;
   let SR = null; /* side ramps (RAMPS_ON): placed last, on their own streams, from the finished lists; the carve joins the crossing's (XH), the footprint its own grid (SM) */
   if (!TUT) { const g = { X0, Z0, NX, NZ, Hg, NI, DI, LN, CL, PD, ZB: ZBO, PL, GT, XH, XM };
     SR = yield* placeSideRamps({ bLog: DEBUG ? [] : null, seed, pts, gap, ford, zone, hpOf, cliffNear, checkpoints, finishIdx, WATER, trains, tight, lines, strips, splits, longForks, streams, bridges, drops, dropOf, rampOf, jumps, setPieces, hooks, micros, shortcuts, hairpins, zones, grid: g });
     if (SR) { XH = g.XH; XM = g.XM; SR.SM = g.SM; } }
-  const course = { ...(jumpsX.need !== undefined ? { jumpsX } : {}), style: styleName, theme: THEME.id, themeName: THEME.name, berms, micros, setPieces, chunks, hooks, drops, dropOf, pts, gap, jumps, splits, bridges, human, checkpoints, finishIdx, seed, lines, shortcuts, quiet, dial, moments, ledges, cliffNear, waterKinds, streams, ford, zones, hairpins, zone, tier, stretch, gapDepth, shMin, apron, zoneG, hpOf, grid: { X0, Z0, NX, NZ, Hg, NI, DI, OF, W, LN, ZB, QJ, PD, WT, HgO, GT, CL, PL, HgS: wpEd ? HgS : null, dE }, strips, longForks, open, tight, WATER, maxH, M, trains, rampOf, cliffT, campEdge: edgeLog, tut: tutData };
+  const course = { ...(jumpsX.need !== undefined ? { jumpsX } : {}), style: styleName, theme: THEME.id, themeName: THEME.name, berms, micros, setPieces, chunks, hooks, drops, dropOf, pts, gap, jumps, splits, bridges, human, checkpoints, finishIdx, seed, lines, shortcuts, quiet, dial, moments, ledges, cliffNear, waterKinds, streams, ford, zones, hairpins, zone, tier, stretch, gapDepth, shMin, apron, zoneG, hpOf, grid: { X0, Z0, NX, NZ, Hg, NI, DI, OF, W, LN, ZB, PD, WT, HgO, GT, CL, PL, HgS: wpEd ? HgS : null, dE }, strips, longForks, open, tight, WATER, maxH, M, trains, rampOf, cliffT, campEdge: edgeLog, tut: tutData };
   if (XH) { course.grid.XH = XH; course.grid.XM = XM; } /* a level crossing's carve (buildWorld draws it, then adds it to Hg) and footprint (clearCross) */
   if (SR) { course.sramps = SR.list; course.srOf = SR.of; course.grid.SM = SR.SM; if (DEBUG && SR.list.bLog) course.bLog = SR.list.bLog; } /* side ramps (makeSurface reads course.srOf; clearSideRamps the footprint SM) */
   if (DEBUG) window.__campEdge = { log: edgeLog, scan: campEdgeScan(course) }; /* the camp edge rule's record and the checker's rows for this map (tests) */
@@ -58900,6 +58903,18 @@ function disposeSubtree(root, keep) { const geos = new Set(); /* keep: an array 
    them first threw away the programs every mountain shares (ground fade, wind, moss, flutter ...) and the first frame of every new mountain compiled them again */
 const staleMats = [];
 function worldCompile() { if (renderer) renderer.compile(scene, camera); for (const m of staleMats) m.dispose(); staleMats.length = 0; } /* in newRun, behind the build card */
+/* Static world matrices. Once a world is placed (the end of newRun), everything in it except the camps, the trains and the water rings stays where it is,
+   so those pieces get their matrices once here and three's per-frame walk skips them (matrixWorldAutoUpdate false on each static child of world).
+   The scene and world roots never move: with their matrixAutoUpdate off they no longer force a matrix multiply on every descendant each frame.
+   Anything added later (camp batches, the Activities' props, peeks) keeps three's defaults and is updated as before. An object with matrixAutoUpdate
+   off must set matrixWorldNeedsUpdate (or call updateMatrixWorld) after it writes its matrix: nothing above it forces that any more. */
+function worldFreeze(course) {
+  scene.matrixAutoUpdate = false; scene.updateMatrix(); world.matrixAutoUpdate = false; world.updateMatrix();
+  const live = new Set(); for (const F of campFx) live.add(F.grp); for (const cp of course.checkpoints) if (cp.mesh) live.add(cp.mesh); /* flames, campers, the board kiosk moved in on entry */
+  if (course.trains) for (const L of [course.trains.cut, course.trains.cross]) for (const ev of L) if (ev.mesh) live.add(ev.mesh); /* animateTrains moves them */
+  if (course.life) for (const R of course.life.rings) live.add(R.m); /* waterLife's ripples */
+  for (const o of world.children) { if (live.has(o)) continue; o.traverse((c) => { if (c.matrixAutoUpdate) { c.updateMatrix(); c.matrixAutoUpdate = false; } }); o.matrixWorldAutoUpdate = false; }
+} /* the roots' updateMatrix above flags them, so the next render's matrix pass runs through every child once, skipped ones included (three forces the subtree under a root it recomputes) */
 /* ---------- the level crossing's meshes: ONE merged vertex-colored mesh a crossing (railbed, sleepers, rails, planks, stop line, kicker and landing
    wedges, two masts with crossbucks and lamps, two arms, the advance sign, the sheds over the rail ends and the train itself: buildTrain's
    geometry in the same buffer, moved by animateTrains through crossTrainDraw). The lamps blink and the arms swing by rewriting their own vertex ranges (animateCrossings), no extra draw. ---------- */
@@ -60676,15 +60691,15 @@ function buildWorld(course, surf) {
       const j = j0 !== undefined && rampAt(j0) ? rampPick(C2, j0, s, spaced) : j0; /* beside a side ramp: the best spot along the trail instead (rampPick) */
       if (k === 'jump' && j !== undefined && s - j < FLAG_MIN_PAIR) { /* a red flag closer than FLAG_MIN_PAIR: share an earlier red flag within FLAG_LEAD_MAX instead (the second jump of a packed pair) */
         const cov = course.flags.filter(f => f.k === k && f.i < s && s - f.i <= FLAG_LEAD_MAX);
-        if (cov.length) { for (const f of cov) if (f.alt) f.alt = f.alt.filter(q => s - q <= FLAG_LEAD_MAX); continue; } } /* the shared flag only moves (trailFlagSight) where it still announces this jump */
+        if (cov.length) { for (const f of cov) { if (f.alt) f.alt = f.alt.filter(q => s - q <= FLAG_LEAD_MAX); if (f.strip) f.strip = f.strip.filter(q => s - q <= FLAG_LEAD_MAX); } continue; } } /* the shared flag only moves (trailFlagSight) where it still announces this jump */
       let jj = j;
       if (jj === undefined) { if (course.flags.some(f => f.k === k && f.i < s && s - f.i <= FLAG_COVER)) continue; jj = C2.find(q => spaced(q, FLAG_GAP_LAST[0])) ?? C2.find(q => spaced(q, FLAG_GAP_LAST[1])); /* packed between other hazards' flags: a tighter pair */ if (jj === undefined) { course.flagMiss.push({ i: s, k }); continue; } }
-      const [x, z] = spot(jj); course.flags.push({ i: jj, k, x, z, h: s, alt: C2.filter(q => q !== jj && !rampAt(q)) }); /* alt: the other good spots clear of side ramps, best first (trailFlagSight moves a hidden flag to one) */
+      const [x, z] = spot(jj); course.flags.push({ i: jj, k, x, z, h: s, alt: C2.filter(q => q !== jj && !rampAt(q)), strip: C2.filter(q => q !== jj && rampAt(q) === 1) }); /* alt: the other good spots clear of side ramps, best first (trailFlagSight moves a hidden flag to one); strip: those on a ramp's flat strip (only a flag down the bank tries them, on the finished ground) */
     }
     if (!TUTF) { /* the order rule: two neighboring flags whose hazards come the other way round swap colors, hazards and spare spots (the spots stay), so the flags always come in the order you meet the hazards */
       for (let pass = 0, sw = true; sw && pass < 50; pass++) { sw = false; const L = course.flags.slice().sort((u, v) => u.i - v.i);
         for (let q = 0; q + 1 < L.length; q++) { const A = L[q], B = L[q + 1]; if (A.k === B.k || A.h <= B.h || B.h <= B.i || B.h - A.i > FLAG_LEAD_MAX || A.h - B.i < FLAG_MIN_M) continue;
-          [A.k, B.k] = [B.k, A.k]; [A.h, B.h] = [B.h, A.h]; [A.alt, B.alt] = [B.alt, A.alt]; sw = true; } } }
+          [A.k, B.k] = [B.k, A.k]; [A.h, B.h] = [B.h, A.h]; [A.alt, B.alt] = [B.alt, A.alt]; [A.strip, B.strip] = [B.strip, A.strip]; sw = true; } } }
     if (!TUTF && FLAG_TWIN_MIN > 0) { /* twin flags: a flag on a stretch that a camp loop or a shortcut skips, with its hazard after the rejoin, gets a second flag of its color after the rejoin
         when FLAG_TWIN_MIN samples or more are left before the hazard (the earliest good spot clear of side ramps and camp lanes, FLAG_GAP_MIN from other flags, else FLAG_GAP_LAST[0], in hazard order) */
       const lines = []; for (const cp of course.checkpoints) if (cp.lane && cp.K) lines.push([cp.idx - cp.K.in, cp.idx + cp.K.out, cp.lane]); for (const SC of course.shortcuts || []) lines.push([SC.a, SC.b, null]);
@@ -61981,6 +61996,13 @@ function fgTreeGeometry(variant) {
 
 /* split every large InstancedMesh into ~90 m sections along the trail, so the renderer can skip sections that are off screen */
 /* (three culls a whole InstancedMesh by its bounding sphere; one mesh for the whole mountain would be drawn in full every frame) */
+/* each chunk gets its own geometry object over the SAME attribute and index objects (no vertex data is copied, the GPU buffers are shared): three keys
+   its vertex-array cache by geometry, so chunks that shared one geometry re-specified every attribute on each draw (half the GL calls of a ride frame).
+   userData.src is the shared source: the camp batch groups chunks by it. Disposed with the world like any other geometry */
+function chunkGeo(g) {
+  const o = new THREE.BufferGeometry(); for (const k in g.attributes) o.setAttribute(k, g.attributes[k]); o.setIndex(g.index); for (const G of g.groups) o.addGroup(G.start, G.count, G.materialIndex);
+  o.drawRange.start = g.drawRange.start; o.drawRange.count = g.drawRange.count; if (!g.boundingSphere) g.computeBoundingSphere(); o.boundingSphere = g.boundingSphere.clone(); if (g.boundingBox) o.boundingBox = g.boundingBox.clone();
+  o.userData.src = g; return o; }
 function chunkInstances(root, span = 90) {
   const list = []; root.traverse(o => { if (o.isInstancedMesh && (o.userData.baseN ?? o.count) > 60) list.push(o); }); /* baseN / anchor: instances appended to a mesh that follow an older instance's chunk (the stream rocks' end piles) */
   const m = new THREE.Matrix4(), v = new THREE.Vector3(), c = new THREE.Color();
@@ -61992,7 +62014,7 @@ function chunkInstances(root, span = 90) {
     if (GD) for (let i = 0; i < src.count; i++) { src.getMatrixAt(i, m); const d = GD.DI[Math.round((m.elements[14] - GD.Z0) / CELL) * GD.NX + Math.round((m.elements[12] - GD.X0) / CELL)]; dTr.set(i, d === undefined ? 1e9 : d); }
     for (const ids of buckets.values()) {
       if (GD) ids.sort((a, b) => dTr.get(a) - dTr.get(b) || a - b); /* the quality levels draw the first part of the list: the verge stays, the far ground thins */
-      const dst = new THREE.InstancedMesh(src.geometry, src.material, ids.length);
+      const dst = new THREE.InstancedMesh(chunkGeo(src.geometry), src.material, ids.length);
       if (src.userData.cull) { dst.userData.cull = src.userData.cull; cullList.push(dst); if (src.userData.dense) dst.userData.full = ids.length; }
       ids.forEach((i, j) => { src.getMatrixAt(i, m); dst.setMatrixAt(j, m); if (src.instanceColor) { src.getColorAt(i, c); dst.setColorAt(j, c); } });
       dst.instanceMatrix.needsUpdate = true; if (dst.instanceColor) dst.instanceColor.needsUpdate = true;
@@ -62033,6 +62055,10 @@ const FLAG_SEE = { win: [24, -4], step: 1, speed: 10, frame: [1.78, 1.0], pad: 0
    FLAG_FADE_OUT: a passed flag stands full size to [0] samples behind the rider and is gone at [1] (the lenses look back up the trail, so a shrink close behind is in plain view).
    FLAG_TWIN_MIN: the shortest lead a twin flag after a camp loop or a shortcut may have (the twin block in buildWorld; 0 = no twins) */
 const FLAG_LEAD_GOOD = 60, FLAG_SIZE = 1.4, FLAG_FADE_OUT = [25, 40], FLAG_TWIN_MIN = 12;
+/* FLAG_POLE: the stake point (m above the foot, under the cloth) whose sight lines must clear tree parts and rocks as well as the pennant's, so a flag
+   standing in a pine's skirt with only its cloth poking out does not count as seen. FLAG_DROP: the most (m) a flag's foot may sit below the trail surface
+   at its sample on the finished ground; a spot past the tread edge that falls away (a fill bank, a side ramp's lane) moves along the track instead. */
+const FLAG_POLE = 0.9, FLAG_DROP = 0.3;
 const FLAG_GAP_LAST = [6, 3]; /* 1 = a hazard that found good spots but none FLAG_GAP_MIN samples from another flag, and has no earlier flag of its color to share, still gets its flag: the first spot FLAG_GAP_LAST[0] samples from every other flag, else [1] (a tight pair of pennants beats a jump with no warning); 0 = it is listed in course.flagMiss */
 const flagSpot = (P) => { const o = -(P.hw + 0.55); return [P.x + P.vx * o, P.z + P.vz * o]; }; /* the uphill edge, so the valley-side lens sees the flag against the bank */
 function flagPieceAt(R) { /* the sample a set piece's crash hazard starts at (-1: none): the first hop log's ramp, a double's first kick, a drop-in ledge's rise */
@@ -62054,28 +62080,38 @@ function trailFlagSight(course, surf) {
     for (let i = 0; i < o.count; i++) { o.getMatrixAt(i, m4); m4.decompose(p, q4, sc); if (sc.x === 0) continue; parts.push([p.x, p.z, p.y + b[0] * sc.y, p.y + b[1] * sc.y, b[2] * Math.max(sc.x, sc.z), cone]); } });
   for (const f of course.fgTrees || []) { if (!f.m.visible) continue; const b = bbOf(f.m.geometry), S3 = f.m.scale; parts.push([f.x, f.z, f.y + b[0] * S3.y, f.y + b[1] * S3.y, b[2] * Math.max(S3.x, S3.z), 1.25]); }
   for (const L of course.obst.values()) for (const c of L) if (!c.tree) { const s2 = surf(c.x, c.z), g = s2 ? s2.h : 0, r = c.rv ?? c.r; parts.push([c.x, c.z, g - 0.2, g + Math.max(0.3, r), r, 0]); } /* rocks and posts: an upright as tall as wide */
-  const T0 = new THREE.Vector3(), A0 = new THREE.Vector3();
+  const T0 = new THREE.Vector3(), T1 = new THREE.Vector3(), A0 = new THREE.Vector3();
   const terr = (A, B) => { for (let k = 1; k < 16; k++) { const t = k / 16, s2 = surf(A.x + (B.x - A.x) * t, A.z + (B.z - A.z) * t); if (s2 && s2.h > A.y + (B.y - A.y) * t + 0.05) return true; } return false; };
+  const low = (j) => { const P = pts[j], [x, z] = flagSpot(P), s2 = surf(x, z), g = gridTriH(x, z), sc0 = surf(P.x, P.z); return !!s2 && (g > s2.h + 0.1 ? g : s2.h) < (sc0 ? sc0.h : P.y) - FLAG_DROP; }; /* the foot is down the bank, under the trail surface (FLAG_DROP) */
   const score = (j) => { const P = pts[j], [x, z] = flagSpot(P), s2 = surf(x, z), g = gridTriH(x, z), y = s2 ? (g > s2.h + 0.1 ? g : s2.h) - 0.03 : P.y, c = Math.cos(P.yaw), s = Math.sin(P.yaw); let v = 0;
-    T0.set(x + c * 0.33 * FLAG_SIZE, y + 1.26 * FLAG_SIZE, z - s * 0.33 * FLAG_SIZE); /* the pennant's middle */
+    T0.set(x + c * 0.33 * FLAG_SIZE, y + 1.26 * FLAG_SIZE, z - s * 0.33 * FLAG_SIZE); T1.set(x, y + FLAG_POLE, z); /* the pennant's middle and the stake under it */
     const near = parts.filter(t => Math.abs(t[0] - x) < 60 && Math.abs(t[1] - z) < 60), i0 = Math.max(2, j - FLAG_SEE.win[0]), i1 = Math.min(pts.length - 3, Math.max(i0, j - FLAG_SEE.win[1]));
-    for (let pi = 0; pi < 3; pi++) { const CP = CAM_PRESETS[pi], sp = FLAG_SEE.speed, BR = K.bearSim(i0, i1, pi, sp); let run = 0; /* a lens counts once FLAG_SEE.min rider positions in a row have the pennant in frame with a clear line */
+    for (let pi = 0; pi < 3; pi++) { const CP = CAM_PRESETS[pi], sp = FLAG_SEE.speed, BR = K.bearSim(i0, i1, pi, sp); let run = 0; /* a lens counts once FLAG_SEE.min rider positions in a row have the pennant in frame with a clear line, and the stake's line clear of parts */
       for (let i = i0; i <= i1; i += FLAG_SEE.step) { A0.copy(K.lens(i, CP, sp, BR[i - i0], 1));
-        if (K.inFrame(A0, CP, sp, T0) && !terr(A0, T0) && !near.some(t => segHitsPart(A0, T0, t, FLAG_SEE.pad))) { if (++run >= FLAG_SEE.min) { v += pi === 0 ? 4 : pi === 1 ? 2 : 1; break; } } else run = 0; } }
+        if (K.inFrame(A0, CP, sp, T0) && !terr(A0, T0) && !near.some(t => segHitsPart(A0, T0, t, FLAG_SEE.pad) || segHitsPart(A0, T1, t, FLAG_SEE.pad))) { if (++run >= FLAG_SEE.min) { v += pi === 0 ? 4 : pi === 1 ? 2 : 1; break; } } else run = 0; } }
     return v; };
-  const gapAt = (j, F) => { let g = 1e9; for (const f of FL) if (f !== F) g = Math.min(g, Math.abs(f.i - j)); return g; };
-  const free = (j, F) => gapAt(j, F) >= (F ? Math.min(FLAG_GAP, gapAt(F.i, F)) : FLAG_GAP) && !FL.some(f => f !== F && F && f.k !== F.k && f.h !== F.h && Math.abs(f.i - j) <= FLAG_LEAD_MAX && (f.i < j ? f.h > F.h : f.h < F.h)); /* spacing kept, and the flags stay in the order of their hazards */
+  const gone = new Set(); /* twin flags no spot shows in every lens: left out at the end */
+  const gapAt = (j, F) => { let g = 1e9; for (const f of FL) if (f !== F && !gone.has(f)) g = Math.min(g, Math.abs(f.i - j)); return g; };
+  const inv = (f, j, F) => Math.abs(f.i - j) <= FLAG_LEAD_MAX && (f.i < j ? f.h > F.h : f.h < F.h); /* flag f and a flag of F's at j would come the other way round from their hazards */
+  const free = (j, F) => gapAt(j, F) >= (F ? Math.min(FLAG_GAP, gapAt(F.i, F)) : FLAG_GAP) && !FL.some(f => f !== F && F && f.k !== F.k && f.h !== F.h && inv(f, j, F) && !inv(f, F.i, F)); /* spacing kept, and the flags stay in the order of their hazards (a pair already the other way round may stay so) */
   const N0 = FL.length, CAP = FM.pens.instanceMatrix.count; let dirty = false;
-  for (let n = 0; n < N0; n++) { const F = FL[n]; let bs = score(F.i), best = F.i; F.see = bs; if (bs === 7) continue;
+  for (let n = 0; n < N0; n++) { const F = FL[n]; let bs = low(F.i) ? -1 : score(F.i), best = F.i; F.see = Math.max(0, bs); if (bs === 7) continue; /* a foot down the bank scores below any spot on the ground */
     const ld = (j) => F.h - j, good = (j) => ld(j) >= FLAG_MIN_M && ld(j) <= Math.max(FLAG_LEAD_GOOD, F.h - F.i), AL = (F.alt || []).slice().sort((u, v) => (good(v) - good(u)) || Math.abs(u - F.i) - Math.abs(v - F.i)); /* the smallest move with a good lead first */
-    for (const j of AL) { if (!free(j, F)) continue; const v = score(j); if (v > bs) { best = j; bs = v; if (v === 7) break; } }
+    const sunk = bs < 0, SL = sunk ? AL.concat(F.strip || []).sort((u, v) => (good(v) - good(u)) || Math.abs(u - F.i) - Math.abs(v - F.i)) : AL; /* a spot down the bank may also take a side ramp's flat strip where the ground there holds */
+    for (const pass of sunk ? [1, 2, 3] : [0]) { /* down the bank: a good lead first, then any lead from FLAG_MIN_M to FLAG_LEAD_MAX, then to FLAG_COVER, else it stays (a flag a little low beats none) */
+      for (const j of SL) { if (!free(j, F) || low(j) || ld(j) > (pass === 3 ? FLAG_COVER : Math.max(FLAG_LEAD_MAX, ld(F.i))) || (pass === 1 && !good(j)) || (pass > 1 && ld(j) < FLAG_MIN_M)) continue; const v = score(j); if (v > bs) { best = j; bs = v; if (v === 7) break; } } /* never further back than FLAG_LEAD_MAX (or where it stands), but for that last pass */
+      if (best !== F.i) break; }
+    if (best === F.i && sunk) { if (F.twin) { gone.add(F); continue; } F.see = bs = score(F.i); }
     if (best !== F.i) { F.i = best; [F.x, F.z] = flagSpot(pts[best]); pose(F); F.see = bs; course.flagMoved++; dirty = true; }
     if (bs === 7) continue;
-    let add = -1, a4 = -1; for (const j of AL.slice().sort((u, v) => v - u)) { if (j >= F.i - FLAG_GAP || !free(j, null) || !free(j, F)) continue; const v = score(j); if ((v | bs) === 7) { add = j; break; } if (a4 < 0 && v >= 4 && bs < 4) a4 = j; } /* a second flag that every lens left out sees, else one the default lens sees */
+    if (F.twin) { gone.add(F); continue; } /* a twin is a courtesy for riders who skipped the first flag: one that is not plain in every lens is left out, its hazard keeps its first flag */
+    let add = -1, a4 = -1; for (const j of AL.slice().sort((u, v) => v - u)) { if (j >= F.i - FLAG_GAP || !free(j, null) || !free(j, F) || low(j)) continue; const v = score(j); if ((v | Math.max(0, bs)) === 7) { add = j; break; } if (a4 < 0 && v >= 4 && bs < 4) a4 = j; } /* a second flag that every lens left out sees, else one the default lens sees */
     if (add < 0) add = a4; if (add < 0 && bs >= 4) continue;
     if (add >= 0 && FL.length < CAP) { const [x, z] = flagSpot(pts[add]), E = { i: add, k: F.k, x, z, h: F.h, n: FL.length, sc: 1, see: score(add), extra: true }; FL.push(E); pose(E);
       FM.pens.setColorAt(E.n, _flc.set(FLAG_PAL[E.k])); FM.stakes.count = FM.pens.count = FL.length; FM.pens.instanceColor.needsUpdate = true; course.flagExtra++; dirty = true; }
     else if (bs < 4) course.flagHidden.push(F.h); }
+  if (gone.size) { for (let n = FL.length - 1; n >= 0; n--) if (gone.has(FL[n])) FL.splice(n, 1); /* the instances close up behind the twins left out */
+    FL.forEach((F, n) => { F.n = n; pose(F); FM.pens.setColorAt(n, _flc.set(FLAG_PAL[F.k])); }); FM.stakes.count = FM.pens.count = FL.length; FM.pens.instanceColor.needsUpdate = true; course.flagTwinCut = gone.size; dirty = true; }
   if (dirty) FM.stakes.instanceMatrix.needsUpdate = FM.pens.instanceMatrix.needsUpdate = true; }
 /* the debug flag report (window.__flagAudit()): every flag with its hazard, lead and lens score, the hazards without a flag, the moved / second / hidden counts */
 function flagReport(C) { if (!C || !C.flags) return null;
@@ -62120,7 +62156,7 @@ function batchBuild() {
     const im = new THREE.InstancedMesh(g, mat, L.length); L.forEach((T, j) => { T.m.updateMatrix(); im.setMatrixAt(j, T.m.matrix); hide(T.m); }); im.instanceMatrix.needsUpdate = true; im.computeBoundingSphere(); im.frustumCulled = false; add(im); }
   /* 2. instanced chunks that are drawn now: one InstancedMesh per geometry and material */
   const grp = new Map();
-  for (const o of cullList) { if (!o.visible || !o.boundingSphere || o.material.transparent) continue; const k = o.geometry.uuid + o.material.uuid; if (!grp.has(k)) grp.set(k, []); grp.get(k).push(o); }
+  for (const o of cullList) { if (!o.visible || !o.boundingSphere || o.material.transparent) continue; const k = (o.geometry.userData.src || o.geometry).uuid + o.material.uuid; if (!grp.has(k)) grp.set(k, []); grp.get(k).push(o); }
   for (const L of grp.values()) { if (L.length < 2) continue; let n = 0; for (const o of L) n += o.count; const im = new THREE.InstancedMesh(L[0].geometry, L[0].material, n), col = L.some(o => o.instanceColor), m = new THREE.Matrix4(), c = new THREE.Color(1, 1, 1); let j = 0;
     for (const o of L) { for (let i = 0; i < o.count; i++, j++) { o.getMatrixAt(i, m); im.setMatrixAt(j, m); if (col) { if (o.instanceColor) o.getColorAt(i, c); else c.setRGB(1, 1, 1); im.setColorAt(j, c); } } hide(o); }
     im.instanceMatrix.needsUpdate = true; if (im.instanceColor) im.instanceColor.needsUpdate = true; im.computeBoundingSphere(); add(im); }
@@ -62152,8 +62188,19 @@ function batchFree() {
   for (const o of BATCH.hid) { o.visible = true; o.userData.bat = false; } for (const m of BATCH.made) { world.remove(m); if (m.isInstancedMesh) m.dispose(); else { const g = m.geometry; if (g.userData.shared) for (const nm of Object.keys(g.attributes)) g.deleteAttribute(nm); g.dispose(); } }
   BATCH.hid.length = 0; BATCH.made.length = 0; BATCH.on = false; BATCH.mode = null;
 }
+/* cullChunks' per-chunk lists, filled once per world from cullList (a rebuilt world brings new objects, so its first or last entry or its length differs):
+   the instanced flag, the fog tag, the draw distance and the bounding sphere (kept by reference: three updates a sphere in place; one still missing is looked up again) */
+const CULL = { n: -1, a: null, z: null, O: [], U: [], BS: [], IM: null, FOG: null, KD: null };
+function cullPrep() { const n = cullList.length; CULL.n = n; CULL.a = cullList[0]; CULL.z = cullList[n - 1]; CULL.O = cullList.slice(); CULL.U = new Array(n); CULL.BS = new Array(n); CULL.IM = new Uint8Array(n); CULL.FOG = new Uint8Array(n); CULL.KD = new Float64Array(n);
+  for (let i = 0; i < n; i++) { const o = cullList[i], im = o.isInstancedMesh; CULL.U[i] = o.userData; CULL.IM[i] = im ? 1 : 0; CULL.FOG[i] = o.userData.cull === 'fog' ? 1 : 0; CULL.KD[i] = CULL.FOG[i] ? 0 : o.userData.cull; CULL.BS[i] = (im ? o.boundingSphere : o.geometry.boundingSphere) || null; } }
+function cullRun(c, fogD, ck, gc) { /* each chunk drawn while its bounding sphere is nearer the lens than its draw distance (the same sums as Vector3.distanceTo); a chunk the camp batch holds is left alone; no sphere = drawn */
+  const n = cullList.length; if (n !== CULL.n || cullList[0] !== CULL.a || cullList[n - 1] !== CULL.z) cullPrep();
+  const O = CULL.O, U = CULL.U, BS = CULL.BS, IM = CULL.IM, FOG = CULL.FOG, KD = CULL.KD, x = c.x, y = c.y, z = c.z;
+  for (let i = 0; i < n; i++) { if (U[i].bat) continue; let bs = BS[i]; if (!bs) { const o = O[i]; bs = BS[i] = (IM[i] ? o.boundingSphere : o.geometry.boundingSphere) || null; }
+    let v = true; if (bs) { const d = Math.min(IM[i] ? gc : 1e9, FOG[i] ? fogD : KD[i] * ck), C = bs.center, dx = C.x - x, dy = C.y - y, dz = C.z - z; v = Math.sqrt(dx * dx + dy * dy + dz * dz) - bs.radius < d; }
+    const o = O[i]; if (o.visible !== v) o.visible = v; } }
 function cullChunks() { if (!S.camp) BATCH.want = false; const SC = S.camp, gw = !!(BATCH.want && SC && SC.gcam && (SC.gk || 0) >= 1), cw = !!(SC && !SC.gcam && SC.k >= 1 && (SC.ready || (!SC.hold)) && SC.phase !== 'out'), bw = gw || cw, bmode = gw ? 'game' : 'camp'; if (BATCH.on && (!bw || BATCH.mode !== bmode)) batchFree();
-  if (bw && !BATCH.on && bmode === 'camp') { if (camera.position.distanceTo(BATCH.ref) < 0.6 && camera.quaternion.angleTo(BATCH.refQ) < 0.05) BATCH.st++; else { BATCH.ref.copy(camera.position); BATCH.refQ.copy(camera.quaternion); BATCH.st = 0; } } else BATCH.st = 0; /* the camp lens: wait until it holds still */ const c = camera.position, fogD = scene.fog.far + 10, ck = Q.cullK, gc = S.camp && S.camp.gcam && (S.camp.gk || 0) >= 1 ? CAMP_GAME_CULL : 1e9; for (const o of cullList) { if (o.userData.bat) continue; const im = o.isInstancedMesh, bs = im ? o.boundingSphere : o.geometry.boundingSphere, r = bs ? bs.radius : 60, d = Math.min(im ? gc : 1e9, o.userData.cull === 'fog' ? fogD : o.userData.cull * ck); o.visible = !bs || bs.center.distanceTo(c) - r < d; } /* plain meshes (chunkMerge sections, world space) use their geometry's sphere and only the fog distance */
+  if (bw && !BATCH.on && bmode === 'camp') { if (camera.position.distanceTo(BATCH.ref) < 0.6 && camera.quaternion.angleTo(BATCH.refQ) < 0.05) BATCH.st++; else { BATCH.ref.copy(camera.position); BATCH.refQ.copy(camera.quaternion); BATCH.st = 0; } } else BATCH.st = 0; /* the camp lens: wait until it holds still */ const c = camera.position, fogD = scene.fog.far + 10, ck = Q.cullK, gc = S.camp && S.camp.gcam && (S.camp.gk || 0) >= 1 ? CAMP_GAME_CULL : 1e9; cullRun(c, fogD, ck, gc); /* plain meshes (chunkMerge sections, world space) use their geometry's sphere and only the fog distance */
   const inCamp = !!S.camp; if (!BATCH.on) for (const F of farTerrain) { const B = F.mesh.geometry.boundingSphere, far = inCamp && B.center.distanceTo(c) - B.radius > FAR_BLOCK; if (far !== F.on) { F.on = far; F.mesh.visible = far; for (const t of F.tiles) t.visible = !far; } } if (bw && !BATCH.on && (bmode === 'game' || BATCH.st >= (!SC.bat1 ? 0 : CAMP_BATCH_HOLD))) { batchBuild(); BATCH.mode = bmode; if (BATCH.on && bmode === 'camp') SC.bat1 = true; } } /* the batch is built after this frame's culling, so it takes in exactly what is drawn. x Q.cullK (quality), and 'fog' = the fog's far plane (trees / rocks fully in the haze are never drawn) */
 const campFx = []; /* per camp: flame, glow, smoke, embers, flag, pot steam (animated in the frame loop) */
 let sparkMat = null; /* the fire sparks' points material, shared by every camp (built with the first camp, after dotTex exists) */
@@ -62544,17 +62591,22 @@ function fireMesh(list) { /* list of { geo (a flameGeo tongue, base at y 0), h, 
    makeBulletinBoard() builds the kiosk (two posts, a backing board with a frame, a pitched rain roof) in its own frame (+x = the readable face,
    y up) for camp mode: pass { parts, m } to merge the wood into a caller's vertex-colored part list, or nothing to get a self-contained group
    (wood mesh + paper panel; group.userData.panel = the paper, which campFit measures and campBoardPose mirrors). The paper is a 4 x 4 plane
-   whose lower rows flutter (animateCamps, near camps only). BOARD_TEX = the texture size and the flag-word font size, which campFit uses to size
+   tacked down flat; the Keeper's note pinned over it is its own mesh that lifts in the wind (boardSway, camp mode only). BOARD_TEX = the texture size and the flag-word font size, which campFit uses to size
    the board on a phone. */
 const BOARD_ROWS = [[FLAG_PAL.camp, 'camp', 'CAMP'], [FLAG_PAL.bridge, 'bridge', 'BRIDGE'], [FLAG_PAL.jump, 'jump', 'JUMP'], [FLAG_PAL.hairpin, 'hairpin', 'HAIRPIN'], [FLAG_PAL.fork, 'fork', 'FORK']].concat([]);
 const BOARD_RP = BOARD_ROWS.length > 5 ? 50 : 60, BOARD_R0 = BOARD_ROWS.length > 5 ? 75 : 82; /* row pitch and first row center (px): five 60 px rows, or six 50 px rows on the same sheet */
 const BOARD_TEX = { w: 512, h: 352, word: 46, pw: 1.4, ph: 0.96 }; /* canvas px, the flag-word font px, the paper's size in board units (m) */ /* a 1.4 x 0.96 m sheet laid out edge to edge: swatch, symbol and word spread across the row, 46 px words */
-/* the flag sheet is drawn at twice the resolution (a 1024 x 704 canvas through a 2x canvas scale: the layout, the pinned scrap and
-   every coordinate stay in BOARD_TEX's 512 x 352 units), so the words read sharp up close */
+/* the flag sheet is drawn at twice the resolution (a 1600 x 704 canvas through a 2x canvas scale: the layout, the pinned scrap and
+   every coordinate stay in BOARD_TEX's 512 x 352 units), so the words read sharp up close. The sheet fills the canvas's left 512 units; the
+   Keeper's note is drawn in a strip to its right (BOARD_NOTE: sw = the strip's width, ox = how far the note is shifted into it, so it lands
+   there whatever its width; the strip's first 16 units are the sheet's border color, so no mip level bleeds the strip into the sheet's edge).
+   The note is its own small mesh pinned over the sheet (boardNoteFit), so it can lift in the wind while the sheet stays tacked down; box =
+   the note's L, R, T, B and turn as petsScrapBig drew it, v counts the redraws. */
+const BOARD_NOTE = { sw: 288, ox: 280, gut: 16, m: 10, box: null, v: 0 };
 let boardTex = null;
 function bulletinTexture() {
   if (boardTex) return boardTex;
-  const K = 2, W = BOARD_TEX.w, H = BOARD_TEX.h, cv = document.createElement('canvas'); cv.width = W * K; cv.height = H * K; const g = cv.getContext('2d');
+  const K = 2, W = BOARD_TEX.w, H = BOARD_TEX.h, cv = document.createElement('canvas'); cv.width = (W + BOARD_NOTE.sw) * K; cv.height = H * K; const g = cv.getContext('2d');
   const rr = (x, y, w, h, r) => { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); };
   const draw = () => {
     g.setTransform(K, 0, 0, K, 0, 0);
@@ -62586,7 +62638,10 @@ function bulletinTexture() {
       g.strokeStyle = 'rgba(58,36,21,0.35)'; g.lineWidth = 2; g.setLineDash([3, 6]); g.beginPath(); g.moveTo(184 + g.measureText(word).width + 14, y + 1); g.lineTo(W - 24, y + 1); g.stroke(); g.setLineDash([]); /* a dotted leader to the right edge, so the row reads across the whole sheet */
     });
     for (const [px, py, pc] of [[16, 16, '#c8553d'], [W - 16, 16, '#3d7fc8'], [16, H - 16, '#e0b21a'], [W - 16, H - 16, '#c8553d']]) { g.fillStyle = pc; g.beginPath(); g.arc(px, py, 5, 0, 6.283); g.fill(); g.fillStyle = 'rgba(255,255,255,0.5)'; g.beginPath(); g.arc(px - 1.5, py - 1.5, 1.8, 0, 6.283); g.fill(); } /* pins */
-    if (COMPANIONS_ON && boardScrapK > 0) petsScrapDraw(g, boardScrapK); /* the Keeper's scrap, pinned over the lower right corner */
+    g.clearRect(W, 0, BOARD_NOTE.sw, H); g.fillStyle = '#e9dfc4'; g.fillRect(W, 0, BOARD_NOTE.gut, H); BOARD_NOTE.box = null;
+    if (COMPANIONS_ON && boardScrapK > 0) { g.save(); g.translate(BOARD_NOTE.ox, 0); petsScrapDraw(g, boardScrapK); g.restore(); /* the Keeper's scrap, drawn in the strip; its mesh pins it over the lower right corner */
+      const b = BOARD_NOTE.box; if (b) { g.save(); g.translate((b[0] + b[1]) / 2 + 4, (b[2] + b[3]) / 2 + 5); g.rotate(b[4]); g.fillStyle = 'rgba(40,25,10,0.26)'; g.fillRect(-(b[1] - b[0]) / 2, -(b[3] - b[2]) / 2, b[1] - b[0], b[3] - b[2]); g.restore(); } } /* its shadow stays on the sheet, so a gap shows when it lifts */
+    BOARD_NOTE.v++;
   };
   draw(); boardTex = new THREE.CanvasTexture(cv); boardTex.colorSpace = THREE.SRGBColorSpace; boardTex.anisotropy = 4;
   if (COMPANIONS_ON) boardRedraw = () => { draw(); boardTex.needsUpdate = true; };
@@ -62623,7 +62678,7 @@ function makeBulletinBoard(opts = {}) { /* the camp-mode kiosk (see campBoardPos
      sheets on the right, a pitched roof, and a coin-operated tower viewer on a post beside it. All the wood, paper sheets, pins and the viewer are one merged vertex-colored mesh (campMat); the flag sheet is the one textured panel.
      opts.ride = the main board alone for a camp's merged mesh (seen from the ride): the same wood and roof, posts sunk 0.15 below the foot for uneven ground, no loose sheets,
      no viewer, no textured panel; instead the flag sheet is painted in vertex colors on the front and a trail map on the back (the ride lens looks at the back). Returns null. */
-  const parts = opts.parts || [], M = opts.m || new THREE.Matrix4(), MM = new THREE.Matrix4(), QQ = new THREE.Quaternion(), EE = new THREE.Euler(), VV = new THREE.Vector3(), SS = new THREE.Vector3(1, 1, 1);
+  const parts = opts.parts || [], M = opts.m || new THREE.Matrix4(), MM = new THREE.Matrix4(), QQ = new THREE.Quaternion(), EE = new THREE.Euler(), VV = new THREE.Vector3(), SS = new THREE.Vector3(1, 1, 1), sheetPin = [];
   const add = (geo, col, x, y, z, rx = 0, ry = 0, rz = 0, sx = 1, sy = 1, sz = 1) => { MM.compose(VV.set(x, y, z), QQ.setFromEuler(EE.set(rx, ry, rz)), SS.set(sx, sy, sz)); parts.push({ geo, col, m: MM.clone().premultiply(M) }); };
   const PW = 2.0, PH = 1.06, PY = 1.12, POST = 1.72; /* backing width / height / center height, post height */
   const ride = !!opts.ride, sink = ride ? 0.15 : 0;
@@ -62635,9 +62690,10 @@ function makeBulletinBoard(opts = {}) { /* the camp-mode kiosk (see campBoardPos
   add(new THREE.BoxGeometry(0.06, 0.04, PW + 0.26), '#5a4230', 0, PY + PH / 2 + 0.215, 0); /* the ridge cap */
   if (!ride) { /* three loose sheets tacked in the right column: tilted a little, a few ink lines each, a pin at the top */
     const cz = -(PW / 2 - 0.26), sheets = [[PY + 0.3, 0.12, '#f4efe2', 0.24, 0.3], [PY - 0.04, -0.09, '#efe6cf', 0.26, 0.2], [PY - 0.36, 0.06, '#f6f1e6', 0.22, 0.26]];
-    sheets.forEach(([sy, tilt, col, sw, sh], si) => { const c = Math.cos(tilt), sn = Math.sin(tilt); add(new THREE.BoxGeometry(0.006, sh, sw), col, 0.03, sy, cz, tilt, 0, 0);
+    sheets.forEach(([sy, tilt, col, sw, sh], si) => { const c = Math.cos(tilt), sn = Math.sin(tilt), p0 = parts.length; add(new THREE.BoxGeometry(0.006, sh, sw), col, 0.03, sy, cz, tilt, 0, 0);
       for (let k = 0; k < 3; k++) { const ly = sh / 2 - 0.06 - k * 0.06, lw = sw * (k === 2 ? 0.5 : 0.8); add(new THREE.BoxGeometry(0.004, 0.012, lw), '#7a6a58', 0.035, sy + ly * c, cz + ly * sn + (k === 2 ? -(sw - lw) / 2 * c : 0), tilt, 0, 0); } /* lines of writing */
-      add(new THREE.SphereGeometry(0.014, 6, 5), ['#c8553d', '#3d7fc8', '#e0b21a'][si], 0.04, sy + (sh / 2 - 0.02) * c, cz + (sh / 2 - 0.02) * sn); }); /* a pin at the top edge */
+      add(new THREE.SphereGeometry(0.014, 6, 5), ['#c8553d', '#3d7fc8', '#e0b21a'][si], 0.04, sy + (sh / 2 - 0.02) * c, cz + (sh / 2 - 0.02) * sn); /* a pin at the top edge */
+      for (let q = p0; q < parts.length; q++) parts[q].role = 'sh' + si; sheetPin.push([sy + (sh / 2 - 0.02) * c, cz + (sh / 2 - 0.02) * sn, sh]); }); /* each sheet's vertex range (mergeParts keeps it by role) and its pin, for boardSway */
   }
   if (!ride) { /* the coin-operated tower viewer beside the board: a post on a round base, a pedestal, the binocular head on a yoke, aimed out over the valley (board -x) */
     const vz = -(PW / 2 + 0.6 + VIEWER_GAP), vx = 0.15, hy = 1.3; /* VIEWER_GAP = extra meters of clear space between the board and the viewer */ add(new THREE.CylinderGeometry(0.17, 0.2, 0.05, 10), '#4a4a4e', vx, 0.025, vz); add(new THREE.CylinderGeometry(0.045, 0.06, 1.1, 8), '#5a5e66', vx, 0.6, vz); add(new THREE.CylinderGeometry(0.07, 0.045, 0.1, 8), '#4a4a4e', vx, 1.17, vz);
@@ -62666,10 +62722,43 @@ function makeBulletinBoard(opts = {}) { /* the camp-mode kiosk (see campBoardPos
     return null;
   }
   if (!boardMat) { const t = bulletinTexture(); boardMat = new THREE.MeshBasicMaterial({ map: t, toneMapped: false }); SHARED_MATS.add(boardMat); } /* unlit and outside the tone map, like the trail pennants: the sheet shows its swatches in the exact FLAG_PAL values at any hour, so a flag on the trail and its swatch on the board are the same color */
-  const pg = new THREE.PlaneGeometry(BOARD_TEX.pw, BOARD_TEX.ph, 4, 4); pg.userData.base = pg.attributes.position.array.slice(); /* the resting vertex positions, for the flutter */
+  const pg = new THREE.PlaneGeometry(BOARD_TEX.pw, BOARD_TEX.ph, 4, 4), uv = pg.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setX(i, uv.getX(i) * BOARD_TEX.w / (BOARD_TEX.w + BOARD_NOTE.sw)); /* the sheet is the canvas's left part (the note strip is beside it) */
   const panel = new THREE.Mesh(pg, boardMat); panel.rotation.y = Math.PI / 2; panel.position.set(0.032, PY, PW / 2 - 0.02 - BOARD_TEX.pw / 2); panel.applyMatrix4(M); /* the flag sheet fills the left column (a reader facing the board has +z on the left) */
-  const group = new THREE.Group(); if (!opts.parts) { const wood = new THREE.Mesh(mergeParts(parts), campMat); group.add(wood); } group.add(panel); group.userData.panel = panel; return group;
+  const note = boardNoteMesh(); panel.add(note); /* the Keeper's note, pinned 4 mm over the sheet (a child of the panel, so it follows the panel's mirror) */
+  const group = new THREE.Group(); if (!opts.parts) { const wood = new THREE.Mesh(mergeParts(parts), campMat); group.add(wood);
+    const R = wood.geometry.userData.ranges || [], pa = wood.geometry.attributes.position; let o = Infinity, e = 0; for (const r of R) { o = Math.min(o, r.o); e = Math.max(e, r.o + r.n); }
+    if (R.length) group.userData.sheets = { pa, o, n: e - o, base: pa.array.slice(o * 3, e * 3), moved: false, sh: sheetPin.map(([py, pz, h], si) => { let a = Infinity, b = 0; for (const r of R) if (r.role === 'sh' + si) { a = Math.min(a, r.o); b = Math.max(b, r.o + r.n); } return { a, b, py, pz, h }; }) }; } /* the loose sheets' vertices in the wood mesh (boardSway stirs them in place: no extra draw call) */
+  group.add(panel); group.userData.panel = panel; group.userData.note = note; return group;
 }
+let boardNoteM = null;
+const NOTE_NX = 4, NOTE_NY = 8; /* the note's grid: the lift bends it down its height, a ripple runs across it */
+function boardNoteMesh() { /* the Keeper's note as a sheet of its own: the board's canvas texture (its strip), cut out by its alpha (the torn edge; the drawn drop shadow falls away), vertex colors shade it as it lifts */
+  if (!boardNoteM) { boardNoteM = new THREE.MeshBasicMaterial({ map: bulletinTexture(), toneMapped: false, alphaTest: 0.5, vertexColors: true }); SHARED_MATS.add(boardNoteM); }
+  const g = new THREE.PlaneGeometry(1, 1, NOTE_NX, NOTE_NY), n = g.attributes.position.count; g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(n * 3).fill(1), 3));
+  const m = new THREE.Mesh(g, boardNoteM); m.visible = false; m.userData = { v: -1, base: new Float32Array(n * 3), w: new Float32Array(n), still: false }; return m; }
+function boardNoteFit(N) { /* lays the note's grid over the box petsScrapBig drew (sheet units -> the panel's meters); the pivot is its pin, near the top; w = how far down from the pin (0..1) */
+  N.userData.v = BOARD_NOTE.v; N.userData.still = false; const b = BOARD_NOTE.box; if (!b) return;
+  const sc = BOARD_TEX.pw / BOARD_TEX.w, W = BOARD_TEX.w, H = BOARD_TEX.h, SW = W + BOARD_NOTE.sw, m = BOARD_NOTE.m;
+  const hh = (b[3] - b[2]) / 2, cx = (b[0] + b[1]) / 2, cy = (b[2] + b[3]) / 2, px = cx + (hh - 11) * Math.sin(b[4]), py = cy - (hh - 11) * Math.cos(b[4]);
+  const x0 = b[0] - m, x1 = b[1] + m, y0 = Math.max(0, b[2] - m), y1 = Math.min(H, b[3] + m), g = N.geometry, P = g.attributes.position, U = g.attributes.uv, B = N.userData.base, w = N.userData.w;
+  for (let j = 0, i = 0; j <= NOTE_NY; j++) for (let k = 0; k <= NOTE_NX; k++, i++) { const x = x0 + (x1 - x0) * k / NOTE_NX, y = y0 + (y1 - y0) * j / NOTE_NY;
+    B[i * 3] = (x - px) * sc; B[i * 3 + 1] = (py - y) * sc; B[i * 3 + 2] = 0; w[i] = Math.max(0, Math.min(1, (y - py) / (y1 - py))); U.setXY(i, (x + BOARD_NOTE.ox) / SW, 1 - y / H); }
+  P.array.set(B); P.needsUpdate = U.needsUpdate = true; g.computeBoundingSphere(); g.boundingSphere.radius += 0.06; g.boundingBox = null; /* room for the lift; the box is measured again when asked for */
+  N.position.set((px - W / 2) * sc, (H / 2 - py) * sc, 0.004); }
+function boardSway(G, t, rm) { /* camp mode, every frame: the flag sheet stays tacked down; the Keeper's note lifts and settles on its pin (a little in the camp view, fully in the
+     board close-up); the three loose sheets stir a few mm, each in its own phase, in the close-up only. Reduced motion: all at rest. No allocations. */
+  const N = G.userData.note, bz = !!(S.camp && S.camp.bz);
+  if (N) { if (N.userData.v !== BOARD_NOTE.v) boardNoteFit(N); N.visible = boardScrapK > 0 && !!BOARD_NOTE.box;
+    if (N.visible && !(rm && N.userData.still)) { const A = rm ? 0 : bz ? 1 : 0.6, gu = (rm ? 0 : bz ? 1 : 1.5) * Math.pow(Math.max(0, Math.sin(t * 0.9 + 0.4)), 4); /* a gust about every 7 s (stronger in the camp view, where the board is small: a short flick that catches the eye) */
+      N.rotation.z = A * (0.01 * Math.sin(t * 1.1) + 0.005 * Math.sin(t * 2.3 + 1.3)) + 0.02 * gu * Math.sin(t * 4.6); /* a slow swing on the pin */
+      const lift = A * (0.008 + 0.005 * Math.sin(t * 1.7)) + 0.03 * gu, P = N.geometry.attributes.position, Cl = N.geometry.attributes.color, a = P.array, c = Cl.array, B = N.userData.base, w = N.userData.w;
+      for (let i = 0; i < w.length; i++) { const s = w[i], z = lift * s * s + A * 0.003 * s * Math.sin(t * 5.2 + B[i * 3] * 9), k = 1 - Math.min(0.22, z * 5); /* the lower part curls out (and up a little); a lifted part is a touch darker */
+        a[i * 3] = B[i * 3]; a[i * 3 + 1] = B[i * 3 + 1] + z * s * 0.3; a[i * 3 + 2] = z; c[i * 3] = c[i * 3 + 1] = c[i * 3 + 2] = k; }
+      P.needsUpdate = Cl.needsUpdate = true; N.userData.still = rm; } }
+  const H = G.userData.sheets; if (H) { const on = bz && !rm; if (on || H.moved) { const a = H.pa.array, B = H.base, o3 = H.o * 3;
+      for (let q = 0; q < H.sh.length; q++) { const E = H.sh[q], ph = q * 2.1, th = on ? 0.008 * Math.sin(t * 0.8 + ph) + 0.004 * Math.sin(t * 1.9 + ph * 1.7) : 0, lo = on ? 0.0025 + 0.0015 * Math.sin(t * 1.1 + ph) : 0, cs = Math.cos(th), sn = Math.sin(th);
+        for (let v = E.a; v < E.b; v++) { const j = v * 3, i = j - o3, y = B[i + 1] - E.py, z = B[i + 2] - E.pz, d = Math.max(0, Math.min(1, -y / E.h)); a[j] = B[i] + lo * d * d; a[j + 1] = E.py + y * cs - z * sn; a[j + 2] = E.pz + y * sn + z * cs; } } /* a swing about the pin, flat to the board, the lower edge off it */
+      H.pa.addUpdateRange(o3, H.n * 3); H.pa.needsUpdate = true; H.moved = on; } } }
 let stumpG = null;
 function stumpGeo() { /* the tree stump beside the parked bike (CAMP_STUMP: radius r, height h, camp units; foot at y 0, built once and shared): a 13-sided trunk with a lumpy
      outline (fixed sines, no random draws) and a little taper, bark in vertex-color bands (dark brown with lighter ridges, darker at the foot), five wedge roots flaring
@@ -64062,7 +64151,7 @@ function petsBoardSync() { const k = petsScrapState(), v = k >= 1 && k <= 3 ? St
 function petsScrapBig(g, k) { /* the large note: a tall torn scrap over the dotted leaders, from just right of the longest flag word to the sheet's edge (~1.6 x the small one), heavy charcoal, words fitted to its width */
   g.save(); g.font = 'bold ' + BOARD_TEX.word + 'px "Barlow Condensed", "Rubik", sans-serif'; let wr = 0; for (const r of BOARD_ROWS) wr = Math.max(wr, g.measureText(r[2]).width);
   const R = BOARD_TEX.w - 9, L = Math.min(R - 150, Math.max(184 + wr + 10, R - 240)), T = 56, B = BOARD_TEX.h - 9, hw = (R - L) / 2, hh = (B - T) / 2, ink = 'rgba(24,19,15,0.97)', jit = (i, a) => Math.sin(i * 12.9898 + a * 78.233) * 0.5;
-  g.translate((L + R) / 2, (T + B) / 2); g.rotate(-0.03 + jit(k, (+boardScrapV || 0) + 2) * 0.03); const edge = []; /* each note pinned a touch differently */
+  const turn = -0.03 + jit(k, (+boardScrapV || 0) + 2) * 0.03; BOARD_NOTE.box = [L, R, T, B, turn]; g.translate((L + R) / 2, (T + B) / 2); g.rotate(turn); const edge = []; /* each note pinned a touch differently */
   for (let i = 0; i <= 8; i++) edge.push([-hw + i * hw / 4, -hh + jit(i, 1) * 4]); for (let i = 1; i <= 8; i++) edge.push([hw + jit(i, 2) * 5, -hh + i * hh / 4]);
   for (let i = 1; i <= 8; i++) edge.push([hw - i * hw / 4, hh + jit(i, 3) * 6]); for (let i = 1; i < 8; i++) edge.push([-hw + jit(i, 4) * 5, hh - i * hh / 4]);
   const poly = (dx, dy) => { g.beginPath(); edge.forEach(([x, y], i) => (i ? g.lineTo(x + dx, y + dy) : g.moveTo(x + dx, y + dy))); g.closePath(); };
@@ -64239,7 +64328,7 @@ function animateCamps(dt) {
       else if (A.mode === 'brush') { const b = 1 - ((F.paint && F.paint.busy) || 0); az = 0.1 * b * Math.sin(t * 2.1); ay = 0.09 * b * Math.sin(t * 3.3 + 0.5); if (A.lim) ay = Math.max(ay, A.lim[0] + A.lim[1] * az + A.lim[2] * az * az); } /* the painter's strokes (still while she dips the brush or studies the canvas); an inward stroke stops with the tip on the picture (lim: the smallest ay at this az that keeps the tip in front of it) */
       A.g.quaternion.copy(A.q).multiply(_cq.setFromAxisAngle(_cx, ax)).multiply(_cq2.setFromAxisAngle(_cy, ay)).multiply(_cqa.setFromAxisAngle(_cz, az)); }
     if (F.paint) paintIdle(F, dt, rm);
-    if (F.board) { const P = F.board.userData.panel, pa = P.geometry.attributes.position, base = P.geometry.userData.base; if (pa && base && !(rm && P.userData.still)) { const w = rm ? 0 : 1; for (let i = 0; i < pa.count; i++) { const x = base[i * 3], y = base[i * 3 + 1], k = (BOARD_TEX.ph / 2 - y) / BOARD_TEX.ph; pa.setZ(i, w * (0.016 * k * k * (0.5 + 0.5 * Math.sin(F.t * 3.2 + x * 4)) + 0.005 * k * (0.5 + 0.5 * Math.sin(F.t * 5 + y * 6)))); } pa.needsUpdate = true; P.userData.still = rm; } } /* the paper's lower rows flutter, bowing outward only (its top edge is pinned; the plank seams sit 6 mm behind it) */
+    if (F.board && !S.paused) boardSway(F.board, F.t, rm); /* the Keeper's note on the notice board lifts in the wind; the flag sheet is tacked down (paused: everything holds) */
   }
   if (smokeCol) smokeCol.visible = smkAny;
 }
@@ -65999,23 +66088,34 @@ function saveLook() { lsSet('holdon.look', JSON.stringify(Object.assign({ build:
   if (saved && typeof saved === 'object' && saved.build === LOOK_BUILD) { try { applyLook(saved, { noSave: true }); } catch (e) { try { applyLook(null, { noSave: true }); } catch (e2) { } } } } /* the saved look at startup (a bad save falls back to the default per field) */
 const UP = new THREE.Vector3(0, 1, 0);
 const _pcd = new THREE.Vector3();
-const _pcM = new THREE.Matrix4(), _pcN = new THREE.Matrix3(), _pcP = new THREE.Vector3(), _pcQ = new THREE.Quaternion(), _pcS = new THREE.Vector3(), _pcV = new THREE.Vector3();
+const _pcM = new THREE.Matrix4(), _pcN = new THREE.Matrix3(), _pcP = new THREE.Vector3(), _pcQ = new THREE.Quaternion(), _pcS = new THREE.Vector3();
+/* the rider's position and normal uploads: while the pieces written since the last upload cover at most RIDER_PART of the buffer (the seated camp idle
+   rewrites about three quarters of it, in a few runs), only their vertex runs are sent (three's update ranges: the same bytes land in the same places); above that, or past
+   64 runs, the whole buffer goes as before. The renderer clears the ranges when it uploads; onUpload also marks a whole-buffer upload as done */
+const RIDER_PART = 0.9, _rdu = new WeakMap(); /* attribute -> { full: a whole upload is pending, cnt: floats in the pending ranges } */
+function rdRange(A, s, c) { let st = _rdu.get(A); if (!st) { const st0 = st = { full: false, cnt: 0 }; _rdu.set(A, st); A.onUpload(() => { A.clearUpdateRanges(); st0.full = false; st0.cnt = 0; }); }
+  if (st.full) return; const R = A.updateRanges, L = R[R.length - 1]; if (L && L.start + L.count === s) L.count += c; else A.addUpdateRange(s, c); st.cnt += c;
+  if (st.cnt > A.array.length * RIDER_PART || R.length > 64) { A.clearUpdateRanges(); st.full = true; } }
+function riderDirty(G, o, n) { rdRange(G.attributes.position, o * 3, n * 3); rdRange(G.attributes.normal, o * 3, n * 3); } /* vertices o .. o + n - 1 were just written */
+function placeVerts(P, N, B, BN, o3, n) { /* the piece's base vertices through _pcM and its normals through _pcN into the shared arrays: Vector3.applyMatrix4 (its w is exactly 1 for a composed matrix), applyMatrix3 and normalize written out, same operations in the same order */
+  const e = _pcM.elements, e0 = e[0], e1 = e[1], e2 = e[2], e4 = e[4], e5 = e[5], e6 = e[6], e8 = e[8], e9 = e[9], e10 = e[10], e12 = e[12], e13 = e[13], e14 = e[14], m = _pcN.elements, n0 = m[0], n1 = m[1], n2 = m[2], n3 = m[3], n4 = m[4], n5 = m[5], n6 = m[6], n7 = m[7], n8 = m[8];
+  for (let v = 0, k = 0; v < n; v++, k += 3) { const x = B[k], y = B[k + 1], z = B[k + 2]; P[o3 + k] = e0 * x + e4 * y + e8 * z + e12; P[o3 + k + 1] = e1 * x + e5 * y + e9 * z + e13; P[o3 + k + 2] = e2 * x + e6 * y + e10 * z + e14;
+    const a = BN[k], b = BN[k + 1], c = BN[k + 2], nx = n0 * a + n3 * b + n6 * c, ny = n1 * a + n4 * b + n7 * c, nz = n2 * a + n5 * b + n8 * c, s = 1 / (Math.sqrt(nx * nx + ny * ny + nz * nz) || 1); N[o3 + k] = nx * s; N[o3 + k + 1] = ny * s; N[o3 + k + 2] = nz * s; }
+}
 function placeCapsule(rm, a, b) { /* writes the capsule's placed vertices into the shared rider geometry; true when it wrote (the same ends as last time leave the arrays as they are: paused, seated still) */
   if (rm.ka && rm.kg === riderMeshes.geo && rm.ks === RIDER_SCALE && rm.ka.equals(a) && rm.kb.equals(b)) return false;
   const d = _pcd.subVectors(b, a); const len = Math.max(0.01, d.length());
   _pcP.copy(a).addScaledVector(d, 0.5); _pcQ.setFromUnitVectors(UP, d.divideScalar(len)); _pcS.set(RIDER_SCALE, len, RIDER_SCALE);
   _pcM.compose(_pcP, _pcQ, _pcS); _pcN.getNormalMatrix(_pcM);
   const G = riderMeshes.geo, P = G.attributes.position.array, N = G.attributes.normal.array, B = rm.base, BN = rm.bnrm, o3 = rm.o * 3;
-  for (let v = 0, k = 0; v < rm.n; v++, k += 3) { _pcV.set(B[k], B[k + 1], B[k + 2]).applyMatrix4(_pcM); P[o3 + k] = _pcV.x; P[o3 + k + 1] = _pcV.y; P[o3 + k + 2] = _pcV.z;
-    _pcV.set(BN[k], BN[k + 1], BN[k + 2]).applyMatrix3(_pcN).normalize(); N[o3 + k] = _pcV.x; N[o3 + k + 1] = _pcV.y; N[o3 + k + 2] = _pcV.z; }
+  placeVerts(P, N, B, BN, o3, rm.n); riderDirty(G, rm.o, rm.n);
   if (!rm.ka) { rm.ka = new THREE.Vector3(); rm.kb = new THREE.Vector3(); } rm.ka.copy(a); rm.kb.copy(b); rm.kg = G; rm.ks = RIDER_SCALE; return true;
 }
 function placeRigid(rm, p, q) { /* a rigid kit piece (glove, shoe, pad, pack) at a ragdoll point with the bike's / body's rotation, written into the same geometry; true when it wrote (as placeCapsule) */
   const sc = rm.fs ? rm.fs() : RIDER_SCALE; if (rm.kp && rm.kg === riderMeshes.geo && rm.ks === sc && rm.kp.equals(p) && rm.kq.equals(q)) return false;
   _pcS.setScalar(sc); _pcM.compose(p, q, _pcS); /* rm.fs = an optional scale thunk (0 collapses the piece: the poker stick off the hand) */ _pcN.getNormalMatrix(_pcM);
   const G = riderMeshes.geo, P = G.attributes.position.array, N = G.attributes.normal.array, B = rm.base, BN = rm.bnrm, o3 = rm.o * 3;
-  for (let v = 0, k = 0; v < rm.n; v++, k += 3) { _pcV.set(B[k], B[k + 1], B[k + 2]).applyMatrix4(_pcM); P[o3 + k] = _pcV.x; P[o3 + k + 1] = _pcV.y; P[o3 + k + 2] = _pcV.z;
-    _pcV.set(BN[k], BN[k + 1], BN[k + 2]).applyMatrix3(_pcN).normalize(); N[o3 + k] = _pcV.x; N[o3 + k + 1] = _pcV.y; N[o3 + k + 2] = _pcV.z; }
+  placeVerts(P, N, B, BN, o3, rm.n); riderDirty(G, rm.o, rm.n);
   if (!rm.kp) { rm.kp = new THREE.Vector3(); rm.kq = new THREE.Quaternion(); } rm.kp.copy(p); rm.kq.copy(q); rm.kg = G; rm.ks = sc; return true;
 }
 
@@ -66777,19 +66877,23 @@ const sfx = (() => {
   function bakeRaw(inst, a, ti, R0) { const g = bakeGen(inst, a, ti, R0); let r; while (!(r = g.next()).done); return r.value; } /* the whole note at once */
   let bakeCur = null; /* the warm queue's note in progress: { k, g } (its noise is already drawn) */
   function bakeFinish() { let r; while (!(r = bakeCur.g.next()).done); bakeCur = null; return r.value; }
-  function bakeMus(inst, a, ti) { const k = mkey(inst, a, ti); let W = RAWB.get(k); if (W) RAWB.delete(k); else if (bakeCur && bakeCur.k === k) W = bakeFinish(); else W = bakeRaw(inst, a, ti); /* a note the warm queue has started is finished here, now */ const b = ctx.createBuffer(1, W.d.length, W.sr); b.getChannelData(0).set(W.d); return { b, f: W.f }; }
+  let preCur = null; /* prebakeTitle's note in progress: { k, g } (its noise is already drawn, from the note's own stream) */
+  function preFinish() { let r; while (!(r = preCur.g.next()).done); preCur = null; return r.value; }
+  function bakeMus(inst, a, ti) { const k = mkey(inst, a, ti); let W = RAWB.get(k); if (W) RAWB.delete(k); else if (bakeCur && bakeCur.k === k) W = bakeFinish(); else if (preCur && preCur.k === k) W = preFinish(); else W = bakeRaw(inst, a, ti); /* a note the warm queue or the title prebake has started is finished here, now (the samples it would have stored) */ const b = ctx.createBuffer(1, W.d.length, W.sr); b.getChannelData(0).set(W.d); return { b, f: W.f }; }
   function mbuf(inst, m, ti) { const I = INST[inst], a = I.np ? (inst === 'shk' ? Math.floor(rh() * 3) : 0) : 4 * Math.round(m / 4), k = mkey(inst, a, ti); let B = MB.get(k); if (!B) B = bakeMus(inst, a, ti); else MB.delete(k); MB.set(k, B); /* LRU: the most recent at the end */
     if (MB.size > MB_CAP) MB.delete(MB.keys().next().value); return B; } /* <= MB_CAP cached notes; a playing source keeps its own buffer alive */
   const MB_CAP = 120; /* the title's 25 notes + every anchor queueWarm asks for (up to about 90 on one palette) fit, so a warmed note is not dropped before it plays (~16 MB at 16 kHz) */
   function warmBake(ms = 3) { if (DRY || !ctx || !musBus || (!bakeQ.length && !bakeCur)) return; const t0 = performance.now(); /* about ms of baking per call (3 per scheduler tick, 3 a frame from update while riding, 6 a frame on the title, pause, camp and cards): a long note (long tone, pads, piano) is baked a slice at a time and finished over the next calls */
-    while (performance.now() - t0 < ms) { if (!bakeCur) { if (!bakeQ.length || performance.now() - t0 > ms / 2) break; /* a new note's first slice (its noise) is the biggest: only early in the budget */ const [i, a, ti] = bakeQ.shift(), k = mkey(i, a, ti); if (MB.has(k)) continue; if (RAWB.has(k)) { MB.set(k, bakeMus(i, a, ti)); continue; } bakeCur = { k, g: bakeGen(i, a, ti) }; }
+    while (performance.now() - t0 < ms) { if (!bakeCur) { if (!bakeQ.length || performance.now() - t0 > ms / 2) break; /* a new note's first slice (its noise) is the biggest: only early in the budget */ const [i, a, ti] = bakeQ.shift(), k = mkey(i, a, ti); if (MB.has(k)) continue; if (RAWB.has(k)) { MB.set(k, bakeMus(i, a, ti)); continue; } if (preCur && preCur.k === k) { bakeCur = preCur; preCur = null; } else bakeCur = { k, g: bakeGen(i, a, ti) }; } /* a note the title prebake has started is carried on from where it stands */
       const r = bakeCur.g.next(); if (r.done) { const k = bakeCur.k, W = r.value, b = ctx.createBuffer(1, W.d.length, W.sr); bakeCur = null; b.getChannelData(0).set(W.d); if (!MB.has(k)) MB.set(k, { b, f: W.f }); } } }
   const T_WARM = 'thump0 shk0 shk1 shk2 bass64 kal68 clap0 bass68 kal76 kal80 harp64 harp68 bass60 mar72 mar68 harp60 bass56 kal72 mar80 mar76 harp76 harp80 harp72 bass72'.split(' ').map((x) => { const m = /^([a-z]+)(\d+)$/.exec(x); return [m[1], +m[2]]; }); /* every note the title theme plays, in order of first use (22 pitched / percussive anchors, plus 3 shaker variants) */
   function prebakeTitle() { /* page load, idle time: bake the title's anchors into plain arrays so the first tap only has to copy them into buffers. The title's notes use a noise stream per note, so they sound the same every time and bake the same early or late */
     const todo = T_WARM.filter(([i, a]) => !RAWB.has(mkey(i, a, true))).map(([i, a]) => [i, a, true]);
     for (let a = 44; a <= 76; a += 4) todo.push(['pad', a, false]); /* then the ride's bowed pad anchors (its first chords are always a pad roll): the slowest notes to bake */
-    const slice = () => { const t0 = performance.now(); while (todo.length && performance.now() - t0 < 6) { const [i, a, ti] = todo.shift(); const k = mkey(i, a, ti); if (!RAWB.has(k) && !MB.has(k) && !(bakeCur && bakeCur.k === k)) { try { RAWB.set(k, bakeRaw(i, a, ti, ti ? null : mulberry32((performance.now() * 1000) ^ a))); } catch (e) { lastErr = String(e); } } }
-      if (todo.length) setTimeout(slice, 30); };
+    const slice = () => { const t0 = performance.now(); while ((todo.length || preCur) && performance.now() - t0 < 6) { /* about 6 ms a call, a long note a slice at a time (bakeGen's steps, as the warm queue bakes) */
+        if (!preCur) { const [i, a, ti] = todo.shift(); const k = mkey(i, a, ti); if (RAWB.has(k) || MB.has(k) || (bakeCur && bakeCur.k === k)) continue; try { preCur = { k, g: bakeGen(i, a, ti, ti ? null : mulberry32((performance.now() * 1000) ^ a)) }; } catch (e) { lastErr = String(e); continue; } }
+        try { const r = preCur.g.next(); if (r.done) { RAWB.set(preCur.k, r.value); preCur = null; } } catch (e) { preCur = null; lastErr = String(e); } }
+      if (todo.length || preCur) setTimeout(slice, 30); };
     setTimeout(slice, 600); }
   function queueWarm(title) { if (!musBus) return; /* nothing drains the queue while the organic engine's graph is down (Alt track) */ const add = (i, lo, hi) => { for (let a = 4 * Math.round(lo / 4); a <= hi; a += 4) if (!MB.has(i + a)) bakeQ.push([i, a]); };
     if (title) { for (const [i, a] of T_WARM) if (!MB.has(mkey(i, a, true))) bakeQ.push([i, a, true]); return; }
@@ -67881,6 +67985,10 @@ function newRun(seed, opts) {
   tut.sync(); /* the tutorial's prompts start on its own seed and stop on any other */
   if (COMPANIONS_ON) petsRunStart(); /* the animal's perk is off in the tutorial and Classic feel */
   if (COMPANIONS_ON) petsWorldPlace(S.course, S.surf); /* the basket stump or the bushes, after petsRunStart (the story reads it) and after every placement pass */
+  worldFreeze(S.course); /* last: every placement pass above may still move a piece */
+  if (titleCourse !== S.course) titleCourse = null; campWarm.forget(); PK.story = null; campSky.trim(false); /* let the replaced mountain go: each of these held its course or a camp
+     of it, and with it the whole old world (~60 MB), until the next title flyover, camp approach, camp entry or warm-up tick. Each only ever matched the course or camps it was
+     set for, so dropping it now acts the same (the camp sky's kept and prepared builds are the ones its own trim drops on the first warm-up tick of the new ride) */
 }
 function placeCampAt(cp, P) { cp.yaw = P.yaw + (P.vs < 0 ? Math.PI : 0); /* course camps have their fire on the valley-side pad (set in buildCourse). On a leg that runs back toward -x the camp frame turns round so its camera side still faces the valley */ if (!cp.lane) { const o = P.hw + 2.2; cp.x = P.x + P.vx * o; cp.z = P.z + P.vz * o; } cp.y = S.surf(cp.x, cp.z)?.h ?? P.y; }
 function resetRunState() { /* the one place a run's own counters start over: a fresh run (resetRun) and Continue (which then loads the camp save's run state over it with runStateLoad) both come through here, so whatever else belongs to a single run is re-armed here too */
@@ -67994,6 +68102,7 @@ function rollVis() { const L = S.roll || 0, B = S.bankRoll || 0; if (L * B <= 0)
    the render, so step(), the rider solver and every check read exactly what they read without it. */
 const TT_TOL = 0.01, TT_MAXDY = 0.35, TT_MAXDP = 0.3, TT_K = 30;
 const TT_ARC = [-1.05, -0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1.05], TT_SIDE = [0, -0.7, 0.7]; /* points on each tire's lower arc (rad from straight down, in the wheel's plane), and round its tube from the lowest point */
+const TT_ARC_C = TT_ARC.map(Math.cos), TT_ARC_S = TT_ARC.map(Math.sin), TT_SIDE_C = TT_SIDE.map(Math.cos), TT_SIDE_S = TT_SIDE.map(Math.sin); /* their cosines and sines, worked out once (the same numbers tireNeed used to take every call) */
 let ttLipC = null, ttLipIx = null;
 /* the top of a gap jump's lip block (3 cm over the kicker, out to the real edge) or a rock lip's slab (5 cm proud, parallel to the kicker) at (x, z), or null */
 function lipVisH(q, x, z) {
@@ -68010,9 +68119,9 @@ function tireNeed(w, o) {
   const e = w.matrixWorld.elements; _ttA.set(e[12], e[13], e[14]); _ttZ.set(e[8], e[9], e[10]); const sc = _ttZ.length(); o.pen = -1e9; o.x = _ttA.x; o.z = _ttA.z; if (sc < 1e-6) return o; _ttZ.divideScalar(sc);
   _ttD.set(0, -1, 0).addScaledVector(_ttZ, _ttZ.y); const L = _ttD.length(); if (L < 1e-3) return o; _ttD.divideScalar(L); _ttT.crossVectors(_ttZ, _ttD); /* down within the wheel's plane, and along it */
   const RM = 0.31 * sc, RT = 0.075 * sc;
-  for (let a = 0; a < TT_ARC.length; a++) { const c = Math.cos(TT_ARC[a]), s = Math.sin(TT_ARC[a]); _ttR.set(_ttD.x * c + _ttT.x * s, _ttD.y * c + _ttT.y * s, _ttD.z * c + _ttT.z * s); /* the radial direction to this point of the tube's center circle */
+  for (let a = 0; a < TT_ARC.length; a++) { const c = TT_ARC_C[a], s = TT_ARC_S[a]; _ttR.set(_ttD.x * c + _ttT.x * s, _ttD.y * c + _ttT.y * s, _ttD.z * c + _ttT.z * s); /* the radial direction to this point of the tube's center circle */
     const dr = -_ttR.y, dz = -_ttZ.y, dl = Math.hypot(dr, dz) || 1, vr = dr / dl, vz = dz / dl; /* the tube cross-section's lowest direction: down within the (radial, axle) plane */
-    for (let k = 0; k < TT_SIDE.length; k++) { const cs = Math.cos(TT_SIDE[k]), sn = Math.sin(TT_SIDE[k]), ur = vr * cs - vz * sn, uz = vz * cs + vr * sn; /* turned round the tube from the lowest point: the shoulder that meets a tilted wall first */
+    for (let k = 0; k < TT_SIDE.length; k++) { const cs = TT_SIDE_C[k], sn = TT_SIDE_S[k], ur = vr * cs - vz * sn, uz = vz * cs + vr * sn; /* turned round the tube from the lowest point: the shoulder that meets a tilted wall first */
       _ttV.copy(_ttA).addScaledVector(_ttR, RM + RT * ur).addScaledVector(_ttZ, RT * uz); const g = tireGround(_ttV.x, _ttV.z);
       if (g !== null && g - _ttV.y > o.pen) { o.pen = g - _ttV.y; o.x = _ttV.x; o.z = _ttV.z; } } }
   return o; }
@@ -69828,7 +69937,8 @@ const contactBlob = (() => {
   const cv = document.createElement('canvas'); cv.width = cv.height = 64; const g2 = cv.getContext('2d'), gr = g2.createRadialGradient(32, 32, 0, 32, 32, 31);
   gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.35, 'rgba(255,255,255,0.8)'); gr.addColorStop(0.7, 'rgba(255,255,255,0.3)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g2.fillStyle = gr; g2.fillRect(0, 0, 64, 64);
   const tex = new THREE.CanvasTexture(cv), N = 5, geo = new THREE.PlaneGeometry(1, 1, N - 1, N - 1);
-  const mat = new THREE.MeshBasicMaterial({ map: tex, color: '#17262b', transparent: true, opacity: 0.5, depthWrite: false, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -8 });
+  const mat = new THREE.MeshBasicMaterial({ map: tex, color: '#17262b', transparent: true, opacity: 0.5, depthWrite: false, side: THREE.DoubleSide, forceSinglePass: true, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -8 }); /* single pass: one draw instead of
+     three's back-then-front pair; a draped blob of one flat color blends the same in either order */
   const m = new THREE.Mesh(geo, mat); m.frustumCulled = false; m.matrixAutoUpdate = false; m.renderOrder = 2; m.name = 'contactBlob'; scene.add(m);
   const pa = geo.attributes.position, uv = [], BASE = 0.6;
   for (let k = 0; k < pa.count; k++) uv.push(pa.getX(k), -pa.getY(k)); /* plane x = along the bike, -y = across */
@@ -70008,12 +70118,14 @@ function updateRiderFx(dt) {
   if (onR) { const [cx, cy] = riderScreen(0.9, _rs2); ring.style.left = cx + 'px'; ring.style.top = cy + 'px'; const a = Math.round(2260 * (1 - S.comboT / COMBO_T)); if (L.arc !== a) { L.arc = a; E.arc.setAttribute('stroke-dashoffset', (a / 10).toFixed(1)); } if (L.x !== S.streak) { L.x = S.streak; E.x.textContent = 'x' + (1 + 0.5 * S.streak).toFixed(1); } }
   if (bannerT > 0) { bannerT -= dt; if (bannerT <= 0) { E.banner.classList.remove('show'); if (bannerArr) scoreAt = performance.now(); } }
 }
-const hudLast = {}; let hudPrevT = performance.now(), scoreSeen = -1, comboSeen = '', scoreAt = -1e9, hudTenth = -1;
+const hudLast = {}; let hudPrevT = performance.now(), scoreSeen = -1, comboSeen = '', scoreAt = -1e9;
 const setTxt = (id, v) => { if (hudLast[id] !== v) { hudLast[id] = v; $(id).textContent = v; } };
+/* the run clock (#hTime) is never drawn, and rewriting its text ten times a second cost a style recalc and a layout each time (most of a ride's).
+   So its text is not written at all: reading the span's textContent or innerText gives the live run time, the finish card and the records use S.t */
+{ const rd = () => fmtTime(S.t), el = $('tTime'); Object.defineProperty(el, 'textContent', { get: rd, configurable: true }); Object.defineProperty(el, 'innerText', { get: rd, configurable: true }); }
 const setCls = (el, c, on) => { if (el.classList.contains(c) !== on) el.classList.toggle(c, on); };
 function updateHud() {
   const tNow = performance.now(), dt = Math.min(0.1, (tNow - hudPrevT) / 1000); hudPrevT = tNow;
-  { const tenth = Math.round(S.t * 10); if (tenth !== hudTenth) { hudTenth = tenth; setTxt('tTime', fmtTime(S.t)); } }
   const combo = S.streak ? '×' + (1 + 0.5 * S.streak).toFixed(1) : '';
   const shown = S.tBank + S.tPend;
   if (shown !== scoreSeen || combo !== comboSeen) { scoreSeen = shown; comboSeen = combo; scoreAt = tNow; setTxt('tScore', shown.toLocaleString()); setTxt('tCombo', combo); }
@@ -71206,11 +71318,11 @@ const gpMenu = (() => {
     else if (screen === 'camp') campUI.back(); /* B leaves a running mini game, else leaves camp */
     if (screen !== was) swallowUntil = true; };
   const start = () => { const was = screen; if (walkSkip()) return; if (screen === 'camp') { leaveCamp(); swallowUntil = true; return; } if (screen === 'end' && document.body.classList.contains('tutEnd')) { (shown && cur && cur.tagName === 'BUTTON' && $('endOv').contains(cur) && vis(cur) ? cur : $('btnNew2')).click(); if (screen !== was) swallowUntil = true; return; } if (screen === 'pause') closePause(); else if ((screen === 'settings' || (screen === 'controls' && ctlBack === 'settings')) && setBack === 'pause') closePause(); else if (screen === 'controls' && ctlBack === 'pause') closePause(); else if (screen === 'title' || screen === 'end') $(screen === 'end' ? (!document.body.classList.contains('tutEnd') ? 'btnNew2' : 'btnAgain') : 'btnStart').click(); if (screen !== was) swallowUntil = true; };
-  const ACT = { 12: (r) => move(0, -1, r), 13: (r) => move(0, 1, r), 14: (r) => move(-1, 0, r), 15: (r) => move(1, 0, r), 0: confirm, 1: back, 9: start, 4: () => { if (screen === 'camp') { show(true); campUI.tabStep(-1); } else if (screen === 'controls') { show(true); ctlStep(-1); } }, 5: () => { if (screen === 'camp') { show(true); campUI.tabStep(1); } else if (screen === 'controls') { show(true); ctlStep(1); } } }; /* LB / RB = camp tabs, Controls device tabs */
+  const ACT = { 12: (r) => move(0, -1, r), 13: (r) => move(0, 1, r), 14: (r) => move(-1, 0, r), 15: (r) => move(1, 0, r), 0: confirm, 1: back, 9: start, 4: () => { if (screen === 'camp') { show(true); campUI.tabStep(-1); } else if (screen === 'controls') { show(true); ctlStep(-1); } }, 5: () => { if (screen === 'camp') { show(true); campUI.tabStep(1); } else if (screen === 'controls') { show(true); ctlStep(1); } }, 11: () => { if (screen === 'camp') campUI.boardPad(); } }; /* LB / RB = camp tabs, Controls device tabs; R3 (right stick click) = the notice board close-up at camp */
   const fire = (k, now, held) => { const H = hold[k]; if (held) { if (!H) { hold[k] = { t: now + REP0, n: 0 }; if (ACT[k]) ACT[k](false); } else if (++H.n >= 3 && now >= H.t && k >= 12) { H.t = now + REP; ACT[k](true); } } else delete hold[k]; }; /* repeat: after REP0 and at least 3 polls (a slow frame never doubles a tap) */
   /* a menu button tapped and let go between two frames (a slow frame, a quick thumb) used to be lost: the menu reads the pad once a frame. While a
      menu is up the buttons are also looked at every 8 ms, and a press seen there counts on the next frame's poll even if the button is already up again. */
-  const latch = new Uint8Array(16), lt = new Uint8Array(16), LT_BTN = [0, 1, 4, 5, 9, 12, 13, 14, 15]; let ltArm = null;
+  const latch = new Uint8Array(16), lt = new Uint8Array(16), LT_BTN = [0, 1, 4, 5, 9, 11, 12, 13, 14, 15]; let ltArm = null;
   const ltOn = (fn) => { let id = 0, pad = false; /* the 8 ms latch runs only while a controller is there and a menu is up; a slow look once a second finds a pad that gives no event */
     const run = () => { if (!screen) { clearInterval(id); id = 0; return; } fn(); }; /* the ride: stopped; the next menu frame starts it again (ltArm from poll) */
     ltArm = () => { if (pad && screen && !id) id = setInterval(run, 8); };
@@ -71227,15 +71339,14 @@ const gpMenu = (() => {
     const ax0 = AX.x, ay0 = AX.y; AX.x = Math.abs(x) > (AX.x ? 0.35 : 0.55) ? Math.sign(x) : 0; AX.y = Math.abs(y) > (AX.y ? 0.35 : 0.55) ? Math.sign(y) : 0;
     if (AX.x && AX.y) { if (ay0 && !ax0) AX.x = 0; else if (ax0 && !ay0) AX.y = 0; else if (Math.abs(x) >= Math.abs(y)) AX.y = 0; else AX.x = 0; } /* a diagonal moves one way */
     let anyR = false; for (let i = 0; i < 16; i++) if (i !== 6 && i !== 7 && b(i) > 0.5) anyR = true;
-    if (AX.x || AX.y) any = true;
     const anyS = anyR || (screen !== null && !!(AX.x || AX.y)); /* what a screen change has to wait out: the triggers drive no menu, and on the ride the stick is a held control, not a press */
     if (screen !== lastScr) { lastScr = screen; if (anyS) swallowUntil = true; }
     if (gameWas && !CampMini.running && anyS) swallowUntil = true; gameWas = CampMini.running; /* a mini game ended under a held button (its end card took that press) */ /* a screen changed under a held button (Start opened the pause menu, a run finished): that press is spent */
     if (swallowUntil) { if (!anyS) swallowUntil = false; for (const k in hold) delete hold[k]; return; }
     if (screen === null) { for (const k in hold) delete hold[k]; return; }
-    if (CampMini.running) { for (const k of [12, 13, 14, 15, 0, 4, 5]) delete hold[k]; fire(1, now, b(1) > 0.5 && !CampMini.ownsB); fire(9, now, b(9) > 0.5); return; } /* a mini game polls the pad itself: the menu only listens for B / Start meanwhile. A game that claims B (stargazing: back up one link) keeps it from the menu while it does */
+    if (CampMini.running) { for (const k of [12, 13, 14, 15, 0, 4, 5, 11]) delete hold[k]; fire(1, now, b(1) > 0.5 && !CampMini.ownsB); fire(9, now, b(9) > 0.5); return; } /* a mini game polls the pad itself: the menu only listens for B / Start meanwhile. A game that claims B (stargazing: back up one link) keeps it from the menu while it does */
     fire(12, now, b(12) > 0.5 || AX.y < 0); fire(13, now, b(13) > 0.5 || AX.y > 0); fire(14, now, b(14) > 0.5 || AX.x < 0); fire(15, now, b(15) > 0.5 || AX.x > 0);
-    fire(0, now, b(0) > 0.5); fire(1, now, b(1) > 0.5); fire(9, now, b(9) > 0.5); fire(4, now, b(4) > 0.5); fire(5, now, b(5) > 0.5);
+    fire(0, now, b(0) > 0.5); fire(1, now, b(1) > 0.5); fire(9, now, b(9) > 0.5); fire(4, now, b(4) > 0.5); fire(5, now, b(5) > 0.5); fire(11, now, b(11) > 0.5);
   };
   /* the ring hides on a tap / click, a touch or pen move, or a REAL mouse move (inDev switching to 'ptr': > 24 px within 300 ms). A raw 1 px mouse move used to
      hide it, so on a desktop with a pad the resting mouse's sensor jitter kept taking the ring (and the pad glyph chips under body.gpNav) away. While a pad is the
@@ -72657,14 +72768,14 @@ const campWarm = (() => {
   function step() { busy = false; const cp = S.camp || !S.running ? null : nearest(); if (!cp) return;
     if (!campProps) campProps = campPropsBuild();
     else if (!texOk) { const pn = campProps.board.userData.panel; if (pn && pn.material.map) renderer.initTexture(pn.material.map); texOk = true; }
-    else if (!propsC) { compile(campProps.grp); propsC = true; }
+    else if (!propsC) { const nt = campProps.board.userData.note, nv = nt && nt.visible; if (nt) nt.visible = true; compile(campProps.grp); if (nt) nt.visible = nv; propsC = true; } /* the Keeper's note too (hidden while no note is up): its program is ready when one is */
     else if (campC !== cp) { compile(cp.mesh); campC = cp; } /* the camp's own group: what only the camp lens shows (programs are shared, so after the first camp this finds them all cached) */
     else if (!campSky.prep(cp, CAMP_WARM.ms)) { /* more of the sky next slice */ }
     else if (skyC !== cp && campSky.ready) { compile(campSky.ready); skyC = cp; return; }
     else return;
     busy = true; later(step); }
   function tick() { if (busy || S.camp || !S.running || frameStamp < nextT) return; nextT = frameStamp + CAMP_WARM.every; if (nearest()) { busy = true; later(step); } else campSky.trim(true); } /* out of reach of every camp: a sky built for a camp not entered is let go */
-  return { tick, state: () => ({ props: !!campProps && propsC, tex: texOk, camp: !!campC, sky: !!campSky.ready, skyC: !!skyC, busy }) }; })();
+  return { tick, forget: () => { campC = null; skyC = null; }, state: () => ({ props: !!campProps && propsC, tex: texOk, camp: !!campC, sky: !!campSky.ready, skyC: !!skyC, busy }) }; })(); /* forget: a new mountain, the last one's camps are never met again */
 const sstep = (x) => { x = Math.max(0, Math.min(1, x)); return x * x * x * (x * (x * 6 - 15) + 10); };
 let _campW = 0, _campH = 0, _puffO;
 /* the camp lens framing. The camera pose is fixed in the camp frame (CAMPCAM.pos / look); the fov and the view offset are solved so the
@@ -73065,7 +73176,7 @@ function padGlyphDraw(k, sz = 22) {
     if (pc) return `<svg class="gl" width="${sz}" height="${sz}" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.6" fill="#15100c" stroke="${pc}" stroke-width="1.8"/>${k === 'A' ? `<path d="M8 8l8 8M16 8l-8 8" stroke="${pc}" stroke-width="2.2" stroke-linecap="round"/>` : k === 'B' ? `<circle cx="12" cy="12" r="4.8" fill="none" stroke="${pc}" stroke-width="2"/>` : k === 'X' ? `<rect x="7.6" y="7.6" width="8.8" height="8.8" fill="none" stroke="${pc}" stroke-width="2" stroke-linejoin="round"/>` : `<path d="M12 6.8l5.4 9.4H6.6z" fill="none" stroke="${pc}" stroke-width="2" stroke-linejoin="round"/>`}</svg>`;
     if (PS_TXT[k]) return `<svg class="gl" width="${Math.round(sz * 1.5)}" height="${sz}" viewBox="0 0 36 24" aria-hidden="true"><rect x="1.5" y="3.5" width="33" height="17" rx="8" fill="#15100c" stroke="#d9c7aa" stroke-width="1.6"/><text x="18" y="16.3" text-anchor="middle" font-family="Rubik, sans-serif" font-weight="700" font-size="11.5" fill="#efe3cc">${PS_TXT[k]}</text></svg>`; }
   if (col[k]) return `<svg class="gl" width="${sz}" height="${sz}" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.6" fill="#15100c" stroke="${col[k]}" stroke-width="1.8"/><text x="12" y="16.7" text-anchor="middle" font-family="Rubik, sans-serif" font-weight="700" font-size="13" fill="${col[k]}">${k}</text></svg>`;
-  if (k === 'LB' || k === 'RB' || k === 'LT' || k === 'RT') return `<svg class="gl" width="${Math.round(sz * 1.5)}" height="${sz}" viewBox="0 0 36 24" aria-hidden="true"><rect x="1.5" y="3.5" width="33" height="17" rx="8" fill="#15100c" stroke="#d9c7aa" stroke-width="1.6"/><text x="18" y="16.3" text-anchor="middle" font-family="Rubik, sans-serif" font-weight="700" font-size="11.5" fill="#efe3cc">${k}</text></svg>`;
+  if (k === 'LB' || k === 'RB' || k === 'LT' || k === 'RT' || k === 'R3') return `<svg class="gl" width="${Math.round(sz * 1.5)}" height="${sz}" viewBox="0 0 36 24" aria-hidden="true"><rect x="1.5" y="3.5" width="33" height="17" rx="8" fill="#15100c" stroke="#d9c7aa" stroke-width="1.6"/><text x="18" y="16.3" text-anchor="middle" font-family="Rubik, sans-serif" font-weight="700" font-size="11.5" fill="#efe3cc">${k}</text></svg>`;
   if (k === 'stick') return `<svg class="gl" width="${sz}" height="${sz}" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.6" fill="#15100c" stroke="#d9c7aa" stroke-width="1.6"/><circle cx="12" cy="12" r="5" fill="#d9c7aa"/><path d="M12 2.6l2 2.4h-4zM12 21.4l2-2.4h-4zM2.6 12l2.4-2v4zM21.4 12L19 10v4z" fill="#ffb24a"/></svg>`;
   if (k === 'lstick' || k === 'rstick') return `<svg class="gl" width="${sz}" height="${sz}" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.6" fill="#15100c" stroke="#d9c7aa" stroke-width="1.6"/><circle cx="12" cy="12" r="5" fill="#d9c7aa"/><text x="12" y="14.6" text-anchor="middle" font-family="Rubik, sans-serif" font-weight="700" font-size="7" fill="#15100c">${k === 'rstick' ? 'R' : 'L'}</text><path d="M12 2.6l2 2.4h-4zM12 21.4l2-2.4h-4zM2.6 12l2.4-2v4zM21.4 12L19 10v4z" fill="#ffb24a"/></svg>`; /* the stick with its letter (Controls page) */
   if (k === 'start') return `<svg class="gl" width="${sz}" height="${sz}" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.6" fill="#15100c" stroke="#d9c7aa" stroke-width="1.6"/><path d="M7 8.5h10M7 12h10M7 15.5h10" stroke="#efe3cc" stroke-width="1.8" stroke-linecap="round"/></svg>`; /* the menu (Start / Options) button */
@@ -73077,7 +73188,9 @@ function padGlyphDraw(k, sz = 22) {
    'dpad4' | 'LB' | 'RB', label: 'Hold: lower', btn: 0 (the pad button the ring follows; omit = no ring), hold: 0.9 (not read) }, or the
    string 'A|Hold: lower|0.9'. clear() removes them. Shown only while a pad is connected or the menus are in pad mode; fades to 45 % after 4 s without input. */
 { document.body.classList.add('chfit'); const pn = $('campPn'), bd = $('campBody'); let q = 0;
-  const fit = () => { q = 0; pn.classList.remove('nochint'); if (pn.dataset.tab !== 'skills') return; const h = pn.querySelector('.chint'), rows = pn.querySelectorAll('.sk'); if (!h || !rows.length || !h.offsetParent) return;
+  const fit = () => { q = 0; pn.classList.remove('nochint');
+    for (const h of pn.querySelectorAll('.chint')) { h.style.zoom = ''; if (h.offsetParent && h.scrollWidth > h.clientWidth + 1) h.style.zoom = (h.clientWidth / h.scrollWidth).toFixed(3); } /* a pad hint strip wider than the panel (four chips under some UI scales) is scaled down to fit, never cut off */
+    if (pn.dataset.tab !== 'skills') return; const h = pn.querySelector('.chint'), rows = pn.querySelectorAll('.sk'); if (!h || !rows.length || !h.offsetParent) return;
     const a = h.getBoundingClientRect(), b = rows[rows.length - 1].getBoundingClientRect(), c = pn.getBoundingClientRect();
     if (a.top < b.bottom - 0.5 || a.bottom > c.bottom + 0.5 || (bd.contains(h) && bd.scrollHeight > bd.clientHeight + 1)) pn.classList.add('nochint'); }; /* shown first, then measured in the same frame: no flicker */
   const ask = () => { if (!q && S.camp) q = requestAnimationFrame(fit); }; /* off camp the panel is not shown: the ride's body class changes ask nothing */
@@ -73229,7 +73342,7 @@ const campUI = (() => {
     if (V.sub === 'home') return `<div class="pt"><b>Bike &amp; Rider</b></div>
       <div class="tiles"><button class="tile" id="ckTileRider" data-open="rider">${riderSvg()}<b>Rider</b></button>
       <button class="tile" id="ckTileBike" data-open="bike">${bikeSvg()}<b>Bike</b></button>${petsPage() ? `<button class="tile" id="ckTilePets" data-open="pets">${basketSvg()}<b>${'Pals'}</b></button>` : ''}</div>
-      ${hint([[['dpadH'], 'Choose'], [['A'], 'Open'], [['B'], 'Leave camp']])}`;
+      ${hint([[['dpadH'], 'Choose'], [['A'], 'Open'], [['B'], 'Leave camp'], [['R3'], 'Board']])}`;
     if (V.sub === 'rider' && V.page === 'style') { /* head to toe: Helmet, Hair, Eyes | Sleeves, Legs | the three toggles | Build, thin rules between the groups */
       const rule = '<div class="grl" aria-hidden="true"></div>';
       return `<div class="pt">${backBtn()}<b>Rider</b>${pageSeg()}</div>
@@ -73279,7 +73392,7 @@ const campUI = (() => {
       return `<div class="sk${d !== c ? ' dirty' : ''}" title="${esc(what)}" data-sk="${id}"><span class="nm">${esc(SKILL.name[id])}${(() => { const b = PROF.classic ? 0 : buffAdd(id); return b ? `<i class="bf" title="camp buff: ${Math.ceil(Math.max(...BUFF_KEYS.filter(k => BUFF_DEF[k].stat === id && PROF.buff[k]).map(buffLeft)))} s of riding left">+${Math.round(b * 100)}%</i>` : ''; })()}${(() => { const q = COMPANIONS_ON ? petsPerk(id) : 0; return q ? `<i class="bf" title="${esc(PET_NAME[petsRider()] || '')} in the basket">+${Math.round(q * 100)}%</i>` : ''; })()}</span><span class="pips" aria-label="${d} of 10">${pips}</span><span class="v">${d}</span>
         <span class="seg pm" data-set="sk:${id}"><button data-v="-1" ${d <= 0 || PROF.classic ? 'disabled' : ''} aria-label="less ${esc(SKILL.name[id])}">&minus;</button><button data-v="1" ${(d >= SKILL.PIPS || n <= 0 || PROF.classic) ? 'disabled' : ''} aria-label="more ${esc(SKILL.name[id])}">+</button></span></div>`; }).join('');
     return `<div class="pt"><b>Skills</b><span class="ptc${n > 0 ? ' has' : ''}" title="LV ${L}">${n} ${'point'}${n === 1 ? '' : 's'}</span>${PROF.classic ? '<span class="m cf">Classic feel</span>' : ''}</div>
-      <div class="sks${PROF.classic ? ' off' : ''}">${rows}</div>${hint([[['dpadH'], 'Adjust'], [['dpadV'], 'Next row'], [['B'], 'Back']])}
+      <div class="sks${PROF.classic ? ' off' : ''}">${rows}</div>${hint([[['dpadH'], 'Adjust'], [['dpadV'], 'Next row'], [['B'], 'Back'], [['R3'], 'Board']])}
       <div class="foot"><button class="mb sm" id="ckResetAll" ${used ? '' : 'disabled'}>Reset</button><button class="mb sm pri" id="ckConfirm" ${dirty ? '' : 'disabled'}>Confirm</button></div>`; };
   /* ---- Activities ---- */
   const buffLine = (id) => { const k = SKILL.buffOf[id]; if (!k || buffsOff()) return '&nbsp;'; /* the card's buff: icon + what it does (a score of CampMini's buffMin earns it) */
@@ -73297,7 +73410,7 @@ const campUI = (() => {
     return `<div class="pt"><b>Activities</b><span class="m">Stars &amp; XP</span></div>
       <div class="carw"><div class="car" id="ckCar" data-gpseg data-gpok data-nowrap aria-label="Activities">${cards}</div><button class="edge l" data-nogp data-step="-1" aria-label="Previous">${ICO.back}</button><button class="edge r" data-nogp data-step="1" aria-label="Next">${ICO.back}</button></div>
       <div class="dd">${ids.map((id, i) => `<i data-dot="${i}"${id === 'washers' ? ' class="sec"' : ''}></i>`).join('')}</div>${lk ? `<div class="lockn" id="ckLockNote" role="note">${TUT_TXT.acts.all}</div>` : ''}${!lk && ids.includes('washers') ? `<div class="lockn wshn" id="ckWshNote" role="note">${'Washers is available at this camp'}</div>` : ''}
-      ${hint(lk ? [[['dpadH'], 'Browse'], [['LB', 'RB'], 'Tab']] : [[['dpadH'], 'Browse'], [['A'], 'Start'], [['LB', 'RB'], 'Tab']])}`; };
+      ${hint(lk ? [[['dpadH'], 'Browse'], [['LB', 'RB'], 'Tab'], [['R3'], 'Board']] : [[['dpadH'], 'Browse'], [['A'], 'Start'], [['LB', 'RB'], 'Tab'], [['R3'], 'Board']])}`; };
   const layoutCar = () => { const c = $('ckCar'); if (!c) return; const n = c.children.length, w = c.children[0] ? c.children[0].offsetWidth : 140, step = w * 0.8;
     [...c.children].forEach((k, i) => { const o = i - V.act, a = Math.abs(o); k.style.transform = `translateX(${o * step}px) scale(${1 - 0.16 * Math.min(a, 2)})`; k.style.opacity = a > 2 ? 0 : 1 - a * 0.22; k.style.zIndex = 10 - a; k.classList.toggle('cur', !a); k.classList.toggle('far', a > 2); k.setAttribute('aria-pressed', String(!a)); k.tabIndex = -1; });
     body.querySelectorAll('.dd i').forEach((d, i) => d.classList.toggle('on', i === V.act)); const e = body.querySelectorAll('.edge'); if (e[0]) { e[0].hidden = V.act === 0; e[1].hidden = V.act === n - 1; } };
@@ -73387,6 +73500,7 @@ const campUI = (() => {
     try { game = M.start(id, { host, level: levelOfXp(PROF.xp), river: rvK, onDone, left: UIO.hand === 'left', cam: campGameCam, fire: (v) => { if (S.camp) S.camp.fireK = v; }, proj: campProj, bike3d, help: CampHelp, rider: campRiderVis, buff: !!SKILL.buffOf[id] && !buffsOff(), poke: (k) => { if (S.camp) S.camp.pokeK = k; }, world: (lx, ly, lz, o) => (S.camp ? S.camp.W(lx, ly, lz, o) : o.set(lx, ly, lz)), stick: (v) => { if (S.camp) S.camp.stick = !!v; }, mirror: !!(S.camp && S.camp.mirror), ham: id === 'hammer' && HAM_ON && S.camp ? hamCamp.next(S.camp.cp) : undefined, ...(DEBUG && extra && typeof extra === 'object' ? extra : {}) }) || null; } catch (e) { console.error('Mini game', id, e); game = null; sfx.mini(null); }
     if (!game) { gameDone = true; gameId = null; if (S.camp) { S.camp.gcam = null; BATCH.want = false; S.camp.fireK = 1; S.camp.pokeK = 0; S.camp.stick = false; } gameOff(); render(); } };
   const stopGame = (leaving) => { if (S.camp && S.camp.bz) { S.camp.bz = false; bzCloth(S.camp, true); gameOff(); if (!leaving) focusDef(); return; } if (!game) return; const g = game; if (g.ended) { try { g.stop(); } catch (e) { } if (gameDone) return; } /* a finished game's result card: stopping it ends it as a normal finish (the score is paid; the host's onDone ran and cleaned up) */ gameDone = true; game = null; gameId = null; try { g.stop(); } catch (e) { } sfx.mini(null); if (S.camp) { S.camp.gcam = null; BATCH.want = false; S.camp.fireK = 1; S.camp.pokeK = 0; S.camp.stick = false; } gameOff(); if (!leaving && S.camp) render(); };
+  const boardPad = () => { if (bzOn()) { stopGame(false); return; } const C = S.camp, sp = $('shPan'); if (!C || game || pn.dataset.tab === 'res' || (C.tab === 'look' && V.sub !== 'home') || (sp && !sp.hidden)) return; bzEnter(); }; /* R3 on the pad: the board close-up, from the panel's top level only (not in an Activity, on a result card or a Bike & Rider page); R3 again or B leaves it */
   const back = () => { if (bzOn()) { stopGame(false); return; } if (game) { stopGame(false); focusDef(); return; } if (pn.dataset.tab === 'res') { render(); focusDef(); return; } if (subBack()) return; leaveCamp(); }; /* B: leave a game, a result card, a sub-menu; else leave camp */
   /* the walk-in: S.camp.ready === false keeps the panel / tabs / header hidden; the gamepad ring lands once it shows */
   let rdyRaf = 0; const rdy = () => { rdyRaf = 0; if (!S.camp) { scr.classList.remove('wait'); return; } const w = S.camp.ready === false; if (!w && !ind.offsetWidth && tabRow.offsetWidth) place(); /* the bar was laid out while the screen was hidden */ if (w !== scr.classList.contains('wait')) { scr.classList.toggle('wait', w); if (!w) { place(); focusDef(); } } if (w) rdyRaf = requestAnimationFrame(rdy); }; /* ready never goes back to false in a visit: once handled, the bar follows the ResizeObserver */
@@ -73428,7 +73542,7 @@ const campUI = (() => {
     else if (bt.id === 'ckZenImg') { if (zenShare()) sfx.cue('tick'); }
     else if (bt.id === 'ckCairnImg') { if (cairnShare()) sfx.cue('tick'); }
     else if (bt.id === 'ckAgain') startGame(gameId || CM().ids[V.act]); else if (bt.id === 'ckBack') { render(); focusDef(); } });
-  return { applyDraft, open, render, header, setTab, tabStep, back, startGame, stopGame, leaveNote, openSub, setCar, focusDef, petsPaint, petSvg, get view() { return Object.assign({}, V); }, get game() { return game; }, get draft() { return draft; }, get repeats() { return repeats; }, gcam: campGameCam, proj: campProj /* inspection hooks */ };
+  return { applyDraft, open, render, header, setTab, tabStep, back, boardPad, startGame, stopGame, leaveNote, openSub, setCar, focusDef, petsPaint, petSvg, get view() { return Object.assign({}, V); }, get game() { return game; }, get draft() { return draft; }, get repeats() { return repeats; }, gcam: campGameCam, proj: campProj /* inspection hooks */ };
 })();
 /* Settings > 'Mini games auto-finish' (holdon.autofinish, default OFF). OFF: no mini game finishes itself without the player (no timed
    auto-link / auto-lock, an untouched stoke song starts over); ON: the timed assists apply. */
