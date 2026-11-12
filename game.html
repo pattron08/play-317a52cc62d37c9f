@@ -948,6 +948,10 @@
   body.usf.touchy #codeRow input { letter-spacing: .03em; padding: 0 9px; } /* a ten-character code fits the field */
   body.ffx.pol2 #setScr .hd::after { content: ''; position: absolute; left: 0; right: 0; top: 100%; height: 14px; background: linear-gradient(#1b1410, rgba(27,20,16,0)); pointer-events: none; } /* a row sliding under the sticky header fades out instead of showing as a cut strip */
   body.pol2 #setScr .hd { position: sticky; top: -14px; z-index: 3; margin: -14px -16px 6px; padding: 14px 16px 6px; border-radius: 22px 22px 0 0; background: #1b1410; } /* POLISH2: the Settings title and its Close button stay in reach while the list scrolls */
+  body.pol3 #setScr .hd::after { content: ''; position: absolute; left: 0; right: 0; top: 100%; height: 12px; background: linear-gradient(#1b1410, rgba(27,20,16,0)); pointer-events: none; } /* POLISH3: a row passing under the Settings title fades out, it is not cut */
+  body.pol3.tutEnd #btnShare, body.pol3.tutEnd #btnCopyCode { display: none; } /* the practice mountain is not one to share */
+  body.pol3:has(#endOv:not([hidden])) #banner { visibility: hidden; } /* a mountain plate still fading when the finish card opens does not lie over the card's lines */
+  @media (max-height: 400px) { body.pol3.touchy #bCamp { top: calc(var(--st) + 92px); } } /* short phones: the camp button clears the pedal pad's swipe-up marks */
 </style>
 
 <body class="onTitle scrOn"> <!-- first paint is already the title with its menu: no touch pad flashes before the script runs -->
@@ -1010,7 +1014,7 @@
   <div class="favCard" id="tFavs" hidden><div class="fvh">Favorites</div><div class="fvl" id="tFavList"></div><button class="mb sm" id="tFavClose">Close</button></div>
   <div id="tapGo" role="status">Press to start</div>
   <button class="ico" id="mute" role="switch" aria-checked="true" aria-label="Sound"><svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg><svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M17 9l5 6M22 9l-5 6"/></svg></button>
-  <div class="foot"><span id="verTag">v0.62.0</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span><span id="medalTag"></span></div>
+  <div class="foot"><span id="verTag">v0.63.0</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span><span id="medalTag"></span></div>
   <button id="btnNew" hidden>New mountain</button>
 </div>
 
@@ -54400,6 +54404,8 @@ const FINAL_FIX = 1; /* 1: a last pass of small fixes: a teaching prompt wraps t
 const PAUSE_TOUCH = 1; /* 1: the pause button and the tutorial's Skip chip answer a touch when the finger lifts, so they work while another finger is holding the pedal or steering (a second finger never produces a click); 0 = they wait for a click */
 const STUCK_STRICT = 1; /* 1: the off-trail reset (OFF_LIFT) is only for a rider who is trying to ride away: not inside a camp's circle and not with the brake held; 0 = any pedaling against something off the tread */
 if (FINAL_FIX) document.body.classList.add('ffx');
+const POLISH3 = 1; /* 1: clarity fixes with no effect on the ride or the scores: Washers says 'let go' like the rest of the game, the Settings list fades out under its title, the practice mountain's end card has no Share or Copy code, a mountain plate never lies over the finish card, the camp button clears the pedal pad on short phones, camera shake is off under reduced motion, the pause, Settings and Controls sheets are announced as dialogs, a desktop ride pauses when the window loses focus; 0 = as before */
+if (POLISH3) document.body.classList.add('pol3');
 if (UI_FIT_SMALL) document.body.classList.add('uifs'); if (TAP_44) document.body.classList.add('tap44'); if (POLISH_SAFE) document.body.classList.add('pol'); if (UI_SWEEP_FIX) document.body.classList.add('usf'); if (POLISH2) document.body.classList.add('pol2');
 if (POLISH_SAFE) { document.documentElement.lang = 'en'; const gc = document.getElementById('game'), bc = document.getElementById('bCamp'); if (gc) { gc.setAttribute('role', 'img'); gc.setAttribute('aria-label', 'No Hander: the ride'); } if (bc) bc.tabIndex = -1; } /* the page names its language and its canvas; the camp circle is not a Tab stop (C / Y or a tap reach it) */
 const SHARE_CARD_V2 = 1; /* 1: the share card is the vista card (theme sky, ridges, the pause close-up rendered once offscreen at card size); 0: the plain dark card */
@@ -54548,6 +54554,26 @@ const VISTA_NO_SQUARE = 1;
 const VISTA_SOLID = 1;
 const VSOL = { cap: 1.2, aw: [14, 10], ordA: 0.5, sun: 10, keep: [0.5, 0.55, 0.6], ridge: 0.35, floor: 0.5, lift: 1.1, rise: 1.6, notch: 8 };
 const VNS_GEO = VISTA_NO_SQUARE && !VISTA_SOLID; /* VISTA_NO_SQUARE's geometry (the sinking), off under VISTA_SOLID */
+/* the far view of a camp vista (look only; no stream draw, no mesh, draw call or program added). The far hill layer's top often runs level
+   (pressed toward the sea at the last camps, flat-topped hills, or simply a quiet stretch) and its face is several degrees tall, so behind a low
+   camp it read as one large flat pale surface; under the sun the hills are capped low and the far sea showed there as a flat sky-colored
+   rectangle between two sheer shoulders. With 1:
+   - the land stands under the sun too: the coast frame's open water there (a sea-colored column from the horizon down to the camp's rim, with
+     sheer sides: the 'square') is gone, the sea shows in the far sea band and where the world's own ground runs down to the water;
+   - the far hill layer stands VFAR.up deg higher under the sun (still clear of the sun's lower edge), so land, not the far sea, fills the view
+     from the near hills up to the skyline there, and the hill layers come down to the sun's gap on a slope (VFAR.sh: over how many deg, deg
+     of rise per deg), not in a step;
+   - the far layer carries, where it is level (VFAR.lev: relief over 18 deg, deg), shapes of its own on the ridge (flat-topped buttes with a
+     darker cap on the dry themes and the flat-top camps, broad rises elsewhere: VFAR.w wide, VFAR.h high, VFAR.gap apart, deg);
+   - where the far layer's face shows more than VFAR.step deg over the nearer hills, one or two benches stand in front of it (mesa steps:
+     nearer, darker and warmer, their feet fading into the valley haze), so no large area is one flat color;
+   - across the far sea's arc three far ridges stand one behind the other on the water (VFAR.far: radius, foot under the horizon, lowest and
+     highest rise, haze share, light), paler with distance, their feet melting into the water; under the sun they stay low (VFAR.fsun), so the
+     sun sets behind a far skyline with a strip of water in front of it instead of over a bare flat band.
+   Every choice is a hash of the seed, the camp and the shape's number. 0 = the vista as before. */
+const VISTA_FAR_FIX = 1;
+const VFAR = { w: [2.2, 9], h: [0.9, 3], gap: [1, 7], fl: [0.3, 0.5], cap: 0.34, rim: 0.8, lev: [0.6, 2.2], soft: 0.75, wide: 1.7, under: 0.5, top: 0.9, sun: [11, 19],
+  sh: [12, 0.3], up: 0.95, step: [1.3, 2.6], far: [[584, 0.22, 0.35, 1.5, 0.66, 0.98], [579, 0.5, 0.3, 1.15, 0.53, 0.92], [574, 0.82, 0.25, 0.85, 0.42, 0.86]], fsun: [2.5, 9, 0.3] };
 const OCEAN ={ uSea: { value: new THREE.Vector4() }, uSeaC: { value: new THREE.Color() }, uSeaS: { value: new THREE.Color() }, uSeaD: { value: new THREE.Vector2(-0.447, -0.894) }, uSeaL: { value: new THREE.Color() } };
 /* shared by the water program and the camp sky (its ground edge): sn = the unit view ray, sr = the distance along it */
 const OCEAN_GLSL = 'uniform vec4 uSea; uniform vec3 uSeaC; uniform vec3 uSeaS; uniform vec2 uSeaD;\n' +
@@ -54940,7 +54966,13 @@ const PET_HOME = 1; /* 1 = an animal waits only on a mountain of a theme it live
    gives way to one that lives here, and a theme with none left to find has no find on that mountain; 0 = the kept animal waits on any theme and a theme with none left takes any animal */
 const petI = (v, lo, hi) => Math.max(lo, Math.min(hi, Math.round(+v || 0)));
 const petCodeOk = (c) => typeof c === 'string' && /^MTN-[0-9A-Z]{1,7}$/.test(c);
-const petBlank = () => ({ v: 1, basket: 0, basketOn: 1, owned: [], chosen: null, snake: null, tries: { basket: 0, bush: 0 }, mapsDone: 0, lastFindLvl: 0, lastFindMaps: 0, lastCode: '', next: null, where: {}, bond: {}, done: 0, force: 0, ...(PETS_MISS_CODE ? { missCode: '' } : {}) });
+const PEEK_STORY = 1; /* 1 = through level PET_PEEK.lvl0 (where the random peeks have not started) every camp visit has ONE short glimpse, 8-20 s after the rider sits down with the
+   camp lens free: an animal that lives on this mountain's theme and was not glimpsed yet (the bag PETS.seen is used up before any comes again), the one whose tracks are on
+   that camp's note at levels 3-4. It grows with the level (PEEK_STORY_T): levels 1-2 only the top of the head and the eyes over the camp's rim for about a second, levels 3-4 the
+   dark head from one of the usual covers, level 5 from a seat log or the tent side with a longer look. The same dark mesh as every peek; 0 = no peek before the random ones start */
+const PEEK_STORY_T = [{ to: 2, eyes: 1, hold: [0.8, 1.2], pref: ['hill', 'tentSide', 'board', 'log'] }, { to: 4, eyes: 0, rise: 0.9, hold: [1.5, 2.3], pref: ['tentSide', 'hill', 'board', 'log'], mix: 3 }, { to: 99, eyes: 0, rise: 1, hold: [3.0, 4.0], pref: ['tentSide', 'log'] }];
+/* per level band: eyes only, how far it comes up, the look (s), the covers in the order they are tried (mix: the first so many in a random order). A seat log comes last: a camper's things can stand between it and the lens */
+const petBlank = () => ({ v: 1, basket: 0, basketOn: 1, owned: [], chosen: null, snake: null, tries: { basket: 0, bush: 0 }, mapsDone: 0, lastFindLvl: 0, lastFindMaps: 0, lastCode: '', next: null, where: {}, bond: {}, done: 0, force: 0, ...(PETS_MISS_CODE ? { missCode: '' } : {}), ...(PEEK_STORY ? { seen: [] } : {}) });
 function petNorm(o) { /* any parsed value -> a clean state: unknown ids dropped, numbers clamped, chosen must be owned; anything that is not an object = the empty basket */
   const P = petBlank(); if (!o || typeof o !== 'object' || Array.isArray(o)) return P;
   if (Array.isArray(o.owned)) for (const id of o.owned) if (PET_IDS.includes(id) && !P.owned.includes(id)) P.owned.push(id);
@@ -54950,6 +54982,7 @@ function petNorm(o) { /* any parsed value -> a clean state: unknown ids dropped,
   P.mapsDone = petI(o.mapsDone, 0, 1e6); P.lastFindMaps = Math.min(P.mapsDone, petI(o.lastFindMaps, 0, 1e6)); P.lastFindLvl = petI(o.lastFindLvl, 0, PET_ALL_LVL); P.lastCode = petCodeOk(o.lastCode) ? o.lastCode : '';
   if (PETS_MISS_CODE) P.missCode = petCodeOk(o.missCode) ? o.missCode : ''; /* absent in older saves: no miss charged to any code yet */
   P.next = PET_IDS.includes(o.next) && !P.owned.includes(o.next) ? o.next : null;
+  if (PEEK_STORY && Array.isArray(o.seen)) for (const id of o.seen) if (PET_IDS.includes(id) && !P.seen.includes(id)) P.seen.push(id); /* absent in older saves: nobody glimpsed yet */
   const W = o.where && typeof o.where === 'object' ? o.where : {}, B = o.bond && typeof o.bond === 'object' ? o.bond : {};
   for (const id of P.owned) { const w = W[id] && typeof W[id] === 'object' ? W[id] : {}, b = B[id] && typeof B[id] === 'object' ? B[id] : {};
     P.where[id] = { code: petCodeOk(w.code) ? w.code : '', theme: typeof w.theme === 'string' ? w.theme.slice(0, 40) : '', camp: petI(w.camp, 0, 99) }; P.bond[id] = { f: petI(b.f, 0, 1e7), c: petI(b.c, 0, 1e6) }; }
@@ -56256,6 +56289,16 @@ const CR_P_FULL = 1; /* 1 = every candidate run's roll is accepted (CR_P 1, stil
    reaches back up the trail as far as the trail is plain and its valley shoulder open (R.lead, RAMP_LEAD..LANE_LEAD). The lane stays one straight
    strip; over the added length the trail itself only has to run near it (LANE_DEV_*), a packed bed filling the ground between the two. 0 = every
    lane RAMP_LEAD long */
+/* LANE_BEND 1 (with LANE_LONG): past the first 20 samples a lane's lead-in is a run-up along the trail's own valley edge instead of along the lane's
+   straight line: LANE_RUNUP m wide beside the tread, widening over LANE_TAPER samples into the full bed. It bends with the trail and needs only a
+   narrow open shoulder (the ground there may stand LANE_CUT m over or LANE_FILL m under the tread: the bed is carved flat). It reaches up to
+   LANE_MAX samples and stops only at what stands on the valley shoulder itself (a gap, a ford, a bridge, a fork, a chicken line, a berm on that
+   side, a hairpin, a built jump or feature, a camp); a wider or narrower tread, an uphill berm and a jump's plain run-out do not stop it. 0 = the
+   straight lead-in.
+   LANE_BEST 1 (with LANE_LONG, one crossing a map): every sample of every accepted run is rated by the lead-in it would get; the crossing takes the
+   first run that gives LANE_GOAL samples or more, else the longest lead-in on the map. The two draws a run are made as before. 0 = the first run
+   whose far end the rail line fits */
+const LANE_BEND = 1, LANE_BEST = 1, LANE_MAX = 45, LANE_GOAL = 40, LANE_RUNUP = 2.6, LANE_TAPER = 8, LANE_CUT = 1.6, LANE_FILL = 3.2;
 const LANE_LONG = 1, LANE_LEAD = 40, LANE_DEV_IN = 1, LANE_DEV_OUT = 4; /* past the first 20 samples the trail may come in from up to LANE_DEV_OUT m on the uphill side of the lane's straight line (LANE_DEV_IN m on the lane's side): the flat bed then reaches from the tread to the lane */
 const CR_P = CROSSING_ON ? (CR_P_FULL ? 1 : 0.4) : 0, CR_WINDOW = 41, CR_DRIFT = 0.10, CR_MAX = 1, RAMP_LAT = 4.3, RAMP_W = 2.4, KH_X = 1.7, KL_X = 5, KP_X = 1.4, GAP_X = 6, LL_X = 11, LO_X = 2.0, LIP_TO_TRAIN = 1.8, RAMP_LEAD = 18, RAMP_OUT = 20; /* level crossing site and ramp numbers; CR_P is the chance an eligible run is accepted (CR_P_FULL picks 1 or 0.4) */
 const YIELD_W = 9, YIELD_V = 4, YIELD_PRE = 2, HOLD_MAX = 6, TRAIN_HIT_R = 0.35, TRAIN_RANGE = 60, TRAIN_VIS = 250; /* yield rule, hit radius, events checked within TRAIN_RANGE samples, nothing drawn past TRAIN_VIS m */
@@ -56359,6 +56402,10 @@ const TRAIN_REARM = 1; /* 1 = a spawn puts every train back to rest (trainRearm)
    (signFarAt: the nearest plain sample to SIGN_FAR_AT, at most SIGN_FAR_SLIDE either way; none if there is none), no draw of any stream. Part of the
    crossing's one mesh (no draw call, no collider). 0 = the one sign */
 const SIGN_FAR = 1, SIGN_FAR_AT = 85, SIGN_FAR_SLIDE = 30;
+/* SIGN_FAR_ALL 1: every crossing gets its far sign (signFarSpot): where the plain rule finds no sample, the sign may stand SIGN_FAR_MIN..SIGN_FAR_MAX
+   samples out on a wider or narrower tread, beside rollers, in a zone or opposite a berm; then on the valley edge instead of the uphill one; at
+   last on any sample that has ground beside it (not a bridge, a gap or a ford). Fixed rules, no draw. 0 = such a crossing keeps one sign */
+const SIGN_FAR_ALL = 1, SIGN_FAR_MIN = 60, SIGN_FAR_MAX = 110;
 /* the trench show (trainShow): as a rider comes within SHOW_PRE m of trail before a trench's deck the world's own train is held in the bore (only while it
    is out of sight), and at SHOW_ARM m one show is drawn for this pass: F (a slow work train, SHOW_V m/s, leaves the bore SHOW_LEAD s before the rider
    reaches the deck: every ride lens sits ahead of the rider on the valley side looking back up the trail, so the cut is in frame only from about the
@@ -58339,11 +58386,11 @@ function placeCrossings(T, C) { /* T = course.trains (fills T.cross with trainEv
   const { pts, gap, ford, zone, hpOf, cliffNear, checkpoints, finishIdx, seed, WATER } = C, n = pts.length, { X0, Z0, NX, NZ, Hg, NI, DI, LN, CL, PD, ZB, PL } = C.grid;
   const rr = mulberry32(seed + 7710), A0 = RAMP_LEAD + 2, A1 = RAMP_OUT + 4, HALF = (CR_WINDOW - 1) / 2; /* the samples a crossing covers: its lane's lead-in before, its landing's run-out after */
   const bad = new Uint8Array(n), mark = (a, b) => { for (let i = Math.max(0, Math.floor(a)); i <= Math.min(n - 1, Math.ceil(b)); i++) bad[i] = 1; };
-  const own = new Uint8Array(n), keep = (a, b) => { if (LANE_LONG) for (let i = Math.max(0, Math.floor(a)); i <= Math.min(n - 1, Math.ceil(b)); i++) own[i] = 1; }; /* own: the samples something stands on (read by the long lead-in only, LANE_LONG) */
+  const own = new Uint8Array(n), hard = new Uint8Array(n), keep = (a, b) => { if (LANE_LONG) for (let i = Math.max(0, Math.floor(a)); i <= Math.min(n - 1, Math.ceil(b)); i++) { own[i] = 1; hard[i] = 1; } }; /* own: the samples something stands on (read by the long lead-in only, LANE_LONG); hard: the ones a run-up along the valley edge cannot pass (LANE_BEND) */
   const span = (a, b, m = 0) => { mark(a - A1, b + A0); keep(a + m, b - m); }; /* every c whose window [c - A0, c + A1] meets [a, b]; m: how much of [a, b] is margin (the lead-in may reach into it) */
   mark(0, 80); mark(finishIdx - 90, n - 1); keep(0, 60);
   const lineAt = new Uint8Array(n); for (const [a, b] of C.lines) for (let i = Math.max(0, a); i <= Math.min(n - 1, b); i++) lineAt[i] = 1;
-  for (let i = 0; i < n; i++) { const P = pts[i]; if (gap[i] || ford[i] || zone[i] || hpOf[i] || cliffNear[i] > 0 || P.bkH || P.fkK || P.feat || P.bridge || lineAt[i] || P.hw > ROAD + 1 || P.hw < ROAD - 0.6) { mark(i - (CR_RUN_OUT ? A1 : A0 - 2), i + A0); own[i] = 1; } /* nothing built on the lane's span or the crossing */
+  for (let i = 0; i < n; i++) { const P = pts[i]; if (gap[i] || ford[i] || zone[i] || hpOf[i] || cliffNear[i] > 0 || P.bkH || P.fkK || P.feat || P.bridge || lineAt[i] || P.hw > ROAD + 1 || P.hw < ROAD - 0.6) { mark(i - (CR_RUN_OUT ? A1 : A0 - 2), i + A0); own[i] = 1; if (gap[i] || ford[i] || zone[i] || hpOf[i] || cliffNear[i] > 0 || P.fkK || P.bridge || P.feat || ((P.vs > 0 ? P.bkP : P.bkM) || 0) > 0.02) hard[i] = 1; } /* hard: a built jump's kicker, deck and landing (P.feat) but not the plain samples of its run-out (there the run-up shares the ground of the jump's roll-around line, shoulderRun) */ /* nothing built on the lane's span or the crossing */
     else if (Math.abs(P.y - P.base) > 0.02) mark(i - 18, i + 10); } /* a micro bump may stand on the lane's lead-in and run-out, not under the kicker, the track or the landing */
   for (const R of C.strips || []) span(R.a - 10, R.b + 10, 6);
   for (const F of C.splits) span(F.a - 20, F.b + 20, 14);
@@ -58383,8 +58430,20 @@ function placeCrossings(T, C) { /* T = course.trains (fills T.cross with trainEv
   for (let c = 0; c < n; c++) if (!bad[c]) for (let i = c - A0; i <= c + A1; i++) if (!shoulderOK(i)) { bad[c] = 1; break; }
   const shoulderFar = (i, ext) => { const P = pts[i], o0 = ROAD + 1 + 0.5 + RAMP_W + 1.2; /* the long lead-in (LANE_LONG): where the trail stands off the lane's line on the uphill side, the wider bed between them needs the same open ground */
     for (let o = o0; o <= o0 + ext; o += 0.9) { const k = cellAt(P.x + P.vx * o, P.z + P.vz * o); if (k < 0 || Math.abs(NI[k] - i) > 6 || Hg[k] < WATER + 0.6 || PL[k] > -1e8 || Hg[k] - P.y > 1.2 || Hg[k] - P.y < -2.6 || PD[k] || ZB[k] || CL[k] || LN[k] > 0.05) return false; } return true; };
+  const laOf = (c) => { const P = pts[c]; let hwM = 0; for (let i = c - RAMP_LEAD; i <= c + RAMP_OUT; i++) hwM = Math.max(hwM, pts[i].hw + devOf(c, i) * P.vs); return Math.max(RAMP_LAT, hwM + 0.5 + RAMP_W / 2); }; /* the lane keeps 0.5 m clear of the tread's valley edge all along */
+  const runOut = (c, i, e1) => e1 + (pts[i].hw + LANE_RUNUP - e1) * Math.max(0, Math.min(1, (c - 19 - i) / LANE_TAPER)); /* LANE_BEND: the run-up's outer edge at sample i, m from the trail's center (the full bed's e1 at the lane, LANE_RUNUP beside the tread further up) */
+  const shoulderRun = (i, out) => { const P = pts[i]; for (let o = P.hw + 0.4; o <= out + 1; o += 0.9) { const k = cellAt(P.x + P.vx * o, P.z + P.vz * o); if (k < 0 || Math.abs(NI[k] - i) > 6 || Hg[k] < WATER + 0.6 || PL[k] > -1e8 || Hg[k] - P.y > LANE_CUT || Hg[k] - P.y < -LANE_FILL || PD[k] || ZB[k] || CL[k] || (LN[k] > 0.05 && !(lineAt[i] && !P.feat))) return false; } return true; }; /* beside the plain run-out of a built jump its roll-around line comes back to the tread at the tread's height: the run-up may share that ground */
+  const leadAt = (c) => { let lead = RAMP_LEAD; if (!LANE_LONG) return lead; const P = pts[c]; /* a lane's lead-in at c, samples: as far up the trail as the shoulder is free, to LANE_MAX (LANE_BEND) or LANE_LEAD */
+    if (LANE_BEND) { const e1 = laOf(c) + RAMP_W / 2; while (lead < LANE_MAX) { const i = c - lead - 3; if (i < 1 || hard[i] || !shoulderRun(i, runOut(c, i, e1))) break; lead++; } return lead; }
+    while (lead < LANE_LEAD) { const i = c - lead - 3; if (i < 1 || own[i] || !shoulderOK(i)) break; const d = devOf(c, i) * P.vs; if (d > LANE_DEV_IN || d < -LANE_DEV_OUT || (d < -0.3 && !shoulderFar(i, -d))) break; lead++; } return lead; };
   const runs = []; for (let c = 0; c < n;) { if (bad[c]) { c++; continue; } let e = c; while (e + 1 < n && !bad[e + 1]) e++; runs.push([c, e]); c = e + 1; }
   if (forced) { for (const c of forced) if (c - A0 - 3 > 0 && c + A1 + 3 < n) crossAt(C, c); } else /* debug: __trains.place('cross', idx) puts one at idx, rules or not */
+  if (LANE_LONG && LANE_BEST && CR_MAX === 1) { let best = null; const RL = []; /* the best lead-in on the map (see LANE_BEST) */
+    for (const [s, e] of runs) { const r = rr(), q = rr(); if (r >= CR_P) continue; RL.push([s, e]); if (best && best[1] >= LANE_GOAL) continue; /* two draws a run, accepted or not */
+      const cand = []; for (let c = s; c <= e; c++) cand.push([c, leadAt(c)]); cand.sort((a, b) => b[1] - a[1] || b[0] - a[0]);
+      for (let t = 0; t < cand.length && t < 24; t++) { if (best && cand[t][1] <= best[1]) break; if (railOK(cand[t][0])) { best = cand[t]; break; } } }
+    if (!best) for (const [s, e] of RL) { const L = e - s + 1, st = Math.max(1, Math.floor(L / 8)); for (let t = 0; t < 8 && t * st < L && !best; t++) if (railOK(e - t * st)) best = [e - t * st, 0]; if (best) break; } /* no rated spot fits the rail line: the old search, so no map loses its crossing */
+    if (best) crossAt(C, best[0]); } else
   for (const [s, e] of runs) { const r = rr(), q = rr(); if (r >= CR_P || T.cross.length >= CR_MAX) continue; /* two draws a run, accepted or not */
     const L = e - s + 1, st = Math.max(1, Math.floor(L / 8)); let c = LANE_LONG ? e : s + Math.floor(q * L), ok = railOK(c); /* LANE_LONG: from the run's far end back (the plain trail before it is the lane's lead-in); else from the drawn spot on */
     for (let t = 1; t < 8 && !ok && t * st < L; t++) { c = LANE_LONG ? e - t * st : s + (c - s + st) % L; ok = railOK(c); } if (!ok) continue; /* up to 8 spots along the run */
@@ -58395,15 +58454,14 @@ function placeCrossings(T, C) { /* T = course.trains (fills T.cross with trainEv
      world stays where it is on the same map without the crossing */
   function crossAt(C, c) {
     const P = pts[c], g = (pts[c + 1].y - pts[c - 1].y) / 2, k = T.cross.length;
-    let lead = RAMP_LEAD; /* this lane's lead-in, samples: as far up the trail as plain trail and open shoulder go, to LANE_LEAD (LANE_LONG) */
-    if (LANE_LONG) while (lead < LANE_LEAD) { const i = c - lead - 3; if (i < 1 || own[i] || !shoulderOK(i)) break; const d = devOf(c, i) * P.vs; if (d > LANE_DEV_IN || d < -LANE_DEV_OUT || (d < -0.3 && !shoulderFar(i, -d))) break; lead++; }
+    const lead = leadAt(c), bend = !!LANE_BEND && lead > RAMP_LEAD; /* this lane's lead-in, samples (leadAt); bend: its part past the first 20 samples runs along the trail's edge */
     let hwM = 0; for (let i = c - RAMP_LEAD; i <= c + RAMP_OUT; i++) hwM = Math.max(hwM, pts[i].hw + devOf(c, i) * P.vs); const la = Math.max(RAMP_LAT, hwM + 0.5 + RAMP_W / 2), lat = la * P.vs; /* the lane keeps 0.5 m clear of the tread's valley edge all along */
     const ev = trainEvent('cross', 16 + k, seed, c, P.x, P.z, P.y, P.rx, P.rz, P.fx, P.fz, -RAIL_RUN, RAIL_RUN); /* the clock and consist of the trench trains; the axis is the trail's lateral (+ = right) */
     Object.assign(ev, { dir: P.vs, g, vs: P.vs, hw: P.hw, lat, holdS: null, holdN: 0, horn: 0, hits: 0, vis: null }); /* dir: the train runs toward the valley side (+u there, as in a trench); y = the trail's center height (the bed) */
     const kv = new Float32Array(KL_X + 1), lv = new Float32Array(LL_X + 1); for (let i = 0; i <= KL_X; i++) kv[i] = KH_X * Math.pow(i / KL_X, KP_X);
     for (let i = 0; i < LL_X; i++) lv[i] = LO_X * (i === 0 ? 0.985 : Math.pow(1 - i / LL_X, 1.3)); lv[LL_X] = 0; /* JSIZE.medium's kicker and landing, sample by sample */
     const lip = c - Math.round(TRAIN_W / 2 + LIP_TO_TRAIN), land = lip + GAP_X + 1 + Math.round(LL_X * 0.3), wL = land - c;
-    const R = { c, lip, land, size: 'medium', kl: KL_X, lat, la, e0: la - RAMP_W / 2, e1: la + RAMP_W / 2, vs: P.vs, x: P.x, z: P.z, fx: P.fx, fz: P.fz, rx: P.rx, rz: P.rz, hw: P.hw, kv, lv, landPt: null, ev, lead };
+    const R = { c, lip, land, size: 'medium', kl: KL_X, lat, la, e0: la - RAMP_W / 2, e1: la + RAMP_W / 2, vs: P.vs, x: P.x, z: P.z, fx: P.fx, fz: P.fz, rx: P.rx, rz: P.rz, hw: P.hw, kv, lv, landPt: null, ev, lead, bend };
     R.landPt = { x: P.x + P.fx * wL + P.rx * lat, z: P.z + P.fz * wL + P.rz * lat, y: 0 }; R.landPt.y = trailYAt(pts, c + wL) + rampRise(R, wL);
     T.cross.push(ev); T.ramps.push(R);
     const RO = C.rampOf || (C.rampOf = new Int16Array(n)); for (let i = Math.max(0, c - lead - (lead > RAMP_LEAD ? 8 : 3)); i <= Math.min(n - 1, c + RAMP_OUT + 2); i++) RO[i] = T.ramps.length;
@@ -58412,8 +58470,9 @@ function placeCrossings(T, C) { /* T = course.trains (fills T.cross with trainEv
     const ext = RAIL_RUN + 6, ix0 = Math.max(1, Math.floor((P.x - ext - lead - X0) / CELL)), ix1 = Math.min(NX - 2, Math.ceil((P.x + ext + lead - X0) / CELL)), iz0 = Math.max(1, Math.floor((P.z - ext - lead - Z0) / CELL)), iz1 = Math.min(NZ - 2, Math.ceil((P.z + ext + lead - Z0) / CELL));
     for (let iz = iz0; iz <= iz1; iz++) for (let ix = ix0; ix <= ix1; ix++) { const kk = iz * NX + ix, j = NI[kk]; if (j >= 0 && DI[kk] < pts[j].hw + 0.3) continue;
       const dx = X0 + ix * CELL - P.x, dz = Z0 + iz * CELL - P.z, u = dx * P.rx + dz * P.rz, w = dx * P.fx + dz * P.fz, e = u * P.vs;
-      let far = false, tF = 0; if (lead > RAMP_LEAD && w < -19 && j >= 0 && Math.abs(j - (c + w)) < 10) { const Q = pts[j], qx = X0 + ix * CELL - Q.x, qz = Z0 + iz * CELL - Q.z; far = (qx * Q.rx + qz * Q.rz) * P.vs > 0; tF = trailYAt(pts, j + Math.max(-1, Math.min(1, qx * Q.fx + qz * Q.fz))) - 0.05; } /* the long lead-in: the bed starts at the trail itself (the valley side of its nearest sample) and takes that sample's height */
-      const wl = e > 0 || far ? Math.min(smooth(-lead - 3, -lead, w), 1 - smooth(RAMP_OUT, RAMP_OUT + 3, w)) * (1 - smooth(la + RAMP_W / 2 + 1, la + RAMP_W / 2 + 4, e)) : 0;
+      let far = false, tF = 0, wF = 0; if (lead > RAMP_LEAD && j >= 0 && (bend ? j < c - 19 && j >= c - lead - 4 : w < -19 && Math.abs(j - (c + w)) < 10)) { const Q = pts[j], qx = X0 + ix * CELL - Q.x, qz = Z0 + iz * CELL - Q.z, lj = (qx * Q.rx + qz * Q.rz) * P.vs, al = Math.max(-1, Math.min(1, qx * Q.fx + qz * Q.fz)); far = lj > 0; tF = trailYAt(pts, j + al) - 0.05;
+        if (bend && far) { const out = runOut(c, j, la + RAMP_W / 2); wF = smooth(c - lead - 3, c - lead, j + al) * (1 - smooth(out + 0.6, out + 3, lj)); } } /* the long lead-in: the bed starts at the trail itself (the valley side of its nearest sample) and takes that sample's height */
+      const wl = bend && (w < -19 || (j >= 0 && j < c - 19)) ? wF : e > 0 || far ? Math.min(smooth(-lead - 3, -lead, w), 1 - smooth(RAMP_OUT, RAMP_OUT + 3, w)) * (1 - smooth(la + RAMP_W / 2 + 1, la + RAMP_W / 2 + 4, e)) : 0;
       const h0 = Hg[kk] + XH[kk], bed = P.y + g * w - 0.05, bank = 3.4 + 0.7 * Math.abs(h0 - bed), wr = (1 - smooth(2.2, bank, Math.abs(w))) * (1 - smooth(RAIL_RUN, RAIL_RUN + 2.5, Math.abs(u)));
       const W = Math.max(wl, wr); if (W <= 0) continue; const tgt = wl >= wr ? (far ? tF : trailYAt(pts, c + w) - 0.05) : bed;
       XH[kk] = h0 * (1 - W) + tgt * W - Hg[kk]; if (W > 0.05) XM[kk] = 1; if (W > 0.7) GT[kk] = wr > wl && Math.abs(w) < 1.6 ? 2 : 1; } } /* ballast under the rails, packed dirt on the bed and the lane */
@@ -58684,7 +58743,9 @@ function makeSurface(course) {
          slopeAlong() ignores the pit ahead the way it ignores a ledge past the tread (the bike is not pitched down the face before it gets there) */
     if (rampOf && course.stillOn && !road && ni >= 0 && rampOf[ni]) { /* a crossing's ramp lane and the bed between it and the tread: exact, in the crossing's own frame (the grid only draws it); rideable like a berm's shoulder */
       const R = ramps[rampOf[ni] - 1], dx = x - R.x, dz = z - R.z, w = dx * R.fx + dz * R.fz, e = (dx * R.rx + dz * R.rz) * R.vs;
-      if (R.lead > RAMP_LEAD && w >= -R.lead && w < -19 && e <= R.e1) { const Q = pts[ni], qx = x - Q.x, qz = z - Q.z, lj = (qx * Q.rx + qz * Q.rz) * R.vs; /* the long lead-in: flat ground at the trail's height from the tread out to the lane's outer edge */
+      if (R.bend && ni < R.c - 19) { const Q = pts[ni], qx = x - Q.x, qz = z - Q.z, lj = (qx * Q.rx + qz * Q.rz) * R.vs, out = R.e1 + (Q.hw + LANE_RUNUP - R.e1) * Math.max(0, Math.min(1, (R.c - 19 - ni) / LANE_TAPER)); /* the run-up along the trail's edge (LANE_BEND): flat ground at the trail's height, from the tread out to its outer edge */
+        if (ni >= R.c - R.lead - 1 && lj > 0 && lj <= out) { h = trailYAt(pts, ni + Math.max(-1, Math.min(1, qx * Q.fx + qz * Q.fz))); shoulder = true; idx = Math.max(0, Math.min(pts.length - 2, ni)); o = lj * R.vs; } }
+      else if (R.lead > RAMP_LEAD && w >= -R.lead && w < -19 && e <= R.e1) { const Q = pts[ni], qx = x - Q.x, qz = z - Q.z, lj = (qx * Q.rx + qz * Q.rz) * R.vs; /* the long lead-in: flat ground at the trail's height from the tread out to the lane's outer edge */
         if (lj > 0 && Math.abs(ni - (R.c + w)) < 10) { h = trailYAt(pts, ni + Math.max(-1, Math.min(1, qx * Q.fx + qz * Q.fz))); shoulder = true; idx = Math.max(0, Math.min(pts.length - 2, ni)); o = lj * R.vs; } }
       else if (w >= -R.lead && w <= RAMP_OUT && e > 0 && e <= R.e1 + EDGE_C) { const up = EDGE_C > 0 && course.catchY > trailYAt(pts, R.c + w) + rampRise(R, w) - EDGE_UP ? EDGE_C : 0; /* a rider at the lane's height: its top reaches a little past both edges */
         if (e <= R.e1 + up) { const inL = e >= R.e0 - up, wl = -(TRAIN_W / 2 + LIP_TO_TRAIN); h = trailYAt(pts, R.c + w) + (inL ? rampRise(R, w) : 0);
@@ -59129,6 +59190,15 @@ function signFarAt(course, c) { /* the sample of the far advance sign (SIGN_FAR)
     for (const cp of course.checkpoints) if (i > cp.idx - 40 && i < cp.idx + (cp.K ? cp.K.out : 20) + 25) return false;
     for (const [a, b] of course.lines) if (i >= a - 3 && i <= b + 3) return false; return true; };
   for (let d = 0; d <= SIGN_FAR_SLIDE; d++) for (const sg of d ? [1, -1] : [1]) { const i = c - SIGN_FAR_AT - sg * d; if (ok(i)) return i; } return -1; }
+function signFarSpot(course, c) { /* [sample, side] of the far advance sign: side -1 = the uphill edge, 1 = the valley edge; [-1, -1] = none (see SIGN_FAR_ALL) */
+  const j0 = signFarAt(course, c); if (j0 >= 0 || !SIGN_FAR_ALL) return [j0, -1];
+  const pts = course.pts, base = (i) => { if (i < 5 || i > pts.length - 6) return false; const P = pts[i]; if (course.gap[i] || course.ford[i] || P.bridge) return false;
+    for (const cp of course.checkpoints) if (i > cp.idx - 40 && i < cp.idx + (cp.K ? cp.K.out : 20) + 25) return false; return true; };
+  const berm = (P, sd) => ((sd * P.vs > 0 ? P.bkP : P.bkM) || 0) > 0.02, line = (i) => { for (const [a, b] of course.lines) if (i >= a - 3 && i <= b + 3) return true; return false; };
+  const up = (i) => { const P = pts[i]; return base(i) && !P.fkK && !course.hpOf[i] && !berm(P, -P.vs) && !(course.srOf && course.srOf[i]) && !(course.dropOf && course.dropOf[i]); }; /* the uphill edge: any width, rollers, a zone, a berm on the other side */
+  const dn = (i) => { const P = pts[i]; return base(i) && !P.fkK && !course.hpOf[i] && !berm(P, P.vs) && !line(i) && !(course.srOf && course.srOf[i]) && !(course.dropOf && course.dropOf[i]); }; /* the valley edge */
+  for (const [ok, sd] of [[up, -1], [dn, 1], [base, -1]]) for (let d = 0; d <= SIGN_FAR_MAX - SIGN_FAR_AT; d++) for (const sg of d ? [1, -1] : [1]) { const i = c - SIGN_FAR_AT - sg * d; if (c - i >= SIGN_FAR_MIN && c - i <= SIGN_FAR_MAX && ok(i)) return [i, sd]; }
+  return [-1, -1]; }
 function buildCrossing(course, ev, R, surf) {
   const pts = course.pts, c = ev.c, vs = ev.vs, parts = [], V = (x, y, z) => new THREE.Vector3(x, y, z);
   const at = (w, u, y) => V(ev.x + ev.vx * w + ev.ax * u, y, ev.z + ev.vz * w + ev.az * u); /* w along the ride, u along the track (signed like the trail's lateral) */
@@ -59202,17 +59272,18 @@ function buildCrossing(course, ev, R, surf) {
     for (const s of [-1, 1]) box(0.62, 0.07, 0.02, '#1b1b1b', at(w - 0.085, u, g0 + 1.9), qUp.clone().multiply(_q.setFromAxisAngle(V(0, 0, 1), s * 0.785)));
     if (SIGNS_2SIDE) for (const s of [-1, 1]) box(0.62, 0.07, 0.02, '#1b1b1b', at(w - 0.035, u, g0 + 1.9), qUp.clone().multiply(_q.setFromAxisAngle(V(0, 0, 1), s * 0.785))); } /* the X on the disc's back */
   let farR = 0; /* how far from the track's center the mesh reaches when the far sign is part of it */
-  if (SIGN_FAR) { const j = signFarAt(course, c); if (j >= 0) { const Pj = pts[j], Xj = V(Pj.rx, 0, Pj.rz), qJ = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(Xj, Up, Xj.clone().cross(Up))); /* the sign's own frame: across the trail, up, back up the trail */
-      const aj = (dw, y) => V(Pj.x - Pj.rx * Pj.vs * (Pj.hw + 0.9) + Pj.fx * dw, Pj.y + y, Pj.z - Pj.rz * Pj.vs * (Pj.hw + 0.9) + Pj.fz * dw), qF = qJ.clone().multiply(_q.setFromAxisAngle(V(1, 0, 0), Math.PI / 2));
+  if (SIGN_FAR) { const [j, jsd] = signFarSpot(course, c); if (j >= 0) { const Pj = pts[j], Xj = V(Pj.rx, 0, Pj.rz), qJ = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(Xj, Up, Xj.clone().cross(Up))); /* the sign's own frame: across the trail, up, back up the trail */
+      const aj = (dw, y) => V(Pj.x + jsd * Pj.rx * Pj.vs * (Pj.hw + 0.9) + Pj.fx * dw, Pj.y + y, Pj.z + jsd * Pj.rz * Pj.vs * (Pj.hw + 0.9) + Pj.fz * dw), qF = qJ.clone().multiply(_q.setFromAxisAngle(V(1, 0, 0), Math.PI / 2));
       put(new THREE.CylinderGeometry(0.04, 0.05, 1.7, 6), '#8a8c8f', aj(0, 0.85), qJ); put(new THREE.CylinderGeometry(0.42, 0.42, 0.03, 16), '#f2c21b', aj(-0.06, 1.9), qF);
       for (const dw of [-0.085, -0.035]) for (const sg of [-1, 1]) box(0.62, 0.07, 0.02, '#1b1b1b', aj(dw, 1.9), qJ.clone().multiply(_q.setFromAxisAngle(V(0, 0, 1), sg * 0.785))); /* the X on both faces */
-      farR = Math.hypot(Pj.x - ev.x, Pj.z - ev.z) + 3; ev.signFar = j; } }
+      farR = Math.hypot(Pj.x - ev.x, Pj.z - ev.z) + 3; ev.signFar = j; ev.signFarSide = jsd; } }
   if (JUMP_LANE_CUE && (TRAIN_JUMP_FIRST || xsRnd(ev, 0) < XS_J)) { /* the jump lane cue (JUMP_LANE_CUE): flat faces built in place, merged like the rest */
     const L = {}, fwd = V(ev.vx, 0, ev.vz), hT = (w) => trY(w) + rampRise(R, w), P = (w, e, y) => at(w, e * vs, y);
     const quad = (col, a, b, c2, d, out) => { const n = new THREE.Vector3().subVectors(b, a).cross(new THREE.Vector3().subVectors(c2, a)); if (n.dot(out) < 0) { const t = b; b = d; d = t; } const A = L[col] || (L[col] = []); for (const p of [a, b, c2, a, c2, d]) A.push(p.x, p.y, p.z); };
     if (CUE_GROUND_ARROWS) for (const w0 of [-15.5, -12.5, -9.5]) for (const s of [-1, 1]) { const e = R.la, wb = w0 - 0.85, eb = R.la + s * 0.8, t = 0.24; /* a chevron pointing down the lane, 3 cm over its surface */
       quad('#e6dfc8', P(w0, e, hT(w0) + 0.03), P(wb, eb, hT(wb) + 0.03), P(wb + t, eb, hT(wb + t) + 0.03), P(w0 + t, e, hT(w0 + t) + 0.03), Up); }
-    const w = -R.lead - 1, e = R.e1 + 0.7, g0 = hT(w), yB = g0 + 1.25, back = fwd.clone().negate(); /* the sign: a post and a three-board timber face looking up the trail, past the lane's outer edge */
+    const sm = R.bend ? pts[Math.max(0, c - R.lead - 1)] : null, smo = sm ? sm.hw + LANE_RUNUP + 0.7 : 0, sx = sm ? sm.x + sm.rx * sm.vs * smo - ev.x : 0, sz = sm ? sm.z + sm.rz * sm.vs * smo - ev.z : 0; /* LANE_BEND: the sign stands at the run-up's mouth, past its outer edge */
+    const w = sm ? sx * ev.vx + sz * ev.vz : -R.lead - 1, e = sm ? (sx * ev.ax + sz * ev.az) * vs : R.e1 + 0.7, g0 = sm ? sm.y : hT(w), yB = g0 + 1.25, back = fwd.clone().negate(); /* the sign: a post and a three-board timber face looking up the trail, past the lane's outer edge */
     box(0.1, 1.6, 0.1, '#5b4430', at(w, e * vs, g0 + 0.75), qUp);
     for (const k of [0, 1, 2]) box(0.92, 0.2, 0.04, k & 1 ? '#7f603e' : '#8f6d47', at(w, e * vs, yB - 0.21 + k * 0.21), qUp);
     for (const sf of [-1, 1]) { const A = (du, dy) => at(w + sf * 0.03, (e - du) * vs, yB + dy), o = sf < 0 ? back : fwd; /* both faces (the ride lenses look back up the trail); du: m toward the trail; the arrow points up the board (straight on, this lane) */
@@ -59527,13 +59598,13 @@ function buildWorld(course, surf) {
           return G; }; }
       const wjCol = (qq) => { const s = P[qq], l2 = s.pond ? 1 : ((s.s / (s.grade > 0.15 ? 1.6 : 2.4)) % 1) < 0.35 ? 1.1 : 1.0, d2 = drift(qq), e = C_E.clone().multiplyScalar(l2), c = C_C.clone().multiplyScalar(l2).offsetHSL(0.035 * d2, 0, 0.05 * d2); if (s.pond) c.offsetHSL(0.04 * s.lh, 0.02, -0.05); return [e, c]; }; /* a station's rim and deep colors, as its own row takes them */
       const wjRows = new Map(); /* WATER_JOIN: station -> its row */
-      const wjPond = (G, path, toStill, lv, rowA, rowB, strip) => { /* WATER_JOIN: the river into its lake (toStill) or out of it, along the stations of path (upstream to downstream; the lake's end stations whose bed stands over its level are part of the way): rows draped on the ground every WJ_STEP m, the still look growing toward the lake; the row at the lake's end lies on the lake's own row */
+      const wjPond = (G, path, toStill, lv, rowA, rowB, strip, rev) => { /* WATER_JOIN: the river into its lake (toStill) or out of it, along the stations of path (upstream to downstream; the lake's end stations whose bed stands over its level are part of the way): rows draped on the ground every WJ_STEP m, the still look growing toward the lake; the row at the lake's end lies on the lake's own row */
         const a = P[path[0]], b = P[path[path.length - 1]], yS = lv + 0.03, cum = [0]; /* the lake's rows lie 3 cm over its level */ for (let i = 1; i < path.length; i++) cum.push(cum[i - 1] + (Math.hypot(P[path[i]].x - P[path[i - 1]].x, P[path[i]].z - P[path[i - 1]].z) || 0.01));
         const len = cum[cum.length - 1], n = Math.max(2, Math.min(14, Math.ceil(len / WJ_STEP))), [eA, cA] = wjCol(path[0]), [eB, cB] = wjCol(path[path.length - 1]), ce2 = new THREE.Color(), cc2 = new THREE.Color(), lvs = [[0, toStill ? a.h : yS]], nr = path.map(i => [P[i].nx, P[i].nz]);
         if (toStill) { for (let i = 1; i < nr.length; i++) if (nr[i][0] * nr[i - 1][0] + nr[i][1] * nr[i - 1][1] < 0) nr[i] = [-nr[i][0], -nr[i][1]]; } else for (let i = nr.length - 2; i >= 0; i--) if (nr[i][0] * nr[i + 1][0] + nr[i][1] * nr[i + 1][1] < 0) nr[i] = [-nr[i][0], -nr[i][1]]; /* one side of the water all the way, as the river row at the end has it */
         const at = (d) => { let i = 0; while (i + 2 < cum.length && cum[i + 1] < d) i++; const f = Math.max(0, Math.min(1, (d - cum[i]) / (cum[i + 1] - cum[i]))), s0 = P[path[i]], s1 = P[path[i + 1]]; let nx = nr[i][0] + (nr[i + 1][0] - nr[i][0]) * f, nz = nr[i][1] + (nr[i + 1][1] - nr[i][1]) * f; const nl = Math.hypot(nx, nz) || 1; return [s0.x + (s1.x - s0.x) * f, s0.z + (s1.z - s0.z) * f, nx / nl, nz / nl, (s0.w + (s1.w - s0.w) * f) / 2, s0.s + (s1.s - s0.s) * f]; };
         let r0 = rowA;
-        for (let k = toStill ? 1 : 0; k <= (toStill ? n : n - 1); k++) { const t = k / n, [x, z, nx, nz, w2, sm] = at(t * len), still = toStill ? k === n : k === 0, rim = still ? Math.min(1.2, w2 * 0.25) : Math.min(0.25, w2 * 0.3), wi = w2 - rim, we = Math.min(w2, 12), wk = 1 + we / 25, xi = we * wi / w2;
+        for (let k = toStill ? 1 : 0; k <= (toStill ? n : n - 1); k++) { const t = k / n, [x, z, nx, nz, w2, sm0] = at(t * len), sm = rev ? b.s + (1 - t) * len : sm0, still = toStill ? k === n : k === 0, rim = still ? Math.min(1.2, w2 * 0.25) : Math.min(0.25, w2 * 0.3), wi = w2 - rim, we = Math.min(w2, 12), wk = 1 + we / 25, xi = we * wi / w2;
           let lev = toStill ? a.h + (yS - a.h) * t : yS + (b.h - yS) * t; if (!still) for (const f of [-1, -0.5, 0, 0.5, 1]) lev = Math.max(lev, Gt(x + nx * wi * f, z + nz * wi * f) + BANK_LIFT); /* over the highest ground under the channel */
           const yR = (l) => still ? lv + 0.03 : Math.min(lev, Math.max(lev - BANK_DROP, Gt(x + nx * l, z + nz * l) - BANK_TUCK)); ce2.copy(eA).lerp(eB, t); cc2.copy(cA).lerp(cB, t);
           const r = [V(G, x + nx * w2, yR(w2), z + nz * w2, ce2, [we, sm, wk]), V(G, x + nx * wi, lev, z + nz * wi, cc2, [xi, sm, wk]), V(G, x - nx * wi, lev, z - nz * wi, cc2, [-xi, sm, wk]), V(G, x - nx * w2, yR(-w2), z - nz * w2, ce2, [-we, sm, wk])];
@@ -59543,13 +59614,15 @@ function buildWorld(course, surf) {
         if (DEBUG) { const q1 = toStill ? path[1] : path[path.length - 2], d1 = toStill ? cum[1] : cum[cum.length - 2], yE = toStill ? Math.max(yS, Math.min(Lw[path[1]], Gt(P[path[1]].x, P[path[1]].z) + BANK_LIFT)) : yS; /* the old shape: one straight strip between the river station and the lake's end station, flat lake rows past it */
           let bo = 0, bn = 0, up = 0; const NS = Math.max(8, Math.ceil(len / 0.2)); for (let i = 0; i < NS; i++) { const d = (i + 0.5) / NS * len, t = d / len, [x, z] = at(d), g = Gt(x, z), yo = toStill && d < d1 ? a.h + (yE - a.h) * d / d1 : yS; let j = 0; while (j + 2 < lvs.length && lvs[j + 1][0] < t) j++; const yn = lvs[j][1] + (lvs[j + 1][1] - lvs[j][1]) * (t - lvs[j][0]) / Math.max(1e-6, lvs[j + 1][0] - lvs[j][0]);
             if (g > yo + 0.02) bo += len / NS; if (g > yn + 0.02) bn += len / NS; } for (const [, y] of lvs) up = Math.max(up, y - lvs[0][1]);
-          (St.wj || (St.wj = [])).push({ k: toStill ? 'pond-in' : 'pond-out', q: toStill ? path[path.length - 1] : path[0], x: +P[q1].x.toFixed(1), z: +P[q1].z.toFixed(1), y: +lv.toFixed(2), len: +len.toFixed(2), skip: path.length - 2, drop: +(toStill ? a.h - yS : yS - b.h).toFixed(2), stepOld: +(yE - yS).toFixed(2), buriedOld: +bo.toFixed(2), buriedNew: +bn.toFixed(2), climb: +up.toFixed(2) }); } };
+          (St.wj || (St.wj = [])).push({ k: toStill ? 'pond-in' : rev ? 'pond-spill' : 'pond-out', q: toStill ? path[path.length - 1] : path[0], x: +P[q1].x.toFixed(1), z: +P[q1].z.toFixed(1), y: +lv.toFixed(2), len: +len.toFixed(2), skip: path.length - 2, drop: +(toStill ? a.h - yS : yS - b.h).toFixed(2), stepOld: +(yE - yS).toFixed(2), buriedOld: +bo.toFixed(2), buriedNew: +bn.toFixed(2), climb: +up.toFixed(2) }); } };
       if (WATER_JOIN) for (const Pd of St.ponds || []) { const lv = Pd.level, dry = (m) => { const s = P[m], wi = s.w * 0.2; for (const f of [-1, 0, 1]) if (Gt(s.x + s.nx * wi * f, s.z + s.nz * wi * f) > lv + 0.07) return true; return false; }; /* a lake's end stations whose bed stands over its level: their flat rows lie under the ground, the river's draped rows take their place */
         const sgd = (m) => { const s0 = P[m], s1 = P[m + 1]; for (let t = 0.2; t < 0.99; t += 0.2) { const x = s0.x + (s1.x - s0.x) * t, z = s0.z + (s1.z - s0.z) * t, wi = (s0.w + (s1.w - s0.w) * t) * 0.2; for (const f of [-1, 0, 1]) if (Gt(x + s0.nx * wi * f, z + s0.nz * wi * f) > lv + 0.07) return true; } return false; }; /* the same between two stations (the lake's rim often stands higher there) */
         let qe = Pd.q0, qb = Pd.q1; while (qe < Pd.q1 - 1 && qe < Pd.q0 + 4 && (dry(qe) || sgd(qe))) qe++; while (qb > qe + 1 && qb > Pd.q1 - 4 && (dry(qb) || sgd(qb - 1))) qb--;
         const hump = (m0, m1, ref) => { let h = -Infinity; for (let m = m0; m < m1; m++) for (let t = 0; t <= 1.001; t += 0.25) h = Math.max(h, Gt(P[m].x + (P[m + 1].x - P[m].x) * t, P[m].z + (P[m + 1].z - P[m].z) * t)); return h - ref; }; /* how far the ground on the way stands over a level: past 0.6 m the water would be laid over a hill, that end keeps its old rows */
         if (Pd.q0 > 0 && !P[Pd.q0 - 1].pond && !P[Pd.q0 - 1].ford && !poolSkip(Pd.q0 - 1) && !fallAt.has(Pd.q0) && hump(Pd.q0 - 1, qe, Math.max(lv, P[Pd.q0 - 1].h)) < 0.6) { for (let m = Pd.q0; m < qe; m++) P[m].wjs = 1; P[qe].wjIn = Pd.q0 - 1; }
-        if (Pd.q1 < N - 1 && !P[Pd.q1 + 1].pond && !P[Pd.q1 + 1].ford && !poolSkip(Pd.q1 + 1) && !fallAt.has(Pd.q1 + 1) && hump(qb, Pd.q1 + 1, lv) < 0.6) { for (let m = qb + 1; m <= Pd.q1; m++) P[m].wjs = 1; P[Pd.q1 + 1].wjOut = qb; } }
+        if (Pd.q1 < N - 1 && !P[Pd.q1 + 1].pond && !P[Pd.q1 + 1].ford && !poolSkip(Pd.q1 + 1) && !fallAt.has(Pd.q1 + 1) && hump(qb, Pd.q1 + 1, lv) < 0.6) { for (let m = qb + 1; m <= Pd.q1; m++) P[m].wjs = 1; P[Pd.q1 + 1].wjOut = qb; }
+        else if (Pd.q1 < N - 1 && !P[Pd.q1 + 1].pond && !P[Pd.q1 + 1].ford && !poolSkip(Pd.q1 + 1) && !fallAt.has(Pd.q1 + 1) && P[Pd.q1 + 1].h - lv > 0.3) { for (let m = qb + 1; m <= Pd.q1; m++) P[m].wjs = 1; P[Pd.q1 + 1].wjOut = qb; P[Pd.q1 + 1].wjRev = 1; } /* the line's next station stands over the lake (a bank between them): the stream there runs down the bank into the lake as a short chute, its bands toward the lake */
+        else if (DEBUG && Pd.q1 < N - 1) (St.wj || (St.wj = [])).push({ k: 'pond-out-left', q: Pd.q1, x: +P[Pd.q1].x.toFixed(1), z: +P[Pd.q1].z.toFixed(1), y: +lv.toFixed(2), hump: +hump(qb, Pd.q1 + 1, lv).toFixed(2), qb, next: P[Pd.q1 + 1].pond ? 'pond' : P[Pd.q1 + 1].ford ? 'ford' : poolSkip(Pd.q1 + 1) || fallAt.has(Pd.q1 + 1) ? 'fall' : 'river', dh: +(P[Pd.q1 + 1].h - lv).toFixed(2) }); }
       let prevRow = null, prevFord = false, prevPond = false, prevLv = 0;
       for (let q = 0; q < N; q++) { const p = P[q], F = fallAt.get(q);
         if (poolSkip(q) && !F) { prevRow = null; continue; }
@@ -59571,7 +59644,7 @@ function buildWorld(course, surf) {
           const G0 = prevFord ? fordG : main, r2 = rowAt(G0, false);
           strip(G0, prevRow, r2); }
         else if (prevRow && !F && !(WATER_JOIN && !p.ford && (p.wjIn !== undefined ? wjRows.has(p.wjIn) : p.wjOut !== undefined && wjRows.has(p.wjOut)))) { const r2 = rowAt(G, prevPond, prevLv, p.pond ? p.lv + 0.06 : -Infinity); strip(G, prevRow, r2); if (prevPond) strip(G, r2, row); } /* river into still water or out of it: one extra row of the previous kind, so no quad blends the two styles; at the outlet that row lies flat at the lake's level, so one more strip drops it to the river's row (no open step at the sill) */
-        if (WATER_JOIN && !F && !p.ford) { const pa = (q0) => Array.from({ length: q - q0 + 1 }, (_, i) => q0 + i); if (p.wjIn !== undefined && wjRows.has(p.wjIn)) wjPond(G, pa(p.wjIn), true, p.lv, wjRows.get(p.wjIn), row, strip); else if (p.wjOut !== undefined && wjRows.has(p.wjOut)) wjPond(G, pa(p.wjOut), false, P[p.wjOut].lv, wjRows.get(p.wjOut), row, strip); wjRows.set(q, row); }
+        if (WATER_JOIN && !F && !p.ford) { const pa = (q0) => Array.from({ length: q - q0 + 1 }, (_, i) => q0 + i); if (p.wjIn !== undefined && wjRows.has(p.wjIn)) wjPond(G, pa(p.wjIn), true, p.lv, wjRows.get(p.wjIn), row, strip); else if (p.wjOut !== undefined && wjRows.has(p.wjOut)) wjPond(G, pa(p.wjOut), false, P[p.wjOut].lv, wjRows.get(p.wjOut), row, strip, !!p.wjRev); wjRows.set(q, row); }
         prevRow = row; prevFord = p.ford; prevPond = !!p.pond; prevLv = p.lv;
         if (F && q > 0) { /* the waterfall: a white sheet DRAPED down the terrain's face from the lip to the pool (the 1.8 m grid puts the face
              anywhere within a cell of the lip, so a free-hanging slab would sit inside the rock), a narrower brighter streak on top; then the pool and its foam ring */
@@ -59603,7 +59676,7 @@ function buildWorld(course, surf) {
                   lanes.forEach((a, j) => { const l = a * wk, edge = Math.abs(a) === 1; let cl = edge ? ce : cc;
                     if (CL > 0) { const top = smooth(0, 0.25, t), lit = top * (0.16 * (1 - t) * (1 - Math.abs(a)) + stk[j] * (0.25 + 0.25 * t)), wh = smooth(0.72, 1, t) * 0.55;
                       const calm = (edge ? C_E.clone() : ccR.clone().lerp(C_C, top)).lerp(SHEET, Math.min(0.8, lit)).lerp(FOAM, wh); cl = cl.clone().lerp(calm, CL); }
-                    cur.push(V(main, hx + nx * l, ys[k] + dy, hz + nz * l, cl, [l, sAl, 1 + wk / 25 + WF_FALLZ])); }); }
+                    cur.push(V(main, hx + nx * l, ys[k] + dy, hz + nz * l, cl, [l, sAl, 1 + wk / 25 + WF_FALLZ])); if (WATER_JOIN && k > NSg - 3) (main.jn || (main.jn = {}))[cur[cur.length - 1]] = k === NSg ? 2 : k === NSg - 1 ? 1 : 0.4; }); } /* WATER_JOIN: its last rows run out into the pool */
                 else if (WF_SHEET_RIVER) for (const l of [wk, 0, -wk]) cur.push(V(main, hx + nx * l, ys[k] + dy, hz + nz * l, FOAM, [l ? 1 : 0, -(0.25 + 0.3 * t) * (1 - 0.7 * CL), 2]));
                 else for (const l of [wk, 0, -wk]) cur.push(V(main, hx + nx * l, ys[k] + dy, hz + nz * l, c));
                 if (prev) for (let j = 0; j + 1 < cur.length; j++) quad(main, prev[j], prev[j + 1], cur[j], cur[j + 1]); prev = cur; } }
@@ -59628,7 +59701,9 @@ function buildWorld(course, surf) {
             F.dbg.rimFl = +fl.toFixed(2); F.dbg.spill = +st.toFixed(2); } /* the rim over the ground off the outflow, the step down to the next river row at it */
           const fi = [], fo = [], fd = []; for (let k = 0; k < seg; k++) { const a2 = k / seg * 6.2832, cs = Math.cos(a2), sn = Math.sin(a2), f = rk[k] / r, ly = (s) => yP + (yk[k] - yP) * s; const fh = WATERFALL_POLISH ? hash2(k + 1, F.q + 7, seed + WF_SALT) : 0, fk = -(0.08 + 0.32 * fh * fh); /* the polished ring: thin, faint, broken (each vertex its own salted strength), fading outward */
             fi.push(V(main, cx + cs * (WATERFALL_POLISH ? 0.62 : 0.55) * r * f, ly(0.55) + 0.02, cz + sn * (WATERFALL_POLISH ? 0.62 : 0.55) * r * f, FOAM, WATERFALL_POLISH ? [0.3, fk, 2] : undefined)); fo.push(V(main, cx + cs * (WATERFALL_POLISH ? 0.8 : 0.9) * r * f, ly(0.9) + 0.02, cz + sn * (WATERFALL_POLISH ? 0.8 : 0.9) * r * f, FOAM, WATERFALL_POLISH ? [1, fk, 2] : undefined)); fd.push(V(main, cx + cs * 1.05 * r * f, (WATERFALL_POLISH ? Math.min(ly(1), Gt(cx + cs * 1.05 * r * f, cz + sn * 1.05 * r * f) + 0.01) : ly(1)) + 0.015, cz + sn * 1.05 * r * f, FOAM.clone().lerp(POOL, 0.5), [WATERFALL_POLISH ? 0.9 : 0.7, p.s, 2])); }
-          for (let k = 0; k < seg; k++) { const k2 = (k + 1) % seg; quad(main, fi[k], fi[k2], fo[k], fo[k2]); quad(main, fo[k], fo[k2], fd[k], fd[k2]); }
+          const wjO = WATER_JOIN && WATERFALL_POLISH && qo > F.q && qo < N && !(St.falls || []).some(F2 => F2 !== F && F2.lip >= F.q && F2.lip <= qo), wjA = wjO ? Math.asin(Math.min(1, (po.w / 2 + 0.35) / (0.9 * r))) : 0; /* WATER_JOIN: the mouth's half angle on the ring */
+          if (DEBUG && WATER_JOIN) (St.wj || (St.wj = [])).push({ k: 'fall-pool', q: F.q, x: +cx.toFixed(1), z: +cz.toFixed(1), y: +yP.toFixed(2), r: +r.toFixed(1), mouth: wjO ? 1 : 0, spill: +(yP - po.h).toFixed(2) });
+          for (let k = 0; k < seg; k++) { const k2 = (k + 1) % seg; if (wjO && Math.abs(wrapA((k + 0.5) / seg * 6.2832 - oa)) < wjA) continue; quad(main, fi[k], fi[k2], fo[k], fo[k2]); quad(main, fo[k], fo[k2], fd[k], fd[k2]); }
           if (WATERFALL_POLISH && qo > F.q && qo < N && !(St.falls || []).some(F2 => F2 !== F && F2.lip >= F.q && F2.lip <= qo)) { /* (a next fall right below this pool takes the drop itself) */
             /* the pond opens into its outflow: rows down the line's own stations from the pool's middle to the first river row (its width, its level), so pool and
                river are one water body with no ground between; where the river lies lower it runs down as a short chute; the pool's blue turns into the river's */
@@ -59638,7 +59713,8 @@ function buildWorld(course, surf) {
             rows.forEach((R, j) => { const tj = j / n0, e = smooth(0, 1, tj), wj = j === n0 ? R.w : w0c + (R.w - w0c) * e, dq = drift(R.q);
               const yl = Math.max(Gt(R.x, R.z) + 0.05, yP + (R.y - yP) * Math.pow(tj, 1.3)), yj = j === n0 ? Math.max(R.y + 0.004, Gt(R.x, R.z) + 0.05) : !j ? Math.max(R.y, Gt(R.x, R.z) + 0.05) : po.h >= yP ? yl : Math.min(yPv, yl); yPv = yj; /* never under the ground; a river that lies higher than the pool is met rising */
               const cc = PC.clone().lerp(C_C.clone().offsetHSL(0.035 * dq, 0, 0.05 * dq), e).lerp(SHEET, 0.12 * Math.min(1, Math.max(0, (yP - po.h) - 0.3)) * (1 - e) * Math.min(1, tj * 3)), ce = PC.clone().lerp(C_E, 0.9 * e), cur = [];
-              for (const l of [wj, 0, -wj]) { const vx = R.x + R.nx * l, vz = R.z + R.nz * l; cur.push(V(main, vx, l && j < n0 ? Math.min(yj, Gt(vx, vz) + 0.03) : yj, vz, l ? ce : cc, [l, R.s, 1 + Math.min(wj, 12) / 25])); } /* its edges hug a lower bank (no flat flare over it) */
+              const jw = WATER_JOIN ? 2 * (1 - tj) : 0; /* WATER_JOIN: unseen at its start inside the pool, the pool's still look at the rim, the river's at its first row */
+              for (const l of [wj, 0, -wj]) { const vx = R.x + R.nx * l, vz = R.z + R.nz * l; cur.push(V(main, vx, l && j < n0 ? Math.min(yj, Gt(vx, vz) + 0.03) : yj, vz, l ? ce : cc, [jw >= 0.99 && l ? Math.sign(l) * Math.max(0, Math.min(wj, 12) - 0.25) : l, R.s, 1 + Math.min(wj, 12) / 25])); if (jw > 0) (main.jn || (main.jn = {}))[cur[cur.length - 1]] = jw; } /* its edges hug a lower bank (no flat flare over it) */
               if (prev) { quad(main, prev[0], prev[1], cur[0], cur[1]); quad(main, prev[1], prev[2], cur[1], cur[2]); } prev = cur; }); }
           if (foot) { const [fx, fz, fr] = foot, c1 = V(main, fx, yP + 0.035, fz, FOAM, [0, -0.8, 2]), fr8 = []; /* the landing: a soft white blob over the pool, fading to its rim */
             for (let k = 0; k < 8; k++) { const a2 = k / 8 * 6.2832; fr8.push(V(main, fx + Math.cos(a2) * fr, yP + 0.03, fz + Math.sin(a2) * fr, FOAM, [1, -0.8, 2])); }
@@ -60461,6 +60537,12 @@ function buildWorld(course, surf) {
         return p.h < Q.y + (WATER_JOIN ? WJ_SUNK : -0.05) && Math.hypot(ex, ez) < Q.rr[k0] * (1 - f) + Q.rr[(k0 + 1) % NR] * f && !falls.some(F => Math.hypot(F.x - p.x, F.z - p.z) < F.r + 0.2); })) : null; /* RIVER_BRIDGE_FIX: stations under a pit's lake (a plunge pool stays) */
       if (sunk) for (let q = 0; q < N; q++) if (sunk[q]) P[q].hid = 1;
       let wjK = null, wjX = null;
+      if (WATER_JOIN && St.basin && falls.length) { const wa = g.attributes.aWet.array; let moved = false; /* a fall whose pool lies under a pit's lake: its pool, foam and the sheet's lower rows are lifted onto the lake's surface (the water lands on the lake, not on a pool seen through it) */
+        for (const F of falls) { const pf = P[F.q]; if (!pf) continue; const Q = St.basin.find(Q2 => { const dx = pf.x - Q2.A.x, dz = pf.z - Q2.A.z, lx = dx * Q2.A.fx + dz * Q2.A.fz, lz = dx * Q2.A.rx + dz * Q2.A.rz, NR = Q2.rr.length, ex = lx - Q2.cx, ez = lz - Q2.cz, u = ((Math.atan2(ez, ex) + 6.2832) % 6.2832) / 6.2832 * NR, k0 = Math.floor(u) % NR, f = u - Math.floor(u); return Math.hypot(ex, ez) < Q2.rr[k0] * (1 - f) + Q2.rr[(k0 + 1) % NR] * f; }); if (!Q) continue;
+          let yP = Infinity, bd = 0.04; for (let i = 0; i < pa.length; i += 3) { const d = (pa[i] - pf.x) ** 2 + (pa[i + 2] - pf.z) ** 2; if (d < bd) { bd = d; yP = pa[i + 1]; } } if (!(Q.y > yP + 0.25)) continue; /* the pool's own level, from its middle vertex */
+          let n = 0; for (let i = 0; i < pa.length; i += 3) { if (pa[i + 1] >= Q.y + 0.02) continue; const d = Math.hypot(pa[i] - pf.x, pa[i + 2] - pf.z), k = wa[i + 2]; if (d <= F.r * 1.12 + 0.2 || (k > 4.5 && d <= F.r + 6)) { pa[i + 1] = Q.y + 0.02 + Math.max(0, Math.min(0.04, pa[i + 1] - yP)); n++; } }
+          if (n) moved = true; if (DEBUG) (St.wj || (St.wj = [])).push({ k: 'fall-lake', q: F.q, x: +pf.x.toFixed(1), z: +pf.z.toFixed(1), y: +Q.y.toFixed(2), lift: +(Q.y - yP).toFixed(2), n }); }
+        if (moved) { g.attributes.position.needsUpdate = true; g.computeVertexNormals(); } }
       if (WATER_JOIN && sunk) { /* the ribbon is cut on whole rows (no half quads left as teeth in the lake); where it meets the lake it comes down to the lake's level on the shoreline, turns into the still look on the way and fades out over a short tail on the surface */
         const wa = g.attributes.aWet.array, ca = g.attributes.color.array, nV = pa.length / 3, key = (v) => Math.round(v * 100), sk = new Set(), tc2 = new THREE.Color(); for (let q = 0; q < N; q++) if (sunk[q]) sk.add(key(P[q].s));
         wjK = (i) => wa[i * 3 + 2] > 0.5 && wa[i * 3 + 2] < 2.5 && sk.has(key(wa[i * 3 + 1])); wjX = { pos: [], col: [], wet: [], idx: [], jn: [] };
@@ -60468,7 +60550,7 @@ function buildWorld(course, surf) {
         const rowOf = (q) => { const pq = P[q], w2 = pq.w / 2, wi = w2 - Math.min(0.25, w2 * 0.3), ks = key(pq.s), r = []; for (const l of [w2, wi, -wi, -w2]) { let b = -1, bd = 0.09; for (let i = 0; i < nV; i++) { if (wa[i * 3 + 2] < 0.5 || wa[i * 3 + 2] > 2.5 || key(wa[i * 3 + 1]) !== ks) continue; const d = (pa[i * 3] - pq.x - pq.nx * l) ** 2 + (pa[i * 3 + 2] - pq.z - pq.nz * l) ** 2; if (d < bd) { bd = d; b = i; } } if (b < 0) return null; r.push(b); } return r; }; /* the four vertices of a station's river row */
         const mouth = (vq, sq, Q, out2) => { const v = P[vq], sn = P[sq], rv = v.ford || v.pond ? null : rowOf(vq); let dx = sn.x - v.x, dz = sn.z - v.z; const len = Math.hypot(dx, dz) || 1; dx /= len; dz /= len;
           let t0 = 1; for (let t = 0; t <= 1.001; t += 0.02) if (inQ(Q, v.x + dx * len * t, v.z + dz * len * t) > 0) { t0 = t; break; }
-          if (!rv || v.h < Q.y - 0.4) { if (DEBUG) (St.wj || (St.wj = [])).push({ k: out2 ? 'lake-out' : 'lake-in', q: vq, x: +v.x.toFixed(1), z: +v.z.toFixed(1), y: +Q.y.toFixed(2), fail: rv ? 2 : 1 }); return; } /* no row to start from (a waterfall's face or plunge pool is the neighbor), or a river well under the lake's level: the cut stays plain */
+          if (!rv || v.h < Q.y - 0.4) { if (DEBUG) (St.wj || (St.wj = [])).push({ k: out2 ? 'lake-out' : 'lake-in', q: vq, x: +v.x.toFixed(1), z: +v.z.toFixed(1), y: +Q.y.toFixed(2), fail: rv ? 2 : 1, fall: falls.some(F => Math.hypot(P[F.q].x - v.x, P[F.q].z - v.z) < F.r + 6 || (vq >= F.lip - 1 && vq <= F.q + 1)) ? 1 : 0 }); return; } /* no row to start from (a waterfall's face or plunge pool is the neighbor), or a river well under the lake's level: the cut stays plain */
           const dS = Math.min(len + 1.5, t0 * len + WJ_IN), sg = v.nx * sn.nx + v.nz * sn.nz < 0 ? -1 : 1, yL = Q.y + 0.01, n = Math.max(1, Math.min(8, Math.ceil(dS / WJ_STEP))), col = new THREE.Color('#3d7896').offsetHSL(0.03 * ((Q.pl && Q.pl.hue) || 0), 0, -0.02), X = wjX;
           const nAt = (d) => { const f = Math.min(1, d / len); let nx = v.nx + (sg * sn.nx - v.nx) * f, nz = v.nz + (sg * sn.nz - v.nz) * f; const nl = Math.hypot(nx, nz) || 1; return [nx / nl, nz / nl]; }, hwAt = (d) => (v.w + (sn.w - v.w) * Math.min(1, d / len)) / 2;
           const push = (d, w2, lev, j, flat, cf) => { const [nx, nz] = nAt(d), x = v.x + dx * d, z = v.z + dz * d, wi = w2 - Math.min(0.25, w2 * 0.3), we = Math.min(w2, 12), wk = 1 + we / 25, xi = we * wi / w2, r = [];
@@ -61865,7 +61947,7 @@ function jumpLanes(course) { /* [{ a, b }] trail sample ranges and [{ R }] cross
   return L; }
 function inJumpLane(course, L, x, z, r) { /* the corridor sample it reaches into, else -1 */
   const P = course.pts, rr = r + 0.35;
-  if (L.R) { const R = L.R, dx = x - R.x, dz = z - R.z, w = dx * R.fx + dz * R.fz, u = dx * R.rx + dz * R.rz; return w > -R.lead - JUMP_CLEAR_UP && w < RAMP_OUT + JUMP_CLEAR_OUT && Math.abs(u - R.lat) - rr < RAMP_W / 2 + JUMP_CLEAR_SIDE ? R.c : -1; }
+  if (L.R) { const R = L.R, dx = x - R.x, dz = z - R.z, w = dx * R.fx + dz * R.fz, u = dx * R.rx + dz * R.rz; return w > -(R.bend ? 20 : R.lead) - JUMP_CLEAR_UP && w < RAMP_OUT + JUMP_CLEAR_OUT && Math.abs(u - R.lat) - rr < RAMP_W / 2 + JUMP_CLEAR_SIDE ? R.c : -1; }
   for (let k = L.a; k <= L.b; k++) { const Q = P[k], dx = x - Q.x, dz = z - Q.z; if (Math.abs(dx) > 14 || Math.abs(dz) > 14) continue;
     if (Math.abs(dx * Q.fx + dz * Q.fz) <= 0.55 && Math.abs(dx * Q.rx + dz * Q.rz) - rr < Math.max(Q.hwE ?? Q.hw, ROAD) + JUMP_CLEAR_SIDE) return k; }
   return -1; }
@@ -61911,7 +61993,7 @@ function rockHit(course, x, z, rad, y0, y1) {
       if (deck ? y1 < Q.y - BRIDGE_ALL_UNDER : y0 < Q.y - JUMP_CLEAR_PIT) continue; /* the creek under a deck, a ravine's floor */
       return { rx: Q.rx, rz: Q.rz, lat, W }; } }
   for (const Ln of M.L) { if (!Ln.R) continue; const R = Ln.R, dx = x - R.x, dz = z - R.z, w = dx * R.fx + dz * R.fz, u = dx * R.rx + dz * R.rz;
-    if (w > -R.lead - JUMP_ALL_UP - rad && w < RAMP_OUT + JUMP_ALL_OUT + rad && Math.abs(u - R.lat) - rad < RAMP_W / 2 + JUMP_ALL_SIDE) return { rx: R.rx, rz: R.rz, lat: u - R.lat, W: RAMP_W / 2 + JUMP_ALL_SIDE }; }
+    if (w > -(R.bend ? 20 : R.lead) - JUMP_ALL_UP - rad && w < RAMP_OUT + JUMP_ALL_OUT + rad && Math.abs(u - R.lat) - rad < RAMP_W / 2 + JUMP_ALL_SIDE) return { rx: R.rx, rz: R.rz, lat: u - R.lat, W: RAMP_W / 2 + JUMP_ALL_SIDE }; }
   return null;
 }
 /* where a rock may go: null = it stands clear; [dx, dz] = step it out sideways by this (nudge: at most JUMP_ALL_NUDGE m, clear of every line after it); false = leave it out */
@@ -64260,6 +64342,9 @@ function petsPeekSeen(cp, p) { /* the spot is in the lens, clear of the camp pan
   for (const h of _pkHits) { const o = h.object, m = o.material; if (o === PK.m || o.userData.peek || !o.visible || o.isPoints || o.isSprite || o.isLine || (o.isInstancedMesh && !o.userData.tree) || !m || (Array.isArray(m) ? m.some(q => q.transparent) : m.transparent)) continue;
     let v = true; for (let q = o; q; q = q.parent) if (!q.visible) { v = false; break; } if (v) { PK.why = 'hid ' + (o.geometry ? o.geometry.attributes.position.count : 0) + ' @' + h.distance.toFixed(1) + '/' + d.toFixed(1); return false; } }
   PK.why = ''; return true; }
+function petsPeekEyes(cp, x, y, z) { /* PEEK_STORY: the lens sees the point (camp units) with nothing at all in the way, the cover it hides behind included */
+  cp.mesh.updateMatrixWorld(); _pkW.set(x, y, z); cp.mesh.localToWorld(_pkW); const d = _pkW.distanceTo(camera.position); _pkRay.set(camera.position, _pkW.sub(camera.position).normalize()); _pkRay.near = 2; _pkRay.far = d - 0.03; _pkHits.length = 0; _pkRay.intersectObjects(PEEK_RAY_VIS ? petsPeekRoots() : scene.children, true, _pkHits);
+  for (const h of _pkHits) { const o = h.object, m = o.material; if (o === PK.m || o.userData.peek || !o.visible || o.isPoints || o.isSprite || o.isLine || (o.isInstancedMesh && !o.userData.tree) || !m || (Array.isArray(m) ? m.some(q => q.transparent) : m.transparent)) continue; let v = true; for (let q = o; q; q = q.parent) if (!q.visible) { v = false; break; } if (v) return false; } return true; }
 function petsPeekFits(cp, p, d) { /* the whole head-and-shoulders box on screen (ears to shoulders, PEEK_SC) lies inside the rectangle the camp UI leaves free and clear of the parked bike's box */
   const R = PEEK_R * peekSc(), w = innerWidth, h = innerHeight; let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; PK.why = 'lens'; if (d > 40) return false;
   for (const ex of [-1.3, 1.3]) for (const ey of [-1.7, 1.5]) for (const ez of [-1.3, 1.3]) { _pkU.set(p[0] + ex * R, p[1] + ey * R, p[2] + ez * R); cp.mesh.localToWorld(_pkU); _pkU.project(camera); if (!(_pkU.z < 1)) return false;
@@ -64306,6 +64391,8 @@ function petsPeekClear() { if (PK.m && PK.m.parent) PK.m.parent.remove(PK.m); PK
 function petsPeekStart(o = {}) { /* begins one peek now (o.id / o.kind / o.what pin a choice, for the debug hook); false when nothing fits */
   const C = S.camp; if (!C || !C.cp.mesh) return false; const cp = C.cp, who = o.id ? [o.id] : petsPeekWho(S.course && S.course.theme); if (!who.length) return false;
   let spots = petsPeekSpots(cp).filter((s, i) => (!o.what || s.what === o.what) && (o.i === undefined || o.i === i) && petsPeekSeen(cp, s.vis)); /* o.i pins one spot of the list */ if (!spots.length) return false;
+  const ST = o.story || null; if (ST && ST.pref) { const od = ST.pref.slice(); for (let q = (ST.mix || 0) - 1; q > 0; q--) { const j = Math.floor(Math.random() * (q + 1)), t = od[q]; od[q] = od[j]; od[j] = t; }
+    for (const w of od) { const pf = spots.filter(s => s.what === w && (w !== 'board' || PEEK_CLIMB.includes(o.id))); if (pf.length) { spots = pf; break; } } } /* a story glimpse takes the first of its covers that is in sight */
   const id = who[Math.floor(Math.random() * who.length)], A = PET_LOOK[id]; if (!A) return false;
   if (PEEK_SIMPLE && !PEEK_CLIMB.includes(id)) { spots = spots.filter(s => s.what !== 'board'); if (!spots.length) return false; } /* only a climber peeks over the board */
   let kind = o.kind || (A.tail && Math.random() < PET_PEEK.tail ? 'tail' : 'head'); if (kind === 'tail' && !A.tail) kind = 'head';
@@ -64321,12 +64408,15 @@ function petsPeekStart(o = {}) { /* begins one peek now (o.id / o.kind / o.what 
   { const ca = geo.attributes.color, k = PEEK_DARK ? peekDk().eye : 1 + 2.4 * Math.max(0, Math.min(1, campDuskK)), e = geo.userData.eyeC; for (const [o0, n] of geo.userData.eye) for (let v = o0; v < o0 + n; v++) ca.setXYZ(v, e.r * k, e.g * k, e.b * k); ca.needsUpdate = true; } /* the eye shine: brighter as the camp light fades */
   if (!PK.m) { PK.m = new THREE.Mesh(geo, campMat); PK.m.userData.peek = true; } else PK.m.geometry = geo;
   if (PK.m.parent !== cp.mesh) { if (PK.m.parent) PK.m.parent.remove(PK.m); cp.mesh.add(PK.m); }
-  PK.on = { cp, id, kind, sp, t: 0, hold: PET_PEEK.hold[0] + Math.random() * (PET_PEEK.hold[1] - PET_PEEK.hold[0]), ph: Math.random() * 6.28, tick: false }; PK.n++; PK.last = { id, kind, what: sp.what, area, sp: sp.what + ':' + sp.vis[0].toFixed(2) + ':' + sp.vis[2].toFixed(2) };
+  let rise = 1; if (ST) { rise = ST.rise || 1; if (ST.eyes) { rise = 1; /* eyes only: it comes up (or leans out) just far enough for the lens to see the middle of the head past its cover, so the top of the head and the eyes show */
+      for (const r of [0.52, 0.6, 0.68, 0.76, 0.84, 0.92]) { const sd = sp.kind === 'side'; if (petsPeekEyes(cp, sd ? sp.hid[0] + (sp.vis[0] - sp.hid[0]) * r : sp.vis[0], sd ? sp.vis[1] : sp.hid[1] + (sp.vis[1] - sp.hid[1]) * r, sd ? sp.hid[2] + (sp.vis[2] - sp.hid[2]) * r : sp.vis[2])) { rise = r; break; } } } }
+  const HD = ST ? ST.hold : PET_PEEK.hold;
+  PK.on = { cp, id, kind, sp, t: 0, rise, hold: HD[0] + Math.random() * (HD[1] - HD[0]), ph: Math.random() * 6.28, tick: false }; PK.n++; PK.last = { id, kind, what: sp.what, area, rise, story: ST ? PK.story && PK.story.L : 0, sp: sp.what + ':' + sp.vis[0].toFixed(2) + ':' + sp.vis[2].toFixed(2) };
   if (PEEK_MORE) { PK.first = false; PK.m.scale.setScalar(peekSc()); } petsPeekPose(0); return true; }
 function petsPeekPose(dt) { const P = PK.on, m = PK.m, sp = P.sp, rm = reduceMotion.matches; P.t += dt; const t = P.t, T1 = PET_PEEK.up, T2 = T1 + P.hold, T3 = T2 + PET_PEEK.down;
   if (t >= T3) { petsPeekClear(); return; }
-  const k = t < T1 ? t / T1 : t < T2 ? 1 : 1 - (t - T2) / PET_PEEK.down, e = k * k * (3 - 2 * k), lk = t > T1 && t < T2 && !rm ? 1 : 0;
-  if (!P.tick && e > 0.6) { P.tick = true; try { if (sfx.pets) { m.getWorldPosition(_pkV).project(camera); sfx.pets.peek(Math.max(-0.6, Math.min(0.6, _pkV.x * 0.6))); } } catch (x) { /* no audio */ } }
+  const k = t < T1 ? t / T1 : t < T2 ? 1 : 1 - (t - T2) / PET_PEEK.down, e = k * k * (3 - 2 * k) * (P.rise ?? 1), lk = t > T1 && t < T2 && !rm ? 1 : 0; /* P.rise: a story glimpse comes up only part of the way */
+  if (!P.tick && e > 0.6 * (P.rise ?? 1)) { P.tick = true; try { if (sfx.pets) { m.getWorldPosition(_pkV).project(camera); sfx.pets.peek(Math.max(-0.6, Math.min(0.6, _pkV.x * 0.6))); } } catch (x) { /* no audio */ } }
   if (P.kind === 'tail') { const y0 = sp.root - 0.25, y1 = sp.rootTop - 0.12; m.position.set(sp.vis[0], y0 + (y1 - y0) * e, sp.vis[2]); m.rotation.set(0, sp.yaw + Math.PI / 2, lk * 0.38 * Math.sin((t - T1) * 4.2 + P.ph)); return; }
   if (sp.kind === 'side') m.position.set(sp.hid[0] + (sp.vis[0] - sp.hid[0]) * e, sp.vis[1] + lk * 0.012 * Math.sin(t * 3.1), sp.hid[2] + (sp.vis[2] - sp.hid[2]) * e);
   else m.position.set(sp.vis[0], sp.hid[1] + (sp.vis[1] - sp.hid[1]) * e, sp.vis[2]);
@@ -64335,6 +64425,10 @@ function petsPeekTick(dt) {
   if (PK.on) { if (!petsPeekOk() || !S.camp || PK.on.cp !== S.camp.cp) { petsPeekClear(); return; } petsPeekPose(dt); return; }
   if (!S.camp) { if (PK.m && PK.m.parent) petsPeekClear(); return; }
   if (!petsPeekOk()) return;
+  const SY = PEEK_STORY ? PK.story : null; if (SY && !SY.done && S.camp && SY.cp === S.camp.cp) { SY.t -= dt; if (SY.t <= 0) { SY.t = Infinity; /* one glimpse a visit: counted only while the lens is free, tried again a few times when no cover is in sight */
+      queueMicrotask(() => { if (PK.story !== SY) return; const A = PET_LOOK[SY.id], ok = petsPeekOk() && petsPeekStart({ id: SY.id, kind: 'head', story: SY.T });
+        if (ok) { SY.done = true; if (!PETS.seen) PETS.seen = []; if (!PETS.seen.includes(SY.id)) PETS.seen.push(SY.id); petsSave(); } else if (++SY.tries < 8 && A) SY.t = 3 + 2 * Math.random(); else SY.done = true; }); } return; }
+  if (SY && S.camp && SY.cp === S.camp.cp) return; /* nothing more this visit */
   if (PK.next < 0) PK.next = petsPeekGap(); if (!isFinite(PK.next)) return;
   PK.next -= dt; if (PK.next <= 0) { PK.next = Infinity; PK.tries = (PK.tries || 0) + 1; queueMicrotask(() => { PK.next = petsPeekOk() && petsPeekStart() ? -1 : 3 + 4 * Math.random(); }); } } /* chosen once the frame is done (the lens holds its final pose then); no spot in sight (a lens still easing back): try again in a few seconds */
 /* ---- the Keeper's scrap on the board ---- */
@@ -64356,6 +64450,7 @@ function keeperPick() { /* which of a level's three notes this camp shows: the c
 const KEEPER_TRACKS = ['cat', 'dog', 'fox', 'raccoon', 'squirrel', 'owl', 'duck', 'frog', 'beaver', 'snake']; /* note 6 shows the trail of ONE of these, drawn as a pen sketch of its tracks */
 function keeperTrack() { /* whose tracks this camp's note shows: a plain hash of the mountain and the camp's number (no stream) */
   if (boardWhereForce !== null) return Math.floor(Math.abs(boardWhereForce) / 3) % KEEPER_TRACKS.length; const C = S.course, n = S.camp && S.camp.cp ? campNo(S.camp.cp) : 1;
+  if (PEEK_STORY && PK.story && S.camp && PK.story.cp === S.camp.cp && KEEPER_TRACKS.includes(PK.story.id)) return KEEPER_TRACKS.indexOf(PK.story.id); /* the tracks of the animal that will look in at this camp */
   let h = Math.imul((C ? C.seed | 0 : 0) ^ Math.imul(n | 0, 0x85EBCA6B), 0xC2B2AE35); h ^= h >>> 15; return (h >>> 0) % KEEPER_TRACKS.length; }
 const KEEPER_HAND = 1; /* 1 = (with KEEPER_NOTES) the notes are written by hand: a single-stroke alphabet drawn with a round pen (handGlyphs), each letter a little different in size, slant and
    place, and every sketch drawn with the same pen; 0 = the words in the board's bold type with a little jitter */
@@ -64540,7 +64635,12 @@ function petsBushMesh(kind) { /* one bush on the shared sway material (the tufts
   const uni = { uT: { value: 0 }, uW: { value: 0 } }, mat = CampMini.sway(uni), m = new THREE.InstancedMesh(bushGeo(kind), mat, 1);
   m.setMatrixAt(0, new THREE.Matrix4()); m.setColorAt(0, new THREE.Color(1, 1, 1)); m.userData.rustle = (dt, a) => { uni.uT.value += dt * (reduceMotion.matches ? 2.5 : 7.5); uni.uW.value = (reduceMotion.matches ? 0.3 : 1) * Math.max(0, a); }; return m; }
 /* ---- camp hooks ---- */
-function petsFxCampIn(cp) { petsPeekClear(); PK.next = -1; PK.first = !!PEEK_MORE; petsBoardSync(); }
+function petsStoryPick(cp) { /* PEEK_STORY: this visit's glimpse, chosen as the rider comes in (the board's note reads it) */
+  PK.story = null; if (!PEEK_STORY || !petsOn() || !S.course) return; const L = levelOfXp(PROF.xp); if (L > PET_PEEK.lvl0) return;
+  const hab = petsHab(S.course.theme).filter(id => !PETS.owned.includes(id)); if (!hab.length) return; if (!PETS.seen) PETS.seen = [];
+  let left = hab.filter(id => !PETS.seen.includes(id)); if (!left.length) { PETS.seen = PETS.seen.filter(id => !hab.includes(id)); left = hab; } /* everyone who lives here was glimpsed: the bag starts again */
+  const T = PEEK_STORY_T.find(t => L <= t.to); PK.story = { cp, id: left[Math.floor(Math.random() * left.length)], L, T, t: 8 + 12 * Math.random(), tries: 0, done: false }; }
+function petsFxCampIn(cp) { petsPeekClear(); PK.next = -1; PK.first = !!PEEK_MORE; petsStoryPick(cp); petsBoardSync(); }
 function petsFxTick(dt) { petsPeekTick(dt); if (COMPANIONS_ON && sfx.pets) sfx.pets.tick(); if (PK.bush) { PK.bush.userData.rustle(dt, PK.bushA); if (!S.camp) petsBushDrop(); } }
 function petsBushDrop() { if (!PK.bush) return; if (PK.bush.parent) PK.bush.parent.remove(PK.bush); PK.bush.material.dispose(); PK.bush.dispose(); PK.bush = null; }
 if (COMPANIONS_ON) petsOnFind((id) => { try { if (sfx.pets) { if (id === 'basket') sfx.pets.basket(); else sfx.pets.find(id); } } catch (e) { /* no audio */ } if (S.camp) petsBoardSync(); }); /* every find: its cue, and the board's scrap follows the state */
@@ -64549,7 +64649,7 @@ function petsFxDebug() { return { /* tests: peeks, cues, board scraps, the bush 
   peekState: () => ({ on: !!PK.on, id: PK.on ? PK.on.id : null, kind: PK.on ? PK.on.kind : null, what: PK.on ? PK.on.sp.what : null, attached: !!(PK.m && PK.m.parent), n: PK.n, tries: PK.tries || 0, next: PK.next, last: PK.last, ok: petsPeekOk(),
     spots: S.camp ? petsPeekSpots(S.camp.cp).map(s => ({ what: s.what, seen: petsPeekSeen(S.camp.cp, s.vis), why: PK.why })) : [] }),
   fx: (o) => { if (o && typeof o === 'object') for (const k in o) PETS[k] = o[k]; return JSON.parse(JSON.stringify(PETS)); }, /* tests: set companion state fields directly */
-  peekSpots: () => (S.camp ? petsPeekSpots(S.camp.cp) : []), peekRate: (L, n) => petPeekRate(L, n), peekGap: () => petsPeekGap(), peekNext: (s) => { PK.next = s; },
+  peekStory: (t) => { const Y = PK.story; if (Y && t !== undefined) Y.t = t; return Y ? { id: Y.id, L: Y.L, t: Y.t, done: Y.done, tries: Y.tries, seen: (PETS.seen || []).slice() } : null; }, peekSpots: () => (S.camp ? petsPeekSpots(S.camp.cp) : []), peekRate: (L, n) => petPeekRate(L, n), peekGap: () => petsPeekGap(), peekNext: (s) => { PK.next = s; },
   cue: (name, a) => { const P = sfx.pets; if (!P) return false; if (name === 'find') P.find(a || 'cat'); else if (typeof P[name] === 'function') P[name](a); else return false; return true; },
   note: (k, w) => { boardScrapForce = k === undefined || k === null ? null : k | 0; boardWhereForce = w === undefined || w === null ? null : w | 0; boardScrapK = -1; petsBoardSync(); return boardScrapK; }, noteState: () => boardScrapK, noteV: () => boardScrapV, noteText: (T) => { boardTextForce = T || null; boardScrapK = -1; petsBoardSync(); },
   bush: (kind, a, x = 1.3, z = -3.0) => { petsBushDrop(); const C = S.camp; if (!C || kind === null) return false; const m = petsBushMesh(kind || (S.course && S.course.theme)), W = campFrame(C.cp);
@@ -68798,6 +68898,10 @@ document.addEventListener('visibilitychange', () => { /* switching apps pauses t
   if (!document.hidden || !S.running || S.finished || S.paused) return;
   keys.clear(); openPause();
 });
+if (POLISH3) { /* a desktop ride pauses when the window loses focus: the keys are gone with it, so the rider would roll on blind. Touch devices are covered by the page-hidden rule above */
+  addEventListener('blur', () => { setTimeout(() => { try { if (!window.__noBlurPause && !document.hasFocus() && !document.hidden && S.running && !S.finished && !S.paused && !S.camp && screen === null && !document.body.classList.contains('touchy')) { keys.clear(); openPause(); } } catch (e) { /* stay as it was */ } }, 250); });
+  for (const el of document.querySelectorAll('.scr.modal')) { const h = el.querySelector('h2'); el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); if (h && h.textContent) el.setAttribute('aria-label', h.textContent.trim()); } /* the sheets say what they are to a screen reader */
+}
 const touchBound = [];
 const bindTouch = (id, key) => {
   const el = $(id); touchBound.push([el, key]);
@@ -69956,7 +70060,7 @@ function rampEdge() {
     const dx = S.pos.x - R.x, dz = S.pos.z - R.z, w = dx * R.fx + dz * R.fz, e = (dx * R.rx + dz * R.rz) * R.sd; if (w < -R.a0 || w > R.a1 || (w > 1 && w < R.wf)) continue;
     if (edgeEase(R, R.sd, e, srBed(C.pts, R, R.c + w) + srRise(R, w), w)) return; }
   if (T && T.ramps && C.rampOf && C.stillOn) for (let q = 0; q < T.ramps.length; q++) { const R = T.ramps[q]; if (S.segIdx < R.c - R.lead - 30 || S.segIdx > R.c + RAMP_OUT + 30) continue;
-    const dx = S.pos.x - R.x, dz = S.pos.z - R.z, w = dx * R.fx + dz * R.fz, e = (dx * R.rx + dz * R.rz) * R.vs; if (w < -R.lead || w > RAMP_OUT) continue;
+    const dx = S.pos.x - R.x, dz = S.pos.z - R.z, w = dx * R.fx + dz * R.fz, e = (dx * R.rx + dz * R.rz) * R.vs; if (w < -(R.bend ? 20 : R.lead) || w > RAMP_OUT) continue;
     if (edgeEase(R, R.vs, e, trailYAt(C.pts, R.c + w) + rampRise(R, w), w)) return; }
 }
 function edgeEase(R, sdv, e, top, w) {
@@ -70653,7 +70757,7 @@ function updateCamera(dt, inp) {
   camera.position.copy(camPos);
   { const O = camOv(); if (O) { camPos.set(O.px, O.py, O.pz); camLook.set(O.lx, O.ly, O.lz); camera.position.copy(camPos); } } /* in debug, a screenshot frames a fixed spot */
   S.shake = (S.shake || 0) * Math.exp(-dt * 7);
-  if (S.shake > 0.01) camera.position.add(tmpV.set((Math.random() - 0.5) * S.shake, (Math.random() - 0.5) * S.shake, (Math.random() - 0.5) * S.shake));
+  if (S.shake > 0.01 && !(POLISH3 && reduceMotion.matches)) camera.position.add(tmpV.set((Math.random() - 0.5) * S.shake, (Math.random() - 0.5) * S.shake, (Math.random() - 0.5) * S.shake));
   { /* speed rumble: a small, smooth camera tremor at speed on the ground, stronger off the trail; nothing in the air (LMD's camera is calm but alive) */
     const sp = Math.abs(S.speed), tRum = S.grounded && !S.crashed && !CP.noLift ? Math.max(0, sp - 9) / 14 * (S.off ? 0.11 : 0.045) : 0;
     S.rumble = (S.rumble || 0) + (tRum - (S.rumble || 0)) * Math.min(1, dt * 4);
@@ -72829,7 +72933,7 @@ const campSky = (() => {
       ray.push(s); }
     for (let i = 0; i < NR; i++) { let a = 0, w = 0; for (let k = -6; k <= 6; k++) { const q = Math.exp(-Math.pow(k * 5 / 12, 2)); a += q * ray[(i + k + NR) % NR]; w += q; } SM.push(Math.min(1, 1.8 * a / w)); }
     const arcOn = !VV || VV.sea, sm = (az) => { const x = (wrapD(az) + 180) / 5, i = Math.floor(x) % NR, f = x - Math.floor(x); return SM[i] + (SM[(i + 1) % NR] - SM[i]) * f; };
-    const sol = VISTA_SOLID && !FX.coast, sea = (az) => { const dS = Math.abs(wrapD(az - CAMP_SKY.sunAz)), t = sol ? Math.max(0, Math.min(1, (VSOL.sun - dS) / 6)) : Math.max(0, Math.min(1, (22 - dS) / 16)); /* VISTA_SOLID: the open water under the sun only in the sunset bay */ return Math.max(sm(az), arcOn ? t * t * (3 - 2 * t) : 0); };
+    const sol = VISTA_SOLID && !FX.coast, sea = (az) => { const dS = Math.abs(wrapD(az - CAMP_SKY.sunAz)), t = sol ? (VISTA_FAR_FIX ? 0 : Math.max(0, Math.min(1, (VSOL.sun - dS) / 6))) : Math.max(0, Math.min(1, (22 - dS) / 16)); /* VISTA_SOLID: the open water under the sun only in the sunset bay; VISTA_FAR_FIX: none at all there (the land stands under the sun too: that bay was a sea-colored column from the horizon to the camp's rim, 20 deg wide with sheer sides), the sea shows where the world's own ground runs down to it and in the far sea band */ return Math.max(sm(az), arcOn ? t * t * (3 - 2 * t) : 0); };
     const low = (az) => Math.max(sea(az), arcOn ? FX.wA(az) : 0);
     const lowE = (e, az, c) => e > FX.eh ? e - (e - FX.eh) * (1 - c) * g * low(az) : e; /* a top over the far sea's horizon pressed toward it: c = the share of that rise kept */
     const inland = (az0) => { for (let d = 0; d <= 120; d += 5) for (const s of [1, -1]) { const a = az0 + s * d; if (low(a) < 0.25) return wrapD(a); } return az0; };
@@ -72923,11 +73027,11 @@ const campSky = (() => {
     const DZ = 0.8, NS = 6, fA = new THREE.Color(), fB = new THREE.Color();
     /* a hill face in rows (VISTA_FULL): the ridge (snow on the far layer at the high camps), a thin step into the forest belt, the belt, then down to the
        fogged foot. Every row point lies on the face's own flat chord (top to ridgeBase), so the surface, and every depth placed against it, stays the same. */
-    const faceRows = (L, li, top, fN, fD, ends) => { const B = CAMP_SKY.ridgeBase, rt = li === 0 ? 0.35 : 0.1, snK = li === 0 ? Math.max(0, 1 - FX.ord / (VV ? 0.6 * Math.min(1.5, VV.snow) : 0.6)) : 0, snQ = VV ? 0.6 + 0.25 * (1 - VV.snow) : 0.6; /* VISTA_VARIETY: snow line by theme */
+    const faceRows = (L, li, top, fN, fD, ends) => { const B = CAMP_SKY.ridgeBase, rt = li === 0 ? 0.35 : 0.1, capK = VISTA_FAR_FIX && li === 0 && !FX.coast && (!!(VV && VV.sh.pl) || S.course.theme === 'canyon' || S.course.theme === 'scrub') ? VFAR.rim : 1, /* VISTA_FAR_FIX: the far layer's rim is a darker cap rock on the dry themes and the flat-top camps */ snK = li === 0 ? Math.max(0, 1 - FX.ord / (VV ? 0.6 * Math.min(1.5, VV.snow) : 0.6)) : 0, snQ = VV ? 0.6 + 0.25 * (1 - VV.snow) : 0.6; /* VISTA_VARIETY: snow line by theme */
       const fc = col(VFULL.belt[0]), fk = col(pd(VFULL.belt[1])), sD = col(VFULL.snow[0]), sK = col(VFULL.snow[1]);
       const C = ends.map(([a, e]) => { const T = dir(e, a, L.r, new THREE.Vector3()), F = dir(B, a, L.r, new THREE.Vector3()), bf = FX.belt(a, li), e1 = e - rt, e2 = e1 - 0.06, e3 = e2 - (1.4 + 2.4 * bf) * (1 + 0.35 * li);
         const at = (ee) => T.clone().lerp(F, Math.min(1, (e - ee) / (e - B)));
-        const ridge = (ee) => { top(ee, a, cA, cB); const sn = snK * Math.max(0, Math.min(1, (ee - (L.lo + (L.hi - L.lo) * (0.6 + 0.4 * s) * snQ)) / 0.9)); if (sn > 0) { cA.lerp(sD, sn * (1 - L.aer * 0.6)); cB.lerp(sK, sn * (1 - L.aer * 0.6)); } return [cA.clone(), cB.clone()]; };
+        const ridge = (ee) => { top(ee, a, cA, cB); if (capK < 1) { cA.multiplyScalar(capK); cB.multiplyScalar(capK); } const sn = snK * Math.max(0, Math.min(1, (ee - (L.lo + (L.hi - L.lo) * (0.6 + 0.4 * s) * snQ)) / 0.9)); if (sn > 0) { cA.lerp(sD, sn * (1 - L.aer * 0.6)); cB.lerp(sK, sn * (1 - L.aer * 0.6)); } return [cA.clone(), cB.clone()]; };
         const forest = (ee, k) => { top(ee, a, cA, cB); skyAt(ee, a, 0, fA).lerp(fc, 1 - L.aer * 0.5); skyAt(ee, a, 1, fB).lerp(fk, 1 - L.aer * 0.5); cA.lerp(fA, bf * k); cB.lerp(fB, bf * k); return [cA.clone(), cB.clone()]; };
         const low = forest(e3, 0.75); if (mk) { low[0].lerp(fN, 0.55 * mk); low[1].lerp(fD, 0.55 * mk); } /* thick fog: the face fades into the haze a little under its ridge, so the ridges layer */
         return [[T, ridge(e)], [at(e1), ridge(e1)], [at(e2), forest(e2, 1)], [at(e3), low], [F, [fN, fD]]]; });
@@ -72960,6 +73064,12 @@ const campSky = (() => {
       if (VISTA_SOLID && li2 === 0 && CO && CO.sol) { let lo = 1e9, hi = -1e9; const F = CO.eS + VSOL.lift; for (let j = 0; j < L.n; j++) { lo = Math.min(lo, H[j]); hi = Math.max(hi, H[j]); }
         if (lo < F) { if (HP === H) HP = H.slice(); const hn = Math.max(hi, F + VSOL.rise), k = (hn - F) / Math.max(1e-3, hi - lo);
           for (let j = 0; j < L.n; j++) { const dS = Math.abs(wrapD(j * 360 / L.n - 180 - CAMP_SKY.sunAz)), t = Math.max(0, Math.min(1, (dS - VSOL.notch) / 3)); H[j] += (F + (H[j] - lo) * k - H[j]) * t * t * (3 - 2 * t); } H[L.n] = H[0]; } } /* VISTA_SOLID: the far hill layer's dips stay over the land's sea line (the drawn ridge rescaled, its shape kept; the sun's notch left open; choices stay on HP) */
+      if (VISTA_FAR_FIX && FX && !FX.coast) { const nt = CO && CO.sol ? VSOL.notch : 14; let ch = false; /* VISTA_FAR_FIX: the drawn ridge comes down to the sun's gap on a slope (choices stay on HP) */
+        const up = li2 === 0 ? VFAR.up : 0;
+        for (let j = 0; j < L.n; j++) { const dS = Math.abs(wrapD(j * 360 / L.n - 180 - CAMP_SKY.sunAz)); if (dS > nt + VFAR.sh[0]) continue;
+          if (dS < nt) { const c = sunCap + up - 0.3 * vvH((seed + j * 131) | 0, (cp.idx + 1) * 64 + 28); if (up > 0 && H[j] < c && H[j] > sunCap - 1.5) { if (!ch && HP === H) HP = H.slice(); ch = true; H[j] = c; } continue; } /* under the sun: the far layer up to just under the sun's lower edge */
+          const c = sunCap + up + (dS - nt + 1.5) * VFAR.sh[1]; if (H[j] > c) { if (!ch && HP === H) HP = H.slice(); ch = true; H[j] = c; } }
+        if (ch) H[L.n] = H[0]; }
       tops.push(HP); topsG.push(H);
       for (let j = 0; j < L.n; j++) { const a0 = j * 360 / L.n - 180, a1 = (j + 1) * 360 / L.n - 180, sl = H[j + 1] - H[j], am = (a0 + a1) / 2;
         const lit = 1 + Math.max(-1, Math.min(1, sl * 1.6 * Math.sign(wrapD(CAMP_SKY.sunAz - am) || 1))) * 0.08;
@@ -72967,11 +73077,47 @@ const campSky = (() => {
         if (FX) { faceRows(L, li2, top, fN, fD, [[a0, H[j]], [a1, H[j + 1]]]); continue; }
         const q = [[H[j], a0, 0], [H[j + 1], a1, 0], [CAMP_SKY.ridgeBase, a1, 1], [H[j], a0, 0], [CAMP_SKY.ridgeBase, a1, 1], [CAMP_SKY.ridgeBase, a0, 1]];
         for (const [e, a, f] of q) { if (f) { cA.copy(fN); cB.copy(fD); } else top(e, a, cA, cB); put(dir(e, a, L.r, v), cA, cB, STILL); } }
+      if (VISTA_FAR_FIX && li2 === 0 && FX && !FX.coast) { /* VISTA_FAR_FIX: the far layer's own skyline, wherever its top runs level (see the switch) */
+        const hq = (k) => vvH((seed + Math.imul(k, 7919)) | 0, (cp.idx + 1) * 64 + 24), dry = !!(VV && VV.sh.pl) || S.course.theme === 'canyon' || S.course.theme === 'scrub', rr = L.r - 0.6;
+        const rAt = (az) => { const x = (((az + 180) % 360) + 360) % 360 / 360 * L.n, i = Math.floor(x) % L.n; return H[i] + (H[i + 1] - H[i]) * (x - Math.floor(x)); };
+        const lev = (az) => { let lo = 1e9, hi = -1e9; for (let d = -9; d <= 9; d += 3) { const e = rAt(az + d); lo = Math.min(lo, e); hi = Math.max(hi, e); } return Math.max(0, Math.min(1, 1 - (hi - lo - VFAR.lev[0]) / (VFAR.lev[1] - VFAR.lev[0]))); }; /* 1 where the ridge is level over 18 deg, 0 where it has relief of its own */
+        const wAt = (az) => { const dS = Math.abs(wrapD(az - CAMP_SKY.sunAz)); return Math.max(VFAR.under, Math.min(1, (dS - VFAR.sun[0]) / (VFAR.sun[1] - VFAR.sun[0]))) * (dry ? 1 : VFAR.soft) * Math.max(lev(az), CO && CO.sol ? Math.min(1, CO.g * CO.low(az) * 1.5) : 0, VV && VV.sh.pl ? 0.8 : 0); };
+        const fcN = col(VFULL.belt[0]), fcD = col(pd(VFULL.belt[1]));
+        const pc = (e, az, k, g) => { skyAt(e, az, 0, cA).lerp(tn, 1 - L.aer); warmOn(skyAt(e, az, 1, cB).lerp(td, 1 - L.aer), warm, 0.2 * sunW(e, az)); /* the ridge's own color; g = the share of the face's forest belt color under the rim */
+          if (g > 0) { const bf = FX.belt(az, 0) * g; skyAt(e, az, 0, fA).lerp(fcN, 1 - L.aer * 0.5); skyAt(e, az, 1, fB).lerp(fcD, 1 - L.aer * 0.5); cA.lerp(fA, bf); cB.lerp(fB, bf); }
+          cA.multiplyScalar(k); cB.multiplyScalar(k); put(dir(e, az, rr, v), cA, cB, STILL); };
+        const band = (a0, t0, b0, a1, t1, b1, k, g) => { pc(t0, a0, k, g); pc(t1, a1, k, g); pc(b1, a1, k, g); pc(t0, a0, k, g); pc(b1, a1, k, g); pc(b0, a0, k, g); };
+        let a = -180 + hq(0) * 8, k = 1;
+        while (a < 176) { const wd = (VFAR.w[0] + (VFAR.w[1] - VFAR.w[0]) * Math.pow(hq(k), 1.7)) * (dry ? 1 : VFAR.wide), hg = Math.min((VFAR.h[0] + (VFAR.h[1] - VFAR.h[0]) * hq(k + 1)) * wAt(a + wd / 2), Math.abs(wrapD(a + wd / 2 - CAMP_SKY.sunAz)) < VFAR.sun[0] + wd / 2 ? Math.max(0, sunCap + VFAR.top - rAt(a + wd / 2)) : 9), gap = VFAR.gap[0] + (VFAR.gap[1] - VFAR.gap[0]) * hq(k + 3) * hq(k + 3);
+          if (hg > 0.3) { const fl = dry ? Math.min(wd * 0.3, VFAR.fl[0] + VFAR.fl[1] * hq(k + 2)) : wd * (0.3 + 0.16 * hq(k + 2)), tl = (hq(k + 4) - 0.5) * 0.3, sg = Math.sign(wrapD(CAMP_SKY.sunAz - a)) || 1;
+            const ap = 0.5 + 0.5 * hq(k + 2), P = dry ? [[a - ap, 0], [a, hg * 0.3], [a + fl, hg * (1 + tl)], [a + wd * (0.35 + 0.3 * hq(k + 5)), hg * (1 - 0.1 * hq(k + 6))], [a + wd - fl, hg * (1 - tl)], [a + wd, hg * 0.26], [a + wd + ap, 0]] : [[a, 0], [a + wd * 0.17, hg * 0.46], [a + wd * 0.36, hg * 0.86], [a + wd * (0.48 + 0.14 * hq(k + 5)), hg], [a + wd * 0.8, hg * 0.6], [a + wd, 0]]; /* a butte: a talus apron, steep flanks, a nearly level top; a knoll: a broad rise in five facets */
+            for (let i = 0; i < P.length - 1; i++) { const [a0, h0] = P[i], [a1, h1] = P[i + 1], r0 = rAt(a0), r1 = rAt(a1), lit = 1 + Math.max(-1, Math.min(1, (h1 - h0) * 1.2 * sg)) * 0.09, cp0 = Math.min(VFAR.cap, h0 * 0.5), cp1 = Math.min(VFAR.cap, h1 * 0.5);
+              if (cp0 > 0 || cp1 > 0) band(a0, r0 + h0, r0 + h0 - cp0, a1, r1 + h1, r1 + h1 - cp1, lit * (dry ? VFAR.rim : 1), 0); /* the rim: the ridge's color (a darker cap rock on a butte) */
+              band(a0, r0 + h0 - cp0, r0 - 0.3, a1, r1 + h1 - cp1, r1 - 0.3, lit, 1); } } /* the body: the face's own belt color, so the shape is part of the hill */
+          a += wd + gap; k += 7; } }
       if (L.trees) { yield; const nT = Math.round((60 + 160 * s) * L.trees);
         for (let t = 0; t < nT; t++) { const az = R() * 360 - 180, j = Math.floor((az + 180) / 360 * L.n) % L.n, f = (az + 180) / 360 * L.n - j, e0 = H[j] + (H[j + 1] - H[j]) * f - 0.12;
           const th = (0.6 + R() * 1.0) * (0.7 + 0.3 * s), hw = th * (0.28 + R() * 0.12), jit = 0.92 + R() * 0.16;
           if (Math.abs(wrapD(az - CAMP_SKY.sunAz)) < 12 && (HP === H ? e0 : HP[j] + (HP[j + 1] - HP[j]) * f - 0.12) + th * 1.1 > sunCap) continue;
           conifer(az, e0, th * 1.1, hw * 1.15, L, H, tn, td, L.aer, jit, 0); } } }
+    if (VISTA_FAR_FIX && FX && !FX.coast && topsG.length > 1) { yield; /* VISTA_FAR_FIX: mesa steps, one or two benches in front of the far layer's face where it shows tall (see the switch) */
+      const L0 = LAYERS[0], H0 = topsG[0], dry = !!(VV && VV.sh.pl) || S.course.theme === 'canyon' || S.course.theme === 'scrub', hq = (k) => vvH((seed + Math.imul(k, 4409)) | 0, (cp.idx + 1) * 64 + 26);
+      const at = (H, n, az) => { const x = (((az + 180) % 360) + 360) % 360 / 360 * n, i = Math.floor(x) % n; return H[i] + (H[i + 1] - H[i]) * (x - Math.floor(x)); };
+      const nearTop = (az) => { let m = -90; for (let k = 1; k < topsG.length; k++) m = Math.max(m, at(topsG[k], LAYERS[k].n, az)); return m; };
+      const tw = VV && VV.tint ? [col(VV.tint[0]), col(VV.tint[1])] : [col('#8a8f7a'), col(pd('#5b4a70'))], fgN = fogN.clone().lerp(col(L0.dN), 0.25 * s), fgD = fogD.clone().lerp(col(L0.dD), 0.25 * s), ST = 0.75, NS = Math.round(360 / ST);
+      for (let b = 1; b <= 2; b++) { const rb = L0.r - 9 * b, tN = col(L0.dN).lerp(tw[0], 0.3 * b).multiplyScalar(1 - 0.09 * b), tD = col(L0.dD).lerp(tw[1], 0.3 * b).multiplyScalar(1 - 0.09 * b), aer = Math.max(0.1, L0.aer - 0.11 * b);
+        const BL = []; { let a = -180 + hq(b * 500) * 6, k = b * 500 + 1; while (a < 180) { const wd = 3 + 8 * hq(k); BL.push([a, a + wd, (hq(k + 1) - 0.5) * 0.7, 0.93 + 0.14 * hq(k + 2)]); a += wd; k += 3; } } /* blocks: a level offset and a light of their own */
+        const blk = (az) => { for (const B of BL) if (az >= B[0] && az < B[1]) return B; return BL[BL.length - 1]; };
+        const T = [], Bt = [], Lt = [];
+        for (let i = 0; i <= NS; i++) { const az = -180 + i * ST, e0 = at(H0, L0.n, az), eN = nearTop(az), E = e0 - eN, nb = E > VFAR.step[1] ? 2 : E > VFAR.step[0] ? 1 : 0, B = blk(az);
+          T.push(nb >= b ? Math.min(e0 - 0.7, e0 - E * b / (nb + 1) + B[2] * Math.min(1, E / 4)) : eN - 0.8); Bt.push(eN - 1.6); Lt.push(B[3]); }
+        const pb = (e, az, k, f) => { skyAt(e, az, 0, cA).lerp(tN, 1 - aer); warmOn(skyAt(e, az, 1, cB).lerp(tD, 1 - aer), warm, 0.2 * sunW(e, az)); if (f > 0) { cA.lerp(fgN, f); cB.lerp(fgD, f); } cA.multiplyScalar(k); cB.multiplyScalar(k); put(dir(e, az, rb, v), cA, cB, STILL); };
+        const qd = (a0, t0, b0, k0, f0, g0, a1, t1, b1, k1, f1, g1) => { pb(t0, a0, k0, f0); pb(t1, a1, k1, f1); pb(b1, a1, k1, g1); pb(t0, a0, k0, f0); pb(b1, a1, k1, g1); pb(b0, a0, k0, g0); };
+        for (let i = 0; i < NS; i++) { if (T[i] <= Bt[i] + 0.2 && T[i + 1] <= Bt[i + 1] + 0.2) continue; const a0 = -180 + i * ST, a1 = a0 + ST, sl = T[i + 1] - T[i], sg = Math.sign(wrapD(CAMP_SKY.sunAz - a0)) || 1;
+          const lit = (1 + Math.max(-1, Math.min(1, sl * 2.2 * sg)) * 0.1), k0 = Lt[i] * lit, k1 = Lt[i + 1] * lit, rm = dry ? VFAR.rim + 0.06 : 1, c0 = Math.min(0.26, (T[i] - Bt[i]) * 0.3), c1 = Math.min(0.26, (T[i + 1] - Bt[i + 1]) * 0.3), m0 = T[i] - Math.min(2.2, (T[i] - Bt[i]) * 0.6), m1 = T[i + 1] - Math.min(2.2, (T[i + 1] - Bt[i + 1]) * 0.6);
+          qd(a0, T[i], T[i] - c0, k0 * rm * 1.04, 0, 0, a1, T[i + 1], T[i + 1] - c1, k1 * rm * 1.04, 0, 0); /* the rim, lit a little (a darker cap rock on the dry themes) */
+          qd(a0, T[i] - c0, m0, k0, 0, 0.45, a1, T[i + 1] - c1, m1, k1, 0, 0.45); /* the face, fading into the valley haze */
+          qd(a0, m0, Bt[i], k0, 0.45, 0.8, a1, m1, Bt[i + 1], k1, 0.45, 0.8); } } }
     if (fam === 3 && tops.length > 1) { yield; /* a lake sliver: a pale strip of sky-lit water at the foot of the middle hills, seen past the forest line */
       const a0 = (R() - 0.5) * 80 - 20, span = 26 + R() * 30, N = 12;
       for (let k = 0; k < N; k++) { const u0 = a0 + span * k / N, u1 = a0 + span * (k + 1) / N, e0 = -14.6, e1 = -14.6 + 0.5 * Math.sin(Math.PI * (k + 0.5) / N);
@@ -73180,6 +73326,21 @@ const campSky = (() => {
           skyAt(e, az, 0, t1); skyAt(e, az, 1, t2); const hz = 0.55 * Math.exp(-dE / 0.12); cA.lerp(t1, Math.max(hz, 1 - wT)); cB.lerp(t2, Math.max(hz, 1 - wT)); };
         for (let i = 0; i < A.length - 1; i++) for (let k = 0; k < RW.length - 1; k++) { const e0 = FX.eh - RW[k], e1 = FX.eh - RW[k + 1];
           if (!VV || VV.sea) for (const [e, a] of [[e0, A[i]], [e0, A[i + 1]], [e1, A[i + 1]], [e0, A[i]], [e1, A[i + 1]], [e1, A[i]]]) { sea(e, a); put(dir(e, a, r, v), cA, cB, SEAK); } } /* VISTA_VARIETY: some camps before the last one see no far sea, only ranges */
+        if (VISTA_FAR_FIX && !FX.coast && (!VV || VV.sea)) { /* VISTA_FAR_FIX: three far ridges across the sea arc, one behind the other, standing on the water (see the switch) */
+          const dry = !!(VV && VV.sh.pl) || S.course.theme === 'canyon' || S.course.theme === 'scrub', tA = col('#a3aebb'), tB = col(pd('#7d6890')), sA = new THREE.Color(), sB = new THREE.Color(), ST = 0.5;
+          if (VV && VV.tint) { tA.lerp(col(VV.tint[0]), 0.4); tB.lerp(col(VV.tint[1]), 0.4); }
+          for (let q = 0; q < VFAR.far.length; q++) { const [rf, ft, hmin, hmax, aer, lum] = VFAR.far[q], hq = (k) => vvH((seed + Math.imul(k, 6151)) | 0, (cp.idx + 1) * 64 + 27 + q), eF = FX.eh - ft, BL = [];
+            { let a = lo - 2 + hq(0) * 4, k = 1; while (a < hi + 2) { const wd = dry ? 2.5 + 9 * Math.pow(hq(k), 1.5) : 5 + 12 * hq(k), gp = (dry ? 0.6 + 3 * hq(k + 3) * hq(k + 3) : 0.5 + 2 * hq(k + 3)); BL.push([a, a + wd, hmin + (hmax - hmin) * hq(k + 1), dry ? Math.min(wd * 0.3, 0.35 + 0.5 * hq(k + 2)) : wd * (0.3 + 0.15 * hq(k + 2)), (hq(k + 4) - 0.5) * 0.3, 0.94 + 0.12 * hq(k + 5)]); a += wd + gp; k += 7; } }
+            const hAz = (az) => { let h = hmin * 0.45, lt = 1; /* a low plinth, then the highest mesa or rise over this azimuth */
+              for (const [a0, a1, hg, fl, tl, bl] of BL) { if (az <= a0 || az >= a1) continue; const u = Math.min(1, (az - a0) / fl, (a1 - az) / fl), hh = hg * (dry ? u : u * u * (3 - 2 * u)) * (1 + tl * ((az - a0) / (a1 - a0) - 0.5) * 2); if (hh > h) { h = hh; lt = bl; } }
+              const dS = Math.abs(wrapD(az - sunA)), wE = Math.max(0, Math.min(1, (FX.aw + 3 - Math.abs(wrapD(az - FX.ac))) / 5)), sc = VFAR.fsun[2] + Math.max(0, dS - VFAR.fsun[0]) * (1.6 - VFAR.fsun[2]) / (VFAR.fsun[1] - VFAR.fsun[0]);
+              return [Math.min(h, Math.max(0.12, sc - 0.25 * q)) * wE, lt]; }; /* low under the sun (the nearer ridges lower still), full size from VFAR.fsun[1] deg off it */
+            const pf = (e, az, k, w) => { skyAt(e, az, 0, sA).lerp(tA, 1 - aer).multiplyScalar(k); skyAt(e, az, 1, sB).lerp(tB, 1 - aer).multiplyScalar(k); if (w > 0) { sea(e, az); sA.lerp(cA, w); sB.lerp(cB, w); } put(dir(e, az, rf, v), sA, sB, STILL); };
+            let az = lo - 1, P0 = hAz(az);
+            while (az < hi + 1) { const a1 = az + ST, P1 = hAz(a1); if (P0[0] > 0.02 || P1[0] > 0.02) { const sg = Math.sign(wrapD(sunA - az)) || 1, lit = lum * (1 + Math.max(-1, Math.min(1, (P1[0] - P0[0]) * 2.5 * sg)) * 0.08), k0 = lit * P0[1], k1 = lit * P1[1], m0 = eF + P0[0] * 0.35, m1 = eF + P1[0] * 0.35;
+                pf(eF + P0[0], az, k0 * 1.03, 0); pf(eF + P1[0], a1, k1 * 1.03, 0); pf(m1, a1, k1, 0.12); pf(eF + P0[0], az, k0 * 1.03, 0); pf(m1, a1, k1, 0.12); pf(m0, az, k0, 0.12); /* the upper face, lit a little at the top */
+                pf(m0, az, k0, 0.12); pf(m1, a1, k1, 0.12); pf(eF - 0.05, a1, k1, 0.75); pf(m0, az, k0, 0.12); pf(eF - 0.05, a1, k1, 0.75); pf(eF - 0.05, az, k0, 0.75); } /* the foot melts into the water's haze */
+              az = a1; P0 = P1; } } }
         /* a lake sliver at a middle camp: still water between two hill layers, lying on the nearer one's ridge */
         if (FX.ord > 0.15 && FX.ord < 0.9 && fam !== 3 && tops.length > 1) { yield;
           for (let at = 0; at < 10; at++) { const li = tops.length > 2 && Q2() < 0.5 ? 1 : 0, az0 = (Q2() - 0.5) * 70, span = 7 + Q2() * 9; let eL = -90, ok = true;
@@ -74330,8 +74491,8 @@ const CampMini = (() => {
       result: ['Cloudy night', 'Stargazer', 'Skywatcher', 'Astronomer'], cam: { pos: [0.3, 1.9, 1.5], look: [-0.2, 4.25, -0.4], hfov: 72 }, /* high and pitched ~51 deg up: mostly sky, the treetops only along the bottom edge, clear of the figures and the moon */
       fx: { cam: 'drift', amp: 0.7 }, fire: 0.3 }
   ].concat(WASHERS_ON ? [
-    WASHERS_V2 && WASHERS_V3 ? { id: 'washers', name: 'Washers', play: washersV3, secret: true, instr: HELP_TEXT_CLEAN ? { t: 'Hold when the ring is over the cup to lock your aim. Release to set the power and throw.', k: 'Hold Space when the ring is over the cup to lock your aim. Release to set the power and throw.', p: 'Hold A when the ring is over the cup to lock your aim. Release to set the power and throw.' } : { t: 'The hand sways: press when the gold ring sits on the cup to lock the aim. Hold to pull back and let go when the ring reaches the cup. Cup 3, box 1.', p: 'The hand sways: press A when the gold ring sits on the cup to lock the aim. Hold A to pull back and let go when the ring reaches the cup. Cup 3, box 1.' },
-      chips: HELP_TEXT_CLEAN ? [[['A'], 'Hold: aim'], [['A'], 'Release: throw']] : [[['A'], 'Press: aim'], [['A'], 'Hold, let go: throw']], help: [{ g: 'A', label: HELP_TEXT_CLEAN ? 'Hold: aim, release: throw' : 'Press: aim, hold: power', btn: 0 }], /* the pad chips say what the card says (HELP_TEXT_CLEAN) */
+    WASHERS_V2 && WASHERS_V3 ? { id: 'washers', name: 'Washers', play: washersV3, secret: true, instr: HELP_TEXT_CLEAN ? { t: 'Hold when the ring is over the cup to lock your aim. ' + (POLISH3 ? 'Let go' : 'Release') + ' to set the power and throw.', k: 'Hold Space when the ring is over the cup to lock your aim. ' + (POLISH3 ? 'Let go' : 'Release') + ' to set the power and throw.', p: 'Hold A when the ring is over the cup to lock your aim. ' + (POLISH3 ? 'Let go' : 'Release') + ' to set the power and throw.' } : { t: 'The hand sways: press when the gold ring sits on the cup to lock the aim. Hold to pull back and let go when the ring reaches the cup. Cup 3, box 1.', p: 'The hand sways: press A when the gold ring sits on the cup to lock the aim. Hold A to pull back and let go when the ring reaches the cup. Cup 3, box 1.' },
+      chips: HELP_TEXT_CLEAN ? [[['A'], 'Hold: aim'], [['A'], POLISH3 ? 'Let go: throw' : 'Release: throw']] : [[['A'], 'Press: aim'], [['A'], 'Hold, let go: throw']], help: [{ g: 'A', label: HELP_TEXT_CLEAN ? (POLISH3 ? 'Hold: aim, let go: throw' : 'Hold: aim, release: throw') : 'Press: aim, hold: power', btn: 0 }], /* the pad chips say what the card says (HELP_TEXT_CLEAN) */
       result: ['Clang', 'On the board', 'Cup collector', 'Ringer'], fx: { cam: 'drift', amp: 0.6, own: true }, fire: 0.3 } :
     WASHERS_V2 ? { id: 'washers', name: 'Washers', play: washersV2, secret: true, instr: HELP_TEXT_CLEAN ? { t: 'The hand sways. Hold to stop it when the gold ring sits on the cup: the washer goes.', p: 'The hand sways. Hold A to stop it when the gold ring sits on the cup: the washer goes.' } : { t: 'The hand sways. Hold to stop it when the gold ring sits on the cup: the washer goes. Cup 3, box 1.', p: 'The hand sways. Hold A to stop it when the gold ring sits on the cup: the washer goes. Cup 3, box 1.' },
       chips: [[['A'], 'Hold: toss']], help: [{ g: 'A', label: 'Hold: toss', btn: 0 }],
@@ -79775,7 +79936,7 @@ const CampMini = (() => {
         /* the tally, bottom left: points, cups, the first washer's how-to */
         const fs = 12, cw = (txt) => { c.font = `700 ${fs}px ${FONT.ui}`; return c.measureText(txt).width + 18; }, chip = (txt, x, y, hot) => { const w = cw(txt); c.fillStyle = hot ? 'rgba(232,118,46,0.92)' : 'rgba(20,14,10,0.74)'; c.beginPath(); c.roundRect(x, y, w, 26, 13); c.fill(); label(c, txt, x + w / 2, y + 13, fs, 'ui', '#fdf8ea'); return x + w + 6; };
         const x0 = Math.max(16, W * 0.025); let cx = chip(`${pts} pts`, x0, H - 40, true); cx = chip(`${cups} cup${cups === 1 ? '' : 's'}`, cx, H - 40);
-        if (n < 1 && (!WSH_TIP_ONCE || t > 3.4)) { const tip = HELP_TEXT_CLEAN ? (G.pad ? 'Hold A when the ring is over the cup. Release to throw.' : 'Hold when the ring is over the cup. Release to throw.') : G.pad ? 'Press A to lock the aim. Hold A to pull back, let go on the ring.' : 'Press to lock the aim. Hold to pull back, let go on the ring.'; /* the first washer's tip in the card's words (HELP_TEXT_CLEAN) */ if (cx + cw(tip) <= W - 16) chip(tip, cx, H - 40); else chip(tip, x0, H - 72); }
+        if (n < 1 && (!WSH_TIP_ONCE || t > 3.4)) { const tip = HELP_TEXT_CLEAN ? (G.pad ? 'Hold A when the ring is over the cup. ' + (POLISH3 ? 'Let go' : 'Release') + ' to throw.' : 'Hold when the ring is over the cup. ' + (POLISH3 ? 'Let go' : 'Release') + ' to throw.') : G.pad ? 'Press A to lock the aim. Hold A to pull back, let go on the ring.' : 'Press to lock the aim. Hold to pull back, let go on the ring.'; /* the first washer's tip in the card's words (HELP_TEXT_CLEAN) */ if (cx + cw(tip) <= W - 16) chip(tip, cx, H - 40); else chip(tip, x0, H - 72); }
       }
     };
   }
