@@ -371,7 +371,7 @@
   .seg.pal { width: 100%; } .seg.pal button { flex: 1 1 0; min-width: 0; padding: 0; min-height: 30px; background: var(--c); }
   .seg.pal button[aria-pressed="true"] { background: var(--c); box-shadow: inset 0 0 0 2px var(--acc1), inset 0 0 0 4px rgba(20,14,10,.85); }
   .seg.pal button + button { border-left: 1px solid rgba(20,14,10,.35); }
-  body:not(.touchy) .tOnly { display: none; }
+  body:not(.touchy) .tOnly { display: none; } body.setNoKeys #setScr .kk { display: none; }
   /* Settings: the Controls row at the top */
   #setScr .ctlRow { display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 0 6px 0 12px; margin-bottom: 4px; border: 1px solid rgba(255,178,74,.45); border-radius: 14px; background: rgba(255,178,74,.07); }
   #setScr .ctlRow > span:first-child { flex: 1; font: 500 14px var(--f-ui); } #setScr .ctlRow small { display: block; font-size: 11px; opacity: .6; }
@@ -950,7 +950,7 @@
   body.pol2 #setScr .hd { position: sticky; top: -14px; z-index: 3; margin: -14px -16px 6px; padding: 14px 16px 6px; border-radius: 22px 22px 0 0; background: #1b1410; } /* POLISH2: the Settings title and its Close button stay in reach while the list scrolls */
 </style>
 
-<body class="tapWait onTitle scrOn building"> <!-- first paint is already the tap-to-start title: no menu or touch pad flashes before the script runs -->
+<body class="onTitle scrOn"> <!-- first paint is already the title with its menu: no touch pad flashes before the script runs -->
 <canvas id="game"></canvas>
 <div id="vig"></div>
 <button id="bPause" aria-label="Pause"><s></s><s></s></button>
@@ -1010,7 +1010,7 @@
   <div class="favCard" id="tFavs" hidden><div class="fvh">Favorites</div><div class="fvl" id="tFavList"></div><button class="mb sm" id="tFavClose">Close</button></div>
   <div id="tapGo" role="status">Press to start</div>
   <button class="ico" id="mute" role="switch" aria-checked="true" aria-label="Sound"><svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg><svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M17 9l5 6M22 9l-5 6"/></svg></button>
-  <div class="foot"><span id="verTag">v0.61.1</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span><span id="medalTag"></span></div>
+  <div class="foot"><span id="verTag">v0.62.0</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span><span id="medalTag"></span></div>
   <button id="btnNew" hidden>New mountain</button>
 </div>
 
@@ -1046,7 +1046,6 @@
   <div class="srow" id="uizRow"><span>UI size</span><div class="seg" data-set="uiz"><button data-v="auto">Auto</button><button data-v="0.8">Small</button><button data-v="1.25">Medium</button><button data-v="1.5">Large</button><button data-v="2">X-Large</button></div></div>
   <div class="srow" id="hudzRow"><span>HUD size</span><div class="seg" data-set="hudz"><button data-v="1">Normal</button><button data-v="1.25">Large</button><button data-v="1.5">Larger</button></div></div>
   <div class="srow" id="hudoRow"><span>HUD outline <small>easier to read on bright sky</small></span><div class="seg" data-set="hudo"><button data-v="off">Off</button><button data-v="on">On</button></div></div>
-  <div class="srow"><span>FPS overlay</span><button class="sw" id="bFps" role="switch" aria-checked="false" aria-label="FPS overlay"></button></div>
   </div></div>
   <div class="sgs" data-sec="games"><button class="sgrp sgh" type="button" aria-expanded="false" aria-controls="sb_games"><span>Camp &amp; games</span><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5l4 4 4-4"/></svg></button><div class="sgb" id="sb_games" hidden>
   <div class="srow"><span>Mini games auto-finish</span><button class="sw" id="bMiniAuto" role="switch" aria-checked="false" aria-label="Mini games auto-finish"></button></div>
@@ -1067,6 +1066,8 @@
   <div class="srow"><span>Save progress code <small>copy it to move to another device</small></span><button class="mb sm" id="progCopy">Copy</button></div>
   <div class="srow"><span>Load progress code <small id="progMsg" role="status">paste a code, then Apply</small></span><div class="progIn"><input type="text" id="progIn" autocomplete="off" spellcheck="false" aria-label="Progress code"><button class="mb sm" id="progApply">Apply</button></div></div>
   <div class="srow" id="progAsk" hidden><span>This replaces the progress on this device</span><div class="progIn"><button class="mb sm" id="progNo">Cancel</button><button class="mb sm" id="progYes">Replace</button></div></div>
+  <div class="srow" id="resetRow"><span>Reset game <small id="resetMsg" role="status">erase everything and start over</small></span><button class="mb sm" id="resetGo">Reset</button></div>
+  <div class="srow" id="resetAsk" hidden><span>This erases all progress and settings on this device</span><div class="progIn"><button class="mb sm" id="resetNo">Cancel</button><button class="mb sm" id="resetYes">Reset</button></div></div>
   </div></div>
   <div class="sgrp">About</div>
   <div class="srow" id="infoRow"><span>Game info <small id="infoMsg" role="status">copy it for a bug report</small></span><button class="mb sm" id="infoCopy">Copy</button></div>
@@ -54319,7 +54320,7 @@ const gfxNote = (on) => {
   if (n) n.hidden = !on;
 };
 /* the public build (tools/build_single.py --public writes 1): no Classic feel and no test hooks. 0 = the source as it is worked on */
-const PUBLIC_BUILD = 0;
+const PUBLIC_BUILD = 1;
 /* ?debug in the URL exposes the debug hooks (window.__game and friends, the bot rider, the render switch, camera overrides) */
 const DEBUG = !PUBLIC_BUILD && /[?&]debug\b/.test(location.search);
 /* the desktop edition (tools/build_single.py --desktop writes 1): a Fullscreen row in Settings (and F11), Quit game in the pause card, and a copy of every
@@ -54370,6 +54371,16 @@ const TUT_TEXT_FIX = 1;
    'Let go' with Hold / Toggle. WORD_PALS: the animals are Pals in every player text, and the snake's line says when its skill changes. WORD_MISC: 'Alt music',
    'click to skip' on a mouse machine, the Controls page says what Back to camp does and that Enter restarts on the second press. 0 = the old words */
 const WORD_ACTIVITIES = 1, WORD_LETGO = 1, WORD_PALS = 1, WORD_MISC = 1;
+/* TAP_GATE: 1 = the title opens behind a 'Press to start' prompt whose first press builds the sound; 0 = the page opens straight on the title menu, and the
+   first click, tap, key or pad press anywhere builds the sound (a browser plays nothing before one, so the title is silent until then).
+   CAMP_BUFFS_ALL: 1 = the Settings row 'Camp buffs' (the old 'Full Belly' row, same saved value) switches every camp buff: with Off none is earned, none
+   applies and none is shown, the clocks of buffs already running hold, and On brings them back; 0 = the row switches Dinner's XP bonus only.
+   RESET_GAME: 1 = Settings > Progress has 'Reset game' (asks once more, then erases every saved key of the game, progress and settings alike, and reloads: the
+   game comes back as on its first launch); 0 = no such row.
+   SET_TRIM: 1 = Settings without the 'New mountain' row, the group 'Camp' (Camp buffs, Activity instructions, Activities auto-finish), Display in the order
+   Quality, UI size, HUD size, HUD outline, Blood, no key letters on a phone, Steering sensitivity only with the Pedal pad, Haptics only where the device
+   can vibrate; 0 = the rows as they were */
+const TAP_GATE = 0, CAMP_BUFFS_ALL = 1, RESET_GAME = 1, SET_TRIM = 1;
 
 const noRender = () => DEBUG && !!window.__norender;
 /* share codes: the switch and its state live up here because setScreen / favSync can run before the share block further down (see SHARE_V1 there) */
@@ -54770,6 +54781,8 @@ if (HAM_ON) SKILL.buffOf.hammer = 'jump';
    State: PROF.buff = { key: 1 } (the buffs that are on, readable by older builds) and PROF.bt = { key: seconds left }; saved in holdon.profile at the bank
    points (a camp, a finish, a buff earned), never mid-ride, so a quit or a reload goes back to the last camp's clocks like the trick points do. ---------- */
 const BUFF_T = 60, BUFF_CAP = 0.1;
+let campBuffsOffNow = false; /* the Settings switch 'Camp buffs' is Off (set where the kitchen setting is loaded and changed) */
+const buffsOff = () => !!CAMP_BUFFS_ALL && campBuffsOffNow; /* the one question every buff asks: no buff is earned, applied or shown, and the clocks hold */
 const BUFF_DEF = { speed: { stat: 'speed', add: 0.05, name: 'Speed', tag: '+5% speed' }, stoke: { stat: 'speed', add: 0.08, name: 'Speed boost', tag: '+8% speed boost' },
   accel: { stat: 'accel', add: 0.05, name: 'Acceleration', tag: '+5% accel' }, air: { stat: 'air', add: 0.05, name: 'Air control', tag: '+5% air' },
   jump: { stat: 'jump', add: 0.05, name: 'Jump height', tag: '+5% jump' }, landing: { stat: 'landing', add: 0.05, name: 'Landing stability', tag: '+5% landing' },
@@ -54889,14 +54902,14 @@ function profFold() { const cur = lsGet('holdon.profile'); if (cur === null || c
     for (const code of Object.keys(PROF.cx)) if (PROF.cx[code].k < (PROF.mtn[code] || 0)) delete PROF.cx[code]; } }
 function saveProfile() { if (TAB_SYNC) profFold(); if (PRUNE_CAPS) { trimOldest(PROF.mtn, MTN_KEEP); if (XP_CAMPKEY) trimOldest(PROF.cx, CX_KEEP); } const txt = JSON.stringify(PROF); if (lsSet('holdon.profile', txt) && TAB_SYNC) profMark(txt); }
 const MOD = { drag: 1, vcap: 1, hop: 1, turn: 1, grip: 1, flip: 1, det: 1, acc: 1, wrong: 1, loss: 1 };
-const buffOn = (k) => !PROF.classic && !!PROF.buff[k]; /* Classic feel: no buffs at all */
+const buffOn = (k) => !PROF.classic && !buffsOff() && !!PROF.buff[k]; /* Classic feel, or Camp buffs off: no buffs at all */
 const buffLeft = (k) => (PROF.buff[k] ? (PROF.bt[k] > 0 ? Math.min(buffMax(k), PROF.bt[k]) : buffMax(k)) : 0);
-function buffAdd(id) { let s = 0; for (const k of BUFF_KEYS) { const D = BUFF_DEF[k]; if (D.stat === id && PROF.buff[k]) s += D.add; } return s > BUFF_CAP ? BUFF_CAP : s; } /* every source of one stat, in a fixed order, capped */
+function buffAdd(id) { if (buffsOff()) return 0; let s = 0; for (const k of BUFF_KEYS) { const D = BUFF_DEF[k]; if (D.stat === id && PROF.buff[k]) s += D.add; } return s > BUFF_CAP ? BUFF_CAP : s; } /* every source of one stat, in a fixed order, capped */
 function recomputeMOD() { /* literal 1 at 10 pips with no buff (and in Classic feel): every hook then multiplies by exactly 1 */
   const cls = PROF.classic, m = {}; for (const id of SKILL.ids) { const b = cls ? 0 : COMPANIONS_ON ? buffAdd(id) + petsPerk(id) : buffAdd(id), base = cls ? 1 : skillFactor(id, PROF.pts[id]); m[id] = b ? base + b : base; }
   MOD.drag = m.speed === 1 ? 1 : 1 / (m.speed * m.speed); MOD.vcap = m.speed; MOD.acc = m.accel; MOD.turn = m.handling; MOD.grip = m.handling === 1 ? 1 : Math.sqrt(m.handling); MOD.hop = m.jump; MOD.flip = m.air;
   MOD.det = m.landing; MOD.wrong = m.landing === 1 ? 1 : 0.5 + 0.5 * m.landing; MOD.loss = m.landing === 1 ? 1 : 1 / m.landing; MOD.m = m; return MOD; }
-const statBuffOn = () => !PROF.classic && BUFF_KEYS.some(k => BUFF_DEF[k].stat && PROF.buff[k]);
+const statBuffOn = () => !PROF.classic && !buffsOff() && BUFF_KEYS.some(k => BUFF_DEF[k].stat && PROF.buff[k]);
 const statsActive = () => !PROF.classic && (SKILL.ids.some(id => PROF.pts[id] < SKILL.PIPS) || statBuffOn() || (COMPANIONS_ON && petsPerkOn())); /* best times go on a separate key while any stat is below max, a stat buff is on or an animal's perk is */
 function buffGive(k) { PROF.buff[k] = 1; PROF.bt[k] = buffMax(k); if (BUFF_DEF[k].stat) recomputeMOD(); } /* earned (again): a full clock, never more */
 function buffEnd(k) { if (!PROF.buff[k]) return; delete PROF.buff[k]; delete PROF.bt[k]; if (BUFF_DEF[k].stat) recomputeMOD(); }
@@ -55048,7 +55061,7 @@ function slotChargeAway() { /* the page is closing or going to the background mi
   if (QUIT_ONLY || !QUIT_COST || !S.course || !S.running || S.finished || S.camp || isTut() || !S.cp || !S.cp.lane) return; writeSlot(S.crashed ? null : { bails: S.bails + 1, tLost: S.tLost + S.tPend }); }
 addEventListener('pagehide', slotChargeAway); document.addEventListener('visibilitychange', () => { if (document.hidden) slotChargeAway(); });
 function buffTick(dt) { /* step(): the riding clock. MOD is rebuilt only when a stat buff runs out */
-  if (PROF.classic) return; let mod = false;
+  if (PROF.classic || buffsOff()) return; let mod = false;
   for (const k of BUFF_KEYS) { if (!PROF.buff[k]) continue; if (BUFF_DEF[k].camp) continue; /* a camp buff keeps no clock */ if (BUFF_DEF[k].stat) S.bRun = true; const t = buffLeft(k) - dt; if (t > 0) PROF.bt[k] = t; else { delete PROF.buff[k]; delete PROF.bt[k]; if (BUFF_DEF[k].stat) mod = true; } }
   if (mod) recomputeMOD();
   if (PROF.buff.lucky && S.course && S.segIdx >= luckyEnd()) buffEnd('lucky'); } /* Lucky toss runs out at the next camp along the trail or the finish */
@@ -55062,7 +55075,7 @@ const luckyEnd = () => { const a = (PROF.bt.lucky | 0) - 1; let e = S.course.fin
 const KITCHEN = { v: 1, mode: 'both' };
 const BELLY_XP0 = 7, BELLY_MAX = 10, BELLY = { trail: '', n: 0, camps: [] };
 function loadKitchen() { let o = null; try { o = JSON.parse(lsGet('holdon.kitchen') || 'null'); } catch (e) { o = null; } KITCHEN.mode = 'both'; if (!o || typeof o !== 'object') return;
-  if (o.mode === 'both' || o.mode === 'xp' || o.mode === 'off') KITCHEN.mode = o.mode; } /* an older meal / cooldown in the save is ignored, never deleted */
+  if (o.mode === 'both' || o.mode === 'xp' || o.mode === 'off') KITCHEN.mode = o.mode; campBuffsOffNow = KITCHEN.mode === 'off'; } /* an older meal / cooldown in the save is ignored, never deleted */
 function saveKitchen() { lsSet('holdon.kitchen', JSON.stringify(KITCHEN)); }
 const bellyOff = () => KITCHEN.mode === 'off';
 const bellyPct = () => (bellyOff() || BELLY.n <= 0 ? 0 : Math.min(BELLY_MAX, BELLY_XP0 + BELLY.n - 1)); /* the run XP bonus in % */
@@ -58998,7 +59011,7 @@ const CTX_LOST_PAUSE = 1; /* 1: while the GL context is lost the audio ducks and
 const CTX_RESTORE_PAUSE = 1; /* 1: when the GL context comes back mid-ride the ride is paused (the rider was riding blind while it was gone); 0: the ride carries on at once */
 const ROT_PAUSE_MINI = 1; /* 1: a camp mini game stands still under the 'Turn your phone' card, like the ride pauses; 0: its clock runs on behind the card */
 const ROT_MQ = matchMedia('(orientation: portrait) and (pointer: coarse) and (max-width: 760px)'); /* the same query that shows the #rotate card */
-const BUILD_CARD = 1; /* 1: a 'Building mountain' card is painted before a mountain build blocks the page (two frames ahead of it), on the first load too; 0: the page just stands still */
+const BUILD_CARD = 1; /* 1: a 'Building mountain' card is painted before a mountain build blocks the page (two frames ahead of it); the page itself opens on the title with no card; 0: the page just stands still */
 if (!BUILD_CARD) document.body.classList.remove('building');
 const IDLE_DRAW = 1; /* 1: with nothing to watch the picture is drawn less often: every other frame under the finish card, under the pause card and in a camp whose camera rests, every fourth once the paused picture has held still for a second; 0: every frame */
 const PAD_POLL_LEAN = 1; /* 1: the menus' fast pad latch (8 ms) only runs while a controller is connected; 0: it runs for the whole session */
@@ -59036,7 +59049,7 @@ const Q_LEVELS = [
   { pr: 0.75, cullK: 0.6, partK: 0.35, grassK: 0.45, fogK: 0.7, motes: false, name: 'Low' },
   { pr: 1.0, cullK: 0.8, partK: 0.6, grassK: 0.7, fogK: 0.85, motes: true, name: 'Medium' },
   { pr: MOBILE ? 1.5 : 2, cullK: 1, partK: 1, grassK: 1, fogK: 1, motes: true, name: 'High' }];
-try { const v = localStorage.getItem('holdon.quality'); if (v === 'auto' || v === '0' || v === '1' || v === '2') Q.mode = v; Q.showFps = localStorage.getItem('holdon.fps') === '1'; } catch (e) { }
+try { const v = localStorage.getItem('holdon.quality'); if (v === 'auto' || v === '0' || v === '1' || v === '2') Q.mode = v; } catch (e) { }
 const RESIZE_DPR = 1; /* 1: a window resize re-reads devicePixelRatio (browser zoom, a monitor change); 0: the ratio only changes with the quality level */
 function resize() { const w = innerWidth, h = innerHeight;
   if (RESIZE_DPR) { const pr = Math.min(Q_LEVELS[Q.level].pr, window.devicePixelRatio || 1); if (pr !== renderer.getPixelRatio()) renderer.setPixelRatio(pr); }
@@ -69488,7 +69501,7 @@ function bail(reason, manual = false) {
   S.crashDrop = dropCrashAt();
   S.crashed = true; S.crashT = manual ? 0.25 : 2.5; S.streak = 0; S.trickPts = 0; S.airT = 0;
   let kept = -1; if (!manual && buffOn('steady')) { kept = S.tPend; S.tBank += S.tPend; S.steadyKept = (S.steadyKept || 0) + S.tPend; buffEnd('steady'); } /* Steady Bail: this crash banks the pending points (once) */
-  else S.tLost += S.tPend; S.tPend = 0; if (!manual) { buffEnd('glow'); buffEnd('lucky'); } /* Glow Streak ends at the first real crash (a manual back-to-camp keeps it, like Steady Bail) */ /* the rider goes back to the last camp: trick points earned since then are not banked */
+  else S.tLost += S.tPend; S.tPend = 0; if (!manual && !buffsOff()) { buffEnd('glow'); buffEnd('lucky'); } /* Glow Streak ends at the first real crash (a manual back-to-camp keeps it, like Steady Bail) */ /* the rider goes back to the last camp: trick points earned since then are not banked */
   if (!manual) S.bails++;
   S.limbs.arms.on = S.limbs.legs.on = false; S.limbs.arms.grab = S.limbs.legs.grab = false;
   S.pitchVel = (Math.random() - 0.5) * 8; S.vel.y = Math.max(S.vel.y, 0) + 1.2;
@@ -70730,9 +70743,9 @@ function updateHud() {
     setCls(el, 'live', live); setCls(el, 'calm', live && !inAirPts && tNow - scoreAt > 3000); }
   for (const [pair, id] of [['legs', 'lLegs'], ['arms', 'lArms']]) { const L = S.limbs[pair], el = $(id); setCls(el, 'off', !L.on && !L.grab); setCls(el, 'grab', L.grab && !L.on); }
   { const w = (100 * Math.min(1, S.segIdx / S.course.finishIdx)).toFixed(1) + '%'; if (hudLast.prog !== w) { hudLast.prog = w; $('prog').style.width = w; } }
-  { let key = ''; if (!PROF.classic) for (const k of BUFF_KEYS) if (PROF.buff[k]) key += (key ? ' ' : '') + k + Math.ceil(buffLeft(k)); const fb = bellyPct(); if (fb) key += ' fb' + BELLY.n + '.' + fb; /* the buff chips: redrawn when a clock passes a whole second */
+  { let key = ''; if (!PROF.classic && !buffsOff()) for (const k of BUFF_KEYS) if (PROF.buff[k]) key += (key ? ' ' : '') + k + Math.ceil(buffLeft(k)); const fb = bellyPct(); if (fb) key += ' fb' + BELLY.n + '.' + fb; /* the buff chips: redrawn when a clock passes a whole second */
     if (hudLast.buffs !== key) { hudLast.buffs = key; const el = $('hBuffs'); el.hidden = !key; let h = '';
-      if (!PROF.classic) for (const k of BUFF_KEYS) { if (!PROF.buff[k]) continue; const t = Math.ceil(buffLeft(k)), D = BUFF_DEF[k];
+      if (!PROF.classic && !buffsOff()) for (const k of BUFF_KEYS) { if (!PROF.buff[k]) continue; const t = Math.ceil(buffLeft(k)), D = BUFF_DEF[k];
         if (D.camp) { h += `<span class="bc" data-k="${k}" title="${D.name}: until the next camp"><span class="rg"><svg viewBox="0 0 18 18"><circle class="a" cx="9" cy="9" r="8"/></svg>${buffIco(k, 'i')}</span></span>`; continue; } /* a camp buff (Lucky toss): a full ring, no clock */
         h += `<span class="bc${t <= 10 ? ' low' : ''}" data-k="${k}" title="${D.name}: ${t} s of riding left"><span class="rg"><svg viewBox="0 0 18 18"><circle class="t" cx="9" cy="9" r="8"/><circle class="a" cx="9" cy="9" r="8" pathLength="100" stroke-dasharray="100" stroke-dashoffset="${(100 - 100 * t / buffMax(k)).toFixed(1)}" transform="rotate(-90 9 9)"/></svg>${buffIco(k, 'i')}</span><b>${t}</b></span>`; }
       if (fb) h += `<span class="bc fb" data-k="belly" title="Full Belly: +${fb}% XP at the finish of this trail (${BELLY.n} dinner${BELLY.n === 1 ? '' : 's'})">${buffIco('belly')}<b>×${BELLY.n} +${fb}%</b></span>`;
@@ -71156,6 +71169,10 @@ function progParse(code) { /* returns { keys } or { err } */
   if (size > PROG_CAP) return { err: 'Code is too big' };
   return { keys };
 }
+function resetGame() { const wipe = () => { for (const k of holdonKeys()) { try { localStorage.removeItem(k); } catch (e) { } } }; /* every key of the game: progress and settings */
+  try { localStorage.setItem('holdon.__prog', '1'); localStorage.removeItem('holdon.__prog'); } catch (e) { return false; }
+  wipe(); addEventListener('pagehide', () => { wipe(); deskFlush(); }); /* nothing the page writes on its way out survives; the desktop copy follows */
+  deskFlush(); try { location.reload(); } catch (e) { } return true; }
 function progApply(keys) { try { localStorage.setItem('holdon.__prog', '1'); localStorage.removeItem('holdon.__prog'); } catch (e) { return false; }
   if (SAVE_SAFE) { /* all or nothing: remember what is stored, free the keys the code does not carry, write the new ones, and put everything back if any step throws */
     const old = progKeys();
@@ -71173,6 +71190,12 @@ function progApply(keys) { try { localStorage.setItem('holdon.__prog', '1'); loc
   $('progNo').addEventListener('click', () => { ask(false); msg('paste a code, then Apply'); });
   $('progYes').addEventListener('click', () => { if (!pending) return; if (!progApply(pending)) msg('Could not write the progress', true); });
   $('progIn').addEventListener('input', () => { ask(false); msg('paste a code, then Apply'); });
+  /* RESET_GAME: everything goes: what the player earned (profile, Pals, best times, camp saves, favorites, the Daily record, hints seen, the rider's look, the
+     build memo) and what the device is set to (sound, controls, display, ride settings). The page reloads, so the game starts as on its first launch */
+  if (RESET_GAME) { const rAsk = (on) => { $('resetAsk').hidden = !on; if (on) gpMenu.onScreen(); };
+    $('resetGo').addEventListener('click', () => rAsk($('resetAsk').hidden)); $('resetNo').addEventListener('click', () => rAsk(false)); $('setClose').addEventListener('click', () => rAsk(false));
+    $('resetYes').addEventListener('click', () => { if (!resetGame()) { $('resetMsg').textContent = 'Could not reset'; $('resetMsg').style.color = '#ff9b8a'; rAsk(false); } }); }
+  else $('resetRow').hidden = true;
   $('progIn').addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') $('progApply').click(); }); /* typing and Ctrl+V never reach the ride's keys */
   if (DEBUG) window.__prog = { exp: progExport, parse: progParse };
 }
@@ -71182,8 +71205,8 @@ function progApply(keys) { try { localStorage.setItem('holdon.__prog', '1'); loc
    unlocking listens on all four events until a touchend / click / keydown has run (iOS only unlocks from those). ?debug&notap (or window.__noTap) skips the prompt for the tests. */
 const tapGate = (() => {
   const EV = ['pointerdown', 'touchend', 'click', 'keydown'], MODK = ['Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'AltGraph', 'OS', 'ContextMenu'];
-  let wait = !(DEBUG && (window.__noTap || /[?&]notap\b/.test(location.search))), swallow = 0, off = false;
-  document.body.classList.toggle('tapWait', wait); /* the static body starts with tapWait; the test path (?debug&notap) clears it */
+  let wait = !!TAP_GATE && !(DEBUG && (window.__noTap || /[?&]notap\b/.test(location.search))), swallow = 0, off = false; /* TAP_GATE 0: no prompt; the listeners below still build the sound on the first press */
+  document.body.classList.toggle('tapWait', wait); /* the prompt's own class (the test path ?debug&notap clears it) */
   const reveal = () => { if (!wait) return; wait = false; swallow = performance.now() + 700; document.body.classList.remove('tapWait'); gpMenu.onScreen(); };
   const done = () => { if (off) return; off = true; for (const ev of EV) removeEventListener(ev, onEv, true); };
   function onEv(e) {
@@ -71408,7 +71431,7 @@ const SETTERS = {
   quality: (v) => setQualityMode(v),
   uiz: (v) => { const k = parseFloat(v); if (Number.isFinite(k) && k >= 0.5 && k <= 3) UIO.uiz = k; else delete UIO.uiz; saveUIO(); applyUIO(); },
   instr: (v) => { if (v === 'auto' || v === 'always' || v === 'never') { try { localStorage.setItem('holdon.instr', v); } catch (e) { } } }, /* mini-game how-to: Auto (waits for a tap the first time per game), Always, Never (the old timed line) */
-  meal: (v) => { if (v === 'both' || v === 'xp' || v === 'off') { KITCHEN.mode = v; saveKitchen(); } }, /* 'Full Belly': On / Off (Dinner's XP bonus) */
+  meal: (v) => { if (v === 'both' || v === 'xp' || v === 'off') { KITCHEN.mode = v; campBuffsOffNow = v === 'off'; saveKitchen(); if (CAMP_BUFFS_ALL) recomputeMOD(); } }, /* 'Camp buffs' (CAMP_BUFFS_ALL; before it 'Full Belly', Dinner's XP bonus): On / Off; a stat buff starts or stops counting at once */
   trains: (v) => { if (TRAIN_MODES.includes(v)) { TRAINS.mode = v; saveTrains(); if (trainsOff()) trainRearm(false); } }, /* how often trains run; Off takes every train away at once (TRAINS_OFF_SAME: the mountain itself stays as it is) */
 };
 if (HUD_SIZE) Object.assign(SETTERS, {
@@ -71416,7 +71439,7 @@ if (HUD_SIZE) Object.assign(SETTERS, {
   hudo: (v) => { if (v === 'on' || v === 'off') { HUDZ.ol = v === 'on' ? 1 : 0; saveHudz(); applyHudz(); } },
 });
 const toggleFps = () => { Q.showFps = !Q.showFps; try { localStorage.setItem('holdon.fps', Q.showFps ? '1' : '0'); } catch (e) { } syncSettings(); };
-$('bFps').addEventListener('click', toggleFps);
+if ($('bFps')) $('bFps').addEventListener('click', toggleFps); /* the row is in tester builds only */
 
 
 $('setScr').addEventListener('click', e => { const b = e.target.closest('.seg button'); if (!b) return; const k = b.parentElement.dataset.set; if (SETTERS[k]) { SETTERS[k](b.dataset.v); syncSettings(); } });
@@ -71432,9 +71455,10 @@ const SETSEC = (() => { let o = {}; try { o = JSON.parse(localStorage.getItem('h
   return { open: (id, on) => { const g = document.querySelector(`#setScr .sgs[data-sec="${id}"]`); if (g) apply(g, on !== false); } }; })();
 function syncSettings() {
   rideSetSave();
+  if (SET_TRIM) { const sr = document.querySelector('#setScr .seg[data-set="sens"]'), r = sr && sr.closest('.srow'); if (r) r.hidden = !zonesOn; } /* the touch stick is the Pedal pad's */
   const vals = { steer: steerScreen ? 'screen' : 'bike', cam: String(camPreset), mode: S.mode, layout: zonesOn ? 'zones' : 'buttons', hand: UIO.hand, pedal: UIO.pedal, size: String(UIO.size), sens: sensShown(), quality: Q.mode, uiz: uizK() ? String(uizK()) : 'auto', meal: bellyOff() ? 'off' : 'xp', instr: instrMode(), trains: TRAINS.mode };
   if (HUD_SIZE) { vals.hudz = String(HUDZ.z); vals.hudo = HUDZ.ol ? 'on' : 'off'; }
-  $('bFps').setAttribute('aria-checked', String(!!Q.showFps)); $('qNow').textContent = Q.mode === 'auto' ? 'auto · ' + Q_LEVELS[Q.level].name.toLowerCase() : Q_LEVELS[Q.level].name.toLowerCase();
+  if ($('bFps')) $('bFps').setAttribute('aria-checked', String(!!Q.showFps)); $('qNow').textContent = Q.mode === 'auto' ? 'auto · ' + Q_LEVELS[Q.level].name.toLowerCase() : Q_LEVELS[Q.level].name.toLowerCase();
   for (const g of document.querySelectorAll('#setScr .seg')) for (const b of g.children) b.setAttribute('aria-pressed', String(b.dataset.v === vals[g.dataset.set]));
   const snd = !sfx.isMuted(); $('bMute').setAttribute('aria-checked', String(snd)); $('mute').setAttribute('aria-checked', String(snd)); $('pmSnd').setAttribute('aria-checked', String(snd));
   $('bBlood').setAttribute('aria-checked', String(bloodOn)); $('bHaptic').setAttribute('aria-checked', String(!!UIO.haptics)); $('bClassic').setAttribute('aria-checked', String(!!sfx.classic())); $('bMiniAuto').setAttribute('aria-checked', String(miniAutoOn()));
@@ -71792,7 +71816,7 @@ const inDev = (() => {
   addEventListener('gamepadconnected', (e) => { setPs(psId(e.gamepad)); set('pad'); });
   addEventListener('gamepaddisconnected', (e) => { const was = dev === 'pad', mine = !PAD_ACTIVE || padActIdx < 0 || !e || !e.gamepad || e.gamepad.index === padActIdx; let any = false; try { for (const g of getPads()) if (g && g.connected !== false && !(PAD_UNPLUG_PAUSE && e && e.gamepad && g.index === e.gamepad.index)) any = true; } catch (e2) { /* none */ } if (!any) clearPad();
     if (PAD_UNPLUG_PAUSE && was && mine && screen === null && S.running && !S.paused && !S.finished && !S.camp) openPause(); }); /* the pad in use went away mid-ride: pause instead of rolling on with no hands on anything */
-  const poll = () => { let n = 0; const P = padScan(); if (PAD_AUDIO && padEdge && !tapGate.waiting && !document.hidden && !sfx.running()) sfx.resume(); /* a pad press before the sound runs: ask again (a refusal is silent) */
+  const poll = () => { let n = 0; const P = padScan(); if (PAD_AUDIO && padEdge && !tapGate.waiting && !document.hidden && !sfx.running()) { if (TAP_GATE) sfx.resume(); else sfx.unlock(); } /* a pad press before the sound runs: ask again (a refusal is silent); with no start prompt this press may be the first one, so it builds the sound too */
     for (const g of P) { if (!g || g.connected === false) continue; n++; const on = !!padHotF[g.index];
     if (on || n > nPads) { setPs(psId(g)); nPads = n; set('pad'); return; } }
     if (n < nPads) nPads = n; }; /* a pad that vanishes without the disconnect event is not treated as unplugged */
@@ -71830,6 +71854,13 @@ if (WORDING_FIX && !WORD_LETGO) { const r = document.querySelector('.seg[data-se
 if (WORD_ACTIVITIES) { const b = $('bMiniAuto'), g = document.querySelector('.sgs[data-sec="games"] .sgh span'), i = document.querySelector('.seg[data-set="instr"]');
   if (b) { b.setAttribute('aria-label', 'Activities auto-finish'); b.previousElementSibling.textContent = 'Activities auto-finish'; } if (g) g.textContent = 'Camp & Activities';
   const sp = i && i.previousElementSibling; if (sp && sp.firstChild && sp.firstChild.nodeType === 3) sp.firstChild.textContent = 'Activity instructions '; }
+if (CAMP_BUFFS_ALL) { const m = document.querySelector('#setScr .seg[data-set="meal"]'), sp = m && m.previousElementSibling; if (sp) sp.textContent = 'Camp buffs'; }
+if (SET_TRIM) { const sc = $('setScr'), row = (el) => (el ? el.closest('.srow') : null), seg = (k) => row(sc.querySelector('.seg[data-set="' + k + '"]'));
+  const dice = row($('bDice')); if (dice) dice.hidden = true; /* New mountain is an action: the title and the pause card have it */
+  const g = sc.querySelector('.sgs[data-sec="games"] .sgh span'), gb = $('sb_games'); if (g) g.textContent = 'Camp'; if (gb) for (const el of [seg('meal'), seg('instr'), row($('bMiniAuto'))]) if (el) gb.appendChild(el);
+  const db = $('sb_display'); if (db) for (const el of [seg('quality'), $('uizRow'), $('hudzRow'), $('hudoRow'), row($('bBlood')), row($('bFps'))]) if (el) db.appendChild(el);
+  if (ZONES_OK) document.body.classList.add('setNoKeys'); /* a phone has no keys to name */
+  const hp = row($('bHaptic')); if (hp && typeof navigator.vibrate !== 'function') hp.hidden = true; }
 if (WORD_MISC) { const c = $('bClassic'); if (c) { c.setAttribute('aria-label', 'Alt music'); c.previousElementSibling.textContent = 'Alt music'; } if ($('bBlood')) $('bBlood').setAttribute('aria-label', 'Blood');
   if ($('eSkip')) $('eSkip').textContent = devWord('skip');
   CTL.k_back[2] = 'Go back to your last camp.'; CTL.p_B[2] = 'Go back to the last camp you saved.'; CTL.k_foot[0] = CTL.k_foot[0].replace('<kbd>Enter</kbd> restart', '<kbd>Enter</kbd> twice: restart'); }
@@ -73981,11 +74012,11 @@ const campUI = (() => {
       <div class="sks${PROF.classic ? ' off' : ''}">${rows}</div>${PAD_MENU_FIX ? hint([[['dpadH'], 'Adjust'], [['dpadV'], 'Next row'], [['B'], 'Back']]) : ''}
       <div class="foot"><button class="mb sm" id="ckResetAll" ${used ? '' : 'disabled'}>Reset</button><button class="mb sm pri" id="ckConfirm" ${dirty ? '' : 'disabled'}>Confirm</button></div>`; };
   /* ---- Activities ---- */
-  const buffLine = (id) => { const k = SKILL.buffOf[id]; if (!k) return '&nbsp;'; /* the card's buff: icon + what it does (a score of CampMini's buffMin earns it) */
+  const buffLine = (id) => { const k = SKILL.buffOf[id]; if (!k || buffsOff()) return '&nbsp;'; /* the card's buff: icon + what it does (a score of CampMini's buffMin earns it) */
     if (k === 'belly') { const here = S.camp && bellyHere(S.camp.cp), p = bellyPct(); return buffIco('belly') + (bellyOff() ? 'Full Belly off' : here ? 'Cooked here · +' + p + '% XP' : p ? 'Full Belly +' + p + '% (×' + BELLY.n + ')' : 'Full Belly · +' + BELLY_XP0 + '% XP'); }
     if (BUFF_DEF[k].camp) return buffIco(k) + BUFF_DEF[k].name + ' · to next camp';
     return buffIco(k) + BUFF_DEF[k].tag + ' · ' + buffMax(k) + ' s'; };
-  const buffTip = (id) => { const k = SKILL.buffOf[id]; if (!k) return ''; /* the card's tooltip: the whole rule */
+  const buffTip = (id) => { const k = SKILL.buffOf[id]; if (!k || buffsOff()) return ''; /* the card's tooltip: the whole rule */
     return (k === 'belly' ? 'Full Belly: +' + BELLY_XP0 + '% run XP to the end of this trail, +1% for each further dinner (one per camp, up to +' + BELLY_MAX + '%)'
       : k === 'steady' ? 'Steady Bail: your next crash keeps its trick points (' + BUFF_T + ' s of riding)' : k === 'lucky' ? 'Lucky toss: every rough landing counts as clean until the next camp or the finish (a crash ends it)' : (k === 'glow' ? 'Glow Streak: trick points x1.5 for ' + buffMax(k) + ' s of riding, until your first crash' : BUFF_DEF[k].tag + ' for ' + BUFF_T + ' s of riding')) + '. ' + Math.round(CM().buffMinOf(id) * 100) + '% earns it.'; };
   const actHTML = () => { const M = CM(), ids = actIds(), lk = isTut(); V.act = Math.max(0, Math.min(ids.length - 1, V.act)); /* lk: the tutorial camp shows the cards grayed out (browsable, never started) and a note */
@@ -74071,13 +74102,13 @@ const campUI = (() => {
       gameOff();
       if (aborted || !S.camp) { gameId = null; if (S.camp) { render(); focusDef(); } return; }
       const fac = miniFactor(id); repeats[id] = (repeats[id] || 0) + 1; sessionPlays++; const xp = campXpPay(S.camp.cp, id, XP_POOL_SCORE && XP_CAP_ON ? Math.min(30 * fac, campPool()) * score : 30 * fac * score, true); /* the camp's XP pool caps it (campXpPay) */ const best = PROF.best[id] || 0; const zfree = id === 'zen' && !!(r && r.data && r.data.free); /* a free-rake garden is unscored: XP only, no best, no buff */ if (score > best && !zfree) PROF.best[id] = score;
-      let buff = ''; const bs = SKILL.buffOf[id]; if (bs && bs !== 'belly' && !zfree) { if (score >= M.buffMinOf(id) - 1e-9) { const again = !!PROF.buff[bs]; buffGive(bs); if (BUFF_DEF[bs].camp) PROF.bt[bs] = S.camp.cp.idx + 1; /* a camp buff remembers where it was earned */ buff = BUFF_DEF[bs].name + (BUFF_DEF[bs].add ? ' +' + Math.round(BUFF_DEF[bs].add * 100) + '%' : '') + (BUFF_DEF[bs].camp ? ' · until the next camp' : ' · ' + buffMax(bs) + ' s of riding') + (again ? ' (refreshed)' : ''); } else buff = (score >= M.thresholdsOf(id)[1] - 1e-9 ? 'So close: ' : '') + Math.round(M.buffMinOf(id) * 100) + '% earns ' + BUFF_DEF[bs].name; } /* a timed buff: a full clock, refreshed if it is on */
+      let buff = ''; const bs = SKILL.buffOf[id]; if (bs && bs !== 'belly' && !zfree && !buffsOff()) { if (score >= M.buffMinOf(id) - 1e-9) { const again = !!PROF.buff[bs]; buffGive(bs); if (BUFF_DEF[bs].camp) PROF.bt[bs] = S.camp.cp.idx + 1; /* a camp buff remembers where it was earned */ buff = BUFF_DEF[bs].name + (BUFF_DEF[bs].add ? ' +' + Math.round(BUFF_DEF[bs].add * 100) + '%' : '') + (BUFF_DEF[bs].camp ? ' · until the next camp' : ' · ' + buffMax(bs) + ' s of riding') + (again ? ' (refreshed)' : ''); } else buff = (score >= M.thresholdsOf(id)[1] - 1e-9 ? 'So close: ' : '') + Math.round(M.buffMinOf(id) * 100) + '% earns ' + BUFF_DEF[bs].name; } /* a timed buff: a full clock, refreshed if it is on */
       saveProfile(); soakNote(id); const L0 = levelOfXp(PROF.xp); addXp(xp); if (xp > 0 && XP_CAP_ON) writeSlot(); /* the pool spent here survives a reload */ const L1 = levelOfXp(PROF.xp); const st = M.stars(score, id); /* the same stars the game's own end card showed */
       let fly = null; if (id === 'fly' && r && r.data) { fly = flySave(seedToCode(S.course.seed), S.camp.cp.idx, r.data); flyLights.build(S.camp.cp); } /* the catch stays at this camp as soft lights */
       let zen = null; if (id === 'zen' && r && r.data) { zen = r.data; const zs = zenSave(zen); zen.best = zen.free ? 0 : zs.b[zen.tpl] || 0; zenShotSet(zen.img); } /* the design's best; the garden's picture for Save image */
       let cairn = null; if (id === 'cairn' && r && r.data) { cairn = r.data; cairn.bestH = cairnSave(cairn).h; cairnShotSet(cairn.img); } /* the best height; the cairn's picture for Save image */
       let ham = null; if (id === 'hammer' && HAM_ON && r && r.data && HAM_KINDS.includes(r.data.kind)) ham = { name: HAM_NAME[r.data.kind], here: hamCamp.add(S.camp.cp, r.data.kind) }; /* the finished piece stands at this camp until the rider leaves it */
-      let fed = null; if (id === 'dinner') fed = score >= M.buffMinOf('dinner') - 1e-9 && bellyAdd(S.camp.cp) ? 'Full Belly ' + (bellyOff() ? 'off in Settings' : '+' + bellyPct() + '% XP') + (BELLY.n > 1 ? ' · ×' + BELLY.n : '') : (score >= M.thresholds[1] - 1e-9 ? 'So close: ' : '') + Math.round(M.buffMinOf('dinner') * 100) + '% earns Full Belly'; /* one per camp; it lasts to the end of the trail */
+      let fed = null; if (id === 'dinner' && !buffsOff()) fed = score >= M.buffMinOf('dinner') - 1e-9 && bellyAdd(S.camp.cp) ? 'Full Belly ' + (bellyOff() ? 'off in Settings' : '+' + bellyPct() + '% XP') + (BELLY.n > 1 ? ' · ×' + BELLY.n : '') : (score >= M.thresholds[1] - 1e-9 ? 'So close: ' : '') + Math.round(M.buffMinOf('dinner') * 100) + '% earns Full Belly'; /* one per camp; it lasts to the end of the trail */
       if (CAMP_RESULT_PAY && S.camp.phase === 'out') { gameId = null; return; } /* paid on the way out of camp: no card to show */
       S.camp.tab = 'act'; place(); pn.dataset.tab = 'res';
       body.innerHTML = `<div class="pt"><b>${esc(M.names[id] || id)}</b><span class="m">${score > best && best > 0 ? 'New best!' : 'Done'}</span></div><div class="mres"><div class="big">${zfree ? '' : starsRow(st, 30)}</div><div class="lvl">${zfree ? 'Free rake' : campPct(score) + '%'}</div>
@@ -74090,7 +74121,7 @@ const campUI = (() => {
   /* the walk-in: S.camp.ready === false keeps the panel / tabs / header hidden; the gamepad ring lands once it shows */
   let rdyRaf = 0; const rdy = () => { rdyRaf = 0; if (!S.camp) { scr.classList.remove('wait'); return; } const w = S.camp.ready === false; if (!w && !ind.offsetWidth && tabRow.offsetWidth) place(); /* the bar was laid out while the screen was hidden */ if (w !== scr.classList.contains('wait')) { scr.classList.toggle('wait', w); if (!w) { place(); focusDef(); } } rdyRaf = requestAnimationFrame(rdy); };
   const open = () => { draft = null; visit.n = 0; V.sub = 'home'; V.last = 'rider'; V.page = 'col'; for (const k in repeats) delete repeats[k]; if (S.camp) { S.camp.tab = 'look'; S.camp.camNudge = null; } scr.classList.toggle('wait', !!(S.camp && S.camp.ready === false)); header(); render(); focusDef(); if (!rdyRaf) rdyRaf = requestAnimationFrame(rdy); };
-  const leaveNote = () => { if (S.camp) S.camp.camNudge = null; CampHelp.clear(); const b = BUFF_KEYS.filter(k => PROF.buff[k]); if (b.length && !PROF.classic) popup('BUFFED', b.map(k => BUFF_DEF[k].name + (BUFF_DEF[k].add ? ' +' + Math.round(BUFF_DEF[k].add * 100) + '%' : '')).join(' · '), 'var(--acc1)'); };
+  const leaveNote = () => { if (S.camp) S.camp.camNudge = null; CampHelp.clear(); const b = BUFF_KEYS.filter(k => PROF.buff[k]); if (b.length && !PROF.classic && !buffsOff()) popup('BUFFED', b.map(k => BUFF_DEF[k].name + (BUFF_DEF[k].add ? ' +' + Math.round(BUFF_DEF[k].add * 100) + '%' : '')).join(' · '), 'var(--acc1)'); };
   addEventListener('keydown', (e) => { if (screen !== 'camp' || game || !S.camp) return; if (e.target && e.target.tagName === 'INPUT' && e.target.type !== 'range') return;
     if (bzOn() && (keyName(e) === 'b' || e.key === 'Enter' || e.key === ' ') && !e.repeat) { e.preventDefault(); stopGame(false); return; } if (keyName(e) === 'b' && !e.repeat && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); bzEnter(); return; } /* B = the notice board close-up (Esc / Backspace / pad B leave it through back()) */
     if (e.key === 'PageUp' || e.key === 'PageDown') { e.preventDefault(); gpMenu.focus(gpMenu.cur || $('campLeave')); tabStep(e.key === 'PageUp' ? -1 : 1); } }); /* keyboard: Page Up / Down = LB / RB. Esc / Backspace = B is the ride key handler's camp branch (campUI.back()); handling it here too would fire back() twice: Esc in a mini game would stop it AND leave camp */
@@ -74165,7 +74196,7 @@ function reseedRider() { S.crashed = false; S.crashT = 0; updateBikeMatrix(); up
 const TUT_AUTO = false; /* true: a first launch (no holdon.tut, no profile, no code in the URL) opens on the tutorial level instead of a random mountain */
 const bootSeed = DEMO_BUILD ? demoBoot() : (() => { const h = codeToSeed(location.hash.slice(1)); return START_RANDOM && !DEBUG && h !== null && h === autoHashSeed() ? null : h; })(); /* the game's own stamp from last time is not reused */
 newRun(bootSeed ?? (TUT_AUTO && lsGet('holdon.tut') === null && lsGet('holdon.profile') === null ? TUT_SEED : rollSeed()));
-document.body.classList.remove('building'); /* the first mountain is up: the card the page opened with goes */
+document.body.classList.remove('building'); /* the first mountain is up: no card may be left over */
 applyQuality(Q.mode === 'auto' ? 2 : +Q.mode); /* the saved quality level (Auto starts High) */ /* a fresh launch rolls a NEW mountain; a #MTN-code in the URL loads that mountain */
 /* IDLE_DRAW: how many frames one drawn frame stands for. 1 while riding, in a mini game, while a camp camera moves; 2 under the finish card, under the pause card and in a resting camp; 4 once the paused picture has not moved for a second */
 let idleI = 0, idleAcc = 0, idleStill = 0; const idleCam = { p: new THREE.Vector3(), q: new THREE.Quaternion() };
@@ -74423,6 +74454,8 @@ const CampMini = (() => {
      a misplaced star; 0 = the library exactly as first written. Only link orders (`path`), a few star positions (`p`: index -> [RA h, Dec deg], same star count so the
      per-star jitter draws are unchanged) and one fact line change; no new random draws. */
   const STARS_FIX = 1;
+  const STARS_CARD_HOLD = 1; /* 1 = the card that names the finished constellation stays until a tap, a click, Space / Enter or the pad's A (a small 'continue' line in its
+     corner says so); the sky's clock already stopped when the figure closed, so the wait costs nothing; 0 = the card leaves by itself after 3.4 s */
   const STARS_STRAY = 1; /* 1 = a star no line joins (Aries has one) is a faint background star: it cannot be picked and is never a wrong tap; 0 = it looks and picks like the others */
   const STARS_EDIT = {
     ari: { path: [2, 1, 0, 3] }, /* Hamal, Sheratan, Mesarthim and 41 Ari; Botein is not joined */
@@ -78433,6 +78466,7 @@ const CampMini = (() => {
       proj: (x, y, z) => (mw ? mw.proj(x, y, z, mirror) : null), moon: () => { const m = moon && moon.screen(); return m ? [m[0] * G.uz, m[1] * G.uz, m[2] * G.uz] : null; } }); /* inspection: the lens and window px before the UI zoom */
     let r = 0, cur, pts = [], E = [], adj = [], lit = new Set(), drawn = [], start = 0, tip = 0, hintE = -1, hintFrom = -1, idle = 0, rt = 0, miss = 0, st = 'play', stT = 0, drag = null, t = 0, wob = -1, wobT = 0, newly = false, glow = 0;
     let cxp = 0, cyp = 0, curOn = false, aHeld = false, curInit = false; /* the controller cursor (px; placed on the first star once the canvas has a size) */
+    let cardGo = false; /* STARS_CARD_HOLD: a press asked the name card to go */
     const sc = []; const HIT = 56;
     const box = () => { const bw = G.W * 0.62, bh = G.H * (G.H > G.W * 1.1 ? 0.38 : 0.5); return { x0: G.W / 2 + G.side * G.W * 0.03, y0: G.H * (G.H > G.W * 1.1 ? 0.4 : 0.46), s: Math.min(bw / Math.max(cur.w, 1e-3), bh / Math.max(cur.h, 1e-3)) }; }; /* framed high (0.21-0.71 of the height) and nudged off the moon's side */
     const pos = (j) => { const b = box(); return [b.x0 + pts[j][0] * b.s, b.y0 + pts[j][1] * b.s]; };
@@ -78461,7 +78495,7 @@ const CampMini = (() => {
     const roundScore = () => clamp((1 - 0.14 * miss) * speedOf(rt), 0.35, 1);
     let clockSeen = -1; const clockShow = () => { const pr = parOf(); if (WORDING_FIX) G.prog(`Sky ${r + 1} / ${N} · ${rt.toFixed(1)} / ${POLISH_SAFE ? pr.toFixed(1) : Math.round(pr)} `, rt > pr, 's'); else G.prog(`Sky ${r + 1} / ${N} · ${rt.toFixed(1)} / ${Math.round(pr)} s`, rt > pr); }; /* the running timer lives in the progress pill (turns amber past par) */
     function connect(ei, from) { const to = other(ei, from); E[ei].done = true; drawn.push({ e: ei, from, to }); lit.add(to); tip = to; idle = 0; G.buzz(8); G.cue('note', drawn.length - 1);
-      if (drawn.length >= E.length) { st = 'shown'; stT = 0; const q = roundScore(); sc.push(q); newly = constMark(cur.id); G.cue(q > 0.8 ? 'success' : 'good', q > 0.95); G.buzz([20, 30, 20]); } else hint(); }
+      if (drawn.length >= E.length) { st = 'shown'; stT = 0; cardGo = false; const q = roundScore(); sc.push(q); newly = constMark(cur.id); G.cue(q > 0.8 ? 'success' : 'good', q > 0.95); G.buzz([20, 30, 20]); } else hint(); }
     function pick(j) { /* a press on star j: a lit star anchors a line there; an unlit one joins through an undone link to a lit star (the tip first); else a miss */
       if (st !== 'play' || j < 0) return -1; const between = (u, v) => adj[u].find((k) => !E[k].done && other(k, u) === v);
       if (lit.has(j)) { let k = j !== tip ? between(tip, j) : undefined, from = tip; if (k === undefined) for (const v of lit) { if (v === j) continue; const kk = between(v, j); if (kk !== undefined) { k = kk; from = v; break; } } if (k !== undefined) connect(k, from); return j; } let ei = -1; /* a lit star: closes a loop (from the tip first, else any lit neighbor) if such a link is left, else anchors */ for (const k of adj[j]) { if (E[k].done) continue; const o = other(k, j); if (lit.has(o)) { if (o === tip) { ei = k; break; } if (ei < 0) ei = k; } }
@@ -78481,7 +78515,7 @@ const CampMini = (() => {
       end() { if (moon) { moon.dispose(); moon = null; } if (mw) { if (MINI_VIEW === mw) MINI_VIEW = null; miniDispose(mw); mw = null; } if (DEBUG) delete window.__stargazeContract; }, /* the camp is drawn again from the next frame */
       _pos: (j) => pos(j), _dbg: () => ({ lit: [...lit], drawn: drawn.map((d) => d.from + '-' + d.to), E: E.map((e) => e.a + '-' + e.b + (e.done ? '*' : '')), tip, hintE, hintFrom }), /* inspection hooks */
       ptr(type, x, y, ts, fromPad) { const rad = HIT / 2 + 8;
-        if (type === 'down') { if (!fromPad) curOn = false; drag = { x, y, anchor: -1 }; const a = pick(nearest(x, y, rad)); if (a >= 0) drag.anchor = a; }
+        if (type === 'down') { if (STARS_CARD_HOLD && st === 'shown') { if (stT > 0.6) cardGo = true; return; } /* the press that sends the card away does nothing else */ if (!fromPad) curOn = false; drag = { x, y, anchor: -1 }; const a = pick(nearest(x, y, rad)); if (a >= 0) drag.anchor = a; }
         else if (type === 'move' && drag) { drag.x = x; drag.y = y; moveTo(nearest(x, y, rad * 0.8)); }
         else if (type === 'up' || type === 'cancel') drag = null; },
       partial() { return (sc.reduce((a, b) => a + b, 0) + (st === 'play' ? roundScore() * drawn.length / Math.max(1, E.length) : 0)) / N; },
@@ -78492,7 +78526,7 @@ const CampMini = (() => {
           if (G.ax || G.ay) { curOn = true; const sp = Math.min(G.W, G.H) * 0.7; cxp = clamp(cxp + G.ax * sp * dt, 0, G.W); cyp = clamp(cyp + G.ay * sp * dt, 0, G.H); }
           if (aHeld && drag) { drag.x = cxp; drag.y = cyp; moveTo(nearest(cxp, cyp, HIT / 2 + 2)); }
           if (G.auto && rt > 40 && hintE >= 0) { miss += 1; connect(hintE, hintFrom); rt -= 1.2; } } /* after 40 s the sky helps, one link a beat (only with 'Mini games auto-finish' on) */
-        else { stT += dt; if (stT > 3.4) { if (r + 1 >= N) { st = 'end'; G.finish(this.partial()); } else { r++; setup(); } } }
+        else { stT += dt; if (STARS_CARD_HOLD && st === 'shown' ? cardGo : stT > 3.4) { cardGo = false; if (r + 1 >= N) { st = 'end'; G.finish(this.partial()); } else { r++; setup(); } } }
       },
       draw(c, W, H) {
         /* DUSK, not night: a lighter blue-violet overlay warming to a rose glow low down and fading out at the bottom (the 3D treetops and the fire's glow stay); the stars still read */
@@ -78529,7 +78563,15 @@ const CampMini = (() => {
           const bh = fs + 14 + lines.length * lh + (newly ? 18 : 0) + 22, by = H - 14 - bh, bw = Math.min(W - 32, 660); /* the name card sits at the bottom, clear of the figure */
           c.fillStyle = 'rgba(6,9,18,0.72)'; c.beginPath(); c.roundRect(W / 2 - bw / 2, by, bw, bh, 18); c.fill();
           label(c, cur.n.toUpperCase(), W / 2, by + 12 + fs / 2, fs, 'disp', '#f3c56b'); c.font = `400 ${clamp(H * 0.036, 12, 16)}px ${FONT.ui}`; c.fillStyle = 'rgba(253,248,234,0.92)'; c.textAlign = 'center'; c.textBaseline = 'middle';
-          lines.forEach((L, i) => c.fillText(L, W / 2, by + fs + 22 + i * lh)); if (newly) label(c, 'NEW · ADDED TO YOUR SKY', W / 2, by + fs + 22 + lines.length * lh + 8, 10, 'ui', '#9fe07a'); c.globalAlpha = 1; }
+          lines.forEach((L, i) => c.fillText(L, W / 2, by + fs + 22 + i * lh)); if (newly) label(c, 'NEW · ADDED TO YOUR SKY', W / 2, by + fs + 22 + lines.length * lh + 8, 10, 'ui', '#9fe07a');
+          if (STARS_CARD_HOLD && st === 'shown' && stT > 0.6) { /* the 'continue' line in the card's lower right corner, in the words of the device in use */
+            const hx = W / 2 + bw / 2 - 14, hy = by + bh - 12, col = `rgba(253,248,234,${0.62 + 0.18 * Math.sin(t * 2.6)})`; c.globalAlpha = k;
+            if (inDev.pad) { label(c, 'continue', hx, hy, 10.5, 'ui', col, 'right'); const tw = c.measureText('continue').width, gx = hx - tw - 13; c.strokeStyle = col; c.lineWidth = 1.4; c.beginPath(); c.arc(gx, hy, 7.5, 0, TAU); c.stroke();
+              c.fillStyle = col; c.font = `700 9.5px ${FONT.ui}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(padA(), gx, hy + 0.5); }
+            else if (!G.touch && inDev.dev === 'key') { label(c, 'continue', hx, hy, 10.5, 'ui', col, 'right'); const tw = c.measureText('continue').width; c.font = `700 9.5px ${FONT.ui}`; const kw = c.measureText('Space').width + 10, kx = hx - tw - 6 - kw;
+              c.strokeStyle = col; c.lineWidth = 1.2; c.beginPath(); c.roundRect(kx, hy - 7.5, kw, 15, 4); c.stroke(); c.fillStyle = col; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('Space', kx + kw / 2, hy + 0.5); }
+            else label(c, G.touch || inDev.dev === 'touch' ? 'Tap to continue' : 'Click to continue', hx, hy, 10.5, 'ui', col, 'right'); }
+          c.globalAlpha = 1; }
       }
     };
   }
@@ -79547,6 +79589,9 @@ const CampMini = (() => {
      and the lens pushes in a little, then cranes up and in over the far box for the landing. Cup (straight in or off the rim) 3, the box or a wall top 1, the grass
      0; the score = points / WSH_W.PAR. The same 27 G.rng draws in the same order (the drawn start aim becomes the sway center, the side and range
      wobble move the toss). The arm is items[6..9] of the props buffer: the draw calls are the base game's. */
+  const WSH_SWING = 1; /* 1 = while the hold lasts the pull goes up to full and comes back down, again and again (each way takes the round's fill time), and only letting go throws:
+     the first rise is the old curve, so a toss let go on the way up is unchanged; the aim ring on the target and the arm show the swing on every device; 0 = the pull
+     rises once, stays at full and the washer leaves by itself at the cap */
   const WSH_TIP_ONCE = 1; /* 1 = the first washer's tip in the bottom bar waits until the how-to box above it has faded, so the instruction is on screen once; 0 = both show together */
   function washersV3(G) {
     const N = 3, R = 3, rm = reduceMotion.matches, A = WSH_V.A, slow = rm || G.auto ? WSH_V.SLOW : 1, HY = WSH_V.HAND[0], HZ = WSH_V.HAND[1], AMP = WSH_V.A + WSH_V.COFF, P = WSH_W, AR = WSH_A, HH = WSH_H, AREST = WASHERS_HAND_V2 ? HH.REST : AR.REST;
@@ -79562,7 +79607,8 @@ const CampMini = (() => {
     const swayX = (tt) => cc + A * Math.sin(ph0 + om() * Math.max(0, tt - t0));
     const startX = () => cc + A * ((round * N + k) % 2 ? 1 : -1); /* the far left, then the far right, in turn */
     const score = () => clamp(pts / P.PAR, 0, 1), sm = (u) => u * u * (3 - 2 * u), tcR = () => P.TC[round] * slow;
-    const uAt = (tt) => wshU((tt - te) / tcR()), cbAt = (u) => { const cb = CAL[round].cb, j = clamp(u, 0, 1) * 32, j0 = Math.min(31, Math.floor(j)); return cb[j0] + (cb[j0 + 1] - cb[j0]) * (j - j0); };
+    const uAt = (tt) => { const q = (tt - te) / tcR(); if (!WSH_SWING || q <= 1) return wshU(q); const w = q % 2; return wshU(w <= 1 ? w : 2 - w); }, /* WSH_SWING: past the first rise the pull runs back down and up again */
+       cbAt = (u) => { const cb = CAL[round].cb, j = clamp(u, 0, 1) * 32, j0 = Math.min(31, Math.floor(j)); return cb[j0] + (cb[j0 + 1] - cb[j0]) * (j - j0); };
     const Dh = () => P.REL - zT();
     function nextWasher() { const d = draws[round * N + k]; cc = clamp(d.a0, -0.55, 0.55) * (WSH_V.COFF / 0.55); hxFrom = hx; st = 'wait'; stT = 0; tapped = false; pend = -1; phiF = AREST; pitF = 0; lunF = 0; G.prog(`Round ${round + 1} / ${R} · Washer ${k + 1} / ${N}`, false); }
     function down(tp) { if (G.ended) return;
@@ -79570,7 +79616,7 @@ const CampMini = (() => {
       else if (st === 'pull' && tp > te + 0.03) pend = Math.max(te, tp); } /* the second press throws */
     function up(tp) { if (st !== 'pull' || keyDn || ptrDn || G.ended) return; if (tapped) return; if (tp - te < P.TAP) { tapped = true; return; } pend = Math.max(te, tp); } /* a quick tap keeps pulling */
     function cancel() { if (st !== 'pull') return; const h = armNow(); phiF = h.phi; pitF = h.pit; lunF = WASHERS_HAND_V2 ? h.lun : 0; st = 'wait'; stT = 0; hxFrom = hx; pend = -1; tapped = false; } /* the pull is put down: the washer stays in the hand */
-    function release(tp) { const tr = Math.min(tp, te + P.CAP), d = draws[round * N + k], o = CAL[round], h = armNow(); ur = uAt(tr);
+    function release(tp) { const tr = WSH_SWING ? tp : Math.min(tp, te + P.CAP), d = draws[round * N + k], o = CAL[round], h = armNow(); ur = uAt(tr);
       res = (WASHERS_PHYS ? wshPhToss : wshV3Toss)(round, wshV3V(o, ur) + d.wz * o.kv, xaL + d.wx, TRK, EV, TRQ); phiA = h.phi; pitA = h.pit; lunA = h.lun; sw0 = G.clock; swD = AR.SW[0] - AR.SW[1] * ur; st = 'swing'; stT = 0;
       if (WASHERS_BOUNCE) { hb = !WASHERS_PHYS && res.ne > 0 && res.tc >= 0 ? (WSH_B.KIND[EV[1] | 0] || 0) * clamp(EV[2] / 0.8, 0.35, 1) : 0; hopN = 0; } } /* the drawn bounce's strength, from the first touch */
     const off = [0, 0, 0];
@@ -79696,7 +79742,7 @@ const CampMini = (() => {
         if (pend >= 0 && st === 'pull') { const p = pend; pend = -1; release(p); }
         if (st === 'wait') { const s0 = startX(); hx = hxFrom + (s0 - hxFrom) * sm(clamp(stT / 0.45, 0, 1)); if (stT >= 0.45 && !keyDn && !ptrDn) { st = 'sway'; stT = 0; t0 = G.clock; ph0 = s0 > cc ? Math.PI / 2 : -Math.PI / 2; hx = s0; phiF = AREST; pitF = 0; lunF = 0; } }
         else if (st === 'sway') { hx = swayX(G.clock); idle += dt; if (!hinted && idle > 6 && n === 0) { hinted = true; G.float(G.pad ? 'Press A when the ring sits on the cup' : G.touch ? 'Tap when the ring sits on the cup' : 'Press Space when the ring sits on the cup', 0.5, 0.3, true); } }
-        else if (st === 'pull') { if (G.clock >= te + P.CAP) release(te + P.CAP); }
+        else if (st === 'pull') { if (!WSH_SWING && G.clock >= te + P.CAP) release(te + P.CAP); }
         else if (st === 'swing') { if (G.clock - sw0 >= swD * AR.RELF) launch(); }
         else if (st === 'fly') { spin += dt * 9 * (res.n ? TRK[Math.min(res.n - 1, Math.floor(stT * P.HZ)) * 4 + 3] : 0); while (evI < res.ne && EV[evI * 3] <= stT) { cueAt(EV[evI * 3 + 1], EV[evI * 3 + 2], EV[evI * 3]); evI++; } if (WASHERS_BOUNCE) hopTick(stT - res.tc); if (stT >= res.t) land(); }
         else if (st === 'rest') { if (WASHERS_BOUNCE) hopTick(res.t - res.tc + stT); if (stT >= 1.1) { k++; if (k < N) nextWasher(); else { if (roundCups === N) { G.cue('success', true); G.float('Three in the cup!', 0.5, 0.22, false); } st = round + 1 < R ? 'next' : 'done'; stT = 0; rolled = false; } } }
