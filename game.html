@@ -985,7 +985,7 @@
   <div class="favCard" id="tFavs" hidden><div class="fvh">Favorites</div><div class="fvl" id="tFavList"></div><button class="mb sm" id="tFavClose">Close</button></div>
   <div id="tapGo" role="status" hidden>Press to start</div>
   <button class="ico" id="mute" role="switch" aria-checked="true" aria-label="Sound"><svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg><svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M17 9l5 6M22 9l-5 6"/></svg></button>
-  <div class="foot"><span id="verTag">v0.70.0</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span><span id="medalTag"></span></div>
+  <div class="foot"><span id="verTag">v0.71.0</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span><span id="medalTag"></span></div>
   <button id="btnNew" hidden>New mountain</button>
 </div>
 
@@ -58431,6 +58431,7 @@ function campEdgeScan(C) {
    Classic jumps come down at 15-17 m/s, so a landing a hand's width off the edge was a crash that looked like a clean landing. 0 = the tread alone. */
 const CLASSIC_LAND_EDGE = 1.0;
 const WALL_TURN = 0.5; /* how far a wall that stops the speed into it (a bridge ramp's side, a block's top edge, a low deck) turns the heading toward the wall's line each step (wallTurn); a deck's rail (railClamp) turns it 0.35. Higher = a graze costs less speed */
+const WALL_TURN_MAX = 0.5, WALL_TURN_V = 30, WALL_SQ = 0.25, WALL_UP = 0.2; /* wallTurn limits. One step turns the heading at most WALL_TURN_MAX rad and at most WALL_TURN_V rad per meter the bike moves along the wall in that step: a rider pinned nearly still against a wall comes round as he starts to slide instead of snapping round at once, while a graze at speed still turns quickly enough to keep its speed. WALL_SQ: the band near square on (sine squared of the nose's angle off square, about 30 degrees) where the turn goes toward the downhill end of the wall. WALL_UP: how far a slide along the wall may point up the trail (cosine against the trail's forward direction) before it counts as uphill */
 const BS_BELOW = 0.5, BS_PUSH = 4,BS_SINK = 0.3, BS_DROP_V = 30, BS_CLEAR = 2.2, BS_LIFT_T = 2.5, BS_LIFT_V = 2, BS_LIFT_D = 2, BS_ENDS = 4, BS_EDGE = 0.25, BS_RAIL = 16;
 function makeSurface(course) {
   const { pts, gap } = course; const { X0, Z0, NX, NZ, Hg, NI, LN, GT, PL } = course.grid; const WATER = course.WATER;
@@ -58840,16 +58841,33 @@ const sun = new THREE.DirectionalLight('#fff1dc', 2.4); /* the sun only lights (
 scene.add(sun, sun.target);
 /* quality levels + the adaptive governor. Levels: 2 High (pixel ratio cap 2 desktop / 1.5 phone, full draw distance, all particles,
    all grass), 1 Medium (pixel ratio 1.0, draw distance x0.8, particles x0.6, grass x0.7), 0 Low (pixel ratio 0.75, draw distance x0.6,
-   particles x0.35, grass x0.45, no air motes). Auto (default) starts High and steps down when the real frame interval's moving average
-   stays over Q_DOWN_MS for Q_DOWN_S seconds while riding, back up when it stays under Q_UP_MS for Q_UP_S seconds; a level change is
-   followed by a settle time it ignores (shader recompiles), and after a step down the way back up waits longer each time so it cannot
-   oscillate. The title flyover renders every other frame. Settings > Quality picks a fixed level. */
-const Q = { mode: 'auto', level: 2, cullK: 1, partK: 1, grassK: 1, fogK: 1, fogNow: 1, ema: 16, over: 0, under: 0, settle: 0, downs: 0, fps: 0, showFps: false, ft: 16 };
-const Q_DOWN_MS = MOBILE ? 18 : 22, Q_UP_MS = 13.5, Q_DOWN_S = 3, Q_UP_S = 10, Q_SETTLE_S = 2.5;
+   particles x0.35, grass x0.45, no air motes). Auto (default) starts High and judges a sustained frame rate, never single frames: the
+   measure (Q.ema) is the trimmed mean of the clean frame intervals of the last Q_WIN_S seconds of riding (the fastest tenth and the slowest
+   tenth left out, so a few long frames from a GC pause or a bake cannot move it). Not clean, so never measured: the first Q_START_S seconds
+   of a ride, after a camp entry or exit and after a new mountain, a frame that ran a build or bake slice (qBusy) and the one after it, and
+   Q_SETTLE_S seconds after a level change (its own resize and batch rebuild); the window starts empty after each of those. It steps down
+   when the measure stays over the down line for Q_DOWN_S seconds, and back up after Q_UP_S seconds under the up line; a step up that is
+   followed by a step down within Q_PROBE_S seconds doubles the next wait (up to Q_UP_MAX_S), so it cannot flap. A step down that did not
+   make the frames faster (the renderer was not what held them back) is undone and that level is not left again for Q_NOGAIN_S seconds.
+   The title flyover renders every other frame. Settings > Quality picks a fixed level, which the governor never changes. */
+const Q = { mode: 'auto', level: 2, cullK: 1, partK: 1, grassK: 1, fogK: 1, fogNow: 1, ema: 16, over: 0, under: 0, settle: 0, downs: 0, fps: 0, showFps: false, ft: 16,
+  hold: 0, skip: 0, late: false, evalT: 0, clock: 0, probeT: -1e9, check: null, noDown: [-1e9, -1e9, -1e9], ctxC: null, ctxK: '' };
+/* the down line: over Q_DOWN_MIN_MS and over Q_DOWN_K x the display's frame (about 49 fps on a 60, 90 or 120 Hz screen); the up line: under
+   Q_UP_MIN_MS or Q_UP_K x the frame (about 57 fps); the gap between the two is the hysteresis. A 30 Hz-capped screen is judged on its own frame */
+const Q_WIN_S = 4, Q_EVAL_S = 0.5, Q_TRIM = [0.1, 0.9], Q_START_S = 5, Q_SETTLE_S = 3, Q_DOWN_K = 1.22, Q_DOWN_MIN_MS = 20, Q_DOWN_S = 3;
+const Q_UP_K = 1.05, Q_UP_MIN_MS = 17.5, Q_UP_S = 12, Q_UP_MAX_S = 300, Q_PROBE_S = 20, Q_NOGAIN_K = 0.92, Q_NOGAIN_S = 180, Q_BUSY_MS = 1.5, Q_LATE_K = 1.5;
+const QW = { t: new Float32Array(1024), s: new Float32Array(1024), n: 0, i: 0, p10: 0, p50: 0, fr: 16.7 }; /* the clean intervals (a ring), a scratch copy for the sort, its 10th and 50th percentiles and the display frame the lines are drawn from */
 /* judges the frame interval against the display's own cadence (the fastest interval seen over the last few seconds): a 60 Hz screen can
    step back up, and a 30 Hz-capped phone is not read as a slow renderer. */
 const Q_VS_BUCKET_S = 1, Q_VS_BUCKETS = 4;
 const QV = { min: 1e9, max: 0, t: 0, hist: [], vs: 0, flat: false };
+function qBusy(ms) { if (ms >= Q_BUSY_MS) Q.skip = 2; } /* a frame that ran ms of build or bake work: its interval and the next are not the renderer's */
+function qTrim() { /* the trimmed mean (ms) of the last Q_WIN_S seconds of clean intervals; -1 while the window is not full */
+  const N = QW.t.length, W = Q_WIN_S * 1000; let n = 0, sum = 0;
+  for (let k = 1; k <= QW.n && sum < W; k++) { const x = QW.t[(QW.i - k + N) % N]; QW.s[n++] = x; sum += x; }
+  if (sum < W) return -1;
+  const a = QW.s.subarray(0, n).sort(), i0 = Math.floor(n * Q_TRIM[0]), i1 = Math.max(i0 + 1, Math.floor(n * Q_TRIM[1])); let t = 0;
+  QW.p10 = a[i0]; QW.p50 = a[n >> 1]; for (let i = i0; i < i1; i++) t += a[i]; return t / (i1 - i0); }
 const Q_LEVELS = [
   { pr: 0.75, cullK: 0.6, partK: 0.35, grassK: 0.45, fogK: 0.7, motes: false, name: 'Low' },
   { pr: 1.0, cullK: 0.8, partK: 0.6, grassK: 0.7, fogK: 0.85, motes: true, name: 'Medium' },
@@ -58859,7 +58877,7 @@ function resize() { const w = innerWidth, h = innerHeight;
   const pr = Math.min(Q_LEVELS[Q.level].pr, window.devicePixelRatio || 1); if (pr !== renderer.getPixelRatio()) renderer.setPixelRatio(pr);
   renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
 function applyQuality(level) {
-  const L = Q_LEVELS[level]; Q.level = level; Q.cullK = L.cullK; Q.partK = L.partK; Q.grassK = L.grassK; Q.settle = Q_SETTLE_S; Q.over = Q.under = 0;
+  const L = Q_LEVELS[level]; Q.level = level; Q.cullK = L.cullK; Q.partK = L.partK; Q.grassK = L.grassK; Q.settle = Q_SETTLE_S; Q.over = Q.under = 0; QW.n = 0; Q.evalT = 0; Q.check = null;
   renderer.setPixelRatio(Math.min(L.pr, window.devicePixelRatio || 1)); resize();
   Q.fogK = L.fogK; /* the haze eases to it in the frame loop (fogQ) */
   /* no shadow settings per level: a level change never rebuilds shaders */
@@ -58878,20 +58896,30 @@ function governor(rawDt, riding) { /* rawDt: the real frame interval in ms; ridi
   const el = fpsEl; fpsAcc += rawDt; fpsN++; fpsT += rawDt;
   if (fpsT >= 250) { Q.fps = Math.round(1000 * fpsN / fpsAcc); Q.ft = fpsAcc / fpsN; fpsAcc = fpsN = fpsT = 0; if (Q.showFps && el) el.textContent = Q.fps + ' fps · ' + Q.ft.toFixed(1) + ' ms · ' + Q_LEVELS[Q.level].name + (Q.mode === 'auto' ? ' (auto)' : ''); }
   if (el && el.hidden === Q.showFps) el.hidden = !Q.showFps;
-  if (rawDt > 250) { Q.over = Q.under = 0; return; } if (!riding) return; /* a tab switch resets the counters; menus and pauses are simply not the ride's cost */
   const dt = rawDt / 1000;
+  Q.late = rawDt > Q_LATE_K * Math.max(QW.fr, Q.ema); /* this frame came well after the usual pace: a build or bake slice waits for the next one */
+  if (Q.skip > 0) { Q.skip--; return; }
+  const ck = riding ? (S.camp ? 'c' : 'r') : ''; /* a new mountain, a camp entry or exit, the start of a ride or the end of a pause: the next seconds are not measured */
+  if (ck !== Q.ctxK || (riding && S.course !== Q.ctxC)) { Q.ctxK = ck; Q.ctxC = S.course; Q.hold = Q_START_S; QW.n = 0; Q.evalT = 0; Q.over = Q.under = 0; }
+  if (!riding || rawDt > 250) return; /* menus and pauses are not the ride's cost; a tab switch or a stall is not a frame */
   /* the display cadence: the smallest interval of the last Q_VS_BUCKETS one-second buckets (0 until the first bucket is full) */
     if (rawDt >= 5 && rawDt < QV.min) QV.min = rawDt; if (rawDt > QV.max) QV.max = rawDt; QV.t += dt;
     if (QV.t >= Q_VS_BUCKET_S) { QV.hist.push([QV.min, QV.max]); if (QV.hist.length > Q_VS_BUCKETS) QV.hist.shift(); QV.min = 1e9; QV.max = 0; QV.t = 0;
       let lo = 1e9, hi = 0; for (const h of QV.hist) { if (h[0] < lo) lo = h[0]; if (h[1] > hi) hi = h[1]; }
       QV.vs = lo; QV.flat = QV.hist.length >= 2 && hi - lo <= 2.5; }
+  Q.clock += dt;
   if (Q.settle > 0) { Q.settle -= dt; return; }
-  Q.ema += (rawDt - Q.ema) * Math.min(1, dt * 2); /* ~0.5 s moving average */
+  if (Q.hold > 0) { Q.hold -= dt; return; }
+  QW.t[QW.i] = rawDt; QW.i = (QW.i + 1) % QW.t.length; if (QW.n < QW.t.length) QW.n++;
+  if ((Q.evalT += dt) < Q_EVAL_S) return; const et = Q.evalT; Q.evalT = 0;
+  const tm = qTrim(); if (tm < 0) return; Q.ema = tm;
+  const vs = QV.vs, cap = (vs >= 29 && vs <= 36 && QV.flat) || (QW.p10 >= 29 && QW.p10 <= 36 && QW.p50 - QW.p10 <= 2.5), fr = QW.fr = cap ? Math.max(vs, QW.p10) : 16.7; /* a rock-steady ~33 ms cadence (now and then a hitch) is a 30 Hz cap, not a slow renderer; any other screen is judged as a 60 Hz one (a faster one only lowers the lines to their floors) */
   if (Q.mode !== 'auto') return;
-  const vs = QV.vs, cap = vs >= 29 && vs <= 36 && QV.flat; /* a rock-steady ~33 ms cadence is a 30 Hz cap, not a slow renderer; between 60 Hz and 30 Hz the interval is the renderer's own */
-  const downMs = cap ? Math.max(Q_DOWN_MS, vs * 1.25) : Q_DOWN_MS, upMs = cap || (vs > 0 && vs <= 17.5) ? Math.max(Q_UP_MS, vs * 1.12) : Q_UP_MS;
-  if (Q.ema > downMs) { Q.over += dt; Q.under = 0; if (Q.over >= Q_DOWN_S && Q.level > 0) { Q.downs++; applyQuality(Q.level - 1); } }
-  else if (Q.ema < upMs) { Q.under += dt; Q.over = 0; if (Q.under >= Q_UP_S * (1 + Q.downs) && Q.level < 2) applyQuality(Q.level + 1); }
+  if (Q.check) { const c = Q.check; Q.check = null; /* the first full window after a step down: no faster than before, so the renderer was not the limit */
+    if (tm > c.tm * Q_NOGAIN_K) { Q.noDown[c.lv] = Q.clock + Q_NOGAIN_S; applyQuality(c.lv); return; } }
+  const downMs = Math.max(Q_DOWN_MIN_MS, fr * Q_DOWN_K), upMs = Math.max(Q_UP_MIN_MS, fr * Q_UP_K);
+  if (tm > downMs) { Q.over += et; Q.under = 0; if (Q.over >= Q_DOWN_S && Q.level > 0 && Q.clock >= Q.noDown[Q.level]) { const lv = Q.level; if (Q.clock - Q.probeT < Q_PROBE_S) Q.downs++; applyQuality(lv - 1); Q.check = { tm, lv }; } }
+  else if (tm < upMs) { Q.under += et; Q.over = 0; if (Q.under >= Math.min(Q_UP_MAX_S, Q_UP_S * 2 ** Q.downs) && Q.level < 2) { Q.probeT = Q.clock; applyQuality(Q.level + 1); } }
   else Q.over = Q.under = 0;
 }
 addEventListener('resize', resize); resize();
@@ -62235,11 +62263,11 @@ function batchBuild() {
     for (const o of L) { const g = o.geometry, cnt = g.attributes.position.count; for (const nm of names) { const a = g.attributes[nm]; out.attributes[nm].array.set(a.array, vo * a.itemSize); }
       if (g.index) { const ia = g.index.array; for (let i = 0; i < ia.length; i++) idx[io + i] = ia[i] + vo; io += ia.length; } else { for (let i = 0; i < cnt; i++) idx[io + i] = vo + i; io += cnt; } vo += cnt; hide(o); }
     out.setIndex(new THREE.BufferAttribute(idx, 1)); out.computeBoundingSphere(); add(new THREE.Mesh(out, L[0].material)); }
-  BATCH.on = true;
+  BATCH.on = true; qBusy(Q_BUSY_MS); /* a frame that builds the batch is not the renderer's pace */
 }
 function batchFree() {
   for (const o of BATCH.hid) { o.visible = true; o.userData.bat = false; } for (const m of BATCH.made) { world.remove(m); if (m.isInstancedMesh) m.dispose(); else { const g = m.geometry; if (g.userData.shared) for (const nm of Object.keys(g.attributes)) g.deleteAttribute(nm); g.dispose(); } }
-  BATCH.hid.length = 0; BATCH.made.length = 0; BATCH.on = false; BATCH.mode = null;
+  BATCH.hid.length = 0; BATCH.made.length = 0; BATCH.on = false; BATCH.mode = null; qBusy(Q_BUSY_MS);
 }
 /* cullChunks' per-chunk lists, filled once per world from cullList (a rebuilt world brings new objects, so its first or last entry or its length differs):
    the instanced flag, the fog tag, the draw distance and the bounding sphere (kept by reference: three updates a sphere in place; one still missing is looked up again) */
@@ -66895,40 +66923,40 @@ const sfx = (() => {
   function* bakeGen(inst, a, ti, R0) { /* one note of an instrument at MIDI a (anchors every 4 semitones, re-pitched +-2 by playbackRate), 16 kHz mono (the music bus is low-passed at 5.5 kHz); R0: a private noise stream (the ride pads baked before the first tap draw nothing from Math.random). A generator so the warm queue can spread a long note over several frames: every noise draw is taken before the first yield, so a sliced note draws the same numbers in the same order as one baked whole */
     const sr = inst === 'shk' ? 22050 : SRM, I = INST[inst], n = Math.round(I.life * sr), d = new Float32Array(n), f = midi(a), R = R0 ? R0 : ti ?mulberry32(0x7B4E + a * 977 + [...inst].reduce((h, c) => h * 31 + c.charCodeAt(0), 7)) : rnd, noiseArr = (m) => { const z = new Float32Array(m); for (let i = 0; i < m; i++) z[i] = R() * 2 - 1; return z; }; let f0 = f;
     const add = function* (fr, amp, tau, att = 0.003) { if (fr >= sr * 0.45) return; const w = 2 * Math.PI * fr / sr, c2 = 2 * Math.cos(w), k = Math.exp(-1 / (tau * sr)); let s1 = Math.sin(-w), s0 = 0, e = 1; const na = Math.max(1, att * sr);
-      for (let i = 0; i < n; i++) { const v = s0; const s = c2 * s0 - s1; s1 = s0; s0 = s; d[i] += amp * e * v * (i < na ? i / na : 1); e *= k; if (e < 1e-5) break; if ((i & 4095) === 4095) yield; } };
+      for (let i = 0; i < n; i++) { const v = s0; const s = c2 * s0 - s1; s1 = s0; s0 = s; d[i] += amp * e * v * (i < na ? i / na : 1); e *= k; if (e < 1e-5) break; if ((i & 1023) === 1023) yield; } };
     const nz = (len, type, fc, q, at = 0) => { const m = Math.min(n - at, Math.round(len * sr)); return m <= 0 ? null : bq(noiseArr(m), type, fc, q, 0, m, sr); }; /* draw + filter a noise burst; nadd mixes it in later (the notes that end on a burst draw it first) */
     const nadd = (z, amp, tau, at = 0) => { if (z) for (let i = 0; i < z.length; i++) d[at + i] += amp * z[i] * Math.exp(-i / (tau * sr)); }, noise = (len, type, fc, q, amp, tau, at = 0) => nadd(nz(len, type, fc, q, at), amp, tau, at);
-    const ks = (a0, T60, pick, lpF) => { const N0 = Math.max(2, Math.floor(sr / f - a0)); f0 = sr / (N0 + a0); const g = Math.pow(10, -3 / (T60 * f0)), ex = Math.max(N0, Math.round(0.004 * sr)), P = Math.round(N0 * pick), e = new Float32Array(ex); let lp = 0;
+    const ks = function* (a0, T60, pick, lpF) { const N0 = Math.max(2, Math.floor(sr / f - a0)); f0 = sr / (N0 + a0); const g = Math.pow(10, -3 / (T60 * f0)), ex = Math.max(N0, Math.round(0.004 * sr)), P = Math.round(N0 * pick), e = new Float32Array(ex); let lp = 0;
       for (let i = 0; i < ex; i++) { lp += 0.35 * ((R() * 2 - 1) - lp); e[i] = lp; } for (let i = 0; i < ex && i < n; i++) d[i] = e[i] - (pick && i >= P ? 0.6 * e[i - P] : 0);
-      for (let i = N0 + 1; i < n; i++) d[i] += g * ((1 - a0) * d[i - N0] + a0 * d[i - N0 - 1]); bq(d, 'lp', lpF, 0.6, 0, n, sr); if (ti) bq(d, 'hp', 40, 0.7, 0, n, sr); }; /* title notes: the string loop passes DC, and a 40 Hz high-pass takes out the inaudible sub-30 Hz rumble */
+      yield; for (let i = N0 + 1; i < n; i++) { d[i] += g * ((1 - a0) * d[i - N0] + a0 * d[i - N0 - 1]); if ((i & 2047) === 2047) yield; } yield* bqG(d, 'lp', lpF, 0.6, 0, n, sr); if (ti) yield* bqG(d, 'hp', 40, 0.7, 0, n, sr); }; /* title notes: the string loop passes DC, and a 40 Hz high-pass takes out the inaudible sub-30 Hz rumble */
     const T60 = a < 52 ? 2.4 : a <= 67 ? 1.8 : 1.2;
     if (inst === 'kal') { const z = nz(0.012, 'bp', 320, 4); yield* add(f, 1, 0.55); yield* add(2 * f, 0.15, 0.35); yield* add(6.27 * f, 0.1, 0.06, 0.002); nadd(z, 0.5, 0.004); }
     else if (inst === 'pno') { const tl = a < 55 ? 1.6 : 1, B = 0.0003, z = nz(0.025, 'lp', 900, 0.7); for (const [k, g] of [1, 0.32, 0.1].entries()) yield* add(f * (k + 1) * Math.sqrt(1 + B * (k + 1) * (k + 1)), g, 1.1 * tl * (1 - 0.12 * k), 0.008);
       for (const [k, g] of [0.14, 0.08, 0.05, 0.03].entries()) yield* add(f * (k + 4) * Math.sqrt(1 + B * (k + 4) * (k + 4)), g, 0.22 * tl, 0.006); nadd(z, 0.05, 0.01); }
     else if (inst === 'mar') { const tm = a > 72 ? 0.7 * (1 - (a - 72) / 40) : 0.7, z = nz(0.005, 'lp', 1800, 0.7); yield* add(f, 1, tm, 0.002); yield* add(3.92 * f, 0.35, 0.15, 0.002); yield* add(9.24 * f, 0.08, 0.05, 0.001); nadd(z, 0.12, 0.002); }
-    else if (inst === 'vib') { const z = nz(0.004, 'lp', 2500, 0.7); yield* add(f, 1, 1.4, 0.002); yield* add(4 * f, 0.25, 0.3, 0.002); yield* add(10 * f, 0.05, 0.08, 0.001); for (let i = 0; i < n; i++) { d[i] *= 1 - 0.25 * (0.5 - 0.5 * Math.cos(2 * Math.PI * 5 * i / sr)); if ((i & 4095) === 4095) yield; } nadd(z, 0.06, 0.002); }
+    else if (inst === 'vib') { const z = nz(0.004, 'lp', 2500, 0.7); yield* add(f, 1, 1.4, 0.002); yield* add(4 * f, 0.25, 0.3, 0.002); yield* add(10 * f, 0.05, 0.08, 0.001); for (let i = 0; i < n; i++) { d[i] *= 1 - 0.25 * (0.5 - 0.5 * Math.cos(2 * Math.PI * 5 * i / sr)); if ((i & 1023) === 1023) yield; } nadd(z, 0.06, 0.002); }
     else if (inst === 'bell') { yield* add(f, 1, 0.9, 0.002); yield* add(2.76 * f, 0.25, 0.35, 0.002); yield* add(5.4 * f, 0.08, 0.12, 0.001); yield* add(8.93 * f, 0.03, 0.05, 0.001); }
-    else if (inst === 'harp') ks(0.3, T60, 0, 4500);
-    else if (inst === 'gtr') ks(0.45, T60, 0.13, 3200);
-    else if (inst === 'bass') ks(0.5, 1.4, 0.2, 1400);
-    else if (inst === 'flute') { let ph = 0; const zr = noiseArr(n), cr = noiseArr(n); yield; const z = bq(zr, 'bp', 2 * f, 3, 0, n, sr); yield; const ch = bq(cr, 'bp', Math.min(3 * f, sr * 0.45), 8, 0, n, sr); yield;
+    else if (inst === 'harp') yield* ks(0.3, T60, 0, 4500);
+    else if (inst === 'gtr') yield* ks(0.45, T60, 0.13, 3200);
+    else if (inst === 'bass') yield* ks(0.5, 1.4, 0.2, 1400);
+    else if (inst === 'flute') { let ph = 0; const zr = noiseArr(n), cr = noiseArr(n); yield; const z = yield* bqG(zr, 'bp', 2 * f, 3, 0, n, sr); yield; const ch = yield* bqG(cr, 'bp', Math.min(3 * f, sr * 0.45), 8, 0, n, sr); yield;
       for (let i = 0; i < n; i++) { const t = i / sr, e = (t < 0.07 ? Math.sin(Math.PI / 2 * t / 0.07) ** 2 : 1 - 0.1 * (t - 0.07) / I.life) * Math.min(1, (I.life - t) / 0.3), vib = t > 0.35 ? Math.min(1, (t - 0.35) / 0.3) * 7 * Math.sin(2 * Math.PI * 5.2 * t) : 0;
         ph += 2 * Math.PI * f * Math.pow(2, vib / 1200) / sr; d[i] = e * (Math.sin(ph) + 0.2 * Math.sin(2 * ph) + 0.05 * Math.sin(3 * ph) + 0.06 * z[i] * 3) + (t < 0.03 ? 0.15 * ch[i] * (1 - t / 0.03) * 3 : 0); if ((i & 1023) === 1023) yield; } }
-    else if (inst === 'pad' || inst === 'padL') { const ta = inst === 'pad' ? 0.35 : 0.55, tau = inst === 'pad' ? 0.9 : 1.3, H = [1, 0.35, 0.16, 0.07, 0.03], zr = noiseArr(n); yield; const z = bq(zr, 'bp', Math.min(2.5 * f, sr * 0.45), 2, 0, n, sr); yield; let ph = 0;
+    else if (inst === 'pad' || inst === 'padL') { const ta = inst === 'pad' ? 0.35 : 0.55, tau = inst === 'pad' ? 0.9 : 1.3, H = [1, 0.35, 0.16, 0.07, 0.03], zr = noiseArr(n); yield; const z = yield* bqG(zr, 'bp', Math.min(2.5 * f, sr * 0.45), 2, 0, n, sr); yield; let ph = 0;
       for (let i = 0; i < n; i++) { const t = i / sr, e = (t < ta ? Math.sin(Math.PI / 2 * t / ta) ** 2 : Math.exp(-(t - ta) / tau)) * Math.min(1, (I.life - t) / 0.2), vib = t > 0.6 ? Math.min(1, (t - 0.6) / 0.5) * 4 * Math.sin(2 * Math.PI * 4.8 * t) : 0;
         ph += 2 * Math.PI * f * Math.pow(2, vib / 1200) / sr; let v = 0; for (let k = 0; k < 5; k++) if (f * (k + 1) < sr * 0.45) v += H[k] * Math.pow(e, 1 + 0.25 * k) * Math.sin((k + 1) * ph); d[i] = v + 0.02 * e * e * z[i] * 3; if ((i & 1023) === 1023) yield; } } /* a soft bowed swell: upper partials follow the loudness, a little breath, a late gentle vibrato */
-    else if (inst === 'lt') { const sg = R() < 0.5 ? 1 : -1, zr = noiseArr(n); yield; const z = bq(zr, 'bp', Math.min(2 * f, sr * 0.45), 2, 0, n, sr); yield; let ph = 0; /* the rare long tone, and it must move: pitch drift 0 -> +-8 cents, low-pass 500 -> 1400 Hz, a peak at 40 % then a 0.3 Hz ripple, overtone cross-fade */
+    else if (inst === 'lt') { const sg = R() < 0.5 ? 1 : -1, zr = noiseArr(n); yield; const z = yield* bqG(zr, 'bp', Math.min(2 * f, sr * 0.45), 2, 0, n, sr); yield; let ph = 0; /* the rare long tone, and it must move: pitch drift 0 -> +-8 cents, low-pass 500 -> 1400 Hz, a peak at 40 % then a 0.3 Hz ripple, overtone cross-fade */
       for (let i = 0; i < n; i++) { const t = i / sr, u = t / I.life, e = (u < 0.4 ? Math.sin(Math.PI / 2 * u / 0.4) ** 2 : 1 - 0.45 * (u - 0.4) / 0.6) * (u < 0.4 ? 1 : 1 - 0.3 * (0.5 - 0.5 * Math.cos(2 * Math.PI * 0.3 * (t - 2)))) * Math.min(1, (I.life - t) / 0.4), fc = 500 + 900 * u;
         ph += 2 * Math.PI * f * Math.pow(2, sg * 8 * Math.sin(Math.PI * u) / 1200) / sr; let v = 0; for (let k = 1; k <= 5; k++) { if (f * k >= sr * 0.45) break; const w = (k === 1 ? 1 - 0.7 * u : [0, 0, 1, 0.4, 0.15, 0.05][k] * (0.2 + 0.6 * u)) / Math.sqrt(1 + (k * f / fc) ** 2); v += w * Math.sin(k * ph); } d[i] = e * (v + 0.015 * z[i] * 3); if ((i & 1023) === 1023) yield; } }
     else if (inst === 'shk') { noise(I.life, 'bp', 6000, 0.8, 1, 0.07); for (let i = 0; i < Math.min(n, 0.012 * sr); i++) d[i] *= i / (0.012 * sr); }
     else if (inst === 'drum') { const z = nz(0.05, 'lp', 180, 0.7); let ph = 0; for (let i = 0; i < n; i++) { const t = i / sr; ph += 2 * Math.PI * (40 + 18 * Math.exp(-t / 0.03)) / sr; d[i] = Math.sin(ph) * Math.exp(-t / 0.22) * Math.min(1, t / 0.003); if ((i & 2047) === 2047) yield; } nadd(z, 0.3, 0.03); }
     else if (inst === 'thump') { let ph = 0; for (let i = 0; i < n; i++) { const t = i / sr; ph += 2 * Math.PI * (62 + 70 * Math.exp(-t / 0.03)) / sr; d[i] = (Math.sin(ph) + 0.3 * Math.sin(2 * ph) * Math.exp(-t / 0.05)) * Math.exp(-t / 0.15) * Math.min(1, t / 0.002); } noise(0.03, 'lp', 1100, 0.7, 0.35, 0.012); } /* a soft kick: a 62-130 Hz sweep plus its second harmonic, so a phone speaker can show it */
     else if (inst === 'clap') { [0, 0.009, 0.019].forEach((o) => noise(0.03, 'bp', 1200, 1.5, 0.8, 0.012, Math.round(o * sr))); noise(0.2, 'bp', 1100, 1.2, 0.5, 0.06, Math.round(0.028 * sr)); }
-    let pk = 1e-9; for (let i = 0; i < n; i++) pk = Math.max(pk, Math.abs(d[i])); const fo = Math.round(0.04 * sr), fi = Math.round(0.0015 * sr); yield;
-    for (let i = 0; i < n; i++) d[i] = d[i] / pk * (i < fi ? i / fi : 1) * (i > n - fo ? (n - i) / fo : 1);
+    let pk = 1e-9; for (let i = 0; i < n; i++) { pk = Math.max(pk, Math.abs(d[i])); if ((i & 16383) === 16383) yield; } const fo = Math.round(0.04 * sr), fi = Math.round(0.0015 * sr); yield;
+    for (let i = 0; i < n; i++) { d[i] = d[i] / pk * (i < fi ? i / fi : 1) * (i > n - fo ? (n - i) / fo : 1); if ((i & 16383) === 16383) yield; }
     return { d, sr, f: f0 }; }
   function bakeRaw(inst, a, ti, R0) { const g = bakeGen(inst, a, ti, R0); let r; while (!(r = g.next()).done); return r.value; } /* the whole note at once */
-  let bakeCur = null; /* the warm queue's note in progress: { k, g } (its noise is already drawn) */
+  let bakeCur = null, wbF = -1e9; /* the warm queue's note in progress: { k, g } (its noise is already drawn); wbF: when the frame loop last asked for baking */
   function bakeFinish() { let r; while (!(r = bakeCur.g.next()).done); bakeCur = null; return r.value; }
   let preCur = null; /* prebakeTitle's note in progress: { k, g } (its noise is already drawn, from the note's own stream) */
   function preFinish() { let r; while (!(r = preCur.g.next()).done); preCur = null; return r.value; }
@@ -66937,8 +66965,10 @@ const sfx = (() => {
     if (MB.size > MB_CAP) MB.delete(MB.keys().next().value); return B; } /* <= MB_CAP cached notes; a playing source keeps its own buffer alive */
   const MB_CAP = 120; /* the title's 25 notes + every anchor queueWarm asks for (up to about 90 on one palette) fit, so a warmed note is not dropped before it plays (~16 MB at 16 kHz) */
   function warmBake(ms = 3) { if (DRY || !ctx || !musBus || (!bakeQ.length && !bakeCur)) return; const t0 = performance.now(); /* about ms of baking per call (3 per scheduler tick, 3 a frame from update while riding, 6 a frame on the title, pause, camp and cards): a long note (long tone, pads, piano) is baked a slice at a time and finished over the next calls */
-    while (performance.now() - t0 < ms) { if (!bakeCur) { if (!bakeQ.length || performance.now() - t0 > ms / 2) break; /* a new note's first slice (its noise) is the biggest: only early in the budget */ const [i, a, ti] = bakeQ.shift(), k = mkey(i, a, ti); if (MB.has(k)) continue; if (RAWB.has(k)) { MB.set(k, bakeMus(i, a, ti)); continue; } if (preCur && preCur.k === k) { bakeCur = preCur; preCur = null; } else bakeCur = { k, g: bakeGen(i, a, ti) }; } /* a note the title prebake has started is carried on from where it stands */
-      const r = bakeCur.g.next(); if (r.done) { const k = bakeCur.k, W = r.value, b = ctx.createBuffer(1, W.d.length, W.sr); bakeCur = null; b.getChannelData(0).set(W.d); if (!MB.has(k)) MB.set(k, { b, f: W.f }); } } }
+    let st = 0, t1 = t0; /* st: about what one more step takes (the last ones'), so a call stops before it would run over */
+    while (performance.now() - t0 + st < ms) { t1 = performance.now(); if (!bakeCur) { if (!bakeQ.length || performance.now() - t0 > ms / 4) break; /* a new note's first slice (its noise) is the biggest: only early in the budget */ const [i, a, ti] = bakeQ.shift(), k = mkey(i, a, ti); if (MB.has(k)) continue; if (RAWB.has(k)) { MB.set(k, bakeMus(i, a, ti)); continue; } if (preCur && preCur.k === k) { bakeCur = preCur; preCur = null; } else bakeCur = { k, g: bakeGen(i, a, ti) }; } /* a note the title prebake has started is carried on from where it stands */
+      const r = bakeCur.g.next(); if (r.done) { const k = bakeCur.k, W = r.value, b = ctx.createBuffer(1, W.d.length, W.sr); bakeCur = null; b.getChannelData(0).set(W.d); if (!MB.has(k)) MB.set(k, { b, f: W.f }); } st = Math.max(st * 0.5, performance.now() - t1); }
+    qBusy(performance.now() - t0); }
   const T_WARM = 'thump0 shk0 shk1 shk2 bass64 kal68 clap0 bass68 kal76 kal80 harp64 harp68 bass60 mar72 mar68 harp60 bass56 kal72 mar80 mar76 harp76 harp80 harp72 bass72'.split(' ').map((x) => { const m = /^([a-z]+)(\d+)$/.exec(x); return [m[1], +m[2]]; }); /* every note the title theme plays, in order of first use (22 pitched / percussive anchors, plus 3 shaker variants) */
   function prebakeTitle() { /* page load, idle time: bake the title's anchors into plain arrays so the first tap only has to copy them into buffers. The title's notes use a noise stream per note, so they sound the same every time and bake the same early or late */
     const todo = T_WARM.filter(([i, a]) => !RAWB.has(mkey(i, a, true))).map(([i, a]) => [i, a, true]);
@@ -67139,7 +67169,7 @@ const sfx = (() => {
   function schedule() { if (!ctx || ctx.state !== 'running' || hiddenNow) return; if (CLS) { try { CLS.schedule(); } catch (e) { lastErr = String(e); } } /* MusicClassic's own look-ahead */
     if (!musBus) return; if (M.nextT < ctx.currentTime) M.nextT = ctx.currentTime + 0.1; while (M.nextT < ctx.currentTime + 1.2) { try { stepMusic(M.nextT); } catch (e) { lastErr = String(e); } M.nextT += stepLen(M.nextT); }
     if (titleOn && titleBus) { if (TT.nextT < ctx.currentTime) TT.nextT = ctx.currentTime + (TT.step === 0 ? 0.03 : 0.1); while (TT.nextT < ctx.currentTime + 1.2) { try { titleStep(TT.nextT); } catch (e) { lastErr = String(e); } TT.nextT += T_SD; } } /* + the title theme while it is on */
-    warmBake(); } /* + a little background baking of the next instruments' notes */
+    if (performance.now() - wbF > 300) warmBake(); } /* + a little background baking of the next instruments' notes, while the frame loop is not baking (it does every frame the page draws) */
   /* ---- ALT TRACK: MusicClassic = the earlier soundtrack in its own closure: a persistent voice-led pad bank (5 voices) + oscillator plucks
      (kalimba / felt piano / camp nylon) through a dotted-eighth echo, a bigger reverb send (0.55), its own tilt, its own title theme (the pad-chord
      version). No mutable state is shared with the organic engine: it reads the mixer (MIX, read-only), the context the update builds for it, and the
@@ -67769,6 +67799,10 @@ const sfx = (() => {
     let b0, b1, b2, a1, a2, x1 = 0, x2 = 0, y1 = 0, y2 = 0; const set = (fr) => { const w = 2 * Math.PI * Math.min(fr, sr * 0.45) / sr, c = Math.cos(w), al = Math.sin(w) / (2 * q), a0 = 1 + al;
       if (type === 'bp') { b0 = al / a0; b1 = 0; b2 = -al / a0; } else if (type === 'lp') { b0 = b2 = (1 - c) / 2 / a0; b1 = (1 - c) / a0; } else { b0 = b2 = (1 + c) / 2 / a0; b1 = -(1 + c) / a0; } a1 = -2 * c / a0; a2 = (1 - al) / a0; };
     for (let i = i0; i < i1; i++) { if ((i - i0) % 64 === 0) set(typeof f === 'function' ? f(i) : f); const x = d[i], y = b0 * x + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2; x2 = x1; x1 = x; y2 = y1; y1 = y; d[i] = y; } return d; }
+  function* bqG(d, type, f, q, i0, i1, sr) { /* bq in slices for the warm queue's long notes: the same filter and the same sums, with a pause every 8192 samples */
+    let b0, b1, b2, a1, a2, x1 = 0, x2 = 0, y1 = 0, y2 = 0; const set = (fr) => { const w = 2 * Math.PI * Math.min(fr, sr * 0.45) / sr, c = Math.cos(w), al = Math.sin(w) / (2 * q), a0 = 1 + al;
+      if (type === 'bp') { b0 = al / a0; b1 = 0; b2 = -al / a0; } else if (type === 'lp') { b0 = b2 = (1 - c) / 2 / a0; b1 = (1 - c) / a0; } else { b0 = b2 = (1 + c) / 2 / a0; b1 = -(1 + c) / a0; } a1 = -2 * c / a0; a2 = (1 - al) / a0; };
+    for (let i = i0; i < i1; i++) { if ((i - i0) % 64 === 0) set(typeof f === 'function' ? f(i) : f); const x = d[i], y = b0 * x + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2; x2 = x1; x1 = x; y2 = y1; y1 = y; d[i] = y; if (((i - i0) & 8191) === 8191) yield; } return d; }
   const noiseArr = (n) => { const d = new Float32Array(n); for (let i = 0; i < n; i++) d[i] = rnd() * 2 - 1; return d; };
   function toRaw(d, peak, loopXf, per) { /* normalize to a peak (the relative level of the sound), optionally cross-fade the tail into the head for a seamless loop.
        per(i): the part of d[i] that repeats with the loop's length (the train's engine and clatter): equal-power weights would add it to itself at +3 dB, so it
@@ -67878,7 +67912,7 @@ const sfx = (() => {
   }
   const QF = { on: false, sn: 0, air: false, airT: 0, grounded: true, crashed: false, finished: false, paused: false, running: false, near: 99, kind: -1, campK: 0, campAud: 0, alt: 0.5, water: false, st: 0, dusk: 0, mini: false, eng: 1 }; /* the music context update() hands musCtx / MusicClassic */
   function update(dt) {
-    if (!ctx) return; warmBake(S.running && !S.paused && !S.finished ? 3 : 6); /* the warm queue also drains a little every frame (the scheduler runs only every 250 ms); more where a frame's length does not show */
+    if (!ctx) return; wbF = performance.now(); if (!Q.late) warmBake(S.running && !S.paused && !S.finished ? 3 : 6); /* the warm queue also drains a little every frame (the scheduler runs only every 250 ms); more where a frame's length does not show; nothing in a frame that came late */
     const t = ctx.currentTime, sp = Math.abs(S.speed), on = S.running && !S.paused && !S.finished; pz = !!S.paused && !sceneOn; /* the camp scene / mini games keep their sounds even if the game pauses the ride under them */
     if (ctx.state !== 'running' && !hiddenNow && t >= 0 && (resumeT -= dt) <= 0) { resumeT = 1; resumeCtx(); }
     mdTick(dt); if (pourEnd && t > pourEnd) { pourEnd = 0; cueShot('pourEnd', t + 0.01, pourR, 0.3 * TEA_POUR_LVL, 0, 0.06); } tok = Math.min(10, tok + dt * 30); insT += dt; if (insT >= 1) { shotRate = shotsS / insT; shotsS = 0; insT = 0; }
@@ -69440,12 +69474,18 @@ function edgeEase(R, sdv, e, top, w) {
   const m = Math.min(d + 0.02, RAMP_EASE * DT); S.pos.x += nx * m; S.pos.z += nz * m; return true;
 }
 /* a wall that takes away the speed into it (brWall, edgeEase, deckWall) also turns the bike along it, as a deck's rail does: (nx, nz) points out of
-   the wall, and the heading is turned WALL_TURN of the way to the wall's line each step, so a graze keeps the speed along the wall instead of the
-   next grounded step cutting the speed by cos^2 of the angle again and again. A nose within about 10 degrees of square on is left alone: that hit stops him */
+   the wall, and the heading is turned WALL_TURN of the way to the wall's line each step (within the WALL_TURN_MAX / WALL_TURN_V limits), so a graze
+   keeps the speed along the wall instead of the next grounded step cutting the speed by cos^2 of the angle again and again. A nose within about
+   10 degrees of square on is left alone: that hit stops him. The wall's line runs two ways and the turn goes the way the nose leans, but never up the
+   trail: near square on (WALL_SQ) it goes toward the downhill end instead and stops once the nose is square; farther off square a rider who is not
+   already riding up the trail is not turned at all */
 function wallTurn(nx, nz) {
   const fx = Math.cos(S.yaw), fz = -Math.sin(S.yaw), d = fx * nx + fz * nz; if (d >= 0) return;
-  const tx = fx - nx * d, tz = fz - nz * d; if (tx * tx + tz * tz < 0.03) return;
-  const want = Math.atan2(-tz, tx); S.yaw += Math.atan2(Math.sin(want - S.yaw), Math.cos(want - S.yaw)) * WALL_TURN;
+  let tx = fx - nx * d, tz = fz - nz * d; const t2 = tx * tx + tz * tz; if (t2 < 0.03) return;
+  const P = S.course.pts[S.segIdx];
+  if (P && tx * P.fx + tz * P.fz < -WALL_UP * Math.sqrt(t2)) { if (t2 < WALL_SQ) { tx = -tx; tz = -tz; } else if (fx * P.fx + fz * P.fz > -0.5) return; }
+  const want = Math.atan2(-tz, tx), dy = Math.atan2(Math.sin(want - S.yaw), Math.cos(want - S.yaw)) * WALL_TURN;
+  const cap = Math.min(WALL_TURN_MAX, WALL_TURN_V * Math.hypot(S.vel.x, S.vel.z) * DT); S.yaw += Math.max(-cap, Math.min(cap, dy));
 }
 /* a bridge ramp's block is a wall to a rider under its top: riding into the lane's footprint from the pit, from the bank beside it or short of the landing's
    face pushes him back out through the nearest side and takes the speed into it away (a nudge like deckWall: never a bail, never a lift onto the lane) */
@@ -72076,7 +72116,7 @@ const campSky = (() => {
     const rnd = mulberry32((base + (S.course ? S.course.seed : 0) * 7 + cp.idx * 7919) | 0); mood = MOODS[Math.floor(rnd() * 3)]; VV = vistaVary(cp); if (VV) mood += VV.mood; /* a small shift of the dusk's hue per camp */
     CO = vistaCoast(cp); /* a low camp's coast frame (no stream draw) */
     /* the far vista's own stream instance (no other stream draws) */
-    let cap = 32768, nV = 0, P = new Float32Array(cap * 3), CA = new Float32Array(cap * 3), CB = new Float32Array(cap * 3), M = new Float32Array(cap * 3), AB = new Float32Array(cap * 4), AC = new Float32Array(cap * 3); /* written in place (doubled when full), cut to size at the end */
+    let cap = 131072, nV = 0, P = new Float32Array(cap * 3), CA = new Float32Array(cap * 3), CB = new Float32Array(cap * 3), M = new Float32Array(cap * 3), AB = new Float32Array(cap * 4), AC = new Float32Array(cap * 3); /* written in place (doubled when full), cut to size at the end; sized for the largest skies (about 100k vertices), so no slice has to copy them over */
     const v = new THREE.Vector3(), cA = new THREE.Color(), cB = new THREE.Color();
     const grow = () => { cap *= 2; const g = (a, k) => { const b = new Float32Array(cap * k); b.set(a); return b; }; P = g(P, 3); CA = g(CA, 3); CB = g(CB, 3); M = g(M, 3); AB = g(AB, 4); AC = g(AC, 3); };
     const put = (p, a, b, m) => { if (nV === cap) grow(); const i = nV * 3; P[i] = p.x; P[i + 1] = p.y; P[i + 2] = p.z; CA[i] = a.r; CA[i + 1] = a.g; CA[i + 2] = a.b; CB[i] = b.r; CB[i + 1] = b.g; CB[i + 2] = b.b; M[i] = m[0]; M[i + 1] = CO && m[2] === -1 ? CO.fill(p) : m[1]; M[i + 2] = m[2]; nV++; }; /* a land vertex's fill flag in aMove.y; aBird / aCen stay 0 */
@@ -72085,7 +72125,7 @@ const campSky = (() => {
     const skyFn = (e, a, x, y) => { skyAt(e, a, 0, x); skyAt(e, a, 1, y); };
     /* the dome: rings packed where the camp lens looks (the glow band), 48 slices */
     const ER = [-90, -40, -26, -18, -14, -12, -10.5, -9, -7.5, -6, -4.5, -3, -1.5, 0, 2, 5, 9, 14, 22, 32, 46, 64, 90], NA = 48;
-    for (let i = 0; i < ER.length - 1; i++) for (let j = 0; j < NA; j++) quad(CAMP_SKY.R, ER[i], j * 360 / NA - 180, ER[i + 1], (j + 1) * 360 / NA - 180, skyFn);
+    for (let i = 0; i < ER.length - 1; i++) for (let j = 0; j < NA; j++) { if (due()) yield; quad(CAMP_SKY.R, ER[i], j * 360 / NA - 180, ER[i + 1], (j + 1) * 360 / NA - 180, skyFn); }
     /* far ridges: two faceted silhouettes all the way round, the far one paler (air), the near one darker; their feet are the fog color */
     /* the first camps sit high, so the far ridges' higher peaks carry snow caps there (snF: 1 at the first camp, gone by six tenths of the course) */
     const lanesF = S.course ? S.course.checkpoints.filter(c => c.lane) : [], liF = lanesF.indexOf(cp), snF = Math.max(0, 1 - (lanesF.length > 1 && liF >= 0 ? liF / (lanesF.length - 1) : 1) / (VV ? 0.6 * Math.min(1.5, VV.snow) : 0.6)), snL = VV ? 0.42 + 0.22 * (1 - VV.snow) : 0.42; /* snowy themes keep their caps longer and lower */
@@ -72095,7 +72135,7 @@ const campSky = (() => {
       if (CO && CO.soft) CO.soft(H, L.n); /* rolling toward the sea */
       /* the far ridges leave the sea arc (they lay on the water there as a pale level strip) */
       H[L.n] = H[0];
-      yield; for (let j = 0; j < L.n; j++) { const a0 = j * 360 / L.n - 180, a1 = (j + 1) * 360 / L.n - 180, sl = H[j + 1] - H[j], am = (a0 + a1) / 2;
+      yield; for (let j = 0; j < L.n; j++) { if (due()) yield; const a0 = j * 360 / L.n - 180, a1 = (j + 1) * 360 / L.n - 180, sl = H[j + 1] - H[j], am = (a0 + a1) / 2;
         const lit = 1 + Math.max(-1, Math.min(1, sl * 1.6 * Math.sign(wrapD(CAMP_SKY.sunAz - am) || 1))) * 0.07; /* the slope facing the sun a shade lighter: low-poly facets */
         const top = (e, a, x, y) => { skyAt(e, a, 0, x).lerp(tn, 1 - L.aer).multiplyScalar(lit); skyAt(e, a, 1, y).lerp(td, 1 - L.aer).lerp(_b.setRGB(1, 0.62, 0.5), 0.22 * sunW(e, a)).multiplyScalar(lit); };
         const foot = (e, a, x, y) => { x.copy(fogN); y.copy(fogD); };
@@ -72112,12 +72152,12 @@ const campSky = (() => {
     { const sE = CAMP_SKY.sunEl, sA = CAMP_SKY.sunAz, ring = (rho, f) => { const out = []; for (let k = 0; k <= 28; k++) { const t = k / 28 * 6.2832, e = sE + rho * Math.sin(t), a = sA + rho * Math.cos(t) / Math.cos(e * D2R); out.push([e, a]); } return out; };
       const RH = [CAMP_SKY.sunR * 1.02, 2.6, 4.2, 6.4, CAMP_SKY.haloR], gD = col('#fff1d6'), gK = col('#ffd29a');
       const hal = (e, a, rho, x, y) => { const w = Math.pow(1 - Math.min(1, (rho - CAMP_SKY.sunR) / (CAMP_SKY.haloR - CAMP_SKY.sunR)), 2.2); skyAt(e, a, 0, x).lerp(gD, 0.5 * w); skyAt(e, a, 1, y); _a.copy(gK); if (mood) _a.offsetHSL(mood * 0.6, 0, 0); y.lerp(_a, 0.9 * w); };
-      for (let i = 0; i < RH.length - 1; i++) { const r0 = ring(RH[i]), r1 = ring(RH[i + 1]);
+      for (let i = 0; i < RH.length - 1; i++) { yield; const r0 = ring(RH[i]), r1 = ring(RH[i + 1]);
         for (let k = 0; k < 28; k++) for (const [p, rho] of [[r0[k], RH[i]], [r0[k + 1], RH[i]], [r1[k + 1], RH[i + 1]], [r0[k], RH[i]], [r1[k + 1], RH[i + 1]], [r1[k], RH[i + 1]]]) { hal(p[0], p[1], rho, cA, cB); put(dir(p[0], p[1], 591, v), cA, cB, STILL); } }
       const c0 = col('#fff8e8'), c1 = col('#fff0cf'), d0 = col('#fff0c8'), d1 = col('#ffd08a'), rs = ring(CAMP_SKY.sunR);
       for (let k = 0; k < 28; k++) { put(dir(sE, sA, 588, v), c0, d0, STILL); put(dir(rs[k][0], rs[k][1], 588, v), c1, d1, STILL); put(dir(rs[k + 1][0], rs[k + 1][1], 588, v), c1, d1, STILL); } }
     yield; /* high wisps: thin ribbons whose edges are the sky itself and whose middle line is lighter (they stay put; high air barely moves) */
-    for (let w = 0; w < 7; w++) {
+    for (let w = 0; w < 7; w++) { yield;
       let a0 = rnd() * 360 - 180; if (Math.abs(wrapD(a0 - CAMP_SKY.sunAz)) < 22) a0 += 50;
       const e0 = -4.2 + rnd() * 11, len = 18 + rnd() * 20, th = 0.35 + rnd() * 0.55, tilt = (rnd() - 0.5) * 3, N = 12, str = 0.4 + rnd() * 0.25;
       const pt = (s, off) => { const e = e0 + tilt * s + off, a = a0 + len * s; return [e, a]; };
@@ -72127,7 +72167,7 @@ const campSky = (() => {
           const tri = [[ua, 0], [ub, 0], [ub, ob], [ua, 0], [ub, ob], [ua, oa]];
           if (!VV || w < VV.wisp) for (const [s, off] of tri) { wc(s, off, cA, cB); const [e, a] = pt(s, off); put(dir(e, a, 595, v), cA, cB, STILL); } } } } /* 2-7 wisps (all keep their draws) */
     yield; /* stars: away from the glow, brighter higher up; at day they are the sky's color (invisible) */
-    for (let i = 0; i < 110; i++) { const e = -5 + Math.pow(rnd(), 1.6) * 75, a = rnd() * 360 - 180, sw = sunW(e, a); if (sw > 0.3) continue;
+    for (let i = 0; i < 110; i++) { if (due()) yield; const e = -5 + Math.pow(rnd(), 1.6) * 75, a = rnd() * 360 - 180, sw = sunW(e, a); if (sw > 0.3) continue;
       const b = Math.min(1, Math.max(0, (e + 6) / 18)) * (0.45 + 0.55 * rnd()) * (1 - sw), sz = 0.13 + rnd() * 0.14 + (rnd() < 0.08 ? 0.12 : 0), mv = [0, 0, 3];
       skyAt(e, a, 0, cA); skyAt(e, a, 1, cB).lerp(_a.setRGB(1, 0.97, 0.9), 0.25 + 0.7 * b);
       const ce = Math.cos(e * D2R), pts = [[e + sz, a], [e, a + sz / ce], [e - sz, a], [e, a - sz / ce]];
@@ -72145,7 +72185,7 @@ const campSky = (() => {
           if (Math.abs(wrapD(az - CAMP_SKY.sunAz)) < 10 && el0 < CAMP_SKY.sunEl + 6) continue; /* the sun starts clear; the drift brings clouds across it later */
           const C0 = dir(el, az, L.r, new THREE.Vector3()), ux = Math.cos(az * D2R), uz = -Math.sin(az * D2R), np = 3 + Math.floor(rnd() * 4), baseY = C0.y - wd * 0.06;
           const sw = sunW(el, az), mv = [L.dr, 0, 1]; skyAt(el, az, 0, sky0); skyAt(el, az, 1, sky1);
-          yield; for (let p = 0; p < np; p++) { const s = np > 1 ? p / (np - 1) - 0.5 : 0, pr = wd * (0.2 + 0.13 * Math.cos(s * Math.PI) + rnd() * 0.07), cx = s * wd * 0.82, cy = pr * (0.15 + rnd() * 0.25) * Math.cos(s * 2.4), cz = (rnd() - 0.5) * pr * 0.6;
+          yield; for (let p = 0; p < np; p++) { if (due()) yield; const s = np > 1 ? p / (np - 1) - 0.5 : 0, pr = wd * (0.2 + 0.13 * Math.cos(s * Math.PI) + rnd() * 0.07), cx = s * wd * 0.82, cy = pr * (0.15 + rnd() * 0.25) * Math.cos(s * 2.4), cz = (rnd() - 0.5) * pr * 0.6;
             const pa = L.g.attributes.position;
             for (let f = 0; f < pa.count; f += 3) {
               for (let k = 0; k < 3; k++) { const x = pa.getX(f + k) * pr, y = pa.getY(f + k) * pr * 0.6, z = pa.getZ(f + k) * pr * 0.8;
@@ -72159,9 +72199,9 @@ const campSky = (() => {
     yield; /* the bird slots: BIRD_MAX chevrons (6 vertices each) parked out of sight until planBirds() fills them in */
     const birdAt = nV; for (let b = 0; b < BIRD_MAX; b++) for (let k = 0; k < 6; k++) { put(v.set(0, 0, 0), cA.setRGB(0.3, 0.3, 0.3), cB.setRGB(0.2, 0.2, 0.2), [0, 0, 4]); AB[(nV - 1) * 4] = 1e9; AB[(nV - 1) * 4 + 1] = 1e9; }
     yield; const vistaAt = nV; yield* vistaGen(cp, put);
-    const fa = (a, k) => new THREE.Float32BufferAttribute(a.subarray(0, nV * k), k); /* copied to its exact size */
+    yield; const fa = (a, k) => new THREE.Float32BufferAttribute(a.subarray(0, nV * k), k); /* copied to its exact size */
     const g = new THREE.BufferGeometry(); g.setAttribute('position', fa(P, 3)); g.setAttribute('color', fa(CA, 3));
-    g.setAttribute('colorB', fa(CB, 3)); g.setAttribute('aMove', fa(M, 3)); g.setAttribute('aBird', fa(AB, 4)); g.setAttribute('aCen', fa(AC, 3)); g.boundingSphere = new THREE.Sphere(new THREE.Vector3(), CAMP_SKY.R + 10);
+    yield; g.setAttribute('colorB', fa(CB, 3)); yield; g.setAttribute('aMove', fa(M, 3)); yield; g.setAttribute('aBird', fa(AB, 4)); yield; g.setAttribute('aCen', fa(AC, 3)); g.boundingSphere = new THREE.Sphere(new THREE.Vector3(), CAMP_SKY.R + 10);
     const m = new THREE.Mesh(g, mat); m.frustumCulled = false; m.renderOrder = -1; if (LAND[2]) m.onBeforeRender = depthSync; m.userData.birdAt = birdAt; m.userData.vistaAt = vistaAt; m.userData.vista = vistaInfo; return m; }
   /* ---- the vista ring: layered low-poly hills, a far range and a forest line between the camp and the far ridges, in the same mesh (no extra
      draw call), after the bird slots. The world is built only along the course, so behind some camps (most of all near the course end) the lens
@@ -72298,7 +72338,7 @@ const campSky = (() => {
         for (let q = 0; q < K.L.length; q++) { const w = K.L[q], p = C[m - 1].R[q], l = A.L[q], z = Z.R[q];
           for (let c = 0; c < 7; c++) { if (Math.abs(w[c] - p[c]) > 1e-9) return false; if (Math.abs(w[c] - (l[c] + (z[c] - l[c]) * u)) > (c ? 0.0008 : 0.004)) return false; } } }
       return true; };
-    const colsOut = (C, B, r, mx) => { for (let s = 0; s < C.length;) { let j = s; while (j + 1 < C.length && j + 1 - s < mx && colOk(C, s, j + 1)) j++;
+    const colsOut = function* (C, B, r, mx) { for (let s = 0; s < C.length;) { if (due()) yield; let j = s; while (j + 1 < C.length && j + 1 - s < mx && colOk(C, s, j + 1)) j++;
         const L = C[s].L, R = C[j].R, a0 = C[s].a0, a1 = C[j].a1;
         for (const [t, b] of B) { colPut(L[t], a0, r); colPut(R[t], a1, r); colPut(R[b], a1, r); colPut(L[t], a0, r); colPut(R[b], a1, r); colPut(L[b], a0, r); }
         s = j + 1; } };
@@ -72353,17 +72393,17 @@ const campSky = (() => {
         for (const [p, c] of [[p0, c0], [p1, c1], [q1, d1], [p0, c0], [q1, d1], [q0, d0]]) put(p, c[0], c[1], STILL); } };
     const faceAt = (L, H, e, az) => { const Ht = hAt(H, L.n, az), B = CAMP_SKY.ridgeBase; /* the depth of a ridge face at (e, az): the vertical chord from the top down to ridgeBase, less the segment's own sag */
       return Math.min(L.r, L.r * Math.cos((Ht - B) * D2R / 2) / Math.cos((Math.min(e, Ht) - (Ht + B) / 2) * D2R)) - L.r * (1 - Math.cos(Math.PI / L.n)); };
-    const plant = () => {
+    const plant = function* () {
       TREES.sort((a, b) => b.e0 - a.e0);
       /* the trees already placed, binned by azimuth (2 deg): a tree tests only the bins its widest possible overlap reaches (one bin of slack each side), the same
          pairs in another order (only the max and the set of slots are used) */
       let wMax = 0; for (const T of TREES) wMax = Math.max(wMax, T.w); const BW = 2, NB = 180, BIN = []; for (let b = 0; b < NB; b++) BIN.push([]);
-      for (let i = 0; i < TREES.length; i++) { const T = TREES[i]; let hi = -1; const used = [];
+      for (let i = 0; i < TREES.length; i++) { if (due()) yield; const T = TREES[i]; let hi = -1; const used = [];
         const aT = wrapD(T.az) + 180, R = T.w + wMax, b0 = Math.floor((aT - R) / BW) - 1, b1 = Math.floor((aT + R) / BW) + 1, all = b1 - b0 + 1 >= NB;
         for (let bb = all ? 0 : b0; bb <= (all ? NB - 1 : b1); bb++) for (const U of BIN[((bb % NB) + NB) % NB]) { if (U.L !== T.L || T.e0 + T.th <= U.e0 || Math.abs(wrapD(U.az - T.az)) >= T.w + U.w) continue; hi = Math.max(hi, U.k); used.push(U.k); }
         if (hi + 1 < NS) T.k = hi + 1; else { T.k = NS - 1; for (let k = 0; k < NS; k++) if (!used.includes(k)) { T.k = k; break; } }
         BIN[Math.min(NB - 1, Math.floor(aT / BW))].push(T); }
-      for (const T of TREES) { const ce = Math.cos(T.e0 * D2R), sg = sunSide(T.az), r0 = faceAt(T.L, T.H, T.e0, T.az) - 1.5 - T.k * 3 * DZ;
+      for (const T of TREES) { if (due()) yield; const ce = Math.cos(T.e0 * D2R), sg = sunSide(T.az), r0 = faceAt(T.L, T.H, T.e0, T.az) - 1.5 - T.k * 3 * DZ;
         if (T.rd) { crown(T.az, T.e0, T.th, T.hw, r0 - DZ, sg, (e, k, lit) => { if (mk) { const L = T.L; if (!L.cN) { L.cN = col(L.dN); L.cD = col(L.dD); } tcol(e, T.az, L.cN, L.cD, T.aer, 0.72 * T.jit, 0, 0); gN.copy(cA); gD.copy(cB); }
           tcol(e, T.az, T.tnC, T.tdC, T.aer, 0.72 * T.jit * k, lit, 0); if (mk) { cA.lerp(gN, 0.6 * mk); cB.lerp(gD, 0.6 * mk); } }, STILL, Math.round(T.az * 10) & 3); continue; } /* in thick fog a round crown takes on most of the hill's own hazy color, so it sits in the slope instead of floating on it */
         for (let i = 0; i < 3; i++) { const eb = T.e0 + T.th * TB[i], et = T.e0 + T.th * TT[i], w = T.hw * TW[i] / ce, rr = r0 - DZ * i; /* three stacked tiers, each split into a lit and a shaded half */
@@ -72389,7 +72429,7 @@ const campSky = (() => {
           const c = sunCap + up + (dS - nt + 1.5) * VFAR.sh[1]; if (H[j] > c) { if (!ch && HP === H) HP = H.slice(); ch = true; H[j] = c; } }
         if (ch) H[L.n] = H[0]; }
       tops.push(HP); topsG.push(H);
-      for (let j = 0; j < L.n; j++) { const a0 = j * 360 / L.n - 180, a1 = (j + 1) * 360 / L.n - 180, sl = H[j + 1] - H[j], am = (a0 + a1) / 2;
+      for (let j = 0; j < L.n; j++) { if (due()) yield; const a0 = j * 360 / L.n - 180, a1 = (j + 1) * 360 / L.n - 180, sl = H[j + 1] - H[j], am = (a0 + a1) / 2;
         const lit = 1 + Math.max(-1, Math.min(1, sl * 1.6 * Math.sign(wrapD(CAMP_SKY.sunAz - am) || 1))) * 0.08;
         const top = (e, a, x, y) => { skyAt(e, a, 0, x).lerp(tn, 1 - L.aer).multiplyScalar(lit); warmOn(skyAt(e, a, 1, y).lerp(td, 1 - L.aer), warm, 0.2 * sunW(e, a)).multiplyScalar(lit); };
         if (FX) { faceRows(L, li2, top, fN, fD, [[a0, H[j]], [a1, H[j + 1]]]); continue; }
@@ -72406,7 +72446,7 @@ const campSky = (() => {
           cA.multiplyScalar(k); cB.multiplyScalar(k); put(dir(e, az, rr, v), cA, cB, STILL); };
         const band = (a0, t0, b0, a1, t1, b1, k, g) => { pc(t0, a0, k, g); pc(t1, a1, k, g); pc(b1, a1, k, g); pc(t0, a0, k, g); pc(b1, a1, k, g); pc(b0, a0, k, g); };
         let a = -180 + hq(0) * 8, k = 1;
-        while (a < 176) { const wd = (VFAR.w[0] + (VFAR.w[1] - VFAR.w[0]) * Math.pow(hq(k), 1.7)) * (dry ? 1 : VFAR.wide), hg = Math.min((VFAR.h[0] + (VFAR.h[1] - VFAR.h[0]) * hq(k + 1)) * wAt(a + wd / 2), Math.abs(wrapD(a + wd / 2 - CAMP_SKY.sunAz)) < VFAR.sun[0] + wd / 2 ? Math.max(0, sunCap + VFAR.top - rAt(a + wd / 2)) : 9), gap = VFAR.gap[0] + (VFAR.gap[1] - VFAR.gap[0]) * hq(k + 3) * hq(k + 3);
+        while (a < 176) { if (due()) yield; const wd = (VFAR.w[0] + (VFAR.w[1] - VFAR.w[0]) * Math.pow(hq(k), 1.7)) * (dry ? 1 : VFAR.wide), hg = Math.min((VFAR.h[0] + (VFAR.h[1] - VFAR.h[0]) * hq(k + 1)) * wAt(a + wd / 2), Math.abs(wrapD(a + wd / 2 - CAMP_SKY.sunAz)) < VFAR.sun[0] + wd / 2 ? Math.max(0, sunCap + VFAR.top - rAt(a + wd / 2)) : 9), gap = VFAR.gap[0] + (VFAR.gap[1] - VFAR.gap[0]) * hq(k + 3) * hq(k + 3);
           if (hg > 0.3) { const fl = dry ? Math.min(wd * 0.3, VFAR.fl[0] + VFAR.fl[1] * hq(k + 2)) : wd * (0.3 + 0.16 * hq(k + 2)), tl = (hq(k + 4) - 0.5) * 0.3, sg = Math.sign(wrapD(CAMP_SKY.sunAz - a)) || 1;
             const ap = 0.5 + 0.5 * hq(k + 2), P = dry ? [[a - ap, 0], [a, hg * 0.3], [a + fl, hg * (1 + tl)], [a + wd * (0.35 + 0.3 * hq(k + 5)), hg * (1 - 0.1 * hq(k + 6))], [a + wd - fl, hg * (1 - tl)], [a + wd, hg * 0.26], [a + wd + ap, 0]] : [[a, 0], [a + wd * 0.17, hg * 0.46], [a + wd * 0.36, hg * 0.86], [a + wd * (0.48 + 0.14 * hq(k + 5)), hg], [a + wd * 0.8, hg * 0.6], [a + wd, 0]]; /* a butte: a talus apron, steep flanks, a nearly level top; a knoll: a broad rise in five facets */
             for (let i = 0; i < P.length - 1; i++) { const [a0, h0] = P[i], [a1, h1] = P[i + 1], r0 = rAt(a0), r1 = rAt(a1), lit = 1 + Math.max(-1, Math.min(1, (h1 - h0) * 1.2 * sg)) * 0.09, cp0 = Math.min(VFAR.cap, h0 * 0.5), cp1 = Math.min(VFAR.cap, h1 * 0.5);
@@ -72432,10 +72472,10 @@ const campSky = (() => {
         const pb = (e, az, k, f) => { skyAt(e, az, 0, cA).lerp(tN, 1 - aer); warmOn(skyAt(e, az, 1, cB).lerp(tD, 1 - aer), warm, 0.2 * sunW(e, az)); if (f > 0) { cA.lerp(fgN, f); cB.lerp(fgD, f); } cA.multiplyScalar(k); cB.multiplyScalar(k); return colRow(e); };
         /* one edge's rows: the rim (top, under it), the face (top, its foot), the foot's bottom; the face's foot is the foot band's top */
         const edge = (az, t, c, m, b, k, rk) => [pb(t, az, rk, 0), pb(t - c, az, rk, 0), pb(t - c, az, k, 0), pb(m, az, k, 0.45), pb(b, az, k, 0.8)], CL = [];
-        for (let i = 0; i < NS; i++) { if (T[i] <= Bt[i] + 0.2 && T[i + 1] <= Bt[i + 1] + 0.2) continue; const a0 = -180 + i * ST, a1 = a0 + ST, sl = T[i + 1] - T[i], sg = Math.sign(wrapD(CAMP_SKY.sunAz - a0)) || 1;
+        for (let i = 0; i < NS; i++) { if (due()) yield; if (T[i] <= Bt[i] + 0.2 && T[i + 1] <= Bt[i + 1] + 0.2) continue; const a0 = -180 + i * ST, a1 = a0 + ST, sl = T[i + 1] - T[i], sg = Math.sign(wrapD(CAMP_SKY.sunAz - a0)) || 1;
           const lit = (1 + Math.max(-1, Math.min(1, sl * 2.2 * sg)) * 0.1), k0 = Lt[i] * lit, k1 = Lt[i + 1] * lit, rm = dry ? VFAR.rim + 0.06 : 1, c0 = Math.min(0.26, (T[i] - Bt[i]) * 0.3), c1 = Math.min(0.26, (T[i + 1] - Bt[i + 1]) * 0.3), m0 = T[i] - Math.min(2.2, (T[i] - Bt[i]) * 0.6), m1 = T[i + 1] - Math.min(2.2, (T[i + 1] - Bt[i + 1]) * 0.6);
           CL.push({ a0, a1, L: edge(a0, T[i], c0, m0, Bt[i], k0, k0 * rm * 1.04), R: edge(a1, T[i + 1], c1, m1, Bt[i + 1], k1, k1 * rm * 1.04) }); }
-        colsOut(CL, [[0, 1], [2, 3], [3, 4]], rb, 8); } } /* the rim, lit a little (a darker cap rock on the dry themes); the face, fading into the valley haze; its foot */
+        yield* colsOut(CL, [[0, 1], [2, 3], [3, 4]], rb, 8); } } /* the rim, lit a little (a darker cap rock on the dry themes); the face, fading into the valley haze; its foot */
     if (fam === 3 && tops.length > 1) { yield; /* a lake sliver: a pale strip of sky-lit water at the foot of the middle hills, seen past the forest line */
       const a0 = (R() - 0.5) * 80 - 20, span = 26 + R() * 30, N = 12;
       for (let k = 0; k < N; k++) { const u0 = a0 + span * k / N, u1 = a0 + span * (k + 1) / N, e0 = -14.6, e1 = -14.6 + 0.5 * Math.sin(Math.PI * (k + 0.5) / N);
@@ -72454,7 +72494,7 @@ const campSky = (() => {
       /* over the sea (the far arc, and the sea side of a coast-frame camp) the range stands on the sea's horizon: its foot goes up to it, so what lay under the horizon (a pale level strip on the water) is gone and the peaks over it stay */
       H.push(H[0]);
       const tnC = col('#9aa9c6'), tdC = col('#80709f'), aer = 0.62 - 0.22 * s, snowE = -5.2, fN = fogN.clone().lerp(tnC, 0.25 * s), fD = fogD.clone().lerp(tdC, 0.25 * s), B = CAMP_SKY.ridgeBase;
-      for (let j = 0; j < n; j++) { const a0 = j * 360 / n - 180, a1 = (j + 1) * 360 / n - 180, sl = H[j + 1] - H[j], am = (a0 + a1) / 2, B0 = B, B1 = B;
+      for (let j = 0; j < n; j++) { if (due()) yield; const a0 = j * 360 / n - 180, a1 = (j + 1) * 360 / n - 180, sl = H[j + 1] - H[j], am = (a0 + a1) / 2, B0 = B, B1 = B;
         const lt = (1 + Math.max(-1, Math.min(1, sl * 1.6 * Math.sign(wrapD(CAMP_SKY.sunAz - am) || 1))) * 0.2) * (0.96 + W() * 0.08); /* strong facets: the sunlit slope clearly lighter */
         const sn0 = Math.max(0, Math.min(1, (H[j] - snowE) / 1.2)), sn1 = Math.max(0, Math.min(1, (H[j + 1] - snowE) / 1.2)), m0 = H[j] - 1.5, m1 = H[j + 1] - 1.5;
         const q = sn0 > 0 || sn1 > 0 ? [[H[j], a0, 0, sn0], [H[j + 1], a1, 0, sn1], [m1, a1, 0, 0], [H[j], a0, 0, sn0], [m1, a1, 0, 0], [m0, a0, 0, 0], [m0, a0, 0, 0], [m1, a1, 0, 0], [B1, a1, 1, 0], [m0, a0, 0, 0], [B1, a1, 1, 0], [B0, a0, 1, 0]]
@@ -72467,7 +72507,7 @@ const campSky = (() => {
     const stack = [], GR = []; LAYERS.forEach((L, i) => { if (tops[i] && L.aer0 <= 0.42) /* the plain haze decides which layers carry groves (the same draws) */ stack.push({ i, r: L.r, n: L.n, H: tops[i], G: topsG[i], tnC: col(L.dN), tdC: col(L.dD), aer: L.aer }); });
     const nearMax = (i, az) => { let m = CAMP_SKY.ridgeBase; for (let k = i + 1; k < tops.length; k++) m = Math.max(m, hAt(tops[k], LAYERS[k].n, az)); return m; }, TS = [1.0, 1.1, 1.25];
     for (const L of stack) { const nG = 6 + Math.floor(W() * 4), per = Math.round((14 + W() * 10) * (0.6 + 0.9 * s));
-      for (let g = 0; g < nG; g++) { const cg = W() * 360 - 180, sp = 3 + W() * 5, hs = W() < 0.14 ? 0.03 + W() * 0.05 : 0; GR.push({ i: L.i, cg, sp });
+      for (let g = 0; g < nG; g++) { if (due()) yield; const cg = W() * 360 - 180, sp = 3 + W() * 5, hs = W() < 0.14 ? 0.03 + W() * 0.05 : 0; GR.push({ i: L.i, cg, sp });
         for (let t = 0; t < per; t++) { const az = wrapD(cg + (W() + W() + W() - 1.5) * 2 * sp), hr = hAt(L.H, L.n, az), nm = nearMax(L.i, az), exp = hr - nm; if (exp < 0.2) continue;
           const dn = W() < 0.3 ? Math.pow(W(), 1.3) * Math.min(exp * 0.85, 3.2) : 0, th = (0.55 + W() * 0.8) * (0.7 + 0.3 * s) * TS[L.i], hw = th * (0.26 + 0.1 * W()), jit = 0.9 + W() * 0.2;
           const e0 = hr - 0.12 - dn; if (e0 + th * 0.5 < nm) continue; if (Math.abs(wrapD(az - CAMP_SKY.sunAz)) < 12 && e0 + th > sunCap) continue;
@@ -72514,13 +72554,13 @@ const campSky = (() => {
           skyAt(ef, az, 0, cA).lerp(rkN, ha).multiplyScalar(k0).lerp(hN, RF[4] + (RF[5] - RF[4]) * (1 - fy)); skyAt(ef, az, 1, cB).lerp(rkD, ha).lerp(warm, Math.max(0, side) * (0.3 + VISTA_ROCK[3]) * sunW(ef, az)).multiplyScalar(k0).lerp(hD0, RF[4] + (RF[5] - RF[4]) * (1 - fy));
           for (let k = 0; k < 3; k++) put(e1.copy(W3[k]).normalize().multiplyScalar(rB - (V[f + k].z - z0) / (z1 - z0 || 1) * 0.6), cA, cB, STILL); }
       };
-      for (let at = 0; at < 8 && RC.length < nR; at++) tryRock(K);
+      for (let at = 0; at < 8 && RC.length < nR; at++) { yield; tryRock(K); }
       if (VISTA_ROCK[1]) { const K2 = mulberry32(((seed + 7403) ^ Math.imul(cp.idx + 1, 0x27D4EB2F)) | 0), nR2 = Math.min(4, Math.max(2, nR + (K2() < 0.5 ? 1 : 0))); /* the top-up: at least 2, at most 4 rocks a ring */
-        for (let at = 0; at < 10 && RC.length < nR2; at++) tryRock(K2); }
+        for (let at = 0; at < 10 && RC.length < nR2; at++) { yield; tryRock(K2); } }
       dg.dispose(); }
     if (FX) yield* nearZone();
     if (FX) yield* vistaMore();
-    yield; plant();
+    yield; yield* plant();
     /* ---- the full vista's added pieces, all land pieces of the same mesh. Own stream Q2 (seed + 7424) for the villages, the lake and
        the coast. Depths: the far sea arc at 586 (behind the far ridges at 582 and the massif, in front of the halo at 591, so the sun sets into it);
        a village stands on its ridge like the trees (in front of the face, the lower houses nearer); the coast's pieces at 482 / 452 / 420 (nearer
@@ -72550,7 +72590,7 @@ const campSky = (() => {
       const gN = new THREE.Color(), gD = new THREE.Color();
       vistaInfo.near = T0;
       for (let k = 0; k < NL.length; k++) { const L = NL[k]; yield;
-        for (let j = 0; j < NB; j++) { const a0 = j * 360 / NB - 180, a1 = (j + 1) * 360 / NB - 180, am = (a0 + a1) / 2, lit = 1 + Math.max(-1, Math.min(1, (L.H[j + 1] - L.H[j]) * 1.6 * sunSide(am))) * 0.1;
+        for (let j = 0; j < NB; j++) { if (due()) yield; const a0 = j * 360 / NB - 180, a1 = (j + 1) * 360 / NB - 180, am = (a0 + a1) / 2, lit = 1 + Math.max(-1, Math.min(1, (L.H[j + 1] - L.H[j]) * 1.6 * sunSide(am))) * 0.1;
           const sh = 0.94 + N() * 0.12; /* a facet's own small shade */
           const e0 = L.H[j], e1 = L.H[j + 1], m0 = e0 - 1.6, m1 = e1 - 1.6; /* the crest row in the ground's color there, the slope below it darker, then down into the haze */
           for (const [e, a, f] of [[e0, a0, 1], [e1, a1, 1], [m1, a1, 0.86], [e0, a0, 1], [m1, a1, 0.86], [m0, a0, 0.86], [m0, a0, 0.86], [m1, a1, 0.86], [B, a1, -1], [m0, a0, 0.86], [B, a1, -1], [B, a0, -1]]) {
@@ -72558,7 +72598,7 @@ const campSky = (() => {
             ground(L, a, gN, 0); ground(L, a, gD, 1); if (f < 0.9) { gN.lerp(GN[1], 0.5); gD.lerp(GD[1], 0.5); }
             paintN(e, a, gN, gD, L.aer, lit * f * sh, cA, cB); put(dir(e, a, L.r, v), cA, cB, KD); } }
         const nT = Math.round(230 * (1 - 0.15 * k)), sz = [1.15, 0.9, 0.7][k];
-        for (let t = 0; t < nT; t++) { const az = N() * 360 - 180, dn = N() < 0.55 ? N() * 1.4 : 0, th = (0.55 + N() * 0.6) * sz, jit = 0.9 + N() * 0.2, nz = patch(L, az), keep = N();
+        for (let t = 0; t < nT; t++) { if (due()) yield; const az = N() * 360 - 180, dn = N() < 0.55 ? N() * 1.4 : 0, th = (0.55 + N() * 0.6) * sz, jit = 0.9 + N() * 0.2, nz = patch(L, az), keep = N();
           if (nz > 0.72 || keep > 0.35 + 0.65 * (1 - nz)) continue; /* groves on the forest floor, few trees on the open patches */
           const e0 = hN(L, az) - 0.1 - dn; let near = -90; for (let q = 0; q < k; q++) near = Math.max(near, hN(NL[q], az));
           if (e0 + th * 0.4 < near || (Math.abs(wrapD(az - CAMP_SKY.sunAz)) < 9 && e0 + th > sunCap)) continue;
@@ -72579,10 +72619,10 @@ const campSky = (() => {
           const th = (2.0 + 0.8 * vi(at, 27)) * [1.15, 0.9, 0.7][k], T = { az, e0, th, hw: th * 0.36, k: 0, L, jit: 1 }; if (vi(at, 28) < 0.5 + VV.rd) { vvLook(T, at + 90000); if (!T.rd) { T.rd = 1; T.tnC = col(VV.rdP[0][0]); T.tdC = col(VV.rdP[0][1]); } }
           NT.push(T); vistaInfo.lone = [k, +az.toFixed(1)]; break; } }
       yield; NT.sort((a, b) => b.e0 - a.e0); /* depth slots as for the ridge trees: overlapping trees of a band never share a depth (the lower one nearer) */
-      for (let i = 0; i < NT.length; i++) { const T = NT[i], used = []; let hi = -1;
+      for (let i = 0; i < NT.length; i++) { if (due()) yield; const T = NT[i], used = []; let hi = -1;
         for (let j = 0; j < i; j++) { const U = NT[j]; if (U.L === T.L && T.e0 + T.th > U.e0 && Math.abs(wrapD(U.az - T.az)) < (U.hw + T.hw) / Math.cos(T.e0 * D2R)) { hi = Math.max(hi, U.k); used.push(U.k); } }
         T.k = Math.min(4, hi + 1); if (hi + 1 > 4) for (let q = 0; q < 5; q++) if (!used.includes(q)) { T.k = q; break; } }
-      for (const T of NT) { const ce = Math.cos(T.e0 * D2R), sg = sunSide(T.az), r0 = T.L.r - 1.2 - T.k * 1.6;
+      for (const T of NT) { if (due()) yield; const ce = Math.cos(T.e0 * D2R), sg = sunSide(T.az), r0 = T.L.r - 1.2 - T.k * 1.6;
         if (T.rd) { crown(T.az, T.e0, T.th, T.hw, r0 - 0.3, sg, (e, k, lit) => paintN(e, T.az, T.tnC, T.tdC, T.L.aer * 0.9, T.jit * k * 0.92, cA, cB), KD, Math.round(T.az * 10) & 3); continue; }
         for (let i = 0; i < 3; i++) { const eb = T.e0 + T.th * TB[i], et = T.e0 + T.th * TT[i], w = T.hw * TW[i] / ce, rr = r0 - 0.3 * i;
           for (const sd of [1, -1]) { paintN(et, T.az, pN, pD, T.L.aer * 0.9, T.jit * (sd === sg ? 1.1 : 0.76), cA, cB);
@@ -72634,7 +72674,7 @@ const campSky = (() => {
           skyAt(FX.eh + 0.5 + dE * 0.7, az, 0, cA).multiplyScalar(0.92).lerp(sN, m); skyAt(FX.eh + 0.5 + dE * 0.7, az, 1, cB).multiplyScalar(0.9).lerp(sD, m);
           const g = Math.exp(-Math.pow(wrapD(az - sunA) / (0.7 + 0.5 * dE), 2)) * Math.exp(-dE / 6); cA.lerp(white, 0.45 * g); cB.lerp(gold, 0.9 * g);
           skyAt(e, az, 0, t1); skyAt(e, az, 1, t2); const hz = 0.55 * Math.exp(-dE / 0.12); cA.lerp(t1, Math.max(hz, 1 - wT)); cB.lerp(t2, Math.max(hz, 1 - wT)); };
-        for (let i = 0; i < A.length - 1; i++) for (let k = 0; k < RW.length - 1; k++) { const e0 = FX.eh - RW[k], e1 = FX.eh - RW[k + 1];
+        for (let i = 0; i < A.length - 1; i++) for (let k = 0; k < RW.length - 1; k++) { if (due()) yield; const e0 = FX.eh - RW[k], e1 = FX.eh - RW[k + 1];
           if (!VV || VV.sea) for (const [e, a] of [[e0, A[i]], [e0, A[i + 1]], [e1, A[i + 1]], [e0, A[i]], [e1, A[i + 1]], [e1, A[i]]]) { sea(e, a); put(dir(e, a, r, v), cA, cB, SEAK); } } /* some camps before the last one see no far sea, only ranges */
         if (!FX.coast && (!VV || VV.sea)) { /* three far ridges across the sea arc, one behind the other, standing on the water */
           const dry = !!(VV && VV.sh.pl) || S.course.theme === 'canyon' || S.course.theme === 'scrub', tA = col('#a3aebb'), tB = col(pd('#7d6890')), sA = new THREE.Color(), sB = new THREE.Color(), ST = 0.5;
@@ -72647,10 +72687,10 @@ const campSky = (() => {
               return [Math.min(h, Math.max(0.12, sc - 0.25 * q)) * wE, lt]; }; /* low under the sun (the nearer ridges lower still), full size from VFAR.fsun[1] deg off it */
             const pf = (e, az, k, w) => { skyAt(e, az, 0, sA).lerp(tA, 1 - aer).multiplyScalar(k); skyAt(e, az, 1, sB).lerp(tB, 1 - aer).multiplyScalar(k); if (w > 0) { sea(e, az); sA.lerp(cA, w); sB.lerp(cB, w); } return [e, sA.r, sA.g, sA.b, sB.r, sB.g, sB.b]; };
             const CL = []; let az = lo - 1, P0 = hAz(az);
-            while (az < hi + 1) { const a1 = az + ST, P1 = hAz(a1); if (P0[0] > 0.02 || P1[0] > 0.02) { const sg = Math.sign(wrapD(sunA - az)) || 1, lit = lum * (1 + Math.max(-1, Math.min(1, (P1[0] - P0[0]) * 2.5 * sg)) * 0.08), k0 = lit * P0[1], k1 = lit * P1[1], m0 = eF + P0[0] * 0.35, m1 = eF + P1[0] * 0.35;
+            while (az < hi + 1) { if (due()) yield; const a1 = az + ST, P1 = hAz(a1); if (P0[0] > 0.02 || P1[0] > 0.02) { const sg = Math.sign(wrapD(sunA - az)) || 1, lit = lum * (1 + Math.max(-1, Math.min(1, (P1[0] - P0[0]) * 2.5 * sg)) * 0.08), k0 = lit * P0[1], k1 = lit * P1[1], m0 = eF + P0[0] * 0.35, m1 = eF + P1[0] * 0.35;
                 CL.push({ a0: az, a1, L: [pf(eF + P0[0], az, k0 * 1.03, 0), pf(m0, az, k0, 0.12), pf(eF - 0.05, az, k0, 0.75)], R: [pf(eF + P1[0], a1, k1 * 1.03, 0), pf(m1, a1, k1, 0.12), pf(eF - 0.05, a1, k1, 0.75)] }); }
               az = a1; P0 = P1; }
-            colsOut(CL, [[0, 1], [1, 2]], rf, 12); } } /* the upper face, lit a little at the top; the foot melts into the water's haze */
+            yield* colsOut(CL, [[0, 1], [1, 2]], rf, 12); } } /* the upper face, lit a little at the top; the foot melts into the water's haze */
         /* a lake sliver at a middle camp: still water between two hill layers, lying on the nearer one's ridge */
         if (FX.ord > 0.15 && FX.ord < 0.9 && fam !== 3 && tops.length > 1) { yield;
           for (let at = 0; at < 10; at++) { const li = tops.length > 2 && Q2() < 0.5 ? 1 : 0, az0 = (Q2() - 0.5) * 70, span = 7 + Q2() * 9; let eL = -90, ok = true;
@@ -72697,7 +72737,7 @@ const campSky = (() => {
             E.push(Math.max(L.sh + 0.04, top)); B.push(L.sh + (E[j] - L.sh) * (L.far ? 0.3 : 0.5 + 0.3 * (0.5 + 0.5 * Math.sin(d * 0.31 + ph[2])))); }
           const snowE = L.sh + (L.top - L.sh) * 0.66, sand = L.far ? 0 : L.near ? 0.07 : 0.035;
           const fog = (e) => L.aer + (1 - L.aer) * 0.12 * Math.max(0, 1 - (e - L.sh) / 1.4), mist = (e) => 0.45 * Math.max(0, 1 - (e - L.sh) / 0.9);
-          for (let j = 0; j < n; j++) { const a0 = az[j], a1 = az[j + 1], lit = 1 + Math.max(-1, Math.min(1, (E[j + 1] - E[j]) * L.dir * 1.6 * Math.sign(wrapD(sunA - (a0 + a1) / 2) || 1))) * 0.09;
+          for (let j = 0; j < n; j++) { if (due()) yield; const a0 = az[j], a1 = az[j + 1], lit = 1 + Math.max(-1, Math.min(1, (E[j + 1] - E[j]) * L.dir * 1.6 * Math.sign(wrapD(sunA - (a0 + a1) / 2) || 1))) * 0.09;
             const band = (eA0, eA1, eB0, eB1, hN, hD, kb) => { const P4 = [[eA0, a0], [eA1, a1], [eB1, a1], [eA0, a0], [eB1, a1], [eB0, a0]];
               for (const [e, a] of P4) { paint(e, a, hN, hD, fog(e), lit * kb, 0.6); cA.lerp(fogN, mist(e)); cB.lerp(fogD, mist(e)); put(dir(e, a, L.r, v), cA, cB, MK); } };
             if (sand) band(L.sh, L.sh, L.sh + sand, L.sh + sand, '#d9cfae', '#c2948e', 1);
@@ -72725,8 +72765,8 @@ const campSky = (() => {
             paint(eb + hT, a, '#4a4f5a', '#3a3046', L.aer, 1, 0); tri(r, [[eb + hT + 0.14, a - w * 0.42], [eb + hT + 0.14, a + w * 0.42], [eb + hT + 0.3, a]]); vistaInfo.light = +a.toFixed(1); } }
         /* the coast's trees: two tiers, lit / shaded halves; overlapping trees of a headland get their own depth (the lower one nearer) */
         yield; MT.sort((a, b) => b.e0 - a.e0);
-        for (let i = 0; i < MT.length; i++) { const T = MT[i], used = []; let hi = -1; for (let j = 0; j < i; j++) { const U = MT[j]; if (U.L === T.L && T.e0 + T.th > U.e0 && Math.abs(U.az - T.az) < U.hw + T.hw) { hi = Math.max(hi, U.k); used.push(U.k); } } T.k = hi + 1; if (T.k > 7) { T.k = 7; for (let k = 0; k < 8; k++) if (!used.includes(k)) { T.k = k; break; } } }
-        for (const T of MT) { const sg = sunSide(T.az), r0 = T.L.r - 1.2 - T.k * 1.8, fN = T.L.near ? '#2f4f39' : '#456150', fD = pd(T.L.near ? '#1d1630' : '#2c2442');
+        for (let i = 0; i < MT.length; i++) { if (due()) yield; const T = MT[i], used = []; let hi = -1; for (let j = 0; j < i; j++) { const U = MT[j]; if (U.L === T.L && T.e0 + T.th > U.e0 && Math.abs(U.az - T.az) < U.hw + T.hw) { hi = Math.max(hi, U.k); used.push(U.k); } } T.k = hi + 1; if (T.k > 7) { T.k = 7; for (let k = 0; k < 8; k++) if (!used.includes(k)) { T.k = k; break; } } }
+        for (const T of MT) { if (due()) yield; const sg = sunSide(T.az), r0 = T.L.r - 1.2 - T.k * 1.8, fN = T.L.near ? '#2f4f39' : '#456150', fD = pd(T.L.near ? '#1d1630' : '#2c2442');
           for (let i = 0; i < 2; i++) { const eb = T.e0 + T.th * (i ? 0.38 : 0), et = T.e0 + T.th * (i ? 1 : 0.7), w = T.hw * (i ? 0.66 : 1);
             for (const side of [1, -1]) { paint(et, T.az, fN, fD, T.L.aer * 0.9, side === sg ? 1.12 : 0.8, side === sg ? 0.8 : 0); if (T.hs) { cA.offsetHSL(T.hs, 0, 0); cB.offsetHSL(T.hs, 0, 0); }
               tri(r0 - i * 0.6, [[eb, T.az], [eb, T.az + side * w], [et, T.az]]); } } } } }
@@ -72790,6 +72830,7 @@ const campSky = (() => {
      The build reads only the camp, the mountain and the day fog / sky colors, so the result is kept only while those match exactly what the
      entry will copy; anything else is dropped and the camp builds as before. */
   let pre = null; /* { cp, key, it, mesh, course } */
+  let dl = Infinity; const due = () => performance.now() > dl; /* dl: the end of the warm-up slice in progress (prep); the build's long loops pause once it has passed */
   const keyOf = (f, t) => (S.course ? S.course.seed : 0) + '|' + f.r + ',' + f.g + ',' + f.b + '|' + t.r + ',' + t.g + ',' + t.b;
   function drop() { if (!pre) return; if (pre.it) pre.it.return(); if (pre.mesh) pre.mesh.geometry.dispose(); pre = null; }
   function trim(away) { if (keep && keep.course !== S.course) keepDrop(); if (pre && (away || pre.course !== S.course)) drop(); } /* a new mountain drops both; away = the rider left the warm radius: an untaken build goes */
@@ -72800,8 +72841,9 @@ const campSky = (() => {
     if (pre && (pre.cp !== cp || pre.key !== key)) drop();
     if (!pre) { fogN.copy(scene.fog.color); fogD.copy(DUSK.fog); tint.copy(skyDome.material.color); pre = { cp, key, it: buildGen(cp), mesh: null, course: S.course }; }
     if (pre.mesh) return true;
-    const t0 = performance.now(); let r;
-    do r = pre.it.next(); while (!r.done && performance.now() - t0 < budget);
+    const t0 = performance.now(); let r, t1 = t0, st = 0; dl = t0 + budget; /* st: about what one more step takes (the last ones'), so a slice stops before it would run over */
+    do { r = pre.it.next(); const t2 = performance.now(); st = Math.max(st * 0.5, t2 - t1); t1 = t2; } while (!r.done && t1 - t0 + st < budget);
+    dl = Infinity;
     if (r.done) { pre.mesh = r.value; pre.it = null; }
     return !!pre.mesh; }
   function take(cp) { /* the prepared mesh when it is this camp's, built from the same colors sync just set (a half-done build is finished here); null otherwise */
@@ -72827,7 +72869,7 @@ const campSky = (() => {
    about CAMP_WARM.ms per slice) and its program. Programs are compiled against the live scene (renderer.compile with the scene as the target),
    so the lights and the fog match what the camp frame asks for. Nothing seeded is drawn and nothing is added to the scene: enterCamp and
    campSky.sync use the pieces exactly as before, they only find them ready. ---- */
-const CAMP_WARM = { r: 70, ms: 6, every: 500 };
+const CAMP_WARM = { r: 70, ms: 3, every: 500 }; /* ms: a slice's budget, never more than the idle period has left */
 const CAMP_SKY_FADE = 10; /* ms of the camp sky build per frame under the entry fade (the screen is black), for an entry the approach did not warm (a respawn or a jump into camp); 0 = built whole when the fade lifts */
 const campWarm = (() => {
   let busy = false, nextT = 0, texOk = false, propsC = false, campC = null, skyC = null;
@@ -72836,16 +72878,23 @@ const campWarm = (() => {
   function nearest() { const C = S.course; if (!C || !S.pos) return null; let best = null, bd = CAMP_WARM.r;
     for (const cp of C.checkpoints) { if (!cp.lane || cp.x === undefined || !cp.mesh) continue; const d = Math.hypot(cp.x - S.pos.x, cp.z - S.pos.z); if (d < bd) { bd = d; best = cp; } }
     return best; }
-  function step() { busy = false; const cp = S.camp || !S.running ? null : nearest(); if (!cp) return;
+  function early(d) { busy = false; if (S.running || texOk) return; if (d && !d.didTimeout && d.timeRemaining() < 1) { busy = true; later(early); return; }
+    if (!campProps) { campProps = campPropsBuild(); busy = true; later(early); } /* its sheet texture goes to the card in the next idle period, after the fonts' redraw */
+    else { const pn = campProps.board.userData.panel; if (pn && pn.material.map) renderer.initTexture(pn.material.map); texOk = true; } }
+  function step(d) { busy = false; const cp = S.camp || !S.running ? null : nearest(); if (!cp) return;
+    const room = d && !d.didTimeout ? d.timeRemaining() : CAMP_WARM.ms; /* what the idle period has left (a call forced by the timeout gets the plain budget) */
+    if (Q.late || room < 1) { busy = true; later(step); return; } /* the last frame came late, or this one has no room left: the next idle period */
+    const t0 = performance.now();
     if (!campProps) campProps = campPropsBuild();
     else if (!texOk) { const pn = campProps.board.userData.panel; if (pn && pn.material.map) renderer.initTexture(pn.material.map); texOk = true; }
     else if (!propsC) { const nt = campProps.board.userData.note, nv = nt && nt.visible; if (nt) nt.visible = true; compile(campProps.grp); if (nt) nt.visible = nv; propsC = true; } /* the Keeper's note too (hidden while no note is up): its program is ready when one is */
     else if (campC !== cp) { compile(cp.mesh); campC = cp; } /* the camp's own group: what only the camp lens shows (programs are shared, so after the first camp this finds them all cached) */
-    else if (!campSky.prep(cp, CAMP_WARM.ms)) { /* more of the sky next slice */ }
-    else if (skyC !== cp && campSky.ready) { compile(campSky.ready); skyC = cp; return; }
+    else if (!campSky.prep(cp, Math.min(CAMP_WARM.ms, room))) { /* more of the sky next slice */ }
+    else if (skyC !== cp && campSky.ready) { compile(campSky.ready); skyC = cp; qBusy(performance.now() - t0); return; }
     else return;
-    busy = true; later(step); }
-  function tick() { if (busy || S.camp || !S.running || frameStamp < nextT) return; nextT = frameStamp + CAMP_WARM.every; if (nearest()) { busy = true; later(step); } else campSky.trim(true); } /* out of reach of every camp: a sky built for a camp not entered is let go */
+    qBusy(performance.now() - t0); busy = true; later(step); }
+  function tick() { if (!texOk && !busy && !S.running && document.fonts && document.fonts.status === 'loaded') { busy = true; later(early); return; } /* the shared camp props and their sheet are the same on every mountain: made in an idle moment off the ride (the title, a card), once the fonts are in */
+    if (busy || S.camp || !S.running || frameStamp < nextT) return; nextT = frameStamp + CAMP_WARM.every; if (nearest()) { busy = true; later(step); } else campSky.trim(true); } /* out of reach of every camp: a sky built for a camp not entered is let go */
   return { tick, forget: () => { campC = null; skyC = null; }, state: () => ({ props: !!campProps && propsC, tex: texOk, camp: !!campC, sky: !!campSky.ready, skyC: !!skyC, busy }) }; })(); /* forget: a new mountain, the last one's camps are never met again */
 const sstep = (x) => { x = Math.max(0, Math.min(1, x)); return x * x * x * (x * (x * 6 - 15) + 10); };
 let _campW = 0, _campH = 0, _puffO;
