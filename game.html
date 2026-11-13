@@ -75,7 +75,7 @@
   #hScore.live { opacity: 1; transition: opacity .15s var(--ease-out); }
   #hScore.calm { opacity: .35; }
   #hScore small { display: block; font: 700 10px var(--f-ui); letter-spacing: .14em; color: var(--cream-70); margin-bottom: 2px; }
-  #hBuffs { position: absolute; left: calc(var(--sl) + 46px); top: calc(var(--st) + 9px); display: flex; flex-wrap: nowrap; justify-content: flex-start; gap: 3px; max-width: calc(100% - var(--sl) - var(--sr) - 46px - 150px); overflow: hidden; } /* one row right of the pause button, below the progress bar, clear of the score plate; the center banner sits below this band */
+  #hBuffs { position: absolute; left: calc(var(--sl) + 46px); top: calc(var(--st) + 9px); display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 3px; max-width: calc(100% - var(--sl) - var(--sr) - 46px - 150px); overflow: hidden; } /* chips that do not fit in one row (a large HUD size) go on a second row instead of being cut off */ /* one row right of the pause button, below the progress bar, clear of the score plate; the center banner sits below this band */
   #hBuffs .bc { display: flex; align-items: center; gap: 2px; flex: none; height: 18px; padding: 0 5px 0 1px; border-radius: 9px; background: rgba(21,16,12,.5); color: var(--cream); font: 700 10px/1 var(--f-ui); letter-spacing: .02em; font-variant-numeric: tabular-nums; }
   #hBuffs .bc .rg { position: relative; width: 16px; height: 16px; flex: none; color: #f3c56b; }
   #hBuffs .bc .rg svg { position: absolute; inset: 0; width: 16px; height: 16px; }
@@ -671,8 +671,8 @@
   #campPn .tile svg { height: clamp(56px, calc(24 * var(--vh)), 92px); width: auto; max-width: 100%; flex: none; } /* big icons, no sub-label or color dots (the icons repaint live) */
   #campPn .pgrid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); grid-auto-rows: minmax(0, 1fr); gap: 5px; flex: 1; min-height: 0; } /* the Companion page: two rows of five */
   #campPn .pet { min-width: 0; min-height: 0; border-radius: 11px; background: rgba(253,248,234,.05); border: 1px solid rgba(253,248,234,.14); color: var(--cream); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 2px; cursor: pointer; position: relative; overflow: hidden; }
-  #campPn .pet svg { width: auto; height: clamp(22px, calc(9 * var(--vh)), 40px); max-width: 100%; flex: none; }
-  #campPn .pet i { font: italic 700 10.5px/1.1 var(--f-ui); font-style: normal; letter-spacing: .02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  #campPn .pet svg { width: auto; height: clamp(22px, calc(9 * var(--vh)), 40px); max-width: 100%; flex: 0 1 auto; min-height: 0; } /* on a short screen the icon gives way so the name stays whole */
+  #campPn .pet i { flex: none; font: italic 700 10.5px/1.1 var(--f-ui); font-style: normal; letter-spacing: .02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
   #campPn .pet.off { background: rgba(0,0,0,.18); border-style: dashed; } #campPn .pet.off i { color: var(--muted); }
   #campPn .pet[aria-pressed="true"] { background: var(--accSoft); border-color: var(--accLine); }
   #campPn .pet.rd::after { content: ""; position: absolute; top: 4px; right: 4px; width: 7px; height: 7px; border-radius: 50%; background: var(--acc1); box-shadow: 0 0 6px var(--acc1); } /* the one riding in the basket */
@@ -742,8 +742,8 @@
   #campPn .sw { width: 40px; height: 24px; border-width: 1.5px; } #campPn .sw::after { left: 3px; top: 3px; width: 15px; height: 15px; } #campPn .sw[aria-checked="true"]::after { transform: translateX(16px); }
   #campPn .sks { display: flex; flex-direction: column; gap: 1px; flex: 1; min-height: 0; justify-content: space-evenly; } /* a taller panel (big screens) spreads the rows */ #campPn .sks.off .pips, #campPn .sks.off .v { opacity: .4; }
   #campPn .sk { display: grid; grid-template-columns: 114px 1fr 16px 60px; align-items: center; gap: 6px; height: 27px; padding: 0 2px 0 3px; border-radius: 9px; }
-  #campPn .sk .nm { font: 700 10.5px var(--f-ui); letter-spacing: .03em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 4px; }
-  #campPn .sk .bf { font: 700 8.5px var(--f-ui); font-style: normal; padding: 1px 4px; border-radius: 99px; background: var(--accGrad); color: var(--accInk); letter-spacing: 0; font-variant-numeric: tabular-nums; }
+  #campPn .sk .nm { font: 700 10.5px/1.1 var(--f-ui); letter-spacing: .03em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; flex-wrap: wrap; align-items: center; align-content: center; gap: 0 4px; } /* a buff chip that does not fit beside the name drops under it */
+  #campPn .sk .bf { font: 700 8.5px var(--f-ui); font-style: normal; padding: 1px 3px; border-radius: 99px; background: var(--accGrad); color: var(--accInk); letter-spacing: 0; font-variant-numeric: tabular-nums; }
   #campPn .pips { display: flex; gap: 2.5px; height: 12px; } #campPn .pips u { display: block; flex: 1; border-radius: 3px; background: rgba(253,248,234,.12); text-decoration: none; cursor: pointer; }
   #campPn .pips u.f { background: var(--accGrad); } #campPn .pips u.d { background: rgba(255,178,74,.25); box-shadow: inset 0 0 0 1.5px var(--acc1); } #campPn .pips u.r { background: transparent; box-shadow: inset 0 0 0 1.5px rgba(253,248,234,.35); }
   #campPn .sk .v { font: italic 800 15px var(--f-disp); text-align: right; color: var(--acc1); }
@@ -762,7 +762,7 @@
   #campPn .acard.far { pointer-events: none; } #campPn .acard[disabled] { cursor: default; filter: saturate(.3) brightness(.5); }
   /* the tutorial camp: every card grayed out like a locked skill (still browsable), no Play glyph, and one note under the dots */
   #campPn .acard.lock, #campPn .acard.lock.cur { cursor: default; filter: saturate(.3) brightness(.5); } #campPn .acard.lock.cur { filter: saturate(.3) brightness(.62); } #campPn .acard.lock.cur::before { background: rgba(253,248,234,.35); } #campPn .acard.lock .play { display: none; } #campPn .acard.lock .xp { color: var(--muted); }
-  #campPn .lockn { flex: none; align-self: center; max-width: 100%; box-sizing: border-box; padding: 3px 12px; border-radius: 99px; background: rgba(20,14,10,.78); border: 1px solid rgba(253,248,234,.25); color: var(--cream-70); font: 700 11px/16px var(--f-ui); letter-spacing: .03em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #campPn .lockn { flex: none; align-self: center; max-width: 100%; box-sizing: border-box; padding: 3px 10px; border-radius: 99px; background: rgba(20,14,10,.78); border: 1px solid rgba(253,248,234,.25); color: var(--cream-70); font: 700 11px/16px var(--f-ui); letter-spacing: .03em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   #campPn .lockn.bump { animation: ptsBump .3s var(--ease-pop); }
   #campPn .acard .art { flex: 1; min-height: 0; position: relative; display: block; } #campPn .acard svg.il { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
   #campPn .acard .ainf { display: block; padding: 6px 9px 7px; background: linear-gradient(rgba(38,27,20,.96), rgba(24,17,13,.98)); }
@@ -985,7 +985,7 @@
   <div class="favCard" id="tFavs" hidden><div class="fvh">Favorites</div><div class="fvl" id="tFavList"></div><button class="mb sm" id="tFavClose">Close</button></div>
   <div id="tapGo" role="status" hidden>Press to start</div>
   <button class="ico" id="mute" role="switch" aria-checked="true" aria-label="Sound"><svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg><svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M17 9l5 6M22 9l-5 6"/></svg></button>
-  <div class="foot"><span id="verTag">v0.71.0</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span><span id="medalTag"></span></div>
+  <div class="foot"><span id="verTag">v0.72.0</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span><span id="medalTag"></span></div>
   <button id="btnNew" hidden>New mountain</button>
 </div>
 
@@ -54340,7 +54340,7 @@ document.body.classList.add('uifs'); document.body.classList.add('tap44'); docum
 { document.documentElement.lang = 'en'; const gc = document.getElementById('game'), bc = document.getElementById('bCamp'); if (gc) { gc.setAttribute('role', 'img'); gc.setAttribute('aria-label', 'No Hander: the ride'); } if (bc) bc.tabIndex = -1; } /* the page names its language and its canvas; the camp circle is not a Tab stop (C / Y or a tap reach it) */
 const SHARE_LINK = 0; /* 0: the share text, the share sheet payload and the card carry no web address, only the code; 1: the older text with a link */
 const PUBLIC_URL = ''; /* the public game page every share link points to (never the address of the frame the game runs in); empty until the page exists: nothing reads it while SHARE_LINK is 0 */
-let shShot = null, shShotCode = '', shPre = null;
+let shPre = null;
 let shBusy = false, shCur = null;
 let shUrl = '';
 let shRepP = null, shInP = null, shBeat = null;
@@ -54402,14 +54402,14 @@ const WATER_M_RIVER = 0.6, WATER_M_STILL = 1.5, WATER_TREAD_KEEP = 0.3;
    fog color toward uSeaC near the horizon (uSea.y = how much, uSea.w = the sine of the depression where it is gone; the camp sky's ground edge
    blends to the very same color), a fade to clear between 520 and 860 m of view depth (the dome shows through before the 900 m far plane
    clips it, so the clip never draws a line on the ride; in camp the sky ring at <= 600 m covers it anyway) and a soft glitter path on the bearing of the visible sun (uSea.z its strength, uSeaS its color, uSeaD its bearing).
-   OCEAN_DUSK: the camp's dusk horizon haze (sRGB, as shown). 0 = the plane ends 200 m past the grid as before. */
+   OCEAN_DUSK: the camp's dusk horizon haze (sRGB, as shown). */
 const OCEAN_R = 2400, OCEAN_DUSK = '#b48aa6';
 /* the camp vista in front of the sea. The camp sky ring stands 385-600 m around the lens, so where the lens sits a little above the water the sea
    meets the ring well inside the band and its flat haze covered the lower hills, ridge feet, groves and the lake sliver. The ring's land pieces (ridges, hills, trees, rocks, the lake sliver; aMove.z = -1) win over the sea wherever the sea along that sight line lies
    beyond the fully fogged near world: there the whole ring's depth is pulled to just in front of the sea (every piece scaled by the same factor,
    so the ring keeps its own depth order and tree slots), and the land fades into the sea haze at that line instead of at the ring's own edge.
    The glitter path also narrows toward the horizon, wobbles, breaks into streaks and is gone SEA_GLINT_FAR m out (before the visible sea ends),
-   so it reads as a reflection path, not a patch cut flat at the horizon. 0 = the plain open sea look (the sea covers the ring below its edge). */
+   so it reads as a reflection path, not a patch cut flat at the horizon. */
 const SEA_GLINT_FAR = 400;
 /* the full vista's polish. A near zone of rolling ground in the ride's own colors with its conifers runs out from the camp and
    drops away into the far vista (hill layers, sea, coast), so the sea only shows beyond the land. Villages are a few small shaded boxes with gable
@@ -54418,7 +54418,7 @@ const SEA_GLINT_FAR = 400;
    the fully fogged world, the hill layers of a thick-fog mountain keep more shape (less haze, more relief), and the tutorial coast is gathered right
    of the sunset gap (lighthouse on the near headland's point, the village above it) where the camp UI leaves the sky open on every screen shape.
    All in the same sky mesh: no draw call or program added; the near zone draws from its own stream (seed + 7429), no older stream gains or loses
-   a draw. 0 = the plain full vista. */
+   a draw. */
 /* the vista's variety. The soft banded rolling hills with sparse conifers stay the common look; around it each mountain and
    camp gets its own spread: hill shape (rolling, broad, steep, flat-topped), tree density (open meadow to dense belts) and mix (round crowns,
    autumn colors on the autumn theme), the theme's ground color with a small seasonal shift, a pond or lake between the near crests, the snow
@@ -54430,7 +54430,7 @@ const SEA_GLINT_FAR = 400;
    turn into rounded crowns; then each silhouette is smoothed along the ring (soft: the blur's width in deg), so the crests roll and the slopes ease
    down into the beach and the ocean. Both are weighted by how much that azimuth faces the sea, so the inland side keeps its hills. Trees, groves,
    rocks, villages and the lake are still chosen on the old ridge (the same stream draws) and then stand on the lowered one. Heights only: no stream
-   draw, mesh, draw call or program added; high camps and the coast-mode camps (the tutorial bay) unchanged. 0 = the coastal hills as before (the same vertices).
+   draw, mesh, draw call or program added; high camps and the coast-mode camps (the tutorial bay) unchanged.
    VCG: floor = deg under the far sea's horizon the hills settle on, keep = share of the rise over that floor kept, cap = the soft ceiling over it,
    soft = the smoothing's width (deg, one sigma). */
 const VCG = { floor: 2.5, keep: 1, cap: 7, soft: 2.2 };
@@ -54441,10 +54441,10 @@ const VCG = { floor: 2.5, keep: 1, cap: 7, soft: 2.2 };
    dips kept; on the sea side to under the shore haze line, so the sea reaches its horizon clean), the pale range stands on the sea's horizon
    (its foot goes up to it: the peaks over the horizon stay), trees on a hill that went under the haze are left out, and the hill layers come out
    of the haze by a fade across the sea side's edge, standing on the water there (no vertical cut). Every stream choice is still made on the old
-   ridges; the coast-mode camps (the tutorial bay) keep their geometry. No stream draw, mesh, draw call or program added. 0 = the vista as before. */
+   ridges; the coast-mode camps (the tutorial bay) keep their geometry. No stream draw, mesh, draw call or program added. */
 /* the camp vista closes as land over the sea: at a low camp that is not a coast-mode camp (most last camps) the far sea arc was a wipe of up to 160 deg
    whose cap pressed every hill top under the sea's horizon, and the sky shader painted the sea's flat haze color over the dome down to a line
-   3 deg above where any hill foot could stand: behind the camp one flat lavender sheet with no hill, ridge or horizon in it. With 1: the far sea
+   3 deg above where any hill foot could stand: behind the camp one flat lavender sheet with no hill, ridge or horizon in it. Now the far sea
    arc at the later camps is a sunset bay (VSOL.aw: half-width base + per ord, deg) under the sun, its cap over the sea's horizon (VSOL.cap, deg),
    the coast frame's open water under the sun only in that bay (VSOL.sun, deg off the sun), the pressed hill layers and far ridges keep more of
    their rise (VSOL.keep, VSOL.ridge) and settle on a floor over the horizon (VSOL.floor, deg), the far hill layer's dips stay over the land's
@@ -54452,12 +54452,12 @@ const VCG = { floor: 2.5, keep: 1, cap: 7, soft: 2.2 };
    VSOL.notch deg (the sun sits over them, so they stand clear of it); the sky shader paints the sea only below the land's
    own sea line on every ring pixel and leaves the far sea band its own colors (its horizon line and glitter path). The ridges, hills, trees and range
    are not sunk for it (their fade across the sea side's edge stays). Formulas only: every stream keeps its draws; no
-   mesh, draw call or program added; the coast-mode camps (the tutorial bay) keep their vertices and shader path. 0 = as before. */
+   mesh, draw call or program added; the coast-mode camps (the tutorial bay) keep their vertices and shader path. */
 const VSOL = { cap: 1.2, aw: [14, 10], ordA: 0.5, sun: 10, keep: [0.5, 0.55, 0.6], ridge: 0.35, floor: 0.5, lift: 1.1, rise: 1.6, notch: 8 };
 /* the far view of a camp vista (look only; no stream draw, no mesh, draw call or program added). The far hill layer's top often runs level
    (pressed toward the sea at the last camps, flat-topped hills, or simply a quiet stretch) and its face is several degrees tall, so behind a low
    camp it read as one large flat pale surface; under the sun the hills are capped low and the far sea showed there as a flat sky-colored
-   rectangle between two sheer shoulders. With 1:
+   rectangle between two sheer shoulders. Now:
    - the land stands under the sun too: the coast frame's open water there (a sea-colored column from the horizon down to the camp's rim, with
      sheer sides: the 'square') is gone, the sea shows in the far sea band and where the world's own ground runs down to the water;
    - the far hill layer stands VFAR.up deg higher under the sun (still clear of the sun's lower edge), so land, not the far sea, fills the view
@@ -54470,7 +54470,7 @@ const VSOL = { cap: 1.2, aw: [14, 10], ordA: 0.5, sun: 10, keep: [0.5, 0.55, 0.6
    - across the far sea's arc three far ridges stand one behind the other on the water (VFAR.far: radius, foot under the horizon, lowest and
      highest rise, haze share, light), paler with distance, their feet melting into the water; under the sun they stay low (VFAR.fsun), so the
      sun sets behind a far skyline with a strip of water in front of it instead of over a bare flat band.
-   Every choice is a hash of the seed, the camp and the shape's number. 0 = the vista as before. */
+   Every choice is a hash of the seed, the camp and the shape's number. */
 const VFAR = { w: [2.2, 9], h: [0.9, 3], gap: [1, 7], fl: [0.3, 0.5], cap: 0.34, rim: 0.8, lev: [0.6, 2.2], soft: 0.75, wide: 1.7, under: 0.5, top: 0.9, sun: [11, 19],
   sh: [12, 0.3], up: 0.95, step: [1.3, 2.6], far: [[584, 0.22, 0.35, 1.5, 0.66, 0.98], [579, 0.5, 0.3, 1.15, 0.53, 0.92], [574, 0.82, 0.25, 0.85, 0.42, 0.86]], fsun: [2.5, 9, 0.3] };
 const OCEAN ={ uSea: { value: new THREE.Vector4() }, uSeaC: { value: new THREE.Color() }, uSeaS: { value: new THREE.Color() }, uSeaD: { value: new THREE.Vector2(-0.447, -0.894) }, uSeaL: { value: new THREE.Color() } };
@@ -54614,7 +54614,7 @@ const WSH_BOUNCE = { L: 1.1, W: 0.1 };
 /* WASHERS_CUP_LOW: the washers cup's mouth height in m over the box's base (the PVC pipe stands this minus 6 mm). 0.347 is about a tenth shorter than
    the old pipe: the rim still shows over the front wall from the thrower's view, a rim clip still drops back in about as often as before (about 1 in
    110 misses at an average hand) and the points per game stay within a few percent at every hand. The flight, the aim, the power and the landing physics
-   are unchanged; 0 = the tall pipe as before (mouth 0.386 m).
+   are unchanged (the old tall pipe's mouth was 0.386 m).
    The cup 30 % shorter (mouth 0.243 m, its rim still just over the box's wall tops at 0.206 m): the direct cup, the rim-clip
    drop-in (still about 1 in 110 misses at an average hand, so WSH_BOUNCE is unchanged) and the points per game stay within a few percent */
 const WASHERS_CUP_LOW = 0.243;
@@ -54643,7 +54643,7 @@ const BUFF_DEF = { speed: { stat: 'speed', add: 0.05, name: 'Speed', tag: '+5% s
 /* lucky: the Washers buff (85 %+). No stat and no clock (camp: 1): every trick landing that would not count as clean (a saved or late grab) counts as clean while it is on;
    it ends at the next camp along the trail or the finish (buffTick, finishRun) or at the first real crash (bail), never prevents a crash and changes no speed or height.
    Its bt entry holds the camp idx it was earned at + 1 (t is only the loader's clamp), so a reload knows where it runs out. */
-if (WASHERS_ON) BUFF_DEF.lucky = { name: 'Lucky toss', tag: 'Rough landings count clean', t: 1e6, camp: 1 };
+if (WASHERS_ON) BUFF_DEF.lucky = { name: 'Soft Landing', tag: 'Soft Landing', t: 1e6, camp: 1 };
 const BUFF_KEYS = Object.keys(BUFF_DEF);
 const buffMax = (k) => BUFF_DEF[k].t || BUFF_T; /* a buff's full clock: BUFF_T unless it names its own */
 /* the buff icons (16 x 16, stroked in currentColor): HUD chips, Activities cards, the Skills badge */
@@ -54761,8 +54761,8 @@ function buffEnd(k) { if (!PROF.buff[k]) return; delete PROF.buff[k]; delete PRO
    never deleted. ---------- */
 const COMPANIONS_ON = 1;
 /* ---- pure rules (read nothing but their arguments and the tables) ---- */
-/* 1: a basket / bush miss is charged once per mountain code (PETS.missCode = the code of the last charged miss, cleared when a find
-   resets the ladder): riding the same code again (a quit and the same code, a share link, a favorite) neither counts it twice nor moves the stump or the bush; 0 = once per run */
+/* a basket / bush miss is charged once per mountain code (PETS.missCode = the code of the last charged miss, cleared when a find
+   resets the ladder): riding the same code again (a quit and the same code, a share link, a favorite) neither counts it twice nor moves the stump or the bush */
 const PET_IDS = ['cat', 'dog', 'fox', 'raccoon', 'squirrel', 'owl', 'duck', 'frog', 'beaver', 'snake'];
 const PET_NAME = { cat: 'Cat', dog: 'Dog', fox: 'Fox', raccoon: 'Raccoon', squirrel: 'Squirrel', owl: 'Owl', duck: 'Duck', frog: 'Frog', beaver: 'Beaver', snake: 'Snake' };
 const PET_PERK = { cat: { landing: 0.1 }, fox: { speed: 0.1 }, frog: { jump: 0.1 }, owl: { handling: 0.1 }, squirrel: { accel: 0.1 },
@@ -54771,14 +54771,14 @@ const PET_SNAKE = 0.1, PET_SKILLS = ['speed', 'jump', 'handling', 'air', 'landin
 const PET_ANY = ['cat', 'dog']; /* found first, on any mountain */
 const PET_HAB = { alpine: ['fox', 'owl'], autumn: ['fox', 'squirrel', 'duck', 'beaver'], pine: ['raccoon', 'squirrel', 'owl', 'frog'], canyon: ['raccoon', 'snake'], mist: ['duck', 'frog', 'beaver'], scrub: ['snake', 'fox'] }; /* keyed by theme id */
 const PET_START_LVL = 7, PET_START_MAPS = 3, PET_MAPS = 3, PET_ALL_LVL = 25, PET_XP = 25;
-/* 1 = an animal waits only on a mountain of a theme it lives in (PET_HAB; the cat and the dog on any): a kept animal whose home is another theme
-   gives way to one that lives here, and a theme with none left to find has no find on that mountain; 0 = the kept animal waits on any theme and a theme with none left takes any animal */
+/* an animal waits only on a mountain of a theme it lives in (PET_HAB; the cat and the dog on any): a kept animal whose home is another theme
+   gives way to one that lives here, and a theme with none left to find has no find on that mountain */
 const petI = (v, lo, hi) => Math.max(lo, Math.min(hi, Math.round(+v || 0)));
 const petCodeOk = (c) => typeof c === 'string' && /^MTN-[0-9A-Z]{1,7}$/.test(c);
-/* 1 = through level PET_PEEK.lvl0 (where the random peeks have not started) every camp visit has ONE short glimpse, 8-20 s after the rider sits down with the
+/* through level PET_PEEK.lvl0 (where the random peeks have not started) every camp visit has ONE short glimpse, 8-20 s after the rider sits down with the
    camp lens free: an animal that lives on this mountain's theme and was not glimpsed yet (the bag PETS.seen is used up before any comes again), the one whose tracks are on
    that camp's note at levels 3-4. It grows with the level (PEEK_STORY_T): levels 1-2 only the top of the head and the eyes over the camp's rim for about a second, levels 3-4 the
-   dark head from one of the usual covers, level 5 from a seat log or the tent side with a longer look. The same dark mesh as every peek; 0 = no peek before the random ones start */
+   dark head from one of the usual covers, level 5 from a seat log or the tent side with a longer look. The same dark mesh as every peek */
 const PEEK_STORY_T = [{ to: 2, eyes: 1, hold: [0.8, 1.2], pref: ['hill', 'tentSide', 'board', 'log'] }, { to: 4, eyes: 0, rise: 0.9, hold: [1.5, 2.3], pref: ['tentSide', 'hill', 'board', 'log'], mix: 3 }, { to: 99, eyes: 0, rise: 1, hold: [3.0, 4.0], pref: ['tentSide', 'log'] }];
 /* per level band: eyes only, how far it comes up, the look (s), the covers in the order they are tried (mix: the first so many in a random order). A seat log comes last: a camper's things can stand between it and the lens */
 const petBlank = () => ({ v: 1, basket: 0, basketOn: 1, owned: [], chosen: null, snake: null, tries: { basket: 0, bush: 0 }, mapsDone: 0, lastFindLvl: 0, lastFindMaps: 0, lastCode: '', next: null, where: {}, bond: {}, done: 0, force: 0, ...({ missCode: '' }), ...({ seen: [] }) });
@@ -54831,17 +54831,16 @@ const PEEK_LOG_COVER = 0.32; /* a log spot is used only when the log, seen from 
 const PEEK_TENT_BACK = [0.7, 1.2, 1.8]; /* how far (camp units) behind the tent's far cloth the animal steps out past its right-hand edge (farther back it stands clear of the parked bike on screen; the tests keep the ones that pass) */
 const PEEK_TENT_CLR = [0.25, 0.6]; /* the tent-side walk's clearance (m) from another prop's footprint: one under 1.2 m (a pack), a taller one (the board kiosk: the head turns as it looks round) */
 const PEEK_CLIMB = ['cat', 'raccoon', 'squirrel', 'owl']; /* the animals that peek over the board kiosk */
-/* 1 = a find on the ride shows '<Animal> found!' with its tile picture high on the screen (popup, 1.6 s) and a gold sparkle bursts from the bush (the ride's own GRIT and DUST particle pools: no draw call, no program); 0 = the find is heard only */
+/* a find on the ride shows '<Animal> found!' with its tile picture high on the screen (popup, 1.6 s) and a gold sparkle bursts from the bush (the ride's own GRIT and DUST particle pools: no draw call, no program) */
 const PETS_CAMP_SCALE = 1.25; /* the seated camp animals' size (their spot test, spacing and body box grow with it); 1 = the old size */
-/* 1 = the basket animal is drawn PETS_BASKET_K larger and a little brighter with a thin light rim (a reversed shell in the same steering mesh: no draw call), the bike's hull still built from the plain pose; 0 = as before */
+/* the basket animal is drawn PETS_BASKET_K larger and a little brighter with a thin light rim (a reversed shell in the same steering mesh: no draw call), the bike's hull still built from the plain pose */
 const PETS_BASKET_K = 1.25, PETS_BASKET_LIFT = 1.12; /* the size, the rim's width (m) and the brighter tint (x color) */
 const ART_PETS_RIM = 0.012, ART_PETS_TINT = 0.45; /* that rim's width (m) and how far the animal's mean color is lifted toward white for it */
-/* 1 = an animal found while the basket is on and empty jumps out of its bush into the bike's basket (one small mesh for about a second) and rides
+/* an animal found while the basket is on and empty jumps out of its bush into the bike's basket (one small mesh for about a second) and rides
      along from then on; its perk waits for the next camp or run start (MOD and the best-time key never change mid-ride); a find with an animal already in the
-     basket, or with the basket off, goes to camp as before; 0 = every find goes to camp */
-/* 1 = in flight the hop moves only when it would cover the find banner's text (the title, its icon and the line under it, 8 px padded); then it is
-     lowered only as far as its own arc lift (never down into the bush it leaves), then drawn smaller (down to PJ_FIT_MIN x its basket size), and no further (where the banner sits over the bush on screen, the text is drawn over it for a moment);
-     0 = it is lowered whenever its top is above the banner's last line anywhere across the screen, so with the bush high on screen it starts pushed down into the bush */
+     basket, or with the basket off, goes to camp */
+/* in flight the hop moves only when it would cover the find banner's text (the title, its icon and the line under it, 8 px padded); then it is
+     lowered only as far as its own arc lift (never down into the bush it leaves), then drawn smaller (down to PJ_FIT_MIN x its basket size), and no further (where the banner sits over the bush on screen, the text is drawn over it for a moment) */
 const PJ_FIT_MIN = 1;
 let petsJumpHold = false; /* the animal that jumped in rides without its perk until the next camp or run start */
 let petsAwayHold = false; /* the basket animal is away */
@@ -55169,7 +55168,7 @@ const PETW_COL = { /* grass blades, ring shrubs, bush leaves (three tones each) 
   scrub: { g: ['#a59a62', '#b3a76b', '#9c8f58'], s: ['#7a6a4c', '#8a7a58', '#6c5e44'], b: ['#7f8a5a', '#8b9563', '#737e52'] } };
 const petwNo = (w) => { PETW.why[w] = (PETW.why[w] || 0) + 1; return null; }; /* rejection tally by check (read by the census) */
 const PETW = { why: {}, prev: null, t: 0, near: false, mouthIn: false, parts: null, partsC: null, force: null, qa: { x: 0, z: 0 }, qb: { x: 0, z: 0 }, sq: null, su: 0, sv: 0, sL: 0 };
-const PETW_BERM_MARGIN = 12; /* 1: the side path never starts on a berm turn: an entrance sample inside a berm run (bend berms, hairpin walls, banked sweepers) or within PETW_BERM_MARGIN samples of one is skipped for the next candidate in the same order (a trail with no other spot keeps the old pick); 0 = as before */
+const PETW_BERM_MARGIN = 12; /* the side path never starts on a berm turn: an entrance sample inside a berm run (bend berms, hairpin walls, banked sweepers) or within PETW_BERM_MARGIN samples of one is skipped for the next candidate in the same order (a trail with no other spot keeps the first pick) */
 const PETW_PATH_W = 1.75; /* the side path's width as a multiple of the first narrow track (1 = that track: a 1.6 m worn paint radius, trunks 0.6 m clear of
    its line): the worn paint, the clear corridor the spot search asks for, the ring's gap (trees, shrubs, standing stones) and the stone pile's step back all
    scale with it, so the path still reads as a hidden trail and never as a road */
@@ -55177,23 +55176,22 @@ const PETW_TORCH_GLOW = 1.5, PETW_TORCH_POOL = 3.0; /* the flame's colors x this
 const PETW_DECOR_SALT = 7466, PETW_DECOR_LEN = 11.5, PETW_DECOR_TREAD = 0.75; /* its own position hash (no stream is drawn), how far up the path it runs (m) and the
    path's kept-clear half width (m): nothing lies closer to the path's line */
 const PETW_DECOR_FLOWER = { green: ['#e8508a', '#9a6ae0', '#f2c230', '#5aa6e8', '#f4efe4'], scrub: ['#e8b84a', '#e07a96', '#a88ad8', '#f4ece0', '#e89a5a'] }; /* five heads that light up pastel, softer on Dry Scrub */
-/* 1: a bigger pick-up: the catch reaches STUMP_PICK_R m from the stump's center (instead of 1.2-1.5 m; the trail stays 18+ m past it), and    a soft purple ring of SG_RING_N glow points circles the stump just outside its cut rim (about 1.0-1.45 m round), fading in with the rim halo; 0 = the rim halo only and the old reach */
+/* a bigger pick-up: the catch reaches STUMP_PICK_R m from the stump's center (instead of 1.2-1.5 m; the trail stays 18+ m past it), and    a soft purple ring of SG_RING_N glow points circles the stump just outside its cut rim (about 1.0-1.45 m round), fading in with the rim halo */
 const STUMP_PICK_R = 1.7;
-/* 1: the stump's lantern LV_SCALE x bigger with its glass lit from inside (a white-hot flame in the middle of each pane, warm amber edges), a soft
+/* the stump's lantern LV_SCALE x bigger with its glass lit from inside (a white-hot flame in the middle of each pane, warm amber edges), a soft
    flicker (a slow random 2-3 Hz warble, under 25 % either way, never a blink), the warm pool on the ground and on the cut top breathing with it, a few warm fireflies
-   and sparks drifting up (in the glow points), a gentle swell when the rider is near (inside SG_FAR m, a little more inside SG_NEAR m); reduced motion: a steady glow. 0 = the small lantern */
+   and sparks drifting up (in the glow points), a gentle swell when the rider is near (inside SG_FAR m, a little more inside SG_NEAR m); reduced motion: a steady glow */
 const LV_SCALE = 1.7, LV_SALT = 7478, LV_HALO_N = 4, LV_SPARK_N = 3, LV_FLY_N = 7; /* size, the phase hash salt (no stream is drawn), glow points round the glass, sparks, fireflies */
-/* 1: the path-mouth torch burns: four flame tongues (white-hot at the foot, yellow, orange, red tips) whose vertices sway, lick and lean with a slow
+/* the path-mouth torch burns: four flame tongues (white-hot at the foot, yellow, orange, red tips) whose vertices sway, lick and lean with a slow
    breeze every frame while the rider is within 90 m (a tiny slice of the shared buffers is uploaded), the warm ground pool breathing with the flicker, sparks popping out of
-   the flame (the GRIT pool) and a thin smoke wisp (the DUST pool); no new draw; reduced motion: a steady flame. 0 = the three still leaves with a color flicker */
+   the flame (the GRIT pool) and a thin smoke wisp (the DUST pool); no new draw; reduced motion: a steady flame */
 const TF_SALT = 7476; /* the torch's per-map breeze and phases (a hash of its spot, no stream is drawn) */
-/* 1: the basket's stump is taken within a reach shaped round the stump from its side: PETW_PICK_FWD bike lengths on the side the path
+/* the basket's stump is taken within a reach shaped round the stump from its side: PETW_PICK_FWD bike lengths on the side the path
    comes in from (toward the ring's gap), growing smoothly to PETW_PICK_BACK bike lengths behind it, so riding round the stump takes it; the bike length is the
-   drawn bike's wheelbase (axle to axle, petwBikeL). Never less than the plain reach (pickR); the camp stump keeps the plain circle. 0 = the plain circle (pickR) */
+   drawn bike's wheelbase (axle to axle, petwBikeL). Never less than the plain reach (pickR); the camp stump keeps the plain circle */
 const PETW_PICK_FWD = 0.45, PETW_PICK_BACK = 0.75;
-/* 1: the near phrase plays once as the rider first comes within PETW_NEAR_FIRST_R m of the stump (or of the side path's mouth) while the
-   basket waits, on every map from the first try (it plays again only after the rider has been PETW_NEAR_REARM m away); the music ducks a little under it; 0 = only
-   after PETW_NEAR_CUE misses, as before */
+/* the near phrase plays once as the rider first comes within PETW_NEAR_FIRST_R m of the stump (or of the side path's mouth) while the
+   basket waits, on every map from the first try (it plays again only after the rider has been PETW_NEAR_REARM m away); the music ducks a little under it */
 const PETW_NEAR_FIRST_R = 28, PETW_NEAR_REARM = 60;
 const PETW_STUMP_SCALE = 0.85; /* the grand stump's drawn body radius and height x this (the lantern's spot on the cut with it); the spot, its sight test and the pick-up reach
    still use the full-size stump, so nothing moves; the bike's wire basket keeps its size; 1 = the full-size stump */
@@ -55201,24 +55199,24 @@ const PETW_STUMP_RING_DARK = 0.55; /* the heartwood: the pith and the three inne
 const PETW_SOFT_R = 1.06, PETW_SOFT_TURN = 0.07, PETW_SOFT_SCRUB = 0.995, PETW_SOFT_PUSH = 30; /* the collider (x the drawn body radius), the nose swing per step (share of the angle to the
    tangent), the speed kept per step of a head-on touch (a graze along it keeps more, in proportion), the most the bike is pushed out per second past a 0.5 m step (m/s: a touch is undone at once, a landing on the cut eases off it over a few steps) */
 const PETW_PICK_BIG = 1.5625; /* the glade stump's shaped pick-up reach x this on every side, so the way-in side stays tighter than behind; 1 = the reach as before */
-/* 1: everything the glade owns is solid the same soft way as the stump (pushed out and slid round, never a crash): the ring's trees and boulders
+/* the glade's soft colliders, the same soft way as the stump (pushed out and slid round, never a crash): the ring's trees and boulders
    and any forest tree or rock standing inside the ring (hitObstacle skips them), the ring's shrubs and dead scrub, the standing stones, the fallen log, and a circle
-   PETW_GLADE_RING_R m round the stump (kept PETW_GLADE_RING_IN m inside the way-in reach, so touching it takes the basket); 0 = the colliders as before */
-/* 1: the stump and everything the glade owns is solid at its drawn shape and never throws the rider: each solid's footprint is the 2D convex hull of its
+   PETW_GLADE_RING_R m round the stump (kept PETW_GLADE_RING_IN m inside the way-in reach, so touching it takes the basket); the solid rule below replaces this for all but a forest tree or rock standing in the ring */
+/* the stump and everything the glade owns is solid at its drawn shape and never throws the rider: each solid's footprint is the 2D convex hull of its
    own drawn vertices between PETW_TOUCH_LO and PETW_TOUCH_HI m over the ground: the stump with its buttresses, a ring tree's trunk, a ring boulder (and the shrubs, dead scrub, standing stones and the log); the bike's five circles are held at that surface (moved out by exactly their overlap, no shove) and a bike running into it simply stops there: no slide round
    it, no turn of the nose, no bounce, no knock, no shake; the rider steers and pedals away. No circle round the stump (petwStumpSoft runs petwTouch on the ride; the camp's
    stump keeps the soft hit); a forest tree or rock standing in the ring keeps the soft field exactly as before (petwGladeSoft with only those); in the air above a solid's
-   top it is cleared; never a crash (hitObstacle keeps skipping what petwGladeSolids marked); the pick-up reach is unchanged; 0 = the soft solids as before */
+   top it is cleared; never a crash (hitObstacle keeps skipping what petwGladeSolids marked); the pick-up reach is unchanged */
 const PETW_TOUCH_CREEP = 2, PETW_TOUCH_ALONG = 0.5; /* m/s and the nose's share into the surface (about 30 deg) under which a bike pulling away from a touch at a walk may roll along it instead of stopping */
 const PETW_TOUCH_LO = 0.06, PETW_TOUCH_HI = 1.3; /* m over the ground under each vertex: the band whose drawn vertices make a solid's footprint (ground-flat roots and decals below it, canopies above it) */
 /* while the bike is at a ring tree's trunk or within PETW_CANOPY_NEAR m of it, that tree's canopy draws in toward the trunk
    (x PETW_CANOPY_K across) and lifts PETW_CANOPY_LIFT m so the rider stays in view, over PETW_CANOPY_IN s, and opens back over PETW_CANOPY_OUT s after the bike leaves; only the
    ring's own trees, never a forest tree; its own vertices in the terrain buffer are moved (no draw call, no material); reduced motion: half the change, at once */
 const PETW_CANOPY_NEAR = 1.0, PETW_CANOPY_K = 0.4, PETW_CANOPY_LIFT = 0.8, PETW_CANOPY_IN = 0.25, PETW_CANOPY_OUT = 0.4; /* m past the trunk's collider, share kept across, m, s, s */
-/* 1: the grand stump's wire basket hovers over the cut like a pickup: its center PETW_FL_LIFT m over the cut, tilted PETW_FL_TILT rad toward a corner,
+/* the grand stump's wire basket hovers over the cut like a pickup: its center PETW_FL_LIFT m over the cut, tilted PETW_FL_TILT rad toward a corner,
    turning once every PETW_FL_SPIN s about the vertical (the tilt kept) and bobbing PETW_FL_BOB m either way every PETW_FL_BOBT s; at the find it rises PETW_FL_POP m with an extra
    half turn while the lantern flares. Reduced motion: held still, lifted and tilted. Look only: its own vertices in the terrain buffer are moved (no draw call, no material),
-   the reach, the colliders, the find and every stream are as before; the phase is a salted hash of the spot (PETW_FL_SALT, no stream drawn); 0 = the basket sits on the cut */
+   the reach, the colliders, the find and every stream are as before; the phase is a salted hash of the spot (PETW_FL_SALT, no stream drawn) */
 const PETW_FL_LIFT = 0.42, PETW_FL_TILT = 0.31, PETW_FL_SPIN = 3.0, PETW_FL_BOB = 0.05, PETW_FL_BOBT = 1.5, PETW_FL_POP = 0.3, PETW_FL_NEAR = 70, PETW_FL_SALT = 7497; /* m, rad, s, m, s, m, m (posed only while the rider or the lens is this near) */
 const PETW_FL_SHADOW = 0.45, PETW_FL_SHADOW_R = 0.36; /* the soft shadow on the cut under the hover: the most it darkens (at the center) and its radius (m); 0 = none */
 const PETW_GLADE_RING_R = 2.2, PETW_GLADE_RING_IN = 0.45, PETW_GLADE_MARGIN = 1.5, PETW_GLADE_SMOOTH = 0.25; /* the circle round the stump (m), its least gap inside the way-in reach, how far past the ring's radius the glade's colliders reach, the soft minimum's width (m) */
@@ -55549,9 +55547,9 @@ function bushFlowerPose(R, g, a, p0) { /* the blooms ride the lean of their blob
   const y0 = R.y, D = Math.hypot(S.pos.x - R.x, S.pos.z - R.z), s = reduceMotion.matches ? 1 : 0.6 + 0.4 * Math.max(0, Math.min(1, (30 - D) / 18));
   for (const F of R.fl) { const dx = R.dxz[F.b * 2], dz = R.dxz[F.b * 2 + 1], cx = F.c[0], cy = F.c[1], cz = F.c[2];
     for (let v = F.v0, e = F.v0 + F.n; v < e; v++) { const o = v * 3, hy = Math.max(0, p0[o + 1] - y0) / 1.2, w = (g.v0 + v) * 3; a[w] = cx + (p0[o] - cx) * s + dx * hy; a[w + 1] = cy + (p0[o + 1] - cy) * s; a[w + 2] = cz + (p0[o + 2] - cz) * s + dz * hy; } } }
-/* 1 = the real bush sheds a few leaves on every rustle (3-5, 2 on Low quality or with reduced motion; 8-10 at the catch) that flutter down 0.7-1 m, rest
+/* the real bush sheds a few leaves on every rustle (3-5, 2 on Low quality or with reduced motion; 8-10 at the catch) that flutter down 0.7-1 m, rest
      1.2 s and shrink away, with a purple petal or two, a quiet rising twinkle under the rustle and a tiny purple sparkle from the blooms (no petals or sparkle with
-     reduced motion); the leaves are one small pooled mesh on campMat (one draw call only while a leaf is out and the rider within 60 m), the sparkle the DUST pool; 0 = none */
+     reduced motion); the leaves are one small pooled mesh on campMat (one draw call only while a leaf is out and the rider within 60 m), the sparkle the DUST pool */
 const BL_N = 24, BL_V = 12; /* pooled leaves, vertices each (a diamond, both faces) */
 const BL = { m: null, L: [], on: 0, W: null, col: [], pet: null, spk: new THREE.Color('#c598ff') };
 function blInit() { const n = BL_N * BL_V * 3, g = new THREE.BufferGeometry(), P = new THREE.BufferAttribute(new Float32Array(n), 3), N = new Float32Array(n); for (let k = 1; k < n; k += 3) N[k] = 1;
@@ -55962,8 +55960,8 @@ function petwAnim(W, dt) { /* the lantern's flare (0.6 s, then the basket and la
     for (let k = 0; k < n && v < nb; k++, v++) { const hy = Math.max(0, p0[v * 3 + 1] - y0) / 1.2; a[(g.v0 + v) * 3] = p0[v * 3] + dx * hy; a[(g.v0 + v) * 3 + 1] = p0[v * 3 + 1]; a[(g.v0 + v) * 3 + 2] = p0[v * 3 + 2] + dz * hy; } }
   if (R.fl) bushFlowerPose(R, g, a, p0);
   petwSpan(g, g.attr.p); }
-/* 1: a small pick-up cue right around the stump's basket: a tight soft purple halo on its rim and a few lavender motes drifting up close to it, breathing slowly,
-     additive with no depth write (one tiny Points batch on the dust pools' program, drawn only while the rider (or the lens) is within SG_FAR m and the basket is in view; it fades out with the find); 0 = none */
+/* a small pick-up cue right around the stump's basket: a tight soft purple halo on its rim and a few lavender motes drifting up close to it, breathing slowly,
+     additive with no depth write (one tiny Points batch on the dust pools' program, drawn only while the rider (or the lens) is within SG_FAR m and the basket is in view; it fades out with the find) */
 const SG_N = 12, SG_CORE_N = 6, SG_SALT = 7472, SG_SIZE = 0.21, SG_NEAR = 7, SG_FAR = 13; /* points (the first SG_CORE_N make the halo), the phase hash salt, point size (m, kept true to the lens zoom), full strength inside SG_NEAR m of the rider, gone past SG_FAR m (the trail is 21.8+ m away) */
 const SG_CORE = [0.43, 0.17, 1.0], SG_EDGE = [0.56, 0.32, 1.0]; /* linear colors (vertex colors are linear): #b074ff for the halo, a softer lavender #c598ff for the motes (paler ones add up to white over the light ground) */
 const SG_RING_N = 28, SG_LV_N = LV_HALO_N + 1 + LV_SPARK_N + LV_FLY_N, SG_ALL = SG_N + SG_RING_N + SG_LV_N; /* the ring's points and the lantern's (its glow, the flame's front, sparks, fireflies) after the halo and the motes */
@@ -56021,8 +56019,8 @@ const TR_FLOOR = 8, TR_W = 6, TR_BANK_DEG = 55, TR_E0 = -26, TR_E1 = 46, TR_P = 
    LO_X high, LL_X long, so a rider can jump a passing train; with no train it is a free jump. The lane runs RAMP_LEAD samples in before the
    crossing and RAMP_OUT out after it. CR_P = the chance one run of candidate samples gets a crossing (CR_MAX a map); 0 builds every map without one.
    A train hits at any speed (trainHit); a rider stalled in the zone just before a train holds it up to HOLD_MAX s (yield) */
-/* 1 = level crossings roll on maps (CR_P); 0 = no map has one: every map builds and rides exactly as without crossings */
-/* 1 = every candidate run's roll is accepted (CR_P 1, still at most CR_MAX a map; the two draws a run are unchanged); 0 = CR_P 0.4 */
+/* level crossings roll on maps (CR_P) */
+/* every candidate run's roll is accepted (CR_P 1, still at most CR_MAX a map; the two draws a run are unchanged) */
 /* a ramp lane starts up to 40 samples (m) before the track instead of RAMP_LEAD (18): about 3 s at kicker speed to see the lane's mouth
    and its timber sign and to steer onto it. The site rules stay as they are (the same maps hold a crossing at the same sample); each lane then
    reaches back up the trail as far as the trail is plain and its valley shoulder open (R.lead, RAMP_LEAD..40). The lane stays one straight
@@ -56062,29 +56060,29 @@ const XS_HOLD = 1.25, XS_ACC = 3, XS_PAST = 2.5, XS_STALL = 1.5, XS_ARM = 120, X
    bounds for small / medium (the rest large); a small one is a tabletop, a medium or large one a gap, one beside a bridge a gap over the
    bridge's pit; SR_P: the chance a candidate run (at most SR_CHUNK samples of eligible trail) gets one; SR_MIN: samples between two side ramps; SR_SPACE: samples kept from bridges, jumps, drops,
    set pieces, forks and other built features; SR_CAMP: samples kept before a camp (its flag sight) and after it; SR_FACE: the landing's back face (m).
-   BIG AIR: SR_BONUS trick points for a clean landing on the ramp's landing (pending until the next camp, like any trick points). The cue: three
+   BIG AIR: SR_BONUS trick points for a clean landing on the ramp's landing (pending until the next camp, like any trick points). The cue: two
    signs (SR_SIGN x the crossing sign's size, at the lane's mouth and SR_SIGN2 m further up) with a board in the tier's color (SR_COL) under a pale arrow (SR_INK), part of the
-   ramp's one merged mesh and lane chevrons. */
+   ramp's one merged mesh. */
 const SR_TIER = { small: [1.1, 4, 3, 1.0, 9, 14, 14], medium: [1.7, 5, 6, 2.0, 11, 18, 18], large: [2.5, 7, 10, 2.9, 19, 24, 18] };
 const SR_MIX = [0.45, 0.85], SR_P = 1, SR_MIN = 200, SR_SPACE = 12, SR_CAMP = 70, SR_FACE = 1.2, SR_LAT = 4.3, SR_W = 2.4, SR_MAX = 12, SR_CHUNK = 120, SR_DEV = 2.0, SR_CUT = 1.6, SR_FILL = 3.0; /* SR_DEV: m the trail may wander off the lane's line; SR_CUT / SR_FILL: m the ground beside it may stand over / under the tread (the bed is carved flat) */
+const SR_LIFT = 4; /* samples: a side ramp's bed follows the trail's shaped tread (a ridge, a gorge, a dip) wherever that shape is wider than 2 x SR_LIFT + 1 samples, so the lane meets the tread where the rider leaves it and comes back and no trench or wall stands between them; narrower bumps (pumps, whoops) stay on the tread only */
 const SR_BERM = 8; /* samples kept between a side or bridge ramp's carve (its whole span plus the 3 m the carve blends over) and the nearest ribbon row of a berm wall on its side: the ribbon reads the ground up to 0.55 m along, and a carved cell moves every terrain triangle within one cell of it, so no berm vertex and no ground under a berm is touched by the carve */
 const SR_BP = 1, SR_BMAX = 4, SR_BMIN = 90, SR_BGAP = [4, 7, 11]; /* bridge ramps: on, the chance a bridge gets one, at most a map, samples apart, the largest pit (m) for small / medium / large (a wider pit gets the large gap and a landing built out over the rest, up to the landing's length) */
 const SR_SIDE = 0.8; /* m beside the lane's edges over which its surface rises to the lane's (a rider coming from the side climbs it instead of being lifted onto it in one step); 0 = upright sides */
-const OFF_LIFT_T = 4, OFF_LIFT_D = 2; /* 1 = a rider off the tread who pedals for OFF_LIFT_T s without getting OFF_LIFT_D m from where he started pedaling (a pit's wall, a bank too steep to climb) is set back on the trail at his place along it: no bail, the steer sign and the trains carry on (the bridge pits have their own rule, pitLift); 0 = he stays until he finds a way out or goes back to camp */
-const BR_STEP = 0.45, BR_FLUSH = 0.2, BR_NEAR = 2.5; /* a bridge ramp is a built block: 1 = beside a bridge the lane is ground only to a rider at its height, and its sides are upright wherever it stands more than BR_STEP m over (or under) the ground beside it (the rising strip beside the lane stays only where the lane is within BR_FLUSH m of the ground, fading out by BR_STEP); a rider more than BR_STEP m under its top (in the pit, on the bank beside a tall part, short of the landing) keeps the natural ground and meets the block as a wall (brWall), looked up within BR_NEAR m of it; 0 = the lane and its side strips are ground to everyone (a rider in the pit is set on them in one step, and runs up a side strip out of the pit) */
-const RAMP_CATCH = 0.5, RAMP_EASE = 1.6, EDGE_UP = 0.3; /* 1 = the top of a built block (a bridge ramp's kicker and landing, a crossing lane's) reaches RAMP_CATCH m past its drawn edges for a rider who is at its height (not more than EDGE_UP m under it): a landing a tire's width off the edge is on the block, and where the block stands over the ground beside it a rider rolling on that margin is eased back onto the lane at RAMP_EASE m/s (the edge holds him like a deck's rail, no bail); 0 = the top ends at the drawn edge */
-const RAMP_CLEAR_M = 0.3; /* 1 = no tree, boulder or rock reaches into a side or bridge ramp's lane (RAMP_CLEAR_M m past its edges, its whole span, the air over the gap too), and none stands between the tread and the lane where the rider leaves the trail for the lane or rolls back to it: dropped like the ones on the carved ground (no draw: the same placement, then removed); 0 = only the carved cells are cleared */
+const OFF_LIFT_T = 4, OFF_LIFT_D = 2; /* a rider off the tread who pedals for OFF_LIFT_T s without getting OFF_LIFT_D m from where he started pedaling (a pit's wall, a bank too steep to climb) is set back on the trail at his place along it: no bail, the steer sign and the trains carry on (the bridge pits have their own rule, pitLift) */
+const BR_STEP = 0.45, BR_FLUSH = 0.2, BR_NEAR = 2.5; /* a bridge ramp is a built block: beside a bridge the lane is ground only to a rider at its height, and its sides are upright wherever it stands more than BR_STEP m over (or under) the ground beside it (the rising strip beside the lane stays only where the lane is within BR_FLUSH m of the ground, fading out by BR_STEP); a rider more than BR_STEP m under its top (in the pit, on the bank beside a tall part, short of the landing) keeps the natural ground and meets the block as a wall (brWall), looked up within BR_NEAR m of it */
+const RAMP_CATCH = 0.5, RAMP_EASE = 1.6, EDGE_UP = 0.3; /* the top of a built block (a bridge ramp's kicker and landing, a crossing lane's) reaches RAMP_CATCH m past its drawn edges for a rider who is at its height (not more than EDGE_UP m under it): a landing a tire's width off the edge is on the block, and where the block stands over the ground beside it a rider rolling on that margin is eased back onto the lane at RAMP_EASE m/s (the edge holds him like a deck's rail, no bail) */
+const RAMP_CLEAR_M = 0.3; /* no tree, boulder or rock reaches into a side or bridge ramp's lane (RAMP_CLEAR_M m past its edges, its whole span, the air over the gap too), and none stands between the tread and the lane where the rider leaves the trail for the lane or rolls back to it: dropped like the ones on the carved ground (no draw: the same placement, then removed) */
 const EDGE_C = RAMP_CATCH;
-const SR_BCAMP = [25, 8], SR_BLEAD = [12, 12], SR_BTRAIN = 80; /* bridge ramps: 1 = the valley side when the uphill side has no room (uphill first); samples kept before a camp and after its exit (side ramps: SR_CAMP and 30); the most lead-in / run-out samples (side ramps: SR_TIER's); samples kept from a trench or a crossing (side ramps: 150) */
+const SR_BCAMP = [25, 8], SR_BLEAD = [12, 12], SR_BTRAIN = 80; /* bridge ramps: the valley side when the uphill side has no room (uphill first); samples kept before a camp and after its exit (side ramps: SR_CAMP and 30); the most lead-in / run-out samples (side ramps: SR_TIER's); samples kept from a trench or a crossing (side ramps: 150) */
 const SR_SIGN = 1.5, SR_SIGN2 = 3, SR_INK = '#f4efe2', SR_BONUS = { small: 50, medium: 100, large: 200 }, SR_COL = { small: '#3fae4f', medium: '#f0a81e', large: '#e0402e' };
 /* a crossing's first pass (visit 0) is always the 'J' show (the same xsRnd draw, its threshold 1 instead of XS_J); later passes
    keep XS_J. */
 /* the 'J' show is timed from the rider instead of parking early. The train runs the other way (out of the valley-side shed, toward
    the trail) so it only ever stands on the ramp lane, never on the trail. The rider's time to the kicker's lip (m to the lip over his speed, low-passed
-   over XC_TAU s, re-read every step) sets the clock: the lamps and bell start XC_WARN s before the train shows, it comes out of the shed with the horn
-   at XC_V m/s and its head reaches the lane's outer edge XC_LEAD s before the launch (it speeds up or waits while it is still short of the lane), then
-   brakes to a stop XC_EDGE m short of the tread's edge as he reaches the lip; once he is off the kicker over it, it pulls on under him (XC_THRU m/s^2)
-   and across the trail behind his landing. A rider slower than XS_JV - XC_JV_TOL holds it short of the lane; a rider who
+   over XC_TAU s, re-read every step) sets the clock (xsNatural, below): the lamps and bell start XN_WARN s ahead, it comes out of the shed already
+   rolling and its middle is under him as he crosses the track, or it stops XC_EDGE m short of the tread's edge for a rider on the trail line.
+   A rider slower than XS_JV - XC_JV_TOL is timed as a trail rider, not for the jump; a rider who
    slows on the lane before the lip makes it back off the lane. A few seconds after the rider is past it pulls away across the trail
    (up to its run speed); a rider who stopped short keeps it standing on the lane until he is past or far enough back. The arms stay up
    (the trail stays open), the lamps and bell run with the clock. */
@@ -56094,7 +56092,7 @@ const XC_TAU = 0.4, XC_EDGE = 0.55, XC_JV_TOL = 0.5; /* XC_JV_TOL: m/s under XS_
    faint toot comes from the shed. Every adjustment to the rider is made while the train is still out of sight in the shed (it waits there with a low
    rumble, and comes out already rolling); once out it never backs and does not stop while it is timing itself: it eases its speed (XN_UP / XN_DN m/s^2,
    never under XN_CREEP, a small XN_WOB speed wobble) and rolls on through. Jump timing: a rider lined up on the ramp lane at kicker speed gets the
-   train's middle under him as he crosses the track: the point XN_D m behind the head, the train's length times 0.5 +- TRAIN_MID_VAR (per run, from the
+   train's middle under him as he crosses the track: the point X.D m behind the head (at most XN_DMAX), the train's length times 0.5 +- TRAIN_MID_VAR (per run, from the
    run's show salt; no seeded stream), kept so the head is past the lane at the launch and the tail still short of it at the landing (it slows to
    XN_U2 m/s under the flight). A rider on the trail line gets the head at the tread's edge as he passes and the train rolls on behind him. The train
    crosses the trail only for a rider who is past, in the air over it, lined up on the lane, or too far back to reach it (xsReach); otherwise it eases
@@ -56143,7 +56141,7 @@ const SIGN_FAR_MIN = 60, SIGN_FAR_MAX = 110;
    closing the trestle's far end (the train runs into it instead of vanishing); TRESTLE_HW = half width of the rideable strip on the trestle deck (0 = the
    trestle is scenery only; the train on it still hits). */
 const SHOW_PRE = 250, SHOW_ARM = 150, SHOW_LEAD = 1.5, SHOW_V = 8, SHOW_WAIT = 45, SHOW_FULL_GAP = { rare: 60, normal: 60, common: 30 }, SHOW_HORN = 12, HINT_IDLE = 6, HINT_W = [0.6, 0.25, 0.15], SHOW_FAR = 60;
-/* 1 = the normal setting's bag holds three FULL and two HINT shows (no NONE); 0 = 'FFHHN' */
+/* the normal setting's bag holds three FULL and two HINT shows (no NONE) */
 const SHOW_BAG = { rare: 'FHHNN', normal: 'FFFHH', common: 'FFFFFFFHHHN' }, SHOW_PITY = { rare: [6, 2], normal: [3, 2], common: [3, 2] }, TR_END = 24, TRESTLE_HW = 1.3;
 const SHOW_REV_P = 0.3, SHOW_REV_AT = 1.5, SHOW_PRE2 = 380, SHOW_ARM2 = 330;
 /* after a FULL or HINT show the trench stays quiet (no slot train) until the rider is SHOW_ARM m past the deck, as after NONE, so no
@@ -56152,7 +56150,7 @@ const TRESTLE_DY = 0.1, TR_DROP = 60; /* the deck's riding height over the bed (
 /* the deck's far end (rideable decks only): the end of the line is an end stop TR_STOP_IN m short of the deck's last meter (red and white posts
    beside the track, clear of the train) behind a sand drag between the rails over the last TR_RUN m. On the sand a rider rolling toward the stop is slowed by
    just what stops him at the line (at most TR_RUN_DEC m/s^2: anything up to ~14 m/s comes to rest); at the line he stays put (turning round rides away),
-   and only a rider still faster than TR_STOP_V there crashes into the stop. Hopping past the stop goes off the end of the deck as before. 0 = the old open end */
+   and only a rider still faster than TR_STOP_V there crashes into the stop. Hopping past the stop goes off the end of the deck. */
 const TR_RUN = 16, TR_RUN_DEC = 6, TR_STOP_V = 4, TR_STOP_IN = 1;
 /* where no buttress closes the trestle, a short timber shed stands over the last meter of the line and 5 m past the
    deck's end (in the trench's merged mesh, no draw call); the train runs into it a piece at a time (trainCull) instead of the whole consist vanishing
@@ -56691,7 +56689,7 @@ function* buildCourseGen(seed, fixK = 0, noMir = 0, four = 0) { /* noMir: bit i 
   /* the second batch (ids below bridge/twin): sizes on seed + 7340, log hops on seed + 7341, built pieces on seed + 7342, so the first batch keeps
      its draws on 7321. rocky() lines the chunk with the rock garden's stones (dressing only, like a rocky wiggle). sp: the variant builds a set
      piece (log hops, a double, a banked turn): it keeps the set pieces' rules (never into a camp's exit lane, never with a camp due next, never
-     into a zone or the cliff ravine). phys: out of the pick while PHYS_PIECES is 0. */
+     into a zone or the cliff ravine). phys: never in the pick (weight 0). */
   const vS = mulberry32(seed + 7340), vLg = mulberry32(seed + 7341), vP3 = mulberry32(seed + 7342);
   const sSpan = (a, b) => a + Math.floor(vS() * (b - a + 1)), sW = (L) => wiggle(L, vS), sC = (L, d) => curve(L, d, vS), sDir = () => Math.abs(yaw) > 0.35 ? -Math.sign(yaw) : vS() < 0.5 ? -1 : 1;
   const rocky = (fn) => { const a = pts.length; fn(); chDress.push({ a: a + 2, b: pts.length - 2, kind: 'rockGarden', dW: 0, sp: 'chunk' }); };
@@ -57046,7 +57044,7 @@ function* buildCourseGen(seed, fixK = 0, noMir = 0, four = 0) { /* noMir: bit i 
     for (let i = 3; i < n - 4;) {
       const sg = Math.sign(ks[i]); if (Math.abs(ks[i]) < 0.028 || blkB[i]) { i++; continue; }
       let j = i, sum = 0, kPk = 0; while (j < n - 4 && Math.sign(ks[j]) === sg && Math.abs(ks[j]) >= 0.022 && !blkB[j]) { sum += Math.abs(ks[j]); kPk = Math.max(kPk, Math.abs(ks[j])); j++; }
-      if (j - i >= 8 && sum >= 0.5) { const r1 = rb(), r2 = rb(), r3 = rb();
+      if (j - i >= 8 && sum >= 0.5) { const r1 = rb(), r2 = rb(); rb();
         if (i - 7 > lastEnd + 25 && (TUT || r1 < Math.min(0.85, 0.4 + 7 * (kPk - 0.028)) * THEME.bermK)) { /* theme berm chance; the tutorial walls every bend it finds */
           const H = Math.min(0.95, Math.max(0.5, 0.3 + 10.3 * kPk)), dbl = TUT ? berms.length === 2 : r2 < 0.22 /* wall height 0.5-0.95 m; the tutorial: its third wall is the two-step one */, arr = sg > 0 ? bkP : bkM, kind = dbl ? 'double' : !TUT && r2 < 0.5 ? 'roller' : 'single';
           /* the wall ramps in and out over BERM_TAPER samples: a smoothstep in the envelope `arr`, which the ground, the ribbon, the tread widening and the physics all read, so there is no step anywhere. The ramp shortens to the free room when a blocked sample (camp, zone, bridge) is closer, so it still lands on zero. */
@@ -57089,7 +57087,7 @@ function* buildCourseGen(seed, fixK = 0, noMir = 0, four = 0) { /* noMir: bit i 
   }
   for (const R of setPieces) if (R.dress) micros.push(R.dress); /* stepped set pieces get the rock garden's lining */
   for (const R of chDress) micros.push(R); /* and so does a rocky wiggle chunk */
-  /* extra jumps (JUMPS_EXTRA_ON, constants at the top): laid in place over plain straight trail after every older pass that reads the profile, appended
+  /* extra jumps (the JX_ constants at the top): laid in place over plain straight trail after every older pass that reads the profile, appended
      to `jumps` (J.x = 1) so every per-jump loop further on meets the old jumps first. No stream draws: each one's numbers come from jxR(k). */
   const jumpsX = { base: jumps.length, want: 0, placed: [] };
   yield;
@@ -57108,7 +57106,7 @@ function* buildCourseGen(seed, fixK = 0, noMir = 0, four = 0) { /* noMir: bit i 
     for (const R of setPieces) if (flagP(R)) hz.push([R.a - FLAG_LEAD.piece, R.a, R.b + (R.kind === 'double' ? 60 : 0), 1]); /* red-flagged like a jump: a line may share its flag */ /* no kicker within 60 past a double, as in the chunk loop */
     for (const H of hooks) hz.push([H.a + FLAG_HOOK_IN - FLAG_LEAD.hook, H.a, H.b, 0]); for (const Z of zones) if (Z.a !== undefined) hz.push([Z.a - 10 - FLAG_LEAD.hairpin, Z.a - 10, Z.b + 10, 0]);
     for (const H of hairpins) hz.push([H.i0 - FLAG_LEAD.hairpin, H.i0 - 10, H.i1 + 10, 0]);
-    const MXK = { pump: 1, whoops: 1, table: 1, double: 1 }, mOf = new Array(n).fill(null); /* the micro-jump clusters an extra jump may take the place of (JX_SWAP): wave kinds only, never a rock garden or a width variant */
+    const MXK = { pump: 1, whoops: 1, table: 1, double: 1 }, mOf = new Array(n).fill(null); /* the micro-jump clusters an extra jump may take the place of: wave kinds only, never a rock garden or a width variant */
     micros.forEach((R) => { if (MXK[R.kind] && !R.sp) for (let i = Math.max(0, R.a); i <= Math.min(n - 1, R.b); i++) mOf[i] = R; });
     const near = []; for (const R of micros) near.push([R.a, R.b, R]); for (const SC of shortcuts) near.push([SC.a - 6, SC.b + 6]); for (const B of berms) near.push([B.a, B.b]); for (const R of setPieces) if (!flagP(R)) near.push([R.a, R.b + (R.kind === 'chicane' || R.kind === 'banked' ? 60 - JX_NEAR : 0)]); /* the unflagged set pieces (a turn piece: no kicker within 60 past it, as in the chunk loop) */
     const K = { small: 'jumpS', medium: 'jumpM', large: 'jumpL', table: 'table' }, LEN = { small: 10 + 5 + 5 + 9 + 5, medium: 10 + 6 + 7 + 11 + 5, large: 16 + 8 + 11 + 15 + 5, table: 10 + 5 + 8 + 10 + 4 };
@@ -57122,13 +57120,12 @@ function* buildCourseGen(seed, fixK = 0, noMir = 0, four = 0) { /* noMir: bit i 
       for (const H of hz) { if (skip && H === skip.h) continue; const [f, a, b, jp, dk] = H; if (jp && JX_PAIR >= 0 ? s <= b + T.gap0 && e >= a - T.pair : (s <= b + T.gap0 && e >= (dk && !(dk === 2 && T.id === 5) ? Math.min(f - T.gap1, a - (dk === 2 ? JX_FORK_FREE : JX_LAND_FREE)) : f - T.gap1)) || (fl >= a - FLAG_MIN_M && fl <= b)) return false; } /* JX_LAND_FREE: a landing never runs straight onto a bridge deck; JX_FORK_FREE: a short fork's mouth keeps room for its flag to be seen (its nominal lead to the mouth is short already) */
       for (const [a, b, M] of near) if (s < b + T.near && e > a - T.near && !(sw && M && mOf[M.a] === M)) return false;
       /* its rock-free line (run-up to JUMP_ALL_OUT past the landing) never reaches a fork's island */
-      for (const Q of jumpsX.placed) if ((!skip || Q !== skip.q) && Math.abs(s - Q.s) < T.sep) return false;
-      if (T.id === 7 && 0) for (const R of setPieces) if (R.a > lip && R.a - lip < 0) return false; /* JM_PIECE: no set piece starts within this many samples past a JUMPS_MORE lip (the chunk loop keeps 60) */ /* added jumps keep JX_SEP samples apart */
+      for (const Q of jumpsX.placed) if ((!skip || Q !== skip.q) && Math.abs(s - Q.s) < T.sep) return false; /* added jumps keep JX_SEP samples apart */
       return true; };
     const W8x = { small: W8.jumpS || 0, medium: W8.jumpM || 0, large: W8.jumpL || 0, table: W8.table || 0 }, KN = ['small', 'medium', 'table', 'large'];
-    const place = function* (k, m) { const R = jxR(k), u = R(), v = R(), su = m ? R() : 1, s3 = m ? R() : 1; /* u: the kind, v: the spot; m: the JUMPS_MORE pass, su / s3: a set of 2 / 3 */
+    const place = function* (k, m) { const R = jxR(k), u = R(), v = R(), su = m ? R() : 1, s3 = m ? R() : 1; /* u: the kind, v: the spot; m: the added-jumps pass (JM_), su / s3: a set of 2 / 3 */
       let tot = 0; for (const q of KN) tot += W8x[q]; let r = u * tot, kind = 'small'; for (const q of KN) { r -= W8x[q]; if (r <= 0) { kind = q; break; } }
-      if (m) kind = 'small'; /* the JUMPS_MORE pass lays small jumps only */
+      if (m) kind = 'small'; /* the added-jumps pass lays small jumps only */
       const kq = m ? k - JM_K0 : k, wq = m ? wantM : want, t0 = Math.round(lo0 + (hi0 - lo0) * (kq < wq ? (kq + 0.2 + 0.6 * v) / wq : v)); let s = -1; /* spread over the middle sections: search out from the spot, nearest first */
       const fAt = (q, f) => q + LEN[kind] + JM_SET_GAP + (f - 1) * (LEN.small + JM_SET_GAP); let nS = 1; /* a set follower's start: the leader's full length and JM_SET_GAP on */
       if (su < JM_SET_P && (kind === 'small' || kind === 'medium')) for (const ns of s3 < JM_SET_P3 ? [3, 2] : [2]) { const ok = (q) => { if (!fits(q, kind, 0)) return false; for (let f = 1; f < ns; f++) if (!fits(fAt(q, f), 'small', 0)) return false; return true; };
@@ -57160,7 +57157,7 @@ function* buildCourseGen(seed, fixK = 0, noMir = 0, four = 0) { /* noMir: bit i 
         const lo = (kind === 'large' ? 2.9 : kind === 'medium' ? 2.0 : 1.0) * (0.9 + R() * 0.2);
         for (let q = 0; q < ll; q++, i++) { const t = q / ll; featA[i] = 3; off[i] = lo * (q === 0 ? 0.985 : Math.pow(1 - t, 1.3)); hwA[i] += 0.35 * (1 - t); }
         i += 5; lines.push([a0, i - 2]); }
-      const J = jumps[jumps.length - 1]; if (k >= JM_K0 || k < -1) J.m = 1; /* the kicker ease of the plain jumps (above), for this one; J.m: laid by the JUMPS_MORE pass */
+      const J = jumps[jumps.length - 1]; if (k >= JM_K0 || k < -1) J.m = 1; /* the kicker ease of the plain jumps (above), for this one; J.m: laid by the added-jumps pass */
       { const a = Math.max(1, J.lip - (J.kl || 6)), e = Math.min(n - 1, J.table ? J.lip + 7 : J.lip), d0 = Math.max(0.05, (base[a - 1] - base[e]) / (e - a + 1));
         let shift = 0; for (let q = a; q <= e; q++) { const nb = base[a - 1] - 0.3 * d0 * (q - a + 1); if (q === e) shift = nb - base[q]; base[q] = nb; }
         let Lb = 0; while (Lb < JX_BLEED && i + Lb < n - 1 && !bridgeA[i + Lb] && !featA[i + Lb] && !gap[i + Lb]) Lb++; if (Lb < 20) Lb = 1e9; /* bled over plain trail only (no deck or feature bends); no room: carried on as the plain jumps do */
@@ -57179,7 +57176,7 @@ function* buildCourseGen(seed, fixK = 0, noMir = 0, four = 0) { /* noMir: bit i 
     { let k = want; const T1 = { ...T0, id: 1, gap1: Math.min(T0.gap1, -35), sep: JX_SEP_MIN }, T2 = { ...T1, id: 2, near: 0 }, T3 = { ...T2, id: 3, gap1: -60, e0: 120, e1: 100 }, T4 = { ...T3, id: 4, e0: 80, e1: 80, dy: 0.06, turn: 0.25, pair: 20, cpA: 5, cpB: 15, hw: 1, sep: 40 }, T5 = { ...T4, id: 5 };
       for (const Tn of [{ ...T0, id: 0.5 }, T1, T2, T3, T4, T5]) { T = Tn; edges(); while (real() < need && k < want + 12) { if (!(yield* place(k++))) break; } if (real() >= need) break; } }
     jumpsX.real = real();
-    /* the JUMPS_MORE pass: after the extra jumps and the guarantee, so those stand where they did; jumps x JM_P asked in all on the eased rules (streams jxR(JM_K0 + j)) */
+    /* the added-jumps pass (JM_): after the extra jumps and the guarantee, so those stand where they did; jumps x JM_P asked in all on the eased rules (streams jxR(JM_K0 + j)) */
       T = { ...T0, id: 7, near: 0, sep: JM_SEP, dy: JM_DY, turn: JM_TURN, gap1: JM_GAP1 }; edges();
       wantM = Math.max(0, Math.min(JM_MAX - jumpsX.placed.length, Math.floor(jumpsX.base * JM_P + jxR(-3)()) - jumpsX.placed.length, Math.floor(JM_KM * n / 1000) - jumps.length)); jumpsX.wantM = wantM;
       for (let j = 0; j < wantM; j++) yield* place(JM_K0 + j, 1);
@@ -57318,15 +57315,14 @@ function* buildCourseGen(seed, fixK = 0, noMir = 0, four = 0) { /* noMir: bit i 
   /* the stacked-shelf profile between an upper trail U and a lower trail L. Measured from U's valley edge: a flat-ish shoulder (>= 2.5 m,
      more where a camp, jump or chute apron asks), the LIP, a rock band, a talus apron, a gentler slope, and (when the drop is tall) a second
      wall standing 4 m behind the lower trail's uphill bank. Band height hc = 0.6 dH clamped to 2.5-10 m; below dH 2.5 (near a hairpin) a
-     1-1.8 m rock lip. Returns [height, bandClass] or null when the pair is not a shelf. */
-  const shelfH = (Ub, dU, Lb, dL, nb, shMinU, shP) => { /* shP: the plain shoulder, given only for the camp edge rule's wider one (see CAMP_EDGE_WALL) */
+     1-1.8 m rock lip. Returns [height, band class, pin, sq] or null when the pair is not a shelf. */
+  const shelfH = (Ub, dU, Lb, dL, nb, shMinU, shP) => { /* shP: the plain shoulder the camp edge rule passes (not read) */
     const D = dU + dL, dH = Ub - Lb; if (dH < 0.6 || D > 90 || D < 1) return null;
     let sh = Math.max(2.5, shMinU), talus = 1.5, bank = 2.5;
     let hc = dH < 2.5 ? Math.max(1.0, Math.min(1.8, 0.6 * dH)) : Math.max(2.5, Math.min(10, 0.6 * dH)); hc = Math.min(hc, dH - 0.3);
     let h1 = Math.min(hc, Math.max(1.0, 0.4 * hc)), h2 = hc - h1; if (h2 < 0.8) { h1 = hc; h2 = 0; } /* the band splits: a rock lip (40 %) right past the upper shoulder, the main wall (60 %) 4 m behind the lower trail's bank - both readings at every distance */
-    let w1 = h1 / 2.2, w2 = h2 / 2.2, cut = false;
-    if (shP !== undefined && false) { const cap = (D - w1 - w2 - talus - bank - (dH - hc - 0.5 * talus - 0.3 * bank) / 0) / (1 - 0.08 / 0); if (cap < sh) { sh = Math.max(2.5, shP, cap); cut = true; } } /* the wider shoulder leaves the slope between the walls at most this grade */
-    let wr = D - sh - w1 - w2 - talus - bank; const sq = cut || wr < 0.6;
+    let w1 = h1 / 2.2, w2 = h2 / 2.2;
+    let wr = D - sh - w1 - w2 - talus - bank; const sq = wr < 0.6;
     if (wr < 0.6) { sh = Math.max(Math.min(sh, D - w1 - w2 - talus - bank - 0.6), 1.0); wr = D - sh - w1 - w2 - talus - bank; }
     if (wr < 0.6) { talus = 0.8; bank = 1.2; wr = D - sh - w1 - w2 - talus - bank; }
     if (wr < 0) { const f = Math.max(0.3, (D - sh - talus - bank) / (w1 + w2 + 1e-6)); w1 *= f; w2 *= f; wr = 0; }
@@ -57884,7 +57880,7 @@ function* buildCourseGen(seed, fixK = 0, noMir = 0, four = 0) { /* noMir: bit i 
     for (let t = 0; t < 12; t++) tries.push([rp(), rp(), rp(), rp()]);
     for (const St of streams) St.ponds = [];
     const cands = streams.filter(St => !St.dry && St.prof && St.prof.length > 30 && (St.kind === 'fg' || St.kind === 'bridge' || (St.kind === 'gap' && St.fill === 'river')));
-    /* big lakes (LAKE_BIG 1, 0 = none): after the roll above, a map that rolls LAKE_P on its own stream (seed + 7383: four draws a map, whatever happens)
+    /* big lakes: after the roll above, a map that rolls LAKE_P on its own stream (seed + 7383: four draws a map, whatever happens)
        tries ONE lake of R LAKE_R (the largest that fits, from 14 down, from a rolled river and station on; the mountain rivers seldom leave room past R 8).
        Same room rules as a pond (every changed cell hw + 3.3 off the tread, no pin / lane / strip / pad / shelf / drop / camp sight / fall), except: the low
        shore may hold a dam of LAKE_DAM m, a shore higher than the rim is left standing (dry ground left as it is is no edit), the water keeps LAKE_TRAIL m
@@ -57971,7 +57967,7 @@ function* buildCourseGen(seed, fixK = 0, noMir = 0, four = 0) { /* noMir: bit i 
   let dE = null; const ZBO = dHE ? ZB.slice() : ZB;
   yield;
   if (dHE) { dE = new Float32Array(NX * NZ); let ed = 0; for (let k0 = 0; k0 < NX * NZ; k0 += 16384) { for (let k = k0; k < Math.min(NX * NZ, k0 + 16384); k++) { if (dHE[k]) { dE[k] = dHE[k] * (1 - PW[k]); Hg[k] += dE[k]; ed++; } if (zbE[k] !== 255) ZB[k] = zbE[k]; } yield; } if (!ed) dE = null; }
-  /* ---------- trains (course.trains; null on the tutorial, and then nothing below runs. The setting Off builds the same map: TRAINS_OFF_SAME) ----------
+  /* ---------- trains (course.trains; null on the tutorial, and then nothing below runs. The setting Off builds the same map) ----------
      The trench: a deep bridge (the 8 m pit, 13+ samples, not a gully fill, a boardwalk or a skinny log, no stream under it, out of zones, 60 samples
      from hooks and forks, clear of the camps' flag sight) gets a roll (seed + 7700, one draw per eligible bridge in index order: TR_P, at most TR_CAP
      a map, TR_GAP samples apart). The railbed runs square to the deck chord at the pit's own depth (Mp.base - TR_FLOOR), so under the deck the carve
@@ -58021,18 +58017,18 @@ function* buildCourseGen(seed, fixK = 0, noMir = 0, four = 0) { /* noMir: bit i 
     yield* placeCrossings(trains, ctx); rampOf = ctx.rampOf; XH = ctx.grid.XH || null; XM = ctx.grid.XM || null; /* the crossing's ramp lanes (makeSurface reads course.rampOf), its deferred carve and footprint */
   }
   /* ---------- tight stretches: the trees close in and the ridden tread narrows a little ----------
-     On a mountain that rolls it (TIGHT_P), a camp-to-camp section of openness level 1 or 2 may (TIGHT_S) carry ONE stretch of TIGHT_MIN-TIGHT_MAX
+     On a mountain that rolls it (no mountain does: the roll below never passes; ?debug&tight=1 forces it), a camp-to-camp section of openness level 1 or 2 may (TIGHT_S) carry ONE stretch of TIGHT_MIN-TIGHT_MAX
      samples where buildWorld grows a denser band of trees close beside the tread and the tread the rider feels (hwE) is TIGHT_HW narrower. Own stream
      (seed + 7213: one draw a mountain, then three a section whatever happens), so every other roll stays as it was. Only on plain trail: never near a
      camp, a fork or a long fork, a jump, a drop, a bridge, a ford or stream, a trench or a crossing, a shortcut, a zone or hairpin, a berm, a set piece
      with anything at the tread, a micro that changes the width, a strip, a cliff edge, a gap, the first / last 80 samples, and only on the plain ROAD width.
      The narrowing ramps in and out over TIGHT_RAMP samples and eases off in a bend (the racing line). hw stays the trail's width (the carve, the hash,
      every feature); the ridden width hwE is set once the world is placed (tightTread), so the scatter decides on the full tread as before. The paint
-     follows hwE inside a stretch (W). TIGHT_P = 0 builds every map without a stretch; TIGHT_HW = 0 keeps the trees and the full tread.
+     follows hwE inside a stretch (W). TIGHT_HW = 0 keeps the trees and the full tread.
      Every stretch also keeps clear windows where no tight tree grows (st[].clear, sample ranges): its first TIGHT_IN and last TIGHT_OUT samples (a rider
      coming in wide, or slow and off the line after a respawn, has room) and a TIGHT_GAPL-sample escape gap every 25-30 samples on both sides (stream
      seed + 7260, drawn only for a stretch that exists). */
-  const TIGHT_S = 0.5, /* 0.55 = about 28 % of mountains carry a stretch; TIGHT_P 0 = no tight stretch rolls anywhere (the off switch, the default until the forced stretch rides pass); ?debug&tight=1 still forces stretches for a look */ TIGHT_HW = 0.10, TIGHT_MIN = 50, TIGHT_MAX = 120, TIGHT_RAMP = 10;
+  const TIGHT_S = 0.5, /* the chance a section with room carries a stretch, once a mountain rolls one (none does; ?debug&tight=1 forces stretches for a look) */ TIGHT_HW = 0.10, TIGHT_MIN = 50, TIGHT_MAX = 120, TIGHT_RAMP = 10;
   yield;
   const TIGHT_IN = 8, TIGHT_OUT = 6, TIGHT_GAPL = 5;
   const tight = { on: false, forced: false, hw: TIGHT_HW, st: [] };
@@ -58086,7 +58082,7 @@ function* buildCourseGen(seed, fixK = 0, noMir = 0, four = 0) { /* noMir: bit i 
      line, cliff band, wet bank, beach, snow or steep face), from hash fields salted seed + 7343 / 7344 (no stream draw). Mud on the wet forest
      themes: the shoulders of a stream crossing or ford (12 samples either side) and of a dip piece, 2.4-3.6 m out past the tread edge. Leaves on the
      forest themes: in the dense stands (the density field the forest itself reads), 0.6-14 m past the tread edge, in patches; the birch and autumn
-     theme the most. Nothing moves: only GT changes (the ground color, the tire sound, and the bleed / grip while GROUND_WET_PHYS is 1). */
+     theme the most. Nothing moves: only GT changes (the ground color and the tire sound; the bleed and grip rules skip types 4 / 5). */
   if (!TUT) { const wet = THEME.id === 'pine' || THEME.id === 'mist' || THEME.id === 'autumn', lf = THEME.id === 'autumn' ? 0.5 : wet ? 0.62 : 2;
     const NP = pts.length, mudAt = new Uint8Array(NP), mk = (a, b) => { for (let i = Math.max(0, a); i <= Math.min(NP - 1, b); i++) mudAt[i] = 1; }, SL = maxH - 14 * dial.snowS - 5;
     if (wet) { for (const St of streams) if (St.kind === 'stream' && St.i !== undefined) mk(Math.round(St.i) - 12, Math.round(St.i) + 12); for (const R of setPieces) if (R.kind === 'compression' || R.kind === 'dipS' || R.kind === 'ford') mk(R.a, R.b); }
@@ -58098,7 +58094,7 @@ function* buildCourseGen(seed, fixK = 0, noMir = 0, four = 0) { /* noMir: bit i 
   /* a mirrored or reshaped sweeper must sit on plain ground: no pit, gully, stream bed or wall (over 3.5 m off the tread height) within 8 m of
      the loop's tread, no still water there and no other trail within 12 m. A loop that fails is rebuilt as the plain valley-side one
      (deterministic per seed; the other sweepers keep their pick). */
-  if ((FORKS_MIRROR_P > 0 || 1) && !TUT) { let bad = 0; const fit = (SC, fi, i0) => { /* samples i0 .. i0 + 7 of sweeper fi */
+  if (!TUT) { let bad = 0; const fit = (SC, fi, i0) => { /* samples i0 .. i0 + 7 of sweeper fi */
       for (let i = i0; i <= i0 + 7 && i <= SC.b + 2 && !((bad >> fi) & 1); i++) { const P = pts[i];
         for (let d = P.hw + 1; d <= P.hw + 8; d += 1.5) for (const sd of [-1, 1]) { const x = P.x + P.rx * d * sd, z = P.z + P.rz * d * sd, ix = Math.round((x - X0) / CELL), iz = Math.round((z - Z0) / CELL); if (ix < 0 || iz < 0 || ix >= NX || iz >= NZ) continue;
           const k = iz * NX + ix; if (Math.abs(Hg[k] - P.y) > 3.5 || (PL && PL[k] > -1e8 && PL[k] < 1e8)) bad |= 1 << fi; }
@@ -58107,7 +58103,7 @@ function* buildCourseGen(seed, fixK = 0, noMir = 0, four = 0) { /* noMir: bit i 
     for (let fi = 0; fi < shortcuts.length; fi++) { const SC = shortcuts[fi]; if (!(SC.mir || SC.shape) || fi >= 30) continue; for (let i0 = SC.a - 2; i0 <= SC.b + 2 && !((bad >> fi) & 1); i0 += 8) { fit(SC, fi, i0); yield; } }
     if (bad) { bcMemo.note(seed, fixK, noMir | bad, four); return yield* buildCourseGen(seed, fixK, noMir | bad, four); } }
   yield;
-  let SR = null; /* side ramps (RAMPS_ON): placed last, on their own streams, from the finished lists; the carve joins the crossing's (XH), the footprint its own grid (SM) */
+  let SR = null; /* side ramps: placed last, on their own streams, from the finished lists; the carve joins the crossing's (XH), the footprint its own grid (SM) */
   if (!TUT) { const g = { X0, Z0, NX, NZ, Hg, NI, DI, LN, CL, PD, ZB: ZBO, PL, GT, XH, XM };
     SR = yield* placeSideRamps({ bLog: DEBUG ? [] : null, seed, pts, gap, ford, zone, hpOf, cliffNear, checkpoints, finishIdx, WATER, trains, tight, lines, strips, splits, longForks, streams, bridges, drops, dropOf, rampOf, jumps, setPieces, hooks, micros, shortcuts, hairpins, zones, grid: g });
     if (SR) { XH = g.XH; XM = g.XM; SR.SM = g.SM; } }
@@ -58234,8 +58230,15 @@ function* placeCrossings(T, C) { /* T = course.trains (fills T.cross with trainE
    The kicker rises over w = -kl..0, the lip carries its angle one more meter, the gap runs to the landing's knuckle at wf = 1 + gap (a face rises to it
    over the last SR_FACE m) and the landing runs ll samples down to the bed. Beside a bridge
    the gap is the bridge's own pit, left as it is. A small side ramp off a bridge is a tabletop (R.tt, srTop). */
-function srBed(pts, R, u) { /* a side ramp's bed under the lane at trail sample u: the trail's plain ground height (base: no micro bumps or shaped pieces), beside a bridge the tread's own */
-  if (R.bridge >= 0) return trailYAt(pts, u); const j = Math.max(0, Math.min(pts.length - 2, Math.floor(u))), t = Math.max(0, Math.min(1, u - j)); return pts[j].base * (1 - t) + pts[j + 1].base * t; }
+function srBed(pts, R, u) { /* a side ramp's bed under the lane at trail sample u: the trail's plain ground height (base: no micro bumps) lifted by the ramp's lift (R.bl, srLift: the tread's broad shape), beside a bridge the tread's own */
+  if (R.bridge >= 0) return trailYAt(pts, u); const j = Math.max(0, Math.min(pts.length - 2, Math.floor(u))), t = Math.max(0, Math.min(1, u - j)); if (!R.bl) return pts[j].base * (1 - t) + pts[j + 1].base * t;
+  const L = R.bl, k = Math.max(0, Math.min(L.length - 1, u - (R.c - R.a0 - SR_LIFT))), q = Math.min(L.length - 2, Math.floor(k)), f = k - q; return pts[j].base * (1 - t) + pts[j + 1].base * t + L[q] * (1 - f) + L[q + 1] * f; }
+function srLift(pts, c, a0, a1) { /* a side ramp's lift over its span (samples c - a0 - SR_LIFT .. c + a1 + SR_LIFT, which covers the carve's 3 m blend): the tread's height over its plain ground (y - base) opened (the lowest within SR_LIFT
+    samples, then the highest of those within SR_LIFT), which keeps every shape at least 2 x SR_LIFT + 1 samples wide and drops narrower bumps; null where it is 0 all along (the bed is the plain ground) */
+  const n = pts.length, K = SR_LIFT, i0 = c - a0 - K, m = a0 + a1 + 2 * K + 1, d = (i) => { const P = pts[Math.max(0, Math.min(n - 1, i))]; return P.y - P.base; };
+  const er = new Float32Array(m + 2 * K); for (let q = 0; q < m + 2 * K; q++) { let v = Infinity; for (let r = -K; r <= K; r++) v = Math.min(v, d(i0 - K + q + r)); er[q] = v; }
+  const L = new Float32Array(m); let any = false; for (let q = 0; q < m; q++) { let v = -Infinity; for (let r = 0; r <= 2 * K; r++) v = Math.max(v, er[q + r]); L[q] = v; if (v !== 0) any = true; }
+  return any ? L : null; }
 function srRise(R, w) { /* the lane's rise over the trail's height at w */
   const kv = R.kv, lv = R.lv, KL = R.kl, wf = R.wf;
   if (R.tt) return srTop(R, Math.min(w, wf - w));
@@ -58263,7 +58266,7 @@ function* placeSideRamps(C) { /* C: buildCourse's lists and grids; returns { lis
   const feat = new Uint8Array(n), mark = (a, b, v = 1) => { for (let i = Math.max(0, Math.floor(a)); i <= Math.min(n - 1, Math.ceil(b)); i++) feat[i] |= v; }; /* 1 = no built part here, 2 = nothing of the ramp here (its lead-in and run-out included) */
   mark(0, 120, 3); mark(finishIdx - 120, n - 1, 3);
   const lineAt = new Uint8Array(n); for (const [a, b] of C.lines) for (let i = Math.max(0, a); i <= Math.min(n - 1, b); i++) lineAt[i] = 1;
-  for (let i = 0; i < n; i++) { const P = pts[i]; if (gap[i] || ford[i] || zone[i] || hpOf[i] || cliffNear[i] > 0.25 || P.bkH || P.fkK || P.feat || P.bridge || lineAt[i] || (C.dropOf && C.dropOf[i]) || (C.rampOf && C.rampOf[i]) || P.hw > ROAD + 2) mark(i - 3, i + 3); } /* the lane's bed follows the plain ground (srBed), so micro bumps and shaped tread may run beside it */
+  for (let i = 0; i < n; i++) { const P = pts[i]; if (gap[i] || ford[i] || zone[i] || hpOf[i] || cliffNear[i] > 0.25 || P.bkH || P.fkK || P.feat || P.bridge || lineAt[i] || (C.dropOf && C.dropOf[i]) || (C.rampOf && C.rampOf[i]) || P.hw > ROAD + 2) mark(i - 3, i + 3); } /* the lane's bed follows the plain ground and the tread's broad shape (srBed), so micro bumps and shaped tread may run beside it */
   for (const R of C.strips || []) mark(R.a - SR_SPACE, R.b + SR_SPACE);
   for (const F of C.splits) mark(F.a - SR_SPACE, F.b + SR_SPACE);
   for (const LF of C.longForks || []) mark(LF.a - SR_SPACE, LF.b + SR_SPACE);
@@ -58364,8 +58367,9 @@ function* placeSideRamps(C) { /* C: buildCourse's lists and grids; returns { lis
     const kv = new Float32Array(kl + 1); for (let i = 0; i <= kl; i++) kv[i] = kh * Math.pow(i / kl, 1.4);
     const lv = new Float32Array(ll + 1); for (let i = 0; i < ll; i++) lv[i] = lo0 * (i === 0 ? 0.985 : Math.pow(1 - i / ll, 1.3)); lv[ll] = 0;
     const wf = 1 + gp, wL = tt ? wf + kl / 2 : wf + Math.round(ll * 0.3); /* a tabletop's fast rider is aimed halfway down its down-ramp */
-    const R = { side: true, bridge: br ? br.B.a : -1, pf: br ? br.pf : 0, size: T, table: tt, tt, tf: false, look: ul < 0.5 ? 0 : 1, c, lip: c, land: c + wL, kl, kh, gap: gp, ll, wf, lead, out, a0, a1, sd, vs: sd, lat: la * sd, la, e0: la - SR_W / 2, e1: la + SR_W / 2, x: P.x, z: P.z, fx: P.fx, fz: P.fz, rx: P.rx, rz: P.rz, hw: P.hw, kv, lv, landPt: null };
-    if (tt) for (let i = c - kl; i <= c + wf + kl; i++) if (pts[i].y - pts[i].base > kh) R.tf = true; /* the trail stands over the deck somewhere beside it: fill its trail side (srFillAt) */
+    const R = { side: true, bridge: br ? br.B.a : -1, size: T, table: tt, tt, tf: false, look: ul < 0.5 ? 0 : 1, c, lip: c, land: c + wL, kl, gap: gp, ll, wf, lead, out, a0, a1, sd, vs: sd, lat: la * sd, la, e0: la - SR_W / 2, e1: la + SR_W / 2, x: P.x, z: P.z, fx: P.fx, fz: P.fz, rx: P.rx, rz: P.rz, hw: P.hw, kv, lv, landPt: null };
+    R.bl = br ? null : srLift(pts, c, a0, a1); /* the bed follows the tread's broad shape (srBed) */
+    if (tt) for (let i = c - kl; i <= c + wf + kl; i++) if (pts[i].y - srBed(pts, R, i) > kh) R.tf = true; /* the trail stands over the deck somewhere beside it: fill its trail side (srFillAt) */
     if (tt) for (let i = 0; i <= ll; i++) lv[i] = srRise(R, wf + i); /* a tabletop: the up-ramp mirrored down from the deck's far crest, the landing's last samples flat on the bed */
     R.landPt = { x: P.x + P.fx * wL + P.rx * R.lat, z: P.z + P.fz * wL + P.rz * R.lat, y: srBed(pts, R, c + wL) + srRise(R, wL) };
     /* the ground: the lane's bed flat at the trail's height from the tread out past the lane (never a tread cell, never another stretch of trail; beside a
@@ -58521,18 +58525,17 @@ function makeSurface(course) {
       const R = sramps[srOf[ni] - 1], dx = x - R.x, dz = z - R.z, w = dx * R.fx + dz * R.fz, e = (dx * R.rx + dz * R.rz) * R.sd;
       if (R.bridge >= 0) { if (course.underR !== R && w >= -R.a0 && w <= R.a1 && e > R.e0 - EDGE_C - SR_SIDE && e < R.e1 + EDGE_C + SR_SIDE && !(w > 1 && w < R.wf)) { const top = srBed(pts, R, R.c + w) + srRise(R, w), inL = e >= R.e0 - EDGE_C && e <= R.e1 + EDGE_C, d = top - h, ad = Math.abs(d), k = inL ? 1 : !SR_SIDE || ad >= BR_STEP ? 0 : ad <= BR_FLUSH ? 1 : (BR_STEP - ad) / (BR_STEP - BR_FLUSH); /* the lane to a rider at its height; beside it the ground eases onto the lane's catch edge (EDGE_C past the drawn edge) over SR_SIDE only where the lane stands within BR_FLUSH m of it (fading out by BR_STEP m): a taller side is upright, and the pit under the arc is the natural ground */
         if (k > 0) { h = inL ? top : h + d * k * Math.max(0, Math.min(1, (e - (R.e0 - EDGE_C) + SR_SIDE) / SR_SIDE, (R.e1 + EDGE_C + SR_SIDE - e) / SR_SIDE)); shoulder = true; lip = inL && w >= -R.kl && w <= 1; idx = Math.max(0, Math.min(pts.length - 2, Math.floor(R.c + w))); o = e * R.sd; } } }
-      else if (w >= -R.a0 && w <= R.a1 && e > 0 && e <= R.e1 + SR_SIDE && !(R.bridge >= 0 && w > 1 && w < R.wf) && (R.bridge < 0 || !SR_SIDE || e > R.e0 - SR_SIDE)) { const inL = e >= R.e0 && e <= R.e1, fS = SR_SIDE > 0 ? Math.max(0, Math.min(1, (e - R.e0 + SR_SIDE) / SR_SIDE, (R.e1 + SR_SIDE - e) / SR_SIDE)) : (inL ? 1 : 0); h = srBed(pts, R, R.c + w) + (fS > 0 ? srRise(R, w) * fS : 0); if (R.tf && e < R.e0) h = Math.max(h, srFill(pts, R, w, e)); /* beside a bridge the pit under the arc is the natural ground */
+      else if (w >= -R.a0 && w <= R.a1 && e > 0 && e <= R.e1 + SR_SIDE) { const inL = e >= R.e0 && e <= R.e1, fS = SR_SIDE > 0 ? Math.max(0, Math.min(1, (e - R.e0 + SR_SIDE) / SR_SIDE, (R.e1 + SR_SIDE - e) / SR_SIDE)) : (inL ? 1 : 0); h = srBed(pts, R, R.c + w) + (fS > 0 ? srRise(R, w) * fS : 0); if (R.tf && e < R.e0) h = Math.max(h, srFill(pts, R, w, e));
         shoulder = R.tt || !(inL && w > 1 && w < R.wf - SR_FACE); lip = inL && w >= -R.kl && w <= 1; /* the gap's floor is the jump's pit (slopeAlong ignores it from the kicker); a tabletop is one block, ridden end to end */ idx = Math.max(0, Math.min(pts.length - 2, Math.floor(R.c + w))); o = e * R.sd; } }
     let rail = false;
     if (cuts && course.railOn && !road) { const ev = railHit(x, z); /* a trench's trestle deck: a narrow level strip from where the trestle starts to its far end (on from the moment the world is placed) */
       if (ev) { h = Math.max(h, railY(ev)); shoulder = true; lip = false; rail = true; idx = ev.c; o = 99; } }
-    let ramp2 = false;
     const kn = Math.round(gz) * NX + Math.round(gx);
     let creek = false;
-    if (course.creekOn && !road && !rail && !ramp2) { const c = creekLv(x, z); if (c > -1e8) { creek = true; if (h < c) h = c; } } /* in a bridge's pool: the creek bed rides like a ford */
+    if (course.creekOn && !road && !rail) { const c = creekLv(x, z); if (c > -1e8) { creek = true; if (h < c) h = c; } } /* in a bridge's pool: the creek bed rides like a ford */
     if (h < WATER) return { h: WATER, road: false, i: idx, o, water: true };
     if (creek) return { h, road: false, i: idx, o, water: false, shoulder, lip, line: shoulder ? 0 : LN[kn], gt: shoulder ? 0 : GT[kn], creek: true };
-    if (PL && h < PL[kn] && !road && !rail && !ramp2 && course.stillOn) { if (course.creekOn && creekLv(x, z, 1.3) > -1e8) return { h: Math.max(h, PL[kn] - 0.08 - BS_SINK), road: false, i: idx, o, water: false, shoulder, lip, line: shoulder ? 0 : LN[kn], gt: shoulder ? 0 : GT[kn], creek: true }; /* a bridge pool's cell just past its drawn shore */
+    if (PL && h < PL[kn] && !road && !rail && course.stillOn) { if (course.creekOn && creekLv(x, z, 1.3) > -1e8) return { h: Math.max(h, PL[kn] - 0.08 - BS_SINK), road: false, i: idx, o, water: false, shoulder, lip, line: shoulder ? 0 : LN[kn], gt: shoulder ? 0 : GT[kn], creek: true }; /* a bridge pool's cell just past its drawn shore */
       return { h: PL[kn], road: false, i: idx, o, water: true }; } /* a pond, a lake or a pool under a bridge (never a deck over it); off while the world is placed, so the scatter decides on dry ground as before */
     return { h, road, i: idx, o, water: false, shoulder, lip, line: road || shoulder ? 0 : LN[kn], gt: rail ? 2 : road || shoulder ? 0 : GT[kn] };
   };
@@ -58552,7 +58555,7 @@ const STREAM_SRC_FAR = 36, SRC_KEEP = 10, SPRING_ROCK_K = 1.6;
 /* waterfalls. The sheet leaves the lip at the river's own level and falls as a jet where the face drops away faster (WF_JET m/s
    over the brink), every sheet vertex on or over the rendered ground, a foam blob where it lands, the pool's rim held on its bowl; and a waterfall's
    stream starts where the ride lenses see it least, under a bigger rock mouth (WF_ROCK_K), anywhere from its source run's spring down to a few meters
-   above the first lip (0 = the waterfalls exactly as before). WF_SALT: the hash salt of the mouth's rocks (hash2(stream index + 1, WF_SALT, seed)). */
+   above the first lip. WF_SALT: the hash salt of the mouth's rocks (hash2(stream index + 1, WF_SALT, seed)). */
 const WF_JET = 1.7, WF_ROCK_K = 2.0, WF_SALT = 0x5F17;
 /* where no start is hidden from every ride lens, the water comes out from under a cap of rocks WF_CAP_K times the plain pile 1-3 m above the brink (0 = the least seen start as above) */
 const WF_CAP_K = 2.4;
@@ -58956,8 +58959,10 @@ function worldCompile() { if (renderer) renderer.compile(scene, camera); for (co
 /* Static world matrices. Once a world is placed (the end of newRun), everything in it except the camps, the trains and the water rings stays where it is,
    so those pieces get their matrices once here and three's per-frame walk skips them (matrixWorldAutoUpdate false on each static child of world).
    The scene and world roots never move: with their matrixAutoUpdate off they no longer force a matrix multiply on every descendant each frame.
-   Anything added later (camp batches, the Activities' props, peeks) keeps three's defaults and is updated as before. An object with matrixAutoUpdate
-   off must set matrixWorldNeedsUpdate (or call updateMatrixWorld) after it writes its matrix: nothing above it forces that any more. */
+   Anything added later (camp batches, the Activities' props, peeks) keeps three's defaults and is updated as before. A piece placed before the
+   freeze that moves later must be in live below; otherwise, after it moves, it must call its own updateMatrix() (its matrixAutoUpdate is off) and then
+   updateMatrixWorld(true): three's per-frame walk never enters a frozen child of world, so setting matrixWorldNeedsUpdate does nothing there.
+   (A direct child of scene with matrixAutoUpdate off only needs matrixWorldNeedsUpdate: scene still walks its children.) */
 function worldFreeze(course) {
   scene.matrixAutoUpdate = false; scene.updateMatrix(); world.matrixAutoUpdate = false; world.updateMatrix();
   const live = new Set(); for (const F of campFx) live.add(F.grp); for (const cp of course.checkpoints) if (cp.mesh) live.add(cp.mesh); /* flames, campers, the board kiosk moved in on entry */
@@ -59089,8 +59094,8 @@ function buildCrossing(course, ev, R, surf) {
   { const o = RAIL_RUN - XS_SHED - 0.2; ev.smkU = [-o, o]; } /* between the sheds' mouths: the stack smokes only there */
   return mesh;
 }
-/* ---------- a side ramp's mesh: ONE merged vertex-colored mesh a ramp (its kicker and landing or the tabletop, the lane cue in its tier color: three
-   chevrons on the lane and a sign at its mouth, and on the earth look a few dirt mounds beside the run-out). Two looks (R.look): 0 = plank sides like the
+/* ---------- a side ramp's mesh: ONE merged vertex-colored mesh a ramp (its kicker and landing or the tabletop, the lane cue in its tier color: two
+   signs beside the lane, one at its mouth, and on the earth look a few dirt mounds beside the run-out). Two looks (R.look): 0 = plank sides like the
    crossing's dressed wedges, 1 = packed earth sides. Stones and mounds from a fixed hash of the ramp's lip sample (no stream). ---------- */
 function buildSideRamp(course, R) {
   const pts = course.pts, parts = [], V = (x, y, z) => new THREE.Vector3(x, y, z), sd = R.sd, col = SR_COL[R.size];
@@ -59129,7 +59134,7 @@ function buildSideRamp(course, R) {
     for (let k = 0; k < 3; k++) { const w = wf + R.ll * (0.35 + 0.3 * k) + hn(k + 50) * 1.5, e = e1 + 1.0 + hn(k + 60) * 1.4, s = 0.5 + 0.35 * hn(k + 70);
       parts.push({ geo: mg, col: k & 1 ? '#7d6448' : '#86694a', m: new THREE.Matrix4().compose(at(w, e, trY(w) - 0.1), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, hn(k + 80) * 6.28, 0)), V(s * 1.6, s * 0.55, s * 1.2)) }); } }
   /* the cue: two signs past the lane's outer edge, one at its mouth and one SR_SIGN2 m further up the trail (a tall timber post, a three-board face with
-     its middle board in the tier's color, a pale arrow and kicker glyph on both faces; the ride lenses look back up the trail); also three chevrons on the lane */
+     its middle board in the tier's color, a pale arrow and kicker glyph on both faces; the ride lenses look back up the trail) */
   for (const [w, sc] of [[-KL - R.lead + 1, SR_SIGN], [-KL - R.lead + 1 - SR_SIGN2, SR_SIGN * 0.85]]) { const e = e1 + 0.7, g0 = hT(w), yB = g0 + 1.25 * sc, back = fwd.clone().negate(), qUp = new THREE.Quaternion();
     parts.push({ geo: new THREE.BoxGeometry(0.1 * sc, 1.6 * sc, 0.1 * sc), col: '#5b4430', m: new THREE.Matrix4().compose(at(w, e, g0 + 0.75 * sc), qUp, one) });
     const qB = new THREE.Quaternion().setFromUnitVectors(V(1, 0, 0), V(R.rx * sd, 0, R.rz * sd)); /* the board's width runs across the lane */
@@ -60258,21 +60263,17 @@ function buildWorld(course, surf) {
       const g0 = St.mesh.geometry, ps = Array.from(g0.attributes.position.array), cs = Array.from(g0.attributes.color.array), ws = Array.from(g0.attributes.aWet.array), ix = Array.from(g0.index.array), h = kit.h, Pk = kit.pool || { x: kit.x, z: kit.z, r: 0 };
       if (St.kitI0 === undefined) St.kitI0 = ix.length; let v = ps.length / 3; const cDp = new THREE.Color('#3a7fa1'), cSh = new THREE.Color('#5a9cb6'), cRm = new THREE.Color('#6aa3bb'), cRd = new THREE.Color('#3f83a6'), cFm = new THREE.Color('#f4fafc').lerp(cRd, 0.3);
       const hs = (a, b) => hash2(Math.floor(a * 7.3) + 9001, Math.floor(b * 7.3) + 77, seed + SPRING_SALT);
-      if (!St.kitS0) { const Q = ps.concat(kit.foam.c, ...kit.foam.ring), bb = new THREE.Box3(), c3 = new THREE.Vector3(); for (let j = 0; j < Q.length; j += 3) bb.expandByPoint(c3.set(Q[j], Q[j + 1], Q[j + 2]));
-        bb.getCenter(c3); let r2 = 0; for (let j = 0; j < Q.length; j += 3) r2 = Math.max(r2, (Q[j] - c3.x) ** 2 + (Q[j + 1] - c3.y) ** 2 + (Q[j + 2] - c3.z) ** 2); St.kitS0 = new THREE.Sphere(c3.clone(), Math.sqrt(r2)); } /* the bounds the mesh had with the old head's foam: the kit's water stays inside them */
-      const inS = (x, y, z, m = 0) => true;
-      if (kit.pool && inS(Pk.x, h + 0.015, Pk.z, 0.06)) { const NR = 12, c0 = v; ps.push(Pk.x, h + 0.015, Pk.z); cs.push(cDp.r, cDp.g, cDp.b); ws.push(0, 0, 0); v++; /* the pool: still and plain (aWet kind 0), no foam rim */
-        for (let j = 0; j < NR; j++) { const a = j / NR * 6.2832; let r = Pk.r * (0.85 + 0.3 * hs(Pk.x + j, Pk.z)); for (let t = 0; t < 12 && r > 0.05; t++) { let lo = !inS(Pk.x + Math.cos(a) * r, h + 0.012, Pk.z + Math.sin(a) * r); for (const fr of [0.5, 0.8, 1]) if (triG(Pk.x + Math.cos(a) * r * fr, Pk.z + Math.sin(a) * r * fr) < h - 0.04) lo = true; if (!lo) break; r *= 0.8; } /* never over lower ground */
+      if (kit.pool) { const NR = 12, c0 = v; ps.push(Pk.x, h + 0.015, Pk.z); cs.push(cDp.r, cDp.g, cDp.b); ws.push(0, 0, 0); v++; /* the pool: still and plain (aWet kind 0), no foam rim */
+        for (let j = 0; j < NR; j++) { const a = j / NR * 6.2832; let r = Pk.r * (0.85 + 0.3 * hs(Pk.x + j, Pk.z)); for (let t = 0; t < 12 && r > 0.05; t++) { let lo = false; for (const fr of [0.5, 0.8, 1]) if (triG(Pk.x + Math.cos(a) * r * fr, Pk.z + Math.sin(a) * r * fr) < h - 0.04) lo = true; if (!lo) break; r *= 0.8; } /* never over lower ground */
           ps.push(Pk.x + Math.cos(a) * r, h + 0.012, Pk.z + Math.sin(a) * r); cs.push(cSh.r, cSh.g, cSh.b); ws.push(0, 0, 0); v++; }
         for (let j = 0; j < NR; j++) ix.push(c0, c0 + 1 + j, c0 + 1 + (j + 1) % NR); }
-      const seeps = []; for (const L0 of kit.rills) { let q0 = 0; const yAt = (P, o, j, n) => { const A = L0[Math.max(0, j - 1)], B = L0[Math.min(n - 1, j + 1)], tl = Math.hypot(B[0] - A[0], B[1] - A[1]) || 1, x = P[0] - (B[1] - A[1]) / tl * o * P[2], z = P[1] + (B[0] - A[0]) / tl * o * P[2]; return [x, z]; };
-        while (q0 < L0.length && ![-1, 0, 1].every(o => { const [x, z] = yAt(L0[q0], o, q0, L0.length); return inS(x, q0 >= L0.length - 2 ? Math.max(triG(x, z) + 0.035, h + 0.01) : triG(x, z) + 0.035, z); })) q0++;
-        const L = L0.slice(q0); if (L.length < 3) continue; seeps.push(q0 ? [L[0][0], L[0][1]] : kit.seeps[kit.rills.indexOf(L0)]); /* a rill past the bounds starts lower down */
+      const seeps = []; for (const L0 of kit.rills) {
+        const L = L0; if (L.length < 3) continue; seeps.push(kit.seeps[kit.rills.indexOf(L0)]);
         let sAl = 0; const r0 = v; /* a rill: rim, middle, rim per station, the river's channel style squeezed to a thread (aWet kind 1) */
         for (let j = 0; j < L.length; j++) { const P = L[j], A = L[Math.max(0, j - 1)], B = L[Math.min(L.length - 1, j + 1)], tl = Math.hypot(B[0] - A[0], B[1] - A[1]) || 1, px = -(B[1] - A[1]) / tl, pz = (B[0] - A[0]) / tl; if (j) sAl += Math.hypot(P[0] - L[j - 1][0], P[1] - L[j - 1][1]);
           for (const o of [-1, 0, 1]) { const x = P[0] + px * o * P[2], z = P[1] + pz * o * P[2], y = triG(x, z) + 0.035; ps.push(x, j >= L.length - 2 ? Math.max(y, h + 0.01) : y, z); const c = o ? cRm : cRd; cs.push(c.r, c.g, c.b); ws.push(o * 0.035, sAl, 1.04); v++; } } /* draped on the ground, no foam band (a thread of the channel's middle)*/
         for (let j = 0; j + 1 < L.length; j++) { const a = r0 + j * 3, b = a + 3; ix.push(a, b, a + 1, a + 1, b, b + 1, a + 1, b + 1, a + 2, a + 2, b + 1, b + 2); } }
-      for (const [sx, sz] of seeps) { const c0 = v, y = Math.max(triG(sx, sz) + 0.06, h + 0.03); if (!inS(sx, y, sz, 0.3)) continue; ps.push(sx, y, sz); cs.push(cFm.r, cFm.g, cFm.b); ws.push(0, -0.22, 2); v++; /* a soft fizz where the water wells up */
+      for (const [sx, sz] of seeps) { const c0 = v, y = Math.max(triG(sx, sz) + 0.06, h + 0.03); ps.push(sx, y, sz); cs.push(cFm.r, cFm.g, cFm.b); ws.push(0, -0.22, 2); v++; /* a soft fizz where the water wells up */
         for (let j = 0; j < 6; j++) { const a = j / 6 * 6.2832, x = sx + Math.cos(a) * 0.18, z = sz + Math.sin(a) * 0.18; ps.push(x, Math.max(triG(x, z) + 0.05, h + 0.025), z); cs.push(cFm.r, cFm.g, cFm.b); ws.push(1, -0.22, 2); v++; }
         for (let j = 0; j < 6; j++) ix.push(c0, c0 + 1 + j, c0 + 1 + (j + 1) % 6); }
       St.tris = (St.tris || 0) + (ix.length - (St.kitI1 || St.kitI0)) / 3; St.kitI1 = ix.length;
@@ -61979,7 +61980,7 @@ function clearFlagSight(course, surf) {
   world.traverse(o => { if (!o.isInstancedMesh || !o.userData.tree) return; const b = bbOf(o.geometry), cone = o.geometry.type === 'ConeGeometry' ? 1 : 0;
     for (let i = 0; i < o.count; i++) { o.getMatrixAt(i, m4); m4.decompose(p, q4, sc); if (sc.x === 0) continue; parts.push([p.x, p.z, p.y + b[0] * sc.y, p.y + b[1] * sc.y, b[2] * Math.max(sc.x, sc.z), cone, o, i]); } });
   for (const f of course.fgTrees || []) { const b = bbOf(f.m.geometry), S3 = f.m.scale; parts.push([f.x, f.z, f.y + b[0] * S3.y, f.y + b[1] * S3.y, b[2] * Math.max(S3.x, S3.z), 1.25, f, -1]); } /* the three tiers read as one cone from the trunk up */
-  const { lens, inFrame, bearSim, foc } = rideLens(course, surf, FLAG_CLEAR_FRAME);
+  const { lens, inFrame, bearSim } = rideLens(course, surf, FLAG_CLEAR_FRAME);
   const PAD = FLAG_CLEAR_W, hit = (A, B, t) => segHitsPart(A, B, t, PAD); /* does the segment A -> B pass within PAD of the tree part t? */
   const drop = new Set(), LZ = []; /* LZ: per camp, the flag point, the sight-line targets and every lens position (x, y, z, its bearing offset) that had the flag in frame (the nudge re-tests a moved tree on them) */
   for (const cp of cps) {
@@ -62140,7 +62141,7 @@ const FLAG_LEAD_GOOD = 60, FLAG_SIZE = 1.4, FLAG_FADE_OUT = [25, 40], FLAG_TWIN_
    standing in a pine's skirt with only its cloth poking out does not count as seen. FLAG_DROP: the most (m) a flag's foot may sit below the trail surface
    at its sample on the finished ground; a spot past the tread edge that falls away (a fill bank, a side ramp's lane) moves along the track instead. */
 const FLAG_POLE = 0.9, FLAG_DROP = 0.3;
-const FLAG_GAP_LAST = [6, 3]; /* 1 = a hazard that found good spots but none FLAG_GAP_MIN samples from another flag, and has no earlier flag of its color to share, still gets its flag: the first spot FLAG_GAP_LAST[0] samples from every other flag, else [1] (a tight pair of pennants beats a jump with no warning); 0 = it is listed in course.flagMiss */
+const FLAG_GAP_LAST = [6, 3]; /* a hazard that found good spots but none FLAG_GAP_MIN samples from another flag, and has no earlier flag of its color to share, still gets its flag: the first spot FLAG_GAP_LAST[0] samples from every other flag, else [1] (a tight pair of pennants beats a jump with no warning) */
 const flagSpot = (P) => { const o = -(P.hw + 0.55); return [P.x + P.vx * o, P.z + P.vz * o]; }; /* the uphill edge, so the valley-side lens sees the flag against the bank */
 function flagPieceAt(R) { /* the sample a set piece's crash hazard starts at (-1: none): the first hop log's ramp, a double's first kick, a drop-in ledge's rise */
   if (R.kind === 'logHop') { const L = (R.logs || []).find(l => l.hop); return L ? L.i - 4 : -1; }
@@ -62215,7 +62216,7 @@ const BATCH_MAXV = 60000; /* larger pieces stay as they are: merging them would 
 const BATCH = { want: false, on: false, made: [], hid: [], tm: null, mode: null, st: 0, ref: new THREE.Vector3(), refQ: new THREE.Quaternion() };
 /* the same batching for the plain camp lens (no game up): the camp looks out over the valley too, and the far tree, rock and grass chunks in its view are
    mostly a few instances each, one draw call apiece. Built once the lens has held still (CAMP_BATCH_HOLD frames within 0.6 m / ~3 deg), freed when a game
-   lens takes over, when the camp closes or the world is rebuilt. Same triangles, materials and instance matrices: nothing changes on screen. 0 = off. */
+   lens takes over, when the camp closes or the world is rebuilt. Same triangles, materials and instance matrices: nothing changes on screen. */
 const CAMP_BATCH_HOLD = 20; /* the batch also joins the terrain tiles in view (see 3a in batchBuild) */
 /* a visit's first camp batch is built on the first frame after the entry fade lifts (the lens is at its resting pose from that frame
    on and the walk-in does not move it), so the camp opens at its settled draw count */
@@ -62585,11 +62586,11 @@ function campVariantOrder(look) { /* the 9 camper variants shuffled once per ses
   if (campVariantOrder.k === look && campVariantOrder.v) return campVariantOrder.v;
   const r = mulberry32((look ^ 0x9e3779b9) >>> 0), a = [0, 1, 2, 3, 4, 5, 6, 7, 8]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
   campVariantOrder.k = look; campVariantOrder.v = a; return a; }
-/* the camp's dusk light: 1 = a lighter ground bounce (DUSK_GROUND), so legs, boots and the lower half of the wheels keep some color on the side away from the fire; 0 = the older, darker bounce */
+/* the camp's dusk light: a lighter ground bounce (DUSK_GROUND), so legs, boots and the lower half of the wheels keep some color on the side away from the fire */
 const DUSK_GROUND = '#8b6a56'; /* the dusk light's ground bounce: the older '#6a5040' at 1.8 times its light, same hue */
 const SG_ARMS = { eR: [0.08, 0.57, 0.33], pR: [0.07, 0.87, 0.31], rR: [0.06, 0.555, 0.06], eL: [0.1, 0.55, -0.33], pL: [0.1, 0.85, -0.31], rL: [0.15, 0.527, -0.07] }; /* stargazer figure frame: elbow, pointing hand, resting hand per arm */
 /* how the brush is pulled to the picture plane: 1 = the painter stands 0.25 m farther from the easel, 2 = the brush hand reaches 0.2 m less far */
-/* which guitarist pose is used: 1 = the full-size guitar on the right thigh, the strumming elbow over the lower bout's top edge; 2 = a smaller guitar (GTR_SCALE), he leans over it, the elbow out at his side */
+/* the guitarist pose: the full-size guitar on the right thigh, the strumming elbow over the lower bout's top edge (GTR_POSE) */
 const GTR_SCALE = 1; /* the guitar's size against the camper (its length, depth and width) */
 const GTR_POSE = { P: [0.3, 0.69, 0.155], R: [0.45, 0, 0.45], ch: [0.04, 0.8, 0], hd: [0.07, 1.1, 0], eL: [0.18, 0.62, -0.38], hL: [0.322, 0.889, -0.36], eR: [0.298, 0.805, 0.4], hR: [0.443, 0.681, 0.206] }; /* the guitarist in the figure frame (OFF = the older pose): guitar frame position / Euler, chest and head, fretting elbow + hand, strumming elbow + hand */
 const CAMP_VARIANT_NAMES = ['cook', 'sleeper', 'mechanic', 'guitarist', 'stargazer', 'reader', 'planner', 'tea maker', 'painter'];
@@ -62902,7 +62903,7 @@ function tentParts(put, parts, T, o) {
         seg([ax, ay, az], [gx + ox * 0.11 * c45, 0.11 * c45, gz + oz * 0.11 * c45], 0.006, '#e8e4da', 3, false); } }
 }
 /* the steak's look wherever one is drawn (the Dinner's 3D steak and slices, its 2D target chip and cut faces, the Dinner card's plate,
-   the sliced steak on the board by the camp fire); the Dinner code's DIN_LOOK comment lists the looks. 2 = the faceted ribeye */
+   the sliced steak on the board by the camp fire); the faceted ribeye, DIN_LOOK[1] (the Dinner code's DIN_LOOK comment lists the looks) */
 function addCampMesh(cp) {
   /* seeded camp scenes, dealt along the mountain from a per-session shuffle (campVariantOrder) so neighbors differ: 0 cook, 1 sleeper, 2 bike mechanic, 3 guitarist, 4 stargazer, 5 reader, 6 map planner, 7 tea maker, 8 sketch painter. Your own camps: tent and fire only. */
   const seedC = (S.course && S.course.seed) || 1, rc = mulberry32(((seedC * 2654435761) ^ (cp.idx * 40503 + 977)) >>> 0); /* well-mixed per mountain + per camp (the LAYOUT stream: tent spot, woodpile, fence, bushes) */
@@ -63099,7 +63100,7 @@ function addCampMesh(cp) {
   /* the campers' cozy wardrobe. Warm, muted earth tones (rust, mustard, moss, oat, spruce, clay) a step below the rider's jersey in
      saturation, so the rider is still the most colorful figure; camps you make keep the bright picks. The wardrobe comes from the LOOK stream
      (rl), and every camper is BLANK-FACED (a smooth round head, no eyes / nose / mouth / cheeks: posture, hat and props do the acting), with hair
-     in one of four styles under a beanie, a cap, a bucket hat, a beret or no hat. Ten rc() draws are burnt here so the bushes and the fence
+     in one of four styles under a beanie, a cap, a bucket hat, a beret or no hat. Ten rc() draws are burned here so the bushes and the fence
      that draw after it keep their numbers (their footprints are part of the layout). */
   for (let k = 0; k < 10; k++) rc();
   const jac = cp.lane ? pickL(['#b5593f', '#c9973a', '#7d8a52', '#c9b28a', '#5f8080', '#8f5a4a', '#a8734a', '#6b7a8a']) : pickL(['#c8553d', '#3d7fc8', '#e0a030', '#5aa06a', '#8a4fd0', '#d94f7a', '#2f9e9a', '#e07a2e', '#4a5d8f', '#b8c23a', '#f2efe6', '#7a8a96']);
@@ -64182,11 +64183,11 @@ function petsPeekTick(dt) {
   PK.next -= dt; if (PK.next <= 0) { PK.next = Infinity; PK.tries = (PK.tries || 0) + 1; queueMicrotask(() => { PK.next = petsPeekOk() && petsPeekStart() ? -1 : 3 + 4 * Math.random(); }); } } /* chosen once the frame is done (the lens holds its final pose then); no spot in sight (a lens still easing back): try again in a few seconds */
 /* ---- the Keeper's scrap on the board ---- */
 let boardScrapK = 0, boardRedraw = null, boardScrapForce = null, boardScrapV = '', boardWhereForce = null, boardTextForce = null; /* tests: the basket note's place (or the early note's pick), an early note's lines */
-/* 1 = before the basket is found the Keeper leaves a note on the board by the rider's level (states 5, 6, 7 from KEEPER_LVL: something is out there,
+/* before the basket is found the Keeper leaves a note on the board by the rider's level (states 5, 6, 7 from KEEPER_LVL: something is out there,
    signs of it, what they like). Each level has three notes; which one a camp shows is fixed by the camp's number on the trail and the mountain (keeperPick: a plain hash, no stream),
    so camps along a ride differ and the same camp always shows the same note text. The tracks drawn on the level 3-4 note follow the animal that will peek in (keeperTrack), which is picked
    at random each visit: a camp shows a different animal's tracks each time on purpose. The basket note (states 1-3, which now names the Pals) takes over on a map with the stump; never in
-   the tutorial or Classic feel; 0 = no note before the basket note */
+   the tutorial or Classic feel */
 const KEEPER_LVL = [1, 3, 5]; /* the levels of notes 5, 6, 7 */
 const KEEPER_TXT = [ /* per level: three notes, each three short lines fitted to the scrap's width */
   [['something', 'watches', 'the trail'], ['you are', 'not alone', 'out here'], ['eyes shine', 'in the trees', 'at night']],
@@ -64424,34 +64425,33 @@ const mkPal = (L) => { const P = {}; for (const [id, c] of L) P[id] = palEntry(i
 const isHexC = (v) => typeof v === 'string' && /^#[0-9a-f]{6}$/i.test(v), HEXC = new Map();
 const hexEntry = (h) => { h = h.toLowerCase(); let e = HEXC.get(h); if (!e) { e = palEntry(h, h); HEXC.set(h, e); if (HEXC.size > 400) HEXC.delete(HEXC.keys().next().value); } return e; };
 const PAL = { c: mkPal(PAL_C), skin: mkPal(PAL_S), hair: mkPal(PAL_H) };
-/* the rider's look: 1 = the modeled rider (gloved hands with a thumb and four fingers, flat-pedal trail shoes, a shaped hydration pack, jersey and helmet trim,
-   eight hair styles that show under the helmet, a headwear choice (helmet, cap, beanie, none) and a shoe color that follows the saddle until it is set);
-   0 = the block rider (four hair styles, the helmet only, shoes in the saddle's color). Geometry only: the pose rig, physics and crash hull never read it */
+/* the rider's look: the modeled rider (gloved hands with a thumb and four fingers, flat-pedal trail shoes, a shaped hydration pack, jersey and helmet trim,
+   hair styles that show under the helmet, a choice of four helmets (below) and a shoe color that follows the saddle until it is set).
+   Geometry only: the pose rig, physics and crash hull do not depend on it */
 /* on the bike the shoe is drawn 2.5 cm higher on the pedal point, so the pedal sits in the sole and not through the upper; the ankle collar follows.
    At camp (seated, walking) the shoe is drawn as before, so the feet stay on the ground. Off: the pedal platform already sits wholly inside the shoe
    (only the spindle shows on the inner side) and a 2.5 cm lift still leaves the sole 6 cm under the platform; a sole on the pedal needs the foot target moved */
 /* TIRE_KNOBS_LITE: every other tread block of the herringbone is left out (half the knob vertices, 1680 a bike); 0 = all of them (the sparser tread shows
    in camp and tune-up close-ups) */
 const TIRE_KNOBS_LITE = 0;
-/* the rider's build: 1 = a Build slider on the Look page, from slim through the shipped build (the middle, the default) to broad. It only thickens or thins
+/* the rider's build: a Build slider on the Look page, from slim through the shipped build (the middle, the default) to broad. It only thickens or thins
    the body round the same axes at build time (limb and torso radii, the torso kit's depth and width, gloves, shoe width), never a length, a joint, the head
-   or the helmet; LOOK.body 0..1, 0.5 = the shipped build. 0 = the shipped build only (no slider, no saved field). */
+   or the helmet; LOOK.body 0..1, 0.5 = the shipped build. */
 const BODY_SLIM = 0.8, BODY_BROAD = 1.28;
-/* every headwear is a helmet: 1 = trail (the default), open-face (stored id 'cap', a short peak, hair out under the high rim), skate (stored id
+/* every headwear is a helmet: trail (the default), open-face (stored id 'cap', a short peak, hair out under the high rim), skate (stored id
    'beanie', a low round hard shell) and full face (chin bar, big visor); no bare head (a saved 'none' loads as the trail helmet). The trail and full-face shells
-   hide the hair (the style still shows with the open and skate helmets). 0 = helmet, cap, beanie or none, hair under every one */
-/* the hair: 1 = twelve chunky faceted styles (the eight ids above redrawn, plus mop, bob, pigtails, afro) over a darker
+   tuck the top of the hair under them; the style shows under every helmet (below). */
+/* the hair: twelve chunky faceted styles (the eight ids above redrawn, plus mop, bob, pigtails, afro) over a darker
    scalp underlay, shaded root (dark) to tip (light) by vertex color, fitted under the open and skate rims and the goggle strap; fifteen hair colors (ten natural,
-   five bright) with the old palette ids and the old preset colors mapped onto them. 0 = the eight styles and six colors before it */
-/* the hair under the trail and full-face shells too: 1 = every style shows under all four helmets (the top tucked under the shell; a fringe,
-   sideburns and the nape show below the rim, long styles, tails, braids and buns come out below or behind it); the Look page's hair row is never dimmed.
-   0 = those two shells hide the hair and the hair row is dimmed with a note and a switch to the open helmet */
+   five bright) with the old palette ids and the old preset colors mapped onto them */
+/* the hair under the trail and full-face shells too: every style shows under all four helmets (the top tucked under the shell; a fringe,
+   sideburns and the nape show below the rim, long styles, tails, braids and buns come out below or behind it); the Look page's hair row is never dimmed */
 const HAIR_LOW = (L) => (L.headwear === 'helmet' || L.headwear === 'full'); /* hair under a low shell (trail, full face) */
-/* the camp Look > Rider > Style page with the twelve hair styles and the Build row: 1 = its padding, gaps and row heights close up (rows 25 px, hair 22 px,
-   toggles 24 px) so the whole page and the pad hint fit inside the panel at 844 x 390; 0 = the earlier spacing (the hint ran past the panel's bottom there) */
+/* the camp Look > Rider > Style page with the twelve hair styles and the Build row: its padding, gaps and row heights close up (rows 25 px, hair 22 px,
+   toggles 24 px) so the whole page and the pad hint fit inside the panel at 844 x 390 */
 /* the camp Bike & Rider pages laid out head to toe and spread over the panel's height: Rider > Colors shows all nine part chips in a 3 x 3 grid
    (Head / Clothes / Gear rows), Rider > Style groups Helmet, Hair, Eyes | Sleeves, Legs | Gloves, Knee pads, Backpack | Build with thin rules, Bike > Colors
-   fits its four chips in one row (the fork slot is named Shocks). 0 = the earlier scrolling chip strip and row order */
+   fits its four chips in one row (the fork slot is named Shocks) */
 const PAL_H3 =[['black', '#26262d'], ['darkbrown', '#3f2819'], ['brown', '#5a3a22'], ['chestnut', '#8a5a3a'], ['auburn', '#8a3a22'], ['ginger', '#c66a2e'], ['blonde', '#d8b86f'], ['platinum', '#e8dfc0'], ['silver', '#b5b2ac'], ['white', '#efece6'],
   ['teal', '#2fb5a8'], ['pink', '#e86aa6'], ['purple', '#8a5fd0'], ['blue', '#3f7fe0'], ['red', '#d6362f']]; /* ten natural (black lifted so it never reads as a hole; 'silver' is the gray) + five bright */
 PAL.hair = mkPal(PAL_H3);
@@ -66147,7 +66147,7 @@ const head = new THREE.Group(); scene.add(head); head.scale.setScalar(1.06);
 }
 const _gy = new THREE.Quaternion(), _gz = new THREE.Vector3(0, 0, 1);
 function placeGear() { /* the rigid kit goes into the rider geometry (placeRigid), same arrays as the capsules */
-  let mv = false; for (const g of riderRigid) { if (g.fs) { const z = g.fs() === 0; if (z && g.z0) continue; g.z0 = z; } mv = placeRigid(g, g.fa(), g.fq()) || mv; } if (mv) riderMeshes.geo.attributes.position.needsUpdate = riderMeshes.geo.attributes.normal.needsUpdate = true; /* RIDER_LOOK_V2: a piece collapsed to a point (the poker off the hand) is written once, not every frame */
+  let mv = false; for (const g of riderRigid) { if (g.fs) { const z = g.fs() === 0; if (z && g.z0) continue; g.z0 = z; } mv = placeRigid(g, g.fa(), g.fq()) || mv; } if (mv) riderMeshes.geo.attributes.position.needsUpdate = riderMeshes.geo.attributes.normal.needsUpdate = true; /* a piece collapsed to a point (the poker off the hand) is written once, not every frame */
 }
 /* ---------- applyLook(look) - merge, validate, rebuild what changed, persist. Used by the camp's Bike & Rider pages. ---------- */
 function applyLook(src, opt) {
@@ -66636,26 +66636,25 @@ const S = {
    never bakes it and stays silent); near(o) fills o = { x, y, z, v } with the nearest point of the nearest running train (world meters) and the train's
    speed (m/s) and returns true, or returns false (trainNear, next to animateTrains) */
 const trainAudioFeed = { on: () => TRAINS.mode !== 'off', near: (o) => trainNear(o) };
-/* 1 = the subtler day birds (quieter and darker, almost no echo or reverb, bouts in irregular spells and lulls, now and then a visitor species, each call a little different); 0 = the previous birds exactly */
-/* 1 = the trail's own cricket layer plays only toward a camp and at dusk (the ride is daytime: no crickets out on the trail), and every cricket bed is a quiet hint (MIX.crickHint). 0 = the previous crickets exactly */
-/* 1 = the cook camper's fat-sizzle loop (the steady 2.6-7 kHz hiss at the fire) is baked darker (an extra low-pass at CAMP_HISS_LP) and quieter (peak CAMP_HISS_PEAK
-   instead of 0.15); the spits, the spoon clink and the fire are unchanged. 0 = the previous sizzle exactly */
+/* the subtler day birds (quieter and darker, almost no echo or reverb, bouts in irregular spells and lulls, now and then a visitor species, each call a little different) */
+/* the trail's own cricket layer plays only toward a camp and at dusk (the ride is daytime: no crickets out on the trail), and every cricket bed is a quiet hint (MIX.crickHint) */
+/* the cook camper's fat-sizzle loop (the steady 2.6-7 kHz hiss at the fire) is baked darker (an extra low-pass at CAMP_HISS_LP) and quieter (peak CAMP_HISS_PEAK
+   instead of 0.15); the spits, the spoon clink and the fire are unchanged */
 const CAMP_HISS_LP = 3600, CAMP_HISS_PEAK = 0.06;
-/* 1 = inside a camp activity the camp beds step back together: the fire, the camper's sounds, frogs, owl and night birds, leaf ticks and creek drops by
+/* inside a camp activity the camp beds step back together: the fire, the camper's sounds, frogs, owl and night birds, leaf ticks and creek drops by
    MINI_CAMP_DUCK_DB, the crickets only by MINI_CAMP_DUCK_CRICKETS_DB (a gentle bed under the game); fades MINI_CAMP_DUCK_IN s in, MINI_CAMP_DUCK_OUT s back.
-   The games that are about the fire (MINI_FIRE_KEEP) keep their fire level. The game's own cues and the music are not touched. 0 = no duck, exactly as before */
+   The games that are about the fire (MINI_FIRE_KEEP) keep their fire level. The game's own cues and the music are not touched */
 const MINI_CAMP_DUCK_DB = -7.5, MINI_CAMP_DUCK_CRICKETS_DB = -2.5, MINI_CAMP_DUCK_IN = 0.4, MINI_CAMP_DUCK_OUT = 0.6;
 const MINI_FIRE_KEEP = { roast: 1, dinner: 1, stoke: 1 };
-/* 1 = the Dinner tea pour sounds like tea running into a mug: the mug's air-column ring (a narrow band of the stream's noise) climbs with the fill
+/* the Dinner tea pour sounds like tea running into a mug: the mug's air-column ring (a narrow band of the stream's noise) climbs with the fill
    the way a closed pipe's does as it shortens, f = TEA_RES_F0 (H + e) / (H (1 - fill) + e) (H the mug's depth, e = 0.62 x its radius), from about
    230 Hz empty to about 740 Hz at the gold line, with a few soft bubbles on top and a faint low trickle; baked as six fill stages (TEA_RES), two
    takes each, the stage picked by the fill and fine-tuned by playbackRate. A soft first plop opens a pour, the ring dies away into two small
-   ripples when it stops. TEA_POUR_LVL trims the cue. 0 = the band-passed noise grain, exactly as before */
+   ripples when it stops. TEA_POUR_LVL trims the cue */
 const TEA_POUR_LVL = 0.45, TEA_RES_F0 = 230, TEA_MUG_H = 9, TEA_MUG_E = 2.5, TEA_RES_RMS = 0.12;
 const TEA_RES = [0, 1, 2, 3, 4, 5].map(k => TEA_RES_F0 * Math.pow(3.4, k / 5));
-/* 1 = the Dinner chew is a soft closed-mouth chew: a muffled low squish (110-600 Hz) and a smaller one as the jaw opens, a faint jaw thump, now and
-   then one tiny crumb, three baked takes, each chew a little early or late and varied in pitch and level, CHEW_LVL quieter than before.
-   0 = the old three-crunch munch, exactly as before */
+/* the Dinner chew is a soft closed-mouth chew: a muffled low squish (110-600 Hz) and a smaller one as the jaw opens, a faint jaw thump, now and
+   then one tiny crumb, three baked takes, each chew a little early or late and varied in pitch and level, CHEW_LVL sets its level */
 const CHEW_LVL = 0.3;
 /* SND_OUT_DB: the whole mix this many dB louder (0 = the level before). It is applied around the limiter (its threshold down by the same amount, the output up), which is
    the same as a gain in front of it: the limiter sees a louder mix, the music's warmth stage is not touched */
@@ -68371,7 +68370,7 @@ if (!ZONES_OK) document.body.classList.add('tfPc');
 if (!ZONES_OK) document.body.classList.add('scrFit');
 if (!ZONES_OK) { const r = document.getElementById('layRow'); if (r) { r.hidden = true; r.style.display = 'none'; } }
 const zt = { steer: 0, gas: false, brk: 0, jump: false, legs: false, arms: false };
-/* 1: holdon.ui is read field by field and clamped (a hand-edited or pasted save cannot feed the layout a bad size or replace UIO's prototype); 0: the saved object is merged as it is */
+/* holdon.ui is read field by field and clamped (a hand-edited or pasted save cannot feed the layout a bad size or replace UIO's prototype) */
 const UIO = (() => { let o = {}; try { o = JSON.parse(localStorage.getItem('holdon.ui') || '{}') || {}; } catch (e) { } const base = { hand: 'right', pedal: 'hold', size: 1, haptics: true }; base.steer = 'screen'; base.cam = 0; base.mode = 'hold';
   if (!o || typeof o !== 'object' || Array.isArray(o)) return base; /* only known fields are copied, each clamped to what the settings can set */
   if (o.hand === 'left' || o.hand === 'right') base.hand = o.hand; if (o.pedal === 'hold' || o.pedal === 'latch' || o.pedal === 'auto') base.pedal = o.pedal;
@@ -69195,7 +69194,7 @@ function step(dt, inp) {
       let v = (HOP + HOP_PRE * Math.min(1, S.hopHeld / 0.3)) * MOD.hop; /* x MOD.hop (jump height) */
       const lip = nearLip(s0);
       if (lip) { v += LIP_POP * MOD.hop; popup('POP!', 'hopped the lip', 'var(--good)'); } sfx.pop();
-      S.vel.y = Math.max(S.vel.y, 0) + v; S.grounded = false; S.airT = 0; S.hopHeld = 0; S.hopCd = 0.35; S.crouch = -0.6; S.launchLip = lip;
+      S.vel.y = Math.max(S.vel.y, 0) + v; S.grounded = false; S.airT = 0; S.hopHeld = 0; S.hopCd = 0.35; S.crouch = -0.6;
       if (JLOG) jlogStart(s0, inp, 'hop');
       if (lip) launchAssist(s0, inp, true);
       if (!onBridge) { const g = groundCols(s0), Rx = S.pos.x - f2x * 0.48, Rz = S.pos.z - f2z * 0.48; if (g[0]) burst2(DUST, Rx, S.pos.y, Rz, 4, -f2x * 1.2, 0.2, -f2z * 1.2, 1.4, g[0]); burst2(GRIT, Rx, S.pos.y, Rz, 3, -f2x * 2.5, 0.8, -f2z * 2.5, 1.5, g[1]); } /* hop take-off kicks dirt back */
@@ -69654,7 +69653,7 @@ function trainsStep(dt) { /* yield: a rider stalled in a crossing's zone in the 
 /* the crossing show (see XS_* above). ev.xs = null (the slot clock runs the crossing) or { kind 'J' | 'B', s: 1 armed / 2 the train is pinned / 3 the rider is
    past, vs (speed low-passed over 2 s), park (the clock when it stopped across the lane, -1), up (the clock its arms went up, -1), pass (the clock the rider
    got past the track, -1) }. The safety hold runs for every train, pinned or not. No allocation per step */
-/* 1: the reach integrates the faster of XS_ACC and the real pedal acceleration plus the downhill pull (grade g of the crossing's bed); 0: constant XS_ACC */
+/* the reach integrates the faster of XS_ACC and the real pedal acceleration plus the downhill pull (grade g of the crossing's bed) */
 const xsReach = (v, t, g) => { /* m a rider at v m/s can cover in t s */
   if (t <= 0) return v * t + 0.5 * XS_ACC * t * t;
   const K = Math.max(1, MOD.acc), gd = G_SLOPE * Math.max(0, -(g || 0)) / Math.sqrt(1 + (g || 0) * (g || 0)), vc = VCAP * Math.max(1, MOD.vcap); let d = 0, u = v;
@@ -70099,8 +70098,8 @@ function updateCamera(dt, inp) {
     let tgt = inZone ? S.camTrail + wrap(ZONE_CAM - S.camTrail) : S.camTgt;
     if (!inZone && !(S.zoneT > 0) && camPreset !== 1) { /* (Tele + Classic: the Side lens already sits 74 deg off, broadside) the low-pass rides through an S-bend in the middle, but a bend of ~40 deg toward the lens side on its own would turn the rider
        straight at the camera (the Tele lens sits 42 deg off the trail). So the target is also kept inside a band around the trail's own heading over the next ~20 m
-       (samples k = 0..CAM_LA; each one's band widens a little with distance, so the lens starts turning early for a coming bend but is not dragged by one far off):
-       the view angle stays between ~CAM_HO (never head-on) and ~CAM_AW (never from behind). Where the two limits disagree (a tight S: the next bend already pulls the other way) the target sits between them, K.mix of the way from the
+       (samples k = 0..CAM_K.la; each one's band widens a little with distance, so the lens starts turning early for a coming bend but is not dragged by one far off):
+       the view angle stays between ~CAM_K.ho (never head-on) and ~CAM_K.aw (never from behind). Where the two limits disagree (a tight S: the next bend already pulls the other way) the target sits between them, K.mix of the way from the
        not-head-on limit toward the not-from-behind one. */
       const K = CAM_K, base = Math.atan2(CAM_PRESETS[camPreset].off.z, CAM_PRESETS[camPreset].off.x); let hi = 1e9, lo = -1e9;
       for (let k = 0; k <= K.la; k += 2) { const Q = pts[Math.min(NP - 1, S.segIdx + k)], r = wrap(Math.atan2(-Q.fz, Q.fx) - S.camTrail), g = k * K.grow; hi = Math.min(hi, r + base - K.ho + g); lo = Math.max(lo, r - (K.aw - base) - g); }
@@ -71031,7 +71030,7 @@ $('btnShare').addEventListener('click', async () => {
    The link carries ?MTN-XXXXX&t=m:ss.s as a bonus (a host page may not pass it on; the code in the text is what counts): a page opened with it shows
    'Ride this mountain?' (Save it / Ride, plus 'Time to beat' when a time came with it). That time is shown for this session only and never stored.
    Enter code takes a bare code, 'MTN-XXXXX 2:41.3' or a whole link or share text, and gains Save (adds it to Favorites without riding).
-   0 = the older 'Share code' link copy and the plain code box exactly. ---- */
+   ---- */
 const COPY_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>';
 const SHARE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>';
 /* a time as text: m:ss.s with 1-2 minute digits, kept only inside 0:05.0 .. 99:59.9 (counted in tenths, no float edge) */
@@ -71063,13 +71062,10 @@ function shBlank(c) { try { const s = document.createElement('canvas'); s.width 
 function shFit(g, s, px, font, max) { let z = px; g.font = font.replace('#', z + 'px'); while (z > 12 && g.measureText(s).width > max) { z -= 2; g.font = font.replace('#', z + 'px'); } return z; }
 function shareCardV1(code, t) { const W = 1200, H = 630, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d'); if (!g) return null;
   const DISP = 'italic 900 # "Barlow Condensed", "Arial Narrow", system-ui, sans-serif', UI = '600 # "Rubik", system-ui, "Segoe UI", sans-serif', MONO = '700 # ui-monospace, Menlo, Consolas, monospace';
-  const ACC = '#ffb24a', ACC2 = '#f0702a', CREAM = '#fdf8ea', seed = codeToSeed(code), theme = shareTheme(seed), shot = shShot && shShotCode === code ? shShot : null;
+  const ACC = '#ffb24a', ACC2 = '#f0702a', CREAM = '#fdf8ea', seed = codeToSeed(code), theme = shareTheme(seed);
   const bg = g.createLinearGradient(0, 0, W, H); bg.addColorStop(0, '#2b1b12'); bg.addColorStop(1, '#120b07'); g.fillStyle = bg; g.fillRect(0, 0, W, H);
   g.fillStyle = ACC2; g.globalAlpha = 0.16; g.beginPath(); g.arc(W - 120, -40, 360, 0, Math.PI * 2); g.fill(); g.globalAlpha = 1;
-  let x0 = 80, cx = null, maxW = W - 160; g.textBaseline = 'alphabetic';
-  if (shot) { const S0 = 550, X = 40, Y = 40, R = 28; g.save(); g.beginPath(); g.moveTo(X + R, Y); g.arcTo(X + S0, Y, X + S0, Y + S0, R); g.arcTo(X + S0, Y + S0, X, Y + S0, R); g.arcTo(X, Y + S0, X, Y, R); g.arcTo(X, Y, X + S0, Y, R); g.closePath(); g.clip();
-    g.drawImage(shot, X, Y, S0, S0); g.restore(); g.strokeStyle = 'rgba(253,248,234,0.22)'; g.lineWidth = 2; g.strokeRect(X + 1, Y + 1, S0 - 2, S0 - 2); x0 = 640; maxW = W - x0 - 50; }
-  else { cx = W / 2; maxW = W - 160; }
+  let x0 = 80, cx = W / 2, maxW = W - 160; g.textBaseline = 'alphabetic';
   g.textAlign = cx === null ? 'left' : 'center'; const X0 = cx === null ? x0 : cx;
   g.fillStyle = 'rgba(253,248,234,0.72)'; shFit(g, 'A DOWNHILL GAME ABOUT LETTING GO', 20, UI, maxW); g.fillText('A DOWNHILL GAME ABOUT LETTING GO', X0, 92);
   g.fillStyle = CREAM; shFit(g, 'NO HANDER', 92, DISP, maxW); g.fillText('NO HANDER', X0, 176);
@@ -71237,7 +71233,7 @@ function shareScreen(name) { shPan(false); if (name !== 'title') { shRep(false);
 function shareSync(L) { const n = (L || []).length + ' / ' + FAV_MAX + ' saved'; for (const id of ['tFavN', 'pmFavN']) { const e = $(id); if (e) e.textContent = n; }
   const b = $('tFavShare'); if (b && S.course) { const c = seedToCode(S.course.seed); b.title = 'Share ' + c; b.setAttribute('aria-label', 'Share ' + c); } }
 function shareResults() { if (!S.course) return; const code = seedToCode(S.course.seed), e = $('eBeat'); if (e) { const on = !isTut() && !!shBeat && shBeat.code === code; e.hidden = !on; e.textContent = on ? 'Time to beat ' + fmtTime(shBeat.t) : ''; }
-  shPre = null; shHeroC = null; if (shShotCode !== code) shShot = null;
+  shPre = null; shHeroC = null;
   const t0 = performance.now(), pre = () => { if (screen !== 'end' || !S.course || seedToCode(S.course.seed) !== code) return; if (endAnim && !endAnim.done && performance.now() - t0 < 1800) { setTimeout(pre, 150); return; } if (!shPre || shPre.code !== code) sharePrebuild(code); };
   setTimeout(pre, 400); } /* the card's render, readback and PNG encode wait for the count-up to finish (a Share press before that builds it at once) */
 function shRowShare(e, pre) { const s = e.target.closest('.fvs'); if (!s) return; e.stopPropagation(); shareGo(s.dataset.code, s.id); }
@@ -71271,7 +71267,7 @@ try {
     $('shInSave').addEventListener('click', () => { if (shInP && shareSave(shInP, 'in')) $('shInSave').textContent = 'Saved'; }); }
   shInP = DEMO_BUILD ? null : shareIncoming(); if (shInP) shIn(true); /* the demo takes no incoming mountain links */
 } catch (e) { /* the share extras stay off; the plain buttons keep working */ }
-if (DEBUG) window.__share = { parse: shareParse, codeIn: shareCodeIn, time: shareTime, text: shareText, full: shareFull, link: shareLink, copyCode: shareCopyCode, own: shareOwn, card: shareCard, go: shareGo, hero: shHero, get path() { return shCardPath; }, get heroMs() { return shHeroMs; }, get shot() { return shShot; }, get pre() { return shPre; }, get beat() { return shBeat; } };
+if (DEBUG) window.__share = { parse: shareParse, codeIn: shareCodeIn, time: shareTime, text: shareText, full: shareFull, link: shareLink, copyCode: shareCopyCode, own: shareOwn, card: shareCard, go: shareGo, hero: shHero, get path() { return shCardPath; }, get heroMs() { return shHeroMs; }, get shot() { return null; }, get pre() { return shPre; }, get beat() { return shBeat; } };
 $('btnAgain').addEventListener('click', () => { resetRun(); startRiding(); });
 $('btnNew2').addEventListener('click', () => { if (DEMO_BUILD) { demoToPick(); return; } /* the demo: back to the title's mountain picker */ if (tutNext !== null) { newRun(tutNext, prebuild.take(tutNext)); setScreen(null); } else newMountain(); startRiding(); }); /* after the tutorial: the code its card showed */
 /* ---- per-frame UI (called from updateHud): screens that follow game state, title camera, results, haptics, coach, touch pad ---- */
@@ -72038,7 +72034,7 @@ const CAMP_SKY = { R: 600, sunAz: -5, sunEl: -7.0, sunR: 1.45, haloR: 10, ridgeB
    last camps, the tutorial camp) that plane passes in front of the sky ring and its far edge (or the line where it dips behind a ring) drew a hard,
    flat band against the ridges and the dome. The sky's fragment shader finds that boundary per pixel (the plane's rectangle,
    the lens height, the pixel's own ring radius) and blends to the very same fog color at and below it, feathered over VISTA_EDGE_FEATHER degrees above
-   it, so the plane melts into the haze. Same mesh, same single program (the sky material only turns its fog uniforms on); 0 = the old look. */
+   it, so the plane melts into the haze. Same mesh, same single program (the sky material only turns its fog uniforms on). */
 const VISTA_EDGE_FEATHER = 3.2;
 const campSky = (() => {
   const base = (Math.random() * 4294967296) >>> 0, D2R = Math.PI / 180;
@@ -72211,7 +72207,7 @@ const campSky = (() => {
   const VISTA_ROCK = [1.3, 1, 1.4, 0.12, 0.7]; /* the vista rocks: see the rock block in vistaGen */
   /* the vista rocks read as pale eggs pasted on the ridges (wider than four trees are tall, lighter than the hill under them, round). Each boulder is drawn smaller (RF[0], its seat and the placement rules unchanged), squatter (RF[1] on the height), sunk deeper into the ridge
      (RF[2] of its height below the ridge line), its facets a little stronger (RF[3]) and its color pulled toward the hill it stands on (RF[4] at the
-     top, RF[5] at the foot), so it sits in the same air as the hill. 0 = the old rocks. */
+     top, RF[5] at the foot), so it sits in the same air as the hill. */
   const RF = [0.62, 0.72, 0.55, 1.25, 0.3, 0.7];
   let vistaInfo = null; /* the last ring's measure (open fraction, strength, family), kept on the mesh for the test harness */
   const VISTA = { win: 70, dMin: 12, dMax: 190, top: -5, band: 12, open0: 0.4, open1: 0.5, kOpen: 0.55, sMin: 0.15, sLast: 0.85 }; /* deg / m: the lens window half-width, the ground march, the band whose openness counts; the strength: the open fraction mapped from open0 .. open0 + open1, weighted kOpen against the camp's place along the course, at least sMin, and at least sLast at the last camp (the end of the world lies behind it) */
@@ -73307,7 +73303,7 @@ function padGlyphDraw(k, sz = 22) {
    that is full while that button is down. The host polls the real pad (and Space / Enter = A, Esc = B) itself. set(chips): chip = { g: 'A' | 'B' | 'X' | 'Y' | 'stick' | 'dpadH' |
    'dpad4' | 'LB' | 'RB', label: 'Hold: lower', btn: 0 (the pad button the ring follows; omit = no ring), hold: 0.9 (not read) }, or the
    string 'A|Hold: lower|0.9'. clear() removes them. Shown only while a pad is connected or the menus are in pad mode; fades to 45 % after 4 s without input. */
-{ document.body.classList.add('chfit'); const pn = $('campPn'), bd = $('campBody'); let q = 0;
+{ const pn = $('campPn'), bd = $('campBody'); let q = 0;
   const fit = () => { q = 0; pn.classList.remove('nochint');
     for (const h of pn.querySelectorAll('.chint')) { h.style.zoom = ''; if (h.offsetParent && h.scrollWidth > h.clientWidth + 1) h.style.zoom = (h.clientWidth / h.scrollWidth).toFixed(3); } /* a pad hint strip wider than the panel (four chips under some UI scales) is scaled down to fit, never cut off */
     if (pn.dataset.tab !== 'skills') return; const h = pn.querySelector('.chint'), rows = pn.querySelectorAll('.sk'); if (!h || !rows.length || !h.offsetParent) return;
@@ -73517,11 +73513,11 @@ const campUI = (() => {
   /* ---- Activities ---- */
   const buffLine = (id) => { const k = SKILL.buffOf[id]; if (!k || buffsOff()) return '&nbsp;'; /* the card's buff: icon + what it does (a score of CampMini's buffMin earns it) */
     if (k === 'belly') { const here = S.camp && bellyHere(S.camp.cp), p = bellyPct(); return buffIco('belly') + (bellyOff() ? 'Full Belly off' : here ? 'Cooked here · +' + p + '% XP' : p ? 'Full Belly +' + p + '% (×' + BELLY.n + ')' : 'Full Belly · +' + BELLY_XP0 + '% XP'); }
-    if (BUFF_DEF[k].camp) return buffIco(k) + BUFF_DEF[k].name + ' · to next camp';
+    if (BUFF_DEF[k].camp) return buffIco(k) + BUFF_DEF[k].name;
     return buffIco(k) + BUFF_DEF[k].tag + ' · ' + buffMax(k) + ' s'; };
   const buffTip = (id) => { const k = SKILL.buffOf[id]; if (!k || buffsOff()) return ''; /* the card's tooltip: the whole rule */
     return (k === 'belly' ? 'Full Belly: +' + BELLY_XP0 + '% run XP to the end of this trail, +1% for each further dinner (one per camp, up to +' + BELLY_MAX + '%)'
-      : k === 'steady' ? 'Steady Bail: your next crash keeps its trick points (' + BUFF_T + ' s of riding)' : k === 'lucky' ? 'Lucky toss: every rough landing counts as clean until the next camp or the finish (a crash ends it)' : (k === 'glow' ? 'Glow Streak: trick points x1.5 for ' + buffMax(k) + ' s of riding, until your first crash' : BUFF_DEF[k].tag + ' for ' + BUFF_T + ' s of riding')) + '. ' + Math.round(CM().buffMinOf(id) * 100) + '% earns it.'; };
+      : k === 'steady' ? 'Steady Bail: your next crash keeps its trick points (' + BUFF_T + ' s of riding)' : k === 'lucky' ? 'Soft Landing: rough landings count as clean until the next camp' : (k === 'glow' ? 'Glow Streak: trick points x1.5 for ' + buffMax(k) + ' s of riding, until your first crash' : BUFF_DEF[k].tag + ' for ' + BUFF_T + ' s of riding')) + '. ' + Math.round(CM().buffMinOf(id) * 100) + '% earns it.'; };
   const actHTML = () => { const M = CM(), ids = actIds(), lk = isTut(); V.act = Math.max(0, Math.min(ids.length - 1, V.act)); /* lk: the tutorial camp shows the cards grayed out (browsable, never started) and a note */
     const cards = ids.map((id, i) => { if (id === 'soak') return lk ? soakCard(i).replace('class="acard"', 'class="acard lock" aria-disabled="true"') : soakCard(i); const best = PROF.best[id] || 0, st = M.stars(best, id), fac = miniFactor(id);
       const coll = id === 'stars' && M.found ? `<span class="buff" title="${esc(buffTip(id))} ${M.found().length} of ${M.total} constellations found.">${buffLine(id)} · ${M.found().length}/${M.total}</span>` : ''; /* the sky's collection count rides on the buff line */
@@ -74037,7 +74033,7 @@ const CampMini = (() => {
         o[k * 3] = 0.24 * nz + 0.22 * ed; o[k * 3 + 1] = pw; o[k * 3 + 2] = sh; m[k] = 1; n++; so += o[k * 3]; sp += pw; ss += sh; }
       so /= n; sp /= n; ss /= n; for (let k = 0; k < DN * DN; k++) if (m[k]) { o[k * 3] -= so; o[k * 3 + 1] -= sp; o[k * 3 + 2] /= ss; } return { o, m }; })();
     const DISCS = [{ cv: null, d: -1, ch: -1 }, { cv: null, d: -1, ch: -1 }]; /* one baked canvas per use: [0] the target, [1] the player's result */
-    const toastDisc = (c, x, y, r, dv, ch, slot) => { /* a disc at doneness dv (ch = char 0..1 toward the burnt black, the 3D marshmallow's rule), radius r (design px), with the light ring every swatch has. The target and the player's result both come through here, so they read as the same material */
+    const toastDisc = (c, x, y, r, dv, ch, slot) => { /* a disc at doneness dv (ch = char 0..1 toward the burned black, the 3D marshmallow's rule), radius r (design px), with the light ring every swatch has. The target and the player's result both come through here, so they read as the same material */
       const D = DISCS[slot || 0]; ch = ch || 0;
       if (dv !== D.d || ch !== D.ch || !D.cv) { D.d = dv; D.ch = ch; if (!D.cv) { D.cv = document.createElement('canvas'); D.cv.width = D.cv.height = DN; }
         const g = D.cv.getContext('2d'), im = g.createImageData(DN, DN), P = im.data, { o, m } = DOFF;
@@ -74046,7 +74042,7 @@ const CampMini = (() => {
         g.putImageData(im, 0, 0); }
       c.save(); c.beginPath(); c.arc(x, y, r, 0, TAU); c.save(); c.clip(); c.imageSmoothingEnabled = true; c.drawImage(D.cv, x - r, y - r, r * 2, r * 2); c.restore();
       c.strokeStyle = 'rgba(253,248,234,0.75)'; c.lineWidth = 2; c.stroke(); c.restore(); };
-    const ladder = (c, x, y, w, h, dv) => { /* the doneness ladder: raw -> golden -> brown -> burnt (the same ramp), a marker on the target */
+    const ladder = (c, x, y, w, h, dv) => { /* the doneness ladder: raw -> golden -> brown -> burned (the same ramp), a marker on the target */
       const g = c.createLinearGradient(x, 0, x + w, 0); for (const [k, cc] of RAMP) g.addColorStop(k, rgb(cc)); c.save(); c.fillStyle = g; c.beginPath(); c.roundRect(x, y, w, h, h / 2); c.fill();
       const mx = x + w * clamp(dv, 0, 1); c.fillStyle = '#fdf8ea'; c.beginPath(); c.moveTo(mx, y - 1); c.lineTo(mx - 4, y - 6); c.lineTo(mx + 4, y - 6); c.closePath(); c.fill(); c.fillRect(mx - 1, y - 1, 2, h + 2); c.restore(); };
     const order = [0, 1, 2]; for (let i = 2; i > 0; i--) { const j = Math.floor(G.rng() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
@@ -76637,7 +76633,7 @@ const CampMini = (() => {
      (DIN_FIRE: the height at rest, its rise with the heat, the extra width with the heat), more embers when it is hot, sizzle beads round the steak's edge and a shimmer of oil on the pan's floor (2D,
      Math.random only); no draw call added. */
   const DIN_PAN_PITCH = 0.36, DIN_FIRE = [0.8, 0.28, 0.6];
-  /* the whole steak's look in every course, built by steakTopoL in steakTopo3's parts (so the sides, the
+  /* the whole steak's look in every course, built by steakTopoL (so the sides, the
      doneness bands, the swatch, the done glow and the grill marks work as before; still one mesh).
      1 = clean: a smooth thick steak, a cream lip round the top edge, two flat lobes (the eye and the cap) parted by a cream fat ribbon, a swoosh of fat
        in the eye, no speckle, four bold grill bars once a face has seared.
@@ -76651,18 +76647,18 @@ const CampMini = (() => {
      raw / cap / fat / gold / mark = colors (0..255), fatK = how far the crust browns the fat, lip = a fat lip on the top edge, pan / panF = the up-facing meat's / fat's colors' scale in the pan (linear r, g, b; the fat's capped at 1),
      capA = the fat cap's direction for the right hand (radians in steak units, +v toward the lens; mirrored for the left hand), left out = the far left edge.
      Look 2's cap sits on the end away from the tongs, turned a little toward the lens, so the golden rim reads in the pan and on the board while the near
-     side (the doneness band) stays meat. The switch itself is declared with the camp code. No rule, timing, input or stream change. */
+     side (the doneness band) stays meat. Only look 2 is drawn (DIN_LOOK[1]: DLK and steakTopoL). No rule, timing, input or stream change. */
   const DIN_LOOK = [
     { N: 32, wob: 0.008, dome: 0.06, fj: 0, ring: 0.05, capW: 1.5, capT: 0.3, seam: 0.1, jit: 0, cj: 0.06, raw: [218, 40, 58], cap: [178, 20, 44], fat: [250, 236, 216], gold: [240, 196, 132], mark: [46, 26, 18], fatK: 0.18, lip: 1, pan: [0.24, 0.42, 0.68], panF: [0.3, 0.55, 1.25] },
     { N: 18, wob: 0.045, dome: 0.1, fj: 0.022, ring: 0.035, capW: 1.3, capT: 0.4, seam: 0, jit: 0.12, cj: 0.14, raw: [206, 44, 60], cap: [206, 44, 60], fat: [248, 232, 212], gold: [238, 170, 88], mark: [40, 22, 16], fatK: 0.22, lip: 0, pan: [0.24, 0.42, 0.68], panF: [0.3, 0.55, 1.25], capA: 0.3 },
     { N: 28, wob: 0.006, dome: 0.06, fj: 0, ring: 0.085, capW: 1.1, capT: 0, seam: 0, jit: 0.04, cj: 0.08, raw: [216, 42, 60], cap: [176, 20, 46], fat: [248, 234, 212], gold: [228, 176, 112], mark: [44, 24, 16], fatK: 0.5, lip: 1, pan: [0.24, 0.42, 0.68], panF: [0.3, 0.55, 1.25] }];
   /* a look's fat at doneness d (0..1) beside a face color: white raw, golden as it renders, browned toward the face's crust, darker once it chars */
   const dinFat = (LK, d, face) => { const f = mix3(mix3(LK.fat, LK.gold, clamp(d * 2.4, 0, 1)), face, LK.fatK * clamp(d * 1.6, 0, 1)); return d > 0.7 ? mix3(f, [58, 34, 22], clamp((d - 0.7) * 1.6, 0, 0.6)) : f; };
-  const DLK = DIN_LOOK[1]; /* the faceted ribeye's numbers for the slices and the 2D steak pictures (null: they stay as before) */
+  const DLK = DIN_LOOK[1]; /* the faceted ribeye's numbers for the slices and the 2D steak pictures */
   /* the grill mark halo: grill marks that still read on a dark crust. The bars are a touch wider and go a deeper char past medium, and each one
      lies on a thin band of caramel crust (a slightly wider strip just under it, 'qT' / 'qB') that only lightens once the face is past medium, so a
      well-done or charred face keeps its crosshatch at phone size. Rare and medium look as before; the sides, the swatch and the glow are untouched.
-     DIN_MARK: [the halo's caramel, the deep char (0..255), the halo's most blend]. 0 = the marks as before */
+     DIN_MARK: [the halo's caramel, the deep char (0..255), the halo's most blend] */
   const DIN_MARK = [[168, 96, 48], [22, 12, 9], 0.55];
   /* the pan's deepening of the up-facing colors (DIN_LOOK pan / panF, set under the stage's own dusk light) follows the light that
      really reaches the steak's top: the sky, the low sun, the fire at its current size (not its flicker) and the fill, at the steak, and the tone
@@ -77652,7 +77648,7 @@ const CampMini = (() => {
      the hint is the link that continues from the current tip when one exists (the longest continuous trail ahead wins, Euler-style), else the
      best branch from any lit star; after a pause a faint pulse travels along it. Controller: the left stick (or arrows) moves a glowing cursor
      that magnetizes to the nearest star, A presses / holds like a finger (hold A + move draws), B (or Backspace) backs up one link while there is
-     one (CampMini.ownsB keeps B from the host meanwhile). Link chimes: G.cue('note', linkIndex), a rising ladder. A dusk sky (lighter overlay), a high lens
+     one (CampMini.ownsB keeps B from the host meanwhile). Link chimes: G.cue('note', drawn.length - 1), a rising ladder. A dusk sky (lighter overlay), a high lens
      pitched ~51 deg up, the figure framed in the upper two thirds, and the crescent moon (earthshine) in the 3D sky behind the tree line (Moon3D). */
   /* the crescent moon with earthshine (the dark side faintly lit) and a few craters, drawn into any 2D context; Moon3D below puts it in the
      3D sky instead: a camera-facing quad ~60 camp units out, depth-tested (the trees in front of it hide it; it writes no depth, no fog, no tone map) */
