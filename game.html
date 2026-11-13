@@ -985,7 +985,7 @@
   <div class="favCard" id="tFavs" hidden><div class="fvh">Favorites</div><div class="fvl" id="tFavList"></div><button class="mb sm" id="tFavClose">Close</button></div>
   <div id="tapGo" role="status" hidden>Press to start</div>
   <button class="ico" id="mute" role="switch" aria-checked="true" aria-label="Sound"><svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg><svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M17 9l5 6M22 9l-5 6"/></svg></button>
-  <div class="foot"><span id="verTag">v0.68.0</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span><span id="medalTag"></span></div>
+  <div class="foot"><span id="verTag">v0.69.0</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span><span id="medalTag"></span></div>
   <button id="btnNew" hidden>New mountain</button>
 </div>
 
@@ -54486,12 +54486,15 @@ const OCEAN_GLSL = 'uniform vec4 uSea; uniform vec3 uSeaC; uniform vec3 uSeaS; u
 const VCAP = 27, ACC = 9, PEDAL_P = 18, AIR_K = 0.0072, CRR = 0.08, LIN = 0.01, BRK = 14, TURN = 2.6; /* speed cap 27 m/s with x1.38 drag, wide turns */
 const GRIP_ROAD = 42, GRIP_OFF = 26;  /* max sideways deceleration before the tires slide */
 /* leaving the tread by accident (step()).
-   The off-trail bleed and grip ease in over OT_BAND_W m past the edge instead of switching on at it.
+   The off-trail bleed and grip ease in over OT_BAND_W m, from OT_BAND_0 x the half width past the edge, instead of switching on at it.
    The bleed never takes more than OT_CAP_A m/s^2, and stops at OT_KEEP x the speed the bike left the tread with; that floor holds for OT_KEEP_T s
    off the tread and fades out over the next OT_KEEP_F s, so a rider who stays out in the rough slows to the plain off-trail pace.
    Back on the tread after a short excursion (up to OT_KEEP_T + OT_KEEP_F s), pedaling and not braking, the bike gets up to OT_REGAIN_A m/s^2
    (fading over OT_REGAIN_T s) back toward the speed it left with, never above it. Obstacles, water, walls and every bail rule are untouched. */
 const OT_BAND_W = 1.6, OT_CAP_A = 3.5, OT_KEEP = 0.8, OT_KEEP_T = 0.8, OT_KEEP_F = 1.0, OT_REGAIN_A = 1.2, OT_REGAIN_T = 1.5;
+/* where the edge band starts, as a share of the tread's half width past the tread edge (0.05: about 0.13 m on a 2.6 m half width): a rider drifting
+   this far off the tread keeps full speed and grip, and the bleed and grip ease in over the OT_BAND_W m after it. 0 = the band starts at the edge */
+const OT_BAND_0 = 0.05;
 /* ground types off the tread: one byte per terrain cell (course.grid.GT). 0 = the plain off-trail ground (the 0.7 / 6 m/s bleed and GRIP_OFF
    above, untouched), so a map without painted ground rides exactly as before. k / v0 = the bleed a -= k * max(0, v - v0); grip as GRIP_*.
    1 packed dirt, 2 rock slab (the fastest), 3 short grass, 4 mud, 5 fallen leaves (4 and 5: the painted wet ground) */
@@ -54525,10 +54528,13 @@ const LANE_ROCK_CLR = 0.2, LANE_ROCK_K = 9;
 const LF_ROCK_CLR = 2.5;
 /* trail-fork island rocks (buildWorld): the hit circle (its radius + 0.35 m around the bike's center) stays as it is, and a second
    test for these rocks only: the bike's wheelbase, rear tire to front tire, must come within the rock's drawn reach (its farthest point at or above the
-   ground, measured from the drawn part) plus FORK_HIT_W, and in the air the lower tire must be under the drawn top. A pass beside a low island stone or a
+   ground, measured from the drawn part) plus FORK_HIT_W, and the lower tire must be under the drawn top (in the air or on raised ground). A pass beside a low island stone or a
    hop over it is no longer a crash; a tire into it still is. Measured after the part's draws: no stream moves, the colliders keep their count, places and
    radii. 0 = the hit circle alone. */
 const FORK_HIT_W = 0.18;
+/* m from the center line on the raised lane's side that a fork island's solid rocks are kept from reaching (forkIsleShift): the face between the lanes
+   starts at 0.9 m (forkRaiseP), less 0.1 m for the bike's sway and heading, so a rider on the face is never hit by a rock buried in the bank */
+const FORK_ISLE_E = 0.8;
 /* extra jumps (buildCourse, after the micro-jumps): every mountain gets a few more jumps of the plain kinds (small / medium / large gap jump, table),
    laid in place over plain trail, so no sample moves and no stream draws. Asked count = jumps x p rounded up or down at random (a hash draw), p eased
    from JX_P[0] at JX_LEN[0] samples to JX_P[1] at JX_LEN[1] and longer (some asked jumps find no spot, so JX_P[1] sits above the rate that results),
@@ -56054,7 +56060,7 @@ const XS_HOLD = 1.25, XS_ACC = 3, XS_PAST = 2.5, XS_STALL = 1.5, XS_ARM = 120, X
    not, and seed + 7475 three per ramp (tier, look, side); nothing else reads them, so every other placement and draw stays as it was. SR_TIER per size:
    [kicker height, kicker samples, gap m, landing height, landing samples, lead-in samples, run-out samples] (JSIZE's numbers); SR_MIX: the draw's
    bounds for small / medium (the rest large); SR_TABLE: the chance a small / medium one is a table (its gap is a deck SR_DECK x the kicker's height,
-   rollable at any speed); SR_P: the chance a candidate run (at most SR_CHUNK samples of eligible trail) gets one; SR_MIN: samples between two side ramps; SR_SPACE: samples kept from bridges, jumps, drops,
+   rollable at any speed; a small one off a bridge is always a tabletop instead, the draw still made); SR_P: the chance a candidate run (at most SR_CHUNK samples of eligible trail) gets one; SR_MIN: samples between two side ramps; SR_SPACE: samples kept from bridges, jumps, drops,
    set pieces, forks and other built features; SR_CAMP: samples kept before a camp (its flag sight) and after it; SR_FACE: the landing's back face (m).
    BIG AIR: SR_BONUS trick points for a clean landing on the ramp's landing (pending until the next camp, like any trick points). The cue: three
    signs (SR_SIGN x the crossing sign's size, at the lane's mouth and SR_SIGN2 m further up) with a board in the tier's color (SR_COL) under a pale arrow (SR_INK), part of the
@@ -58227,16 +58233,29 @@ function* placeCrossings(T, C) { /* T = course.trains (fills T.cross with trainE
    A side ramp's frame: w = meters along the trail from its lip sample c (the trail is straight there, so w = samples), e = meters out on its side (sd).
    The kicker rises over w = -kl..0, the lip carries its angle one more meter, the gap runs to the landing's knuckle at wf = 1 + gap (a face rises to it
    over the last SR_FACE m; a table's gap is a deck SR_DECK x the kicker's height) and the landing runs ll samples down to the bed. Beside a bridge
-   the gap is the bridge's own pit, left as it is. */
+   the gap is the bridge's own pit, left as it is. A small side ramp off a bridge is a tabletop (R.tt, srTop). */
 function srBed(pts, R, u) { /* a side ramp's bed under the lane at trail sample u: the trail's plain ground height (base: no micro bumps or shaped pieces), beside a bridge the tread's own */
   if (R.bridge >= 0) return trailYAt(pts, u); const j = Math.max(0, Math.min(pts.length - 2, Math.floor(u))), t = Math.max(0, Math.min(1, u - j)); return pts[j].base * (1 - t) + pts[j + 1].base * t; }
 function srRise(R, w) { /* the lane's rise over the trail's height at w */
   const kv = R.kv, lv = R.lv, KL = R.kl, wf = R.wf;
+  if (R.tt) return srTop(R, Math.min(w, wf - w));
   if (w < -KL) return 0;
   if (w <= 0) { const s = w + KL, k = Math.min(KL - 1, Math.floor(s)); return kv[k] + (kv[k + 1] - kv[k]) * (s - k); }
   if (w < 1) return kv[KL] + (kv[KL] - kv[KL - 1]) * w;
   if (w < wf) { if (R.table) return lv[0]; const f0 = wf - SR_FACE; return w < f0 ? 0 : lv[0] * (w - f0) / SR_FACE; }
   const s = w - wf; if (s >= R.ll) return 0; const k = Math.floor(s); return lv[k] + (lv[k + 1] - lv[k]) * (s - k); }
+function srTop(R, u) { /* a tabletop's rise at u = m from the nearer crest's middle (w on the way up, wf - w on the way down, so the down-ramp is the up-ramp
+   mirrored about the deck's middle): the kicker's samples up to u = -1, then its last slope s1 rounded off evenly over 2 m to level at u = 1 (a parabola:
+   curvature s1 / 2 per m, so the crest throws a rider only above about 8.5 m/s, and then cleanly instead of in a run of hops), level to the middle */
+  const kv = R.kv, KL = R.kl; if (u < -KL) return 0;
+  if (u <= -1) { const s = u + KL, k = Math.min(KL - 2, Math.floor(s)); return kv[k] + (kv[k + 1] - kv[k]) * (s - k); }
+  const s1 = kv[KL] - kv[KL - 1], t = Math.min(u, 1) + 1; return kv[KL - 1] + s1 * t - s1 * t * t / 4; }
+function srFillAt(pts, R, w) { /* a tabletop whose trail stands higher than its deck (R.tf) is boarded over from its trail side to the tread's edge (no trench
+   between deck and trail bank to drop a wheel into): [the fill's height at the lane's inner edge, at the tread's edge, the tread edge's e]; it fades out over each ramp's first meter, where the deck is under 0.16 m */
+  const u = R.c + w, bed = srBed(pts, R, u), wt = Math.min(smooth(-R.kl, 1 - R.kl, w), 1 - smooth(R.wf + R.kl - 1, R.wf + R.kl, w)), j = Math.max(0, Math.min(pts.length - 2, Math.floor(u))), t = Math.max(0, Math.min(1, u - j));
+  const eAt = (P) => ((P.x + P.rx * P.hw * R.sd - R.x) * R.rx + (P.z + P.rz * P.hw * R.sd - R.z) * R.rz) * R.sd;
+  return [bed + srRise(R, w) * wt, bed + (trailYAt(pts, u) - bed) * wt, eAt(pts[j]) * (1 - t) + eAt(pts[j + 1]) * t]; }
+function srFill(pts, R, w, e) { const F = srFillAt(pts, R, w), d = R.e0 - F[2]; return d < 0.05 ? F[0] : F[0] + (F[1] - F[0]) * Math.max(0, Math.min(1, (R.e0 - e) / d)); }
 function* placeSideRamps(C) { /* C: buildCourse's lists and grids; returns { list, of } (of: per sample, 1 + the ramp's index over its whole span) or null */
   const { pts, gap, ford, zone, hpOf, cliffNear, checkpoints, finishIdx, seed, WATER, trains, tight } = C, n = pts.length, { X0, Z0, NX, NZ, Hg, NI, DI, LN, CL, PD, ZB, PL, GT } = C.grid;
   const rs = mulberry32(seed + 7474), rt = mulberry32(seed + 7475), TIERS = ['small', 'medium', 'large'];
@@ -58340,12 +58359,14 @@ function* placeSideRamps(C) { /* C: buildCourse's lists and grids; returns { lis
     for (let i = c + wf + t[4]; i <= c + a1; i++) if (!shoulderOK(i, sd)) return 'run-out';
     return rampAt(c, T, sd, ul, { wf, la, B, pf }); }
   function rampAt(c, T, sd, ul, br) {
-    const P = pts[c], [kh, kl, gp0, lo0, ll, lead0, out0] = SR_TIER[T], lead = br ? Math.min(lead0, SR_BLEAD[0]) : lead0, out = br ? Math.min(out0, SR_BLEAD[1]) : out0, gp = br ? br.wf - 1 : gp0, a0 = kl + lead + 2, a1 = 1 + gp + ll + out, table = !br && T !== 'large' && ul < SR_TABLE[T === 'small' ? 0 : 1];
+    const P = pts[c], [kh, kl, gp0, lo0, ll, lead0, out0] = SR_TIER[T], lead = br ? Math.min(lead0, SR_BLEAD[0]) : lead0, out = br ? Math.min(out0, SR_BLEAD[1]) : out0, gp = br ? br.wf - 1 : gp0, a0 = kl + lead + 2, a1 = 1 + gp + ll + out, tt = !br && T === 'small', table = tt || (!br && T !== 'large' && ul < SR_TABLE[T === 'small' ? 0 : 1]);
     let hwM = 0; for (let i = c - a0; i <= c + a1; i++) hwM = Math.max(hwM, pts[i].hw + devOf(c, i) * sd); const la = br ? br.la : Math.max(SR_LAT, hwM + 0.5 + SR_W / 2); /* 0.5 m clear of the tread's edge all along */
     const kv = new Float32Array(kl + 1); for (let i = 0; i <= kl; i++) kv[i] = kh * Math.pow(i / kl, 1.4);
     const lo = table ? kh * SR_DECK : lo0, lv = new Float32Array(ll + 1); for (let i = 0; i < ll; i++) lv[i] = lo * (i === 0 ? 0.985 : Math.pow(1 - i / ll, 1.3)); lv[ll] = 0;
-    const wf = 1 + gp, wL = wf + Math.round(ll * 0.3);
-    const R = { side: true, bridge: br ? br.B.a : -1, pf: br ? br.pf : 0, size: T, table, look: ul < 0.5 ? 0 : 1, c, lip: c, land: c + wL, kl, kh, gap: gp, ll, wf, lead, out, a0, a1, sd, vs: sd, lat: la * sd, la, e0: la - SR_W / 2, e1: la + SR_W / 2, x: P.x, z: P.z, fx: P.fx, fz: P.fz, rx: P.rx, rz: P.rz, hw: P.hw, kv, lv, landPt: null };
+    const wf = 1 + gp, wL = tt ? wf + kl / 2 : wf + Math.round(ll * 0.3); /* a tabletop's fast rider is aimed halfway down its down-ramp */
+    const R = { side: true, bridge: br ? br.B.a : -1, pf: br ? br.pf : 0, size: T, table, tt, tf: false, look: ul < 0.5 ? 0 : 1, c, lip: c, land: c + wL, kl, kh, gap: gp, ll, wf, lead, out, a0, a1, sd, vs: sd, lat: la * sd, la, e0: la - SR_W / 2, e1: la + SR_W / 2, x: P.x, z: P.z, fx: P.fx, fz: P.fz, rx: P.rx, rz: P.rz, hw: P.hw, kv, lv, landPt: null };
+    if (tt) for (let i = c - kl; i <= c + wf + kl; i++) if (pts[i].y - pts[i].base > kh) R.tf = true; /* the trail stands over the deck somewhere beside it: fill its trail side (srFillAt) */
+    if (tt) for (let i = 0; i <= ll; i++) lv[i] = srRise(R, wf + i); /* a tabletop: the up-ramp mirrored down from the deck's far crest, the landing's last samples flat on the bed */
     R.landPt = { x: P.x + P.fx * wL + P.rx * R.lat, z: P.z + P.fz * wL + P.rz * R.lat, y: srBed(pts, R, c + wL) + srRise(R, wL) };
     /* the ground: the lane's bed flat at the trail's height from the tread out past the lane (never a tread cell, never another stretch of trail; beside a
        bridge never the pit, the deck's surroundings or within 1.4 m of its edge) */
@@ -58409,7 +58430,8 @@ function campEdgeScan(C) {
    jump's landing window) is judged by the built landing's too-big limit (22 m/s into the ground) instead of the flat-ground one (14.5). Full-power
    Classic jumps come down at 15-17 m/s, so a landing a hand's width off the edge was a crash that looked like a clean landing. 0 = the tread alone. */
 const CLASSIC_LAND_EDGE = 1.0;
-const BS_BELOW = 0.5, BS_PUSH = 4, BS_SINK = 0.3, BS_DROP_V = 30, BS_CLEAR = 2.2, BS_LIFT_T = 2.5, BS_LIFT_V = 2, BS_LIFT_D = 2, BS_ENDS = 4, BS_EDGE = 0.25, BS_RAIL = 16;
+const WALL_TURN = 0.5; /* how far a wall that stops the speed into it (a bridge ramp's side, a block's top edge, a low deck) turns the heading toward the wall's line each step (wallTurn); a deck's rail (railClamp) turns it 0.35. Higher = a graze costs less speed */
+const BS_BELOW = 0.5, BS_PUSH = 4,BS_SINK = 0.3, BS_DROP_V = 30, BS_CLEAR = 2.2, BS_LIFT_T = 2.5, BS_LIFT_V = 2, BS_LIFT_D = 2, BS_ENDS = 4, BS_EDGE = 0.25, BS_RAIL = 16;
 function makeSurface(course) {
   const { pts, gap } = course; const { X0, Z0, NX, NZ, Hg, NI, LN, GT, PL } = course.grid; const WATER = course.WATER;
   const drops = course.drops || [], dropOf = course.dropOf || null;
@@ -58498,8 +58520,8 @@ function makeSurface(course) {
       const R = sramps[srOf[ni] - 1], dx = x - R.x, dz = z - R.z, w = dx * R.fx + dz * R.fz, e = (dx * R.rx + dz * R.rz) * R.sd;
       if (R.bridge >= 0) { if (course.underR !== R && w >= -R.a0 && w <= R.a1 && e > R.e0 - EDGE_C - SR_SIDE && e < R.e1 + EDGE_C + SR_SIDE && !(w > 1 && w < R.wf)) { const top = srBed(pts, R, R.c + w) + srRise(R, w), inL = e >= R.e0 - EDGE_C && e <= R.e1 + EDGE_C, d = top - h, ad = Math.abs(d), k = inL ? 1 : !SR_SIDE || ad >= BR_STEP ? 0 : ad <= BR_FLUSH ? 1 : (BR_STEP - ad) / (BR_STEP - BR_FLUSH); /* the lane to a rider at its height; beside it the ground eases onto the lane's catch edge (EDGE_C past the drawn edge) over SR_SIDE only where the lane stands within BR_FLUSH m of it (fading out by BR_STEP m): a taller side is upright, and the pit under the arc is the natural ground */
         if (k > 0) { h = inL ? top : h + d * k * Math.max(0, Math.min(1, (e - (R.e0 - EDGE_C) + SR_SIDE) / SR_SIDE, (R.e1 + EDGE_C + SR_SIDE - e) / SR_SIDE)); shoulder = true; lip = inL && w >= -R.kl && w <= 1; idx = Math.max(0, Math.min(pts.length - 2, Math.floor(R.c + w))); o = e * R.sd; } } }
-      else if (w >= -R.a0 && w <= R.a1 && e > 0 && e <= R.e1 + SR_SIDE && !(R.bridge >= 0 && w > 1 && w < R.wf) && (R.bridge < 0 || !SR_SIDE || e > R.e0 - SR_SIDE)) { const inL = e >= R.e0 && e <= R.e1, fS = SR_SIDE > 0 ? Math.max(0, Math.min(1, (e - R.e0 + SR_SIDE) / SR_SIDE, (R.e1 + SR_SIDE - e) / SR_SIDE)) : (inL ? 1 : 0); h = srBed(pts, R, R.c + w) + (fS > 0 ? srRise(R, w) * fS : 0); /* beside a bridge the pit under the arc is the natural ground */
-        shoulder = !(inL && w > 1 && w < (R.table ? R.wf : R.wf - SR_FACE)); lip = inL && w >= -R.kl && w <= 1; /* the gap's floor or a table's deck is the jump's pit (slopeAlong ignores it from the kicker) */ idx = Math.max(0, Math.min(pts.length - 2, Math.floor(R.c + w))); o = e * R.sd; } }
+      else if (w >= -R.a0 && w <= R.a1 && e > 0 && e <= R.e1 + SR_SIDE && !(R.bridge >= 0 && w > 1 && w < R.wf) && (R.bridge < 0 || !SR_SIDE || e > R.e0 - SR_SIDE)) { const inL = e >= R.e0 && e <= R.e1, fS = SR_SIDE > 0 ? Math.max(0, Math.min(1, (e - R.e0 + SR_SIDE) / SR_SIDE, (R.e1 + SR_SIDE - e) / SR_SIDE)) : (inL ? 1 : 0); h = srBed(pts, R, R.c + w) + (fS > 0 ? srRise(R, w) * fS : 0); if (R.tf && e < R.e0) h = Math.max(h, srFill(pts, R, w, e)); /* beside a bridge the pit under the arc is the natural ground */
+        shoulder = R.tt || !(inL && w > 1 && w < (R.table ? R.wf : R.wf - SR_FACE)); lip = inL && w >= -R.kl && w <= 1; /* the gap's floor or a table's low deck is the jump's pit (slopeAlong ignores it from the kicker); a tabletop is one block, ridden end to end */ idx = Math.max(0, Math.min(pts.length - 2, Math.floor(R.c + w))); o = e * R.sd; } }
     let rail = false;
     if (cuts && course.railOn && !road) { const ev = railHit(x, z); /* a trench's trestle deck: a narrow level strip from where the trestle starts to its far end (on from the moment the world is placed) */
       if (ev) { h = Math.max(h, railY(ev)); shoulder = true; lip = false; rail = true; idx = ev.c; o = 99; } }
@@ -59053,8 +59075,8 @@ function buildSideRamp(course, R) {
   const BRD = R.look ? ['#7a5c3e', '#6f5338', '#7f6142'] : ['#8f6d47', '#7f603e', '#9a7750'];
   const rk = new THREE.IcosahedronGeometry(1, 0), RC = ['#7d776e', '#6f6a62', '#8a847a']; let si = 0;
   const wedge = (ws, lip) => { const nS = ws.length - 1;
-    for (let q = 0; q < nS; q++) { const a = ws[q], b = ws[q + 1], ya = hT(a), yb = hT(b), lipSeg = lip > 0 ? q === nS - 1 : lip < 0 ? q === 0 : false;
-      quad(lipSeg ? '#a3825a' : (q & 1 ? '#836544' : '#8a6b47'), at(a, e0, ya), at(b, e0, yb), at(b, e1, yb), at(a, e1, ya), Up); /* packed dirt in two tones, the fresh-cut lip band */
+    for (let q = 0; q < nS; q++) { const a = ws[q], b = ws[q + 1], ya = hT(a), yb = hT(b), um = Math.min(a + b, 2 * R.wf - a - b) / 2, lipSeg = lip > 0 ? q === nS - 1 : lip < 0 ? q === 0 : R.tt ? um > -1 && um < 1 : false, qt = R.tt ? Math.floor(um + R.kl) : q;
+      quad(lipSeg ? '#a3825a' : (qt & 1 ? '#836544' : '#8a6b47'), at(a, e0, ya), at(b, e0, yb), at(b, e1, yb), at(a, e1, ya), Up); /* packed dirt in two tones, the fresh-cut lip band */
       for (const e of [e0, e1]) { const out = outOf(e);
         if (R.look) { quad(BRD[(q + (e === e0 ? 0 : 1)) % 3], at(a, e, hB(a)), at(b, e, hB(b)), at(b, e, yb), at(a, e, ya), out); continue; } /* earth: one face a meter */
         const nb = Math.max(1, Math.round((b - a) / 0.34));
@@ -59069,7 +59091,12 @@ function buildSideRamp(course, R) {
     for (const e of [e0, e1]) { const so = e === e0 ? -1 : 1; for (let w = ws[0] + 0.5; w < ws[nS] - 0.3; w += 1.3 + 0.7 * hn(si), si++) { const s = 0.09 + 0.1 * hn(si + 31); /* small stones along the foot of both sides */
       parts.push({ geo: rk, col: RC[si % 3], m: new THREE.Matrix4().compose(at(w, e + so * (0.08 + s * 0.6), hB(w) + 0.04 + s * 0.2), new THREE.Quaternion().setFromEuler(new THREE.Euler(hn(si + 7) * 0.8, hn(si + 13) * 6.28, hn(si + 17) * 0.8)), V(s * 1.3, s * 0.7, s)) }); } } };
   const KL = R.kl, wf = R.wf, ks = []; for (let w = -KL; w <= 0; w++) ks.push(w); ks.push(0.999);
-  if (R.table) { for (let w = 1; w < wf; w++) ks.push(w); for (let w = wf; w <= wf + R.ll; w++) ks.push(w); wedge(ks, 0); } /* a table: one block, kicker, deck and landing */
+  if (R.tt) { const tw = [-KL, -KL + 1, -KL + 2, -1, -0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1]; ks.length = 0; for (const u of tw) ks.push(u); for (const u of tw.slice().reverse()) ks.push(wf - u); wedge(ks, 0); /* the crests' rounds drawn every 0.25 m (within 2 mm of the ride) */
+    for (const [w0, w1] of [[1, 1.18], [wf - 1.18, wf - 1]]) quad('#5c3f2a', at(w0, e0, hT(w0) + 0.008), at(w1, e0, hT(w1) + 0.008), at(w1, e1, hT(w1) + 0.008), at(w0, e1, hT(w0) + 0.008), Up); /* timber strips where the level deck starts and ends, 8 mm proud */
+    for (const [w0, w1] of [[-KL - 0.3, -KL], [wf + KL + 0.3, wf + KL]]) quad('#6f5338', at(w0, e0, trY(w0) - 0.04), at(w1, e0, hT(w1)), at(w1, e1, hT(w1)), at(w0, e1, trY(w0) - 0.04), Up); /* toe plates: from each foot down to just over the carved bed */
+    if (R.tf) { const sw = [-KL, -KL + 0.5].concat(ks.slice(1, -1), [wf + KL - 0.5, wf + KL]); for (let q = 0; q + 1 < sw.length; q++) { const a = srFillAt(pts, R, sw[q]), b = srFillAt(pts, R, sw[q + 1]); /* the boarded fill on the trail side */
+      quad(BRD[q % 3], at(sw[q], e0, a[0] + 0.006), at(sw[q + 1], e0, b[0] + 0.006), at(sw[q + 1], b[2], b[1] + 0.006), at(sw[q], a[2], a[1] + 0.006), Up); } } }
+  else if (R.table) { for (let w = 1; w < wf; w++) ks.push(w); for (let w = wf; w <= wf + R.ll; w++) ks.push(w); wedge(ks, 0); } /* a table: one block, kicker, deck and landing */
   else { wedge(ks, 1); const ls = R.bridge >= 0 ? [] : [wf - SR_FACE]; for (let w = wf; w <= wf + R.ll; w++) ls.push(w); wedge(ls, -1); }
   if (R.look) { const mg = new THREE.IcosahedronGeometry(1, 0); /* earth look: low dirt mounds beside the landing's run-out, outside the lane */
     for (let k = 0; k < 3; k++) { const w = wf + R.ll * (0.35 + 0.3 * k) + hn(k + 50) * 1.5, e = e1 + 1.0 + hn(k + 60) * 1.4, s = 0.5 + 0.35 * hn(k + 70);
@@ -59083,7 +59110,8 @@ function buildSideRamp(course, R) {
     for (const sf of [-1, 1]) { const A = (du, dy) => at(w + sf * 0.03, e - du * sc, yB + dy * sc), o = sf < 0 ? back : fwd; /* both faces; du: m toward the trail */
       quad(SR_INK, A(-0.06, -0.24), A(0.06, -0.24), A(0.06, 0.08), A(-0.06, 0.08), o);
       quad(SR_INK, A(-0.2, 0.06), A(0.2, 0.06), A(0, 0.27), A(0, 0.27), o);
-      quad(SR_INK, A(0.36, -0.27), A(0.36, -0.19), A(0.15, -0.12), A(0.15, -0.2), o); } } /* the arrow and a kicker's slope, pale on the tier-colored board */
+      if (R.tt) for (const [x0, y0, x1, y1] of [[0.44, -0.27, 0.34, -0.2], [0.34, -0.2, 0.22, -0.2], [0.22, -0.2, 0.12, -0.27]]) quad(SR_INK, A(x0, y0), A(x0, y0 + 0.07), A(x1, y1 + 0.07), A(x1, y1), o);
+      else quad(SR_INK, A(0.36, -0.27), A(0.36, -0.19), A(0.15, -0.12), A(0.15, -0.2), o); } } /* the arrow and the ramp's profile (a kicker's slope; a tabletop's up, level and down), pale on the tier-colored board */
   for (const c in L) { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(L[c], 3)); parts.push({ geo: g, col: c, m: new THREE.Matrix4() }); }
   const mesh = new THREE.Mesh(mergeParts(parts), campMat); mesh.userData.sramp = R.c; mesh.matrixAutoUpdate = false; return mesh;
 }
@@ -61341,7 +61369,7 @@ function buildWorld(course, surf) {
       if (solid) { addObst(x, z, r * 0.95); obst.get(Math.floor(x / 4) + ',' + Math.floor(z / 4)).at(-1).rock = true; footTag(parts.at(-1), x, z); } return y; };
     const flowers = (f, l, n, R) => { for (let k = 0; k < n; k++) { const a = rf() * 6.28, rr = R * Math.sqrt(rf()), [x, z] = at(f + Math.cos(a) * rr, l + Math.sin(a) * rr), h = hAt(x, z), st = 0.18 + rf() * 0.16;
       putP(new THREE.CylinderGeometry(0.012, 0.016, st, 3), '#4f7a3a', x, h + st / 2, z, 0, 0, 0, 1, 1, 1); putP(new THREE.IcosahedronGeometry(0.07, 0), FLW[Math.floor(rf() * 4)], x, h + st + 0.04, z, 0, rf() * 6, 0, 1, 0.8, 1); } };
-    const footTag = (Pt, x, z) => { const o = obst.get(Math.floor(x / 4) + ',' + Math.floor(z / 4)).at(-1), [vr, vt] = drawnFoot(Pt.geo, Pt.m, x, z, hAt(x, z) - 0.15); o.vr = vr; o.vt = vt; }; /* the drawn reach and top of the collider just added */
+    const sol = [], footTag = (Pt, x, z) => { const o = obst.get(Math.floor(x / 4) + ',' + Math.floor(z / 4)).at(-1), [vr, vt] = drawnFoot(Pt.geo, Pt.m, x, z, hAt(x, z) - 0.15); o.vr = vr; o.vt = vt; sol.push([o, Pt]); }; /* the drawn reach and top of the collider just added; sol: the island's solid rocks */
     const fern = (f, l) => { const [x, z] = at(f, l), h = hAt(x, z); for (let k = 0; k < 5; k++) { const a = k / 5 * 6.28 + rf() * 0.5; putP(new THREE.ConeGeometry(0.09, 0.55, 3), MOSS[1], x + Math.cos(a) * 0.16, h + 0.18, z + Math.sin(a) * 0.16, Math.cos(a) * 0.9, 0, -Math.sin(a) * 0.9, 1, 1, 1); } };
     if (F.kind === 'rock') rock(0, 0, F.short ? 0.95 : 1.55, 0.9, rf() < 0.4); /* a short fork's lanes are narrower: a smaller rock */
     else if (F.kind === 'garden') {
@@ -61366,6 +61394,7 @@ function buildWorld(course, surf) {
       rock(0, 0, 1.15, 0.85); for (let k = 0; k < 3; k++) { const a = k / 3 * 6.28 + rf(); rock(Math.cos(a) * 0.9, Math.sin(a) * 0.9, 0.35 + rf() * 0.2, 0.75, rf() < 0.4); } /* compact pile: both lines stay open */
       flowers(-2.4, 0.3, 4, 0.5);
     }
+    forkIsleShift(P, parts, sol, surf, obst, hAt, F.kind);
     for (const Pp of parts) { Pp.ax = P.x; Pp.az = P.z; if (Pp.geo === bigRock || Pp.isle) Pp.rk = 2; rockParts.push(Pp); } /* the island stays whole in its fork's section; its stones keep off a jump's line */
     pl.instanceMatrix.needsUpdate = ph.instanceMatrix.needsUpdate = tr.instanceMatrix.needsUpdate = true;
     for (const im of [pl, ph, tr]) if (im.instanceColor) im.instanceColor.needsUpdate = true;
@@ -61723,6 +61752,31 @@ function rockSpan(geo, m) { /* a rock part / instance: [center x, z, drawn radiu
   cx /= c; cz /= c; let r = 0; for (let i = 0; i < xs.length; i += 2) r = Math.max(r, Math.hypot(xs[i] - cx, xs[i + 1] - cz)); return [cx, cz, r, y0, y1]; }
 /* a drawn rock's reach from (x, z) over the plane y = g (its farthest corner above g, or edge crossing of g, on the horizontal) and its top */
 const _fdA = new THREE.Vector3(), _fdB = new THREE.Vector3();
+/* a fork whose one lane is raised ('high', 'step', 'shelf'): no solid rock of its island may reach a rider on the face between the lanes (FORK_ISLE_E m
+   and more from the center line on the raised side), by the island-rock hit test (the hit circle, radius + 0.35, and the drawn reach + FORK_HIT_W),
+   and neither lane may get less clear than it was. Each rock that reaches the face, in turn:
+   - moves in across the island by its reach past FORK_ISLE_E, if it then reaches no farther toward the low lane than the island's rocks beside it
+     along the fork already did (an arch's lintel follows its pillar half way, so the arch narrows and still stands on both);
+   - else its hit circle is cut to the part of it off the face: the same low-side edge, the far edge at FORK_ISLE_E (a smaller circle inside the old
+     one, so no line anywhere gets a hit it did not have); the drawn rock stays, its part in the face reads as buried in the bank;
+   - else (the rock is nearly all on the face side) it is left out, drawn rock and collider together.
+   Heights follow the ground; nothing is drawn, so no stream moves */
+function forkIsleShift(P, parts, sol, surf, obst, hAt, kind) {
+  if (!(P.fkK >= 2) || !sol.length) return; const sg = P.fkS, E = FORK_ISLE_E;
+  const eOf = (o) => { const sf = surf(o.x, o.z); return (sf && sf.i >= 0 && sf.o < 50 ? sf.o : (o.x - P.x) * P.rx + (o.z - P.z) * P.rz) * sg; }, kOf = (o) => Math.min(o.r + 0.35, o.vr + FORK_HIT_W);
+  const fOf = (o) => (o.x - P.x) * P.fx + (o.z - P.z) * P.fz;
+  const movePt = (Pt, dx, dz) => { const m = Pt.m.elements, s0 = surf(m[12], m[14]), s1 = surf(m[12] + dx, m[14] + dz); m[12] += dx; m[14] += dz; if (s0 && s1) m[13] += s1.h - s0.h; };
+  const lift = (o) => { const L = obst.get(Math.floor(o.x / 4) + ',' + Math.floor(o.z / 4)), q = L ? L.indexOf(o) : -1; if (q >= 0) L.splice(q, 1); };
+  const put = (o, dx, dz) => { lift(o); o.x += dx; o.z += dz; const key = Math.floor(o.x / 4) + ',' + Math.floor(o.z / 4); if (!obst.has(key)) obst.set(key, []); obst.get(key).push(o); };
+  const R0 = sol.map(([o]) => { const e = eOf(o), k = kOf(o), f = fOf(o); return { e, k, f, lo: e - k }; }); /* the island as built: every rock's place and reach */
+  sol.forEach(([o, Pt], q) => { const { e, k, f } = R0[q], x = e + k - E; if (x <= 0) return;
+    let lim = e - k; for (const B of R0) if (Math.abs(B.f - f) < B.k + k) lim = Math.min(lim, B.lo); /* the low lane's edge beside this rock, as it was */
+    if (e - x - k >= lim - 1e-6) { const dx = -P.rx * sg * x, dz = -P.rz * sg * x; movePt(Pt, dx, dz); put(o, dx, dz);
+      const [vr, vt] = drawnFoot(Pt.geo, Pt.m, o.x, o.z, hAt(o.x, o.z) - 0.15); o.vr = vr; o.vt = vt;
+      if (kind === 'arch' && q < 2 && parts[2]) movePt(parts[2], dx / 2, dz / 2); return; }
+    const h = (E - (e - k)) / 2; if (h >= 0.45) { const c = (E + e - k) / 2; put(o, P.rx * sg * (c - e), P.rz * sg * (c - e)); o.r = h - 0.35; o.vr = h - FORK_HIT_W; return; }
+    lift(o); Pt.gone = true; });
+}
 function drawnFoot(geo, m, x, z, g) {
   const A = geo.attributes.position, ix = geo.index, n = ix ? ix.count : A.count, v = (k, o) => o.fromBufferAttribute(A, ix ? ix.getX(k) : k).applyMatrix4(m); let r = 0, top = -Infinity;
   for (let k = 0; k + 2 < n; k += 3) for (let e = 0; e < 3; e++) { v(k + e, _fdA); v(k + (e + 1) % 3, _fdB); top = Math.max(top, _fdA.y);
@@ -69222,11 +69276,12 @@ function step(dt, inp) {
   }
 }
 /* the off-trail bookkeeping, once per grounded step: on the tread it keeps the speed the bike would leave with (S.otExit) and arms the regain when a
-   short excursion ends; off it counts the time out (S.otT) and sets the edge band weight S.otW (0 at the tread edge, 1 from OT_BAND_W m past it) */
+   short excursion ends; off it counts the time out (S.otT) and sets the edge band weight S.otW (0 up to OT_BAND_0 x the half width past the tread edge,
+   1 from OT_BAND_W m farther out) */
 function otTrack(s0, off, vf, dt) {
   if (!off) { if (S.otT > 0) { if (S.otT <= OT_KEEP_T + OT_KEEP_F && S.otExit > vf) { S.otBack = OT_REGAIN_T; S.otGoal = S.otExit; } S.otT = 0; } S.otExit = vf; S.otW = 0; return; }
   S.otT = (S.otT || 0) + dt; S.otBack = 0; S.otW = 1;
-  if (s0.i >= 0 && s0.o !== 99 && S.course.pts[s0.i]) S.otW = smooth(0, OT_BAND_W, Math.abs(s0.o) - S.course.pts[s0.i].hwE);
+  if (s0.i >= 0 && s0.o !== 99 && S.course.pts[s0.i]) { const hwO = S.course.pts[s0.i].hwE, d0 = OT_BAND_0 * hwO; S.otW = smooth(d0, d0 + OT_BAND_W, Math.abs(s0.o) - hwO); }
 }
 function otBleed(b, vf) { /* the off-trail bleed b (m/s^2) after the edge band, the cap and the short-excursion floor */
   b *= S.otW;
@@ -69262,7 +69317,7 @@ function launchAssist(s0, inp, popped = false) {
   const vReq = Math.sqrt(G * D * D / den) * 1.04;
   const v = Math.hypot(hv, S.vel.y);
   let k = 1;
-  if (v < vReq && v > vReq * 0.5 && !J.table) k = vReq / v; /* assisted = always clears; too slow = drop into the pit and roll out (no half-boost that cases the knuckle) */ /* gaps only: a table top is safe to roll, so it never adds speed; not braking = committed: you make the jump */
+  if (v < vReq && v > vReq * 0.5 && (!J.table || J.tt)) k = vReq / v; /* assisted = always clears; too slow = drop into the pit and roll out (no half-boost that cases the knuckle) */ /* gaps and tabletops only: a low table is safe to roll, so it never adds speed; a tabletop is rolled below its crest's throw speed, and a take-off from it is carried to the down-ramp instead of casing the deck; not braking = committed: you make the jump */
   else { const cap = popped ? 1.25 : 1.35, knee = cap - ASSIST_KNEE, x = v / vReq; if (x > knee) k = (knee + ASSIST_KNEE * Math.tanh((x - knee) / ASSIST_KNEE)) / x; } /* way too fast or a big pop: still lands you on the landing (the kicker scrubs the extra); soft knee, tends to the cap */
   if (inp.brk && k > 1) k = 1; /* braking at the lip: never a boost, but the fast cap still lands you on the landing */
   if (!J.table && !J.drop) S.rampVr = vReq * (popped ? AIR_TGT_POP : AIR_TGT);
@@ -69335,7 +69390,7 @@ function deckWall() {
   if (!S.course.under) return; const s = S.surf(S.pos.x, S.pos.z, false); if (!s || !s.road || !(s.i >= 0) || !S.course.bridges.some(B => s.i >= B.a - BS_ENDS && s.i <= B.b + BS_ENDS)) return;
   const g = S.surf(S.pos.x, S.pos.z, true); if (!g || s.h - g.h >= BS_CLEAR) return;
   const P = S.course.pts[s.i], sg = s.o < 0 ? -1 : 1, e = P.hw + 0.05 - Math.abs(s.o); if (e <= 0) return;
-  const vl = S.vel.x * P.rx + S.vel.z * P.rz; if (vl * sg < 0) { S.vel.x -= P.rx * vl; S.vel.z -= P.rz * vl; }
+  const vl = S.vel.x * P.rx + S.vel.z * P.rz; if (vl * sg < 0) { S.vel.x -= P.rx * vl; S.vel.z -= P.rz * vl; wallTurn(P.rx * sg, P.rz * sg); }
   const d = Math.min(e, BS_PUSH * DT); S.pos.x += P.rx * sg * d; S.pos.z += P.rz * sg * d; /* out at most BS_PUSH m/s: no jump when the ground under a deck rises toward its end */
 }
 /* the bridge ramp whose block the rider is beside or under: within BR_NEAR m of its lane (the kicker with its run-in, the landing with its run-out; not
@@ -69382,8 +69437,16 @@ function edgeEase(R, sdv, e, top, w) {
   const d = e < R.e0 ? R.e0 - e : e > R.e1 ? e - R.e1 : 0; if (d <= 0 || d > RAMP_CATCH + 0.05 || S.pos.y < top - EDGE_UP) return false;
   const sg = e < R.e0 ? 1 : -1, nx = R.rx * sdv * sg, nz = R.rz * sdv * sg, ob = (e < R.e0 ? R.e0 : R.e1) - sg * (RAMP_CATCH + 0.6); /* in toward the lane; ob: a point on the ground past the margin */
   const g = S.surf(R.x + R.fx * w + R.rx * sdv * ob, R.z + R.fz * w + R.rz * sdv * ob); if (!g || top - g.h < BR_STEP) return false; /* level with the ground there: free to leave */
-  const vn = S.vel.x * nx + S.vel.z * nz; if (vn < 0) { S.vel.x -= nx * vn; S.vel.z -= nz * vn; }
+  const vn = S.vel.x * nx + S.vel.z * nz; if (vn < 0) { S.vel.x -= nx * vn; S.vel.z -= nz * vn; wallTurn(nx, nz); }
   const m = Math.min(d + 0.02, RAMP_EASE * DT); S.pos.x += nx * m; S.pos.z += nz * m; return true;
+}
+/* a wall that takes away the speed into it (brWall, edgeEase, deckWall) also turns the bike along it, as a deck's rail does: (nx, nz) points out of
+   the wall, and the heading is turned WALL_TURN of the way to the wall's line each step, so a graze keeps the speed along the wall instead of the
+   next grounded step cutting the speed by cos^2 of the angle again and again. A nose within about 10 degrees of square on is left alone: that hit stops him */
+function wallTurn(nx, nz) {
+  const fx = Math.cos(S.yaw), fz = -Math.sin(S.yaw), d = fx * nx + fz * nz; if (d >= 0) return;
+  const tx = fx - nx * d, tz = fz - nz * d; if (tx * tx + tz * tz < 0.03) return;
+  const want = Math.atan2(-tz, tx); S.yaw += Math.atan2(Math.sin(want - S.yaw), Math.cos(want - S.yaw)) * WALL_TURN;
 }
 /* a bridge ramp's block is a wall to a rider under its top: riding into the lane's footprint from the pit, from the bank beside it or short of the landing's
    face pushes him back out through the nearest side and takes the speed into it away (a nudge like deckWall: never a bail, never a lift onto the lane) */
@@ -69394,7 +69457,7 @@ function brWall() {
   let d = e - R.e0, nx = -R.rx * R.sd, nz = -R.rz * R.sd; /* out toward the tread's side */
   if (R.e1 - e < d) { d = R.e1 - e; nx = R.rx * R.sd; nz = R.rz * R.sd; }
   if (w < 1) { if (1 - w < d) { d = 1 - w; nx = R.fx; nz = R.fz; } } else if (w - R.wf < d) { d = w - R.wf; nx = -R.fx; nz = -R.fz; } /* the lip's end of the kicker, the face of the landing */
-  const vn = S.vel.x * nx + S.vel.z * nz; if (vn < 0) { S.vel.x -= nx * vn; S.vel.z -= nz * vn; }
+  const vn = S.vel.x * nx + S.vel.z * nz; if (vn < 0) { S.vel.x -= nx * vn; S.vel.z -= nz * vn; wallTurn(nx, nz); }
   const m = Math.min(d + 0.02, BS_PUSH * DT); S.pos.x += nx * m; S.pos.z += nz * m;
 }
 function railClamp() {
@@ -69482,10 +69545,10 @@ function rampRide(b) { /* a hop log's approach ramp: a bike rolling up it from t
   if (S.grounded) { S.grounded = false; S.airT = 0; S.lastSlope = undefined; }
   S.rampObj = L; S.rampT = S.t; S.rampN = (S.rampN || 0) + 1; sfx.land && sfx.land(3); return true;
 }
-function footTouch(b) { /* a fork island rock (a collider with a drawn reach vr and top vt): the wheelbase, rear tire to front tire, within vr + FORK_HIT_W of the rock; in the air, a tire under its top */
+function footTouch(b) { /* a fork island rock (a collider with a drawn reach vr and top vt): the wheelbase, rear tire to front tire, within vr + FORK_HIT_W of the rock, and a tire under its top (on the ground too: a bike rolling on higher ground over a buried rock's top passes) */
   const fx = Math.cos(S.yaw), fz = -Math.sin(S.yaw), dx = b.x - S.pos.x, dz = b.z - S.pos.z, al = dx * fx + dz * fz, lat = dx * fz - dz * fx;
   const past = Math.max(0, al - (BK_F + BK_WR), -BK_R - BK_WR - al); if (Math.hypot(lat, past) > b.vr + FORK_HIT_W) return false;
-  return S.grounded || Math.min(S.pos.y, tireLow(BK_F), tireLow(-BK_R)) < b.vt; }
+  return Math.min(S.pos.y, tireLow(BK_F), tireLow(-BK_R)) < b.vt; }
 function hitObstacle() {
   const o = S.course.obst; if (!o || Math.abs(S.speed) < 3.5) return false;
   const cx = Math.floor(S.pos.x / 4), cz = Math.floor(S.pos.z / 4);
@@ -71708,6 +71771,7 @@ const HAM_GREEN_T = 0.042, HAM_GREEN_COL = '#9fe07a';
 const HAM_VARY_W = [1.25, 0.8], HAM_VARY_FILL = [0.85, 1.2], HAM_VARY_MID = [0.64, 0.84], HAM_VARY_R = [0.92, 1.08];
 const HAM_P2_STEEL = ['#7c858e', '#eef2f5', '#b8c1c8'], HAM_P2_NAIL = [1.35, '#eef1f4'], HAM_P2_RING = [0.03, '#4c3525'], HAM_P2_TONE = [1.06, 0.94, 1.0], HAM_P2_PULSE = 0.45, HAM_P2_PUFF = 6, HAM_P2_SQ = 1;
 const HAM_NAME = { kicker: 'kicker ramp', walk: 'boardwalk', patch: 'bridge patch', sign: 'signpost', fence: 'fence section', bench: 'bench' };
+const HAM_LAST_KEY = 'holdon.hamLast';
 const HAM_SALT = 7462; /* hash2 salts (no stream): the build order per camp; the second is kept for this game (the pieces' places by the board are fixed) */
 /* each piece's place by the camp's notice board (board frame: x out of the board's face toward the lens, z along the board; the piece's own +z faces out):
    a list of places tried in order; x, z its center, ry a turn on top of facing out, s its scale, lean a tilt back against the board (the patch panel), lift its base over the ground,
@@ -71795,7 +71859,7 @@ function hamPiece(kind) {
     [[-0.32, 0.13], [0, 0.14], [0.32, 0.13]].forEach(([x, r], i) => log(V(x, r, 1.25), V(x, r, -1.25), r, HAM_LOGS[i % 3]));
     for (const z of [-1.0, 1.0]) log(V(-0.6, 0.11, z), V(0.6, 0.11, z), 0.1, HAM_LOGS[2]);
     for (let i = 0; i < 9; i++) { const z = 1.08 - i * 0.27, y = 0.3;
-      if (gap.includes(i)) { box(0.22, 0.05, 0.2, -0.36, y, z + 0.005, '#6b5a48', 0, 0.15); box(0.15, 0.05, 0.19, 0.39, y, z - 0.004, '#6b5a48', 0, -0.2); slot(0.9, 0.22, 0.05, 0, y, z, 0, [[-0.32, 0], [0.32, 0]]); continue; }
+      if (gap.includes(i)) { box(0.22, 0.044, 0.2, -0.36, y - 0.003, z + 0.005, '#6b5a48', 0, 0.15); box(0.15, 0.044, 0.19, 0.39, y - 0.003, z - 0.004, '#6b5a48', 0, -0.2); slot(0.9, 0.22, 0.05, 0, y, z, 0, [[-0.32, 0], [0.32, 0]]); continue; } /* the stubs' tops 6 mm under the deck top: the fitted board covers them (a shared top face flickered) */
       box(0.9, 0.05, 0.22, 0, y, z, (i & 1) ? '#8a6a4a' : '#977553'); for (const x of [-0.32, 0.32]) box(0.022, 0.006, 0.022, x, y + 0.028, z, '#4a4440'); }
     pre = 0; look = [0, 0.22, 0.4]; dist = 3.8; front = 1.25; }
   else if (kind === 'sign') { rod(V(0, -0.1, 0), V(0, 1.8, 0), 0.06, HAM_LOGS[1], 6); cap(V(0, 1.81, 0), Y1, 0.056, HAM_END); /* a trail post with its end grain on top, a cairn of stones at its foot */
@@ -71818,21 +71882,29 @@ function hamDoneParts(kind) { const B = hamPiece(kind), P = B.frame.slice(); for
 /* the pieces built during this camp visit: one merged mesh in the camp group (campMat, one draw call), rebuilt on each new piece; nothing is saved, and
    enterCamp / leaveCamp / a new mountain clear it (the rider takes nothing to the next camp). The pieces rest by the notice board (HAM_BOARD, cp.hamL), parented to the camp group (the kiosk itself is the shared prop). */
 const hamCamp = (() => {
-  let mesh = null, key = null, list = [], made = 0; /* list: the kinds built this visit */
+  let mesh = null, key = null, list = [], made = 0, lastB = null, prev; /* list: the kinds built this visit; lastB: the last one built; prev: the kind started before this visit (read once per visit) */
   const keyOf = (cp) => (S.course ? S.course.seed : 0) + '.' + cp.idx;
   function dispose() { if (!mesh) return; if (mesh.parent) mesh.parent.remove(mesh); mesh.geometry.dispose(); mesh = null; }
-  function clear() { dispose(); list = []; key = null; made = 0; }
+  function clear() { dispose(); list = []; key = null; made = 0; lastB = null; prev = undefined; }
+  /* holdon.hamLast: the kind of the last Trail Build started (a plain kind name). Read once per visit, so a start in this visit never moves this visit's pick */
+  function prevKind() { if (prev === undefined) { const v = lsGet(HAM_LAST_KEY); prev = HAM_KINDS.includes(v) ? v : null; } return prev; }
+  function started(cp, kind) { if (!HAM_ON || !cp || !HAM_KINDS.includes(kind)) return; prevKind(); lsSet(HAM_LAST_KEY, kind); }
   function order(cp) { const sd = S.course ? S.course.seed | 0 : 0; return HAM_KINDS.map((k, i) => [k, hash2(cp.idx | 0, i, sd + HAM_SALT)]).sort((a, b) => a[1] - b[1]).map((a) => a[0]); } /* this camp's build order */
-  function next(cp) { if (!cp) return HAM_KINDS[0]; const O = order(cp); if (key !== keyOf(cp)) return O[0]; for (const k of O) if (!list.includes(k)) return k; return O[made % O.length]; } /* something not built here yet; once all six stand, round again */
+  function pick(cp, O) { if (key !== keyOf(cp)) return O[0]; for (const k of O) if (!list.includes(k)) return k; return O[made % O.length]; } /* something not built here yet; once all six stand, round again */
+  /* never the same kind twice in a row: against the last piece built in this visit, else against the kind started before this visit (an earlier camp,
+     an earlier visit or an earlier session). A clash moves on along this camp's order to the next kind not built here (else the next one). Starting the
+     same piece again without finishing it keeps it. One kind alone stays as it is. */
+  function next(cp) { if (!cp) return HAM_KINDS[0]; const O = order(cp), c = pick(cp, O), n = O.length, av = made > 0 && key === keyOf(cp) ? lastB : prevKind(); if (c !== av || n < 2) return c;
+    const i = O.indexOf(c); for (let j = 1; j < n; j++) { const k = O[(i + j) % n]; if (!list.includes(k)) return k; } return O[(i + 1) % n]; }
   function build(cp) { dispose(); if (!HAM_ON || !cp || !cp.mesh || !cp.hamL || key !== keyOf(cp) || !list.length) return; const parts = [];
     for (const kind of list) { const sp = cp.hamL[kind]; if (!sp) continue; const B = HAM_BOARD[kind][sp[4]];
       const q = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, sp[2], 0)).multiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(B.lean || 0, 0, 0)));
       const M = new THREE.Matrix4().compose(new THREE.Vector3(sp[0], sp[3] - 0.02 + (B.lift || 0) * B.s * 2.5, sp[1]), q, new THREE.Vector3(B.s, B.s, B.s));
       for (const p of hamDoneParts(kind)) parts.push({ geo: p.geo, col: p.col, m: p.m.premultiply(M) }); }
     if (!parts.length) return; mesh = new THREE.Mesh(mergeParts(parts), campMat); for (const p of parts) p.geo.dispose(); cp.mesh.add(mesh); }
-  function add(cp, kind) { if (!HAM_ON || !cp || !HAM_KINDS.includes(kind)) return false; const k = keyOf(cp); if (key !== k) { list = []; key = k; made = 0; } made++; if (!list.includes(kind)) list.push(kind);
+  function add(cp, kind) { if (!HAM_ON || !cp || !HAM_KINDS.includes(kind)) return false; const k = keyOf(cp); if (key !== k) { list = []; key = k; made = 0; } made++; lastB = kind; if (!list.includes(kind)) list.push(kind);
     build(cp); return !!mesh && !!(cp.hamL && cp.hamL[kind]); } /* every kind has its own place by the board, so the pieces of a visit stand together */
-  return { clear, build, add, next, order, dispose, get mesh() { return mesh; }, get list() { return list.slice(); }, get standing() { return list.filter((k) => !!(S.camp && S.camp.cp.hamL && S.camp.cp.hamL[k])); } };
+  return { clear, build, add, next, started, order, dispose, get mesh() { return mesh; }, get list() { return list.slice(); }, get standing() { return list.filter((k) => !!(S.camp && S.camp.cp.hamL && S.camp.cp.hamL[k])); } };
 })();
 /* ---- zen garden record: holdon.zen = { v:1, b: { <design id>: best score 0..1, ... }, n (gardens raked) }. The loader clamps, drops unknown fields and ids
    and never deletes; anything unreadable reads as a fresh record (and is left in place until the next garden is saved). The first two designs were saved as
@@ -73498,6 +73570,7 @@ const campUI = (() => {
         ${!(xp > 0) ? '' : `<div class="xpr"><span>XP</span><b>+${xp}</b></div>`}${buff ? `<div class="xpr"><span>Buff</span><b>${buffIco(bs)}${esc(buff)}</b></div>` : ''}${L1 > L0 ? `<div class="xpr"><span>Level up</span><b>LV ${L1}</b></div>` : ''}${id === 'stars' && M.found ? `<div class="xpr"><span>Constellations</span><b>${M.found().length} / ${M.total}</b></div>` : ''}${zen ? `<div class="xpr"><span>Garden</span><b>${esc(zen.name)}${zen.free ? ' · unscored' : ' · best ' + Math.round(zen.best * 100) + '%'}</b></div>` : ''}${cairn ? `<div class="xpr"><span>Cairn</span><b>${cairn.h} / ${cairn.N} stones · best ${cairn.bestH}</b></div>` : ''}${fly ? `<div class="xpr"><span>Fireflies</span><b>${fly.n ? Math.min(fly.n, FLY_LIGHTS_MAX) + ' glowing by the tent' : 'none this time'}</b></div>` : ''}${id === 'washers' && r && r.data ? `<div class="xpr"><span>Tosses</span><b>${r.data.cups} in the cup · ${r.data.box} on the box · ${r.data.pts} pts</b></div><div class="xpr"><span>Secret</span><b>Washers · camp ${campNo(S.camp.cp)} · ${esc(seedToCode(S.course.seed))}</b></div>` : ''}${id === 'skip' && r && r.data && r.data.stones ? `<div class="xpr"><span>Skips</span><b>${r.data.skips} in ${r.data.stones} stones · best ${r.data.top}</b></div>` : ''}${fed ? `<div class="xpr"><span>Buff</span><b>${buffIco('belly')}${esc(fed)}</b></div>` : ''}${ham ? `<div class="xpr"><span>${ham.here ? 'At this camp' : 'Built'}</span><b>${ham.here ? 'Your ' + esc(ham.name) + ' stays here' : 'A ' + esc(ham.name)}</b></div>` : ''}</div>
         <div class="foot">${zen && zen.img ? '<button class="mb sm" id="ckZenImg">Save image</button>' : ''}${cairn && cairn.img ? '<button class="mb sm" id="ckCairnImg">Save image</button>' : ''}<button class="mb sm" id="ckAgain"${id === 'dinner' && S.camp && bellyHere(S.camp.cp) ? ' disabled' : ''}>Play again</button><button class="mb sm pri" id="ckBack">Done</button></div>`; body.classList.remove('slR', 'slL'); void body.offsetWidth; body.classList.add('slR'); header(); focusDef(); };
     try { game = M.start(id, { host, level: levelOfXp(PROF.xp), river: rvK, onDone, left: UIO.hand === 'left', cam: campGameCam, fire: (v) => { if (S.camp) S.camp.fireK = v; }, proj: campProj, bike3d, help: CampHelp, rider: campRiderVis, buff: !!SKILL.buffOf[id] && !buffsOff(), poke: (k) => { if (S.camp) S.camp.pokeK = k; }, world: (lx, ly, lz, o) => (S.camp ? S.camp.W(lx, ly, lz, o) : o.set(lx, ly, lz)), stick: (v) => { if (S.camp) S.camp.stick = !!v; }, mirror: !!(S.camp && S.camp.mirror), ham: id === 'hammer' && HAM_ON && S.camp ? hamCamp.next(S.camp.cp) : undefined, ...(DEBUG && extra && typeof extra === 'object' ? extra : {}) }) || null; } catch (e) { console.error('Mini game', id, e); game = null; sfx.mini(null); }
+    if (game && id === 'hammer' && HAM_ON && S.camp) hamCamp.started(S.camp.cp, DEBUG && extra && HAM_KINDS.includes(extra.ham) ? extra.ham : hamCamp.next(S.camp.cp)); /* remembered for the next pick (holdon.hamLast) */
     if (!game) { gameDone = true; gameId = null; if (S.camp) { S.camp.gcam = null; BATCH.want = false; S.camp.fireK = 1; S.camp.pokeK = 0; S.camp.stick = false; } gameOff(); render(); } };
   const stopGame = (leaving) => { if (S.camp && S.camp.bz) { S.camp.bz = false; bzCloth(S.camp, true); gameOff(); if (!leaving) focusDef(); return; } if (!game) return; const g = game; if (g.ended) { try { g.stop(); } catch (e) { } if (gameDone) return; } /* a finished game's result card: stopping it ends it as a normal finish (the score is paid; the host's onDone ran and cleaned up) */ gameDone = true; game = null; gameId = null; try { g.stop(); } catch (e) { } sfx.mini(null); if (S.camp) { S.camp.gcam = null; BATCH.want = false; S.camp.fireK = 1; S.camp.pokeK = 0; S.camp.stick = false; } gameOff(); if (!leaving && S.camp) render(); };
   const boardPad = () => { if (bzOn()) { stopGame(false); return; } const C = S.camp, sp = $('shPan'); if (!C || game || pn.dataset.tab === 'res' || (C.tab === 'look' && V.sub !== 'home') || (sp && !sp.hidden)) return; bzEnter(); }; /* R3 on the pad: the board close-up, from the panel's top level only (not in an Activity, on a result card or a Bike & Rider page); R3 again or B leaves it */
@@ -75625,7 +75698,11 @@ const CampMini = (() => {
     const T = THREE, C = (h) => new T.Color(h), L = []; if (!noFlame) [[0, 0, 0.17, 0.62], [0.09, 0.04, 0.11, 0.42], [-0.08, -0.05, 0.12, 0.45], [0.02, 0.08, 0.08, 0.34]].forEach(([x, z, r, hh]) => { const g = new T.ConeGeometry(r, hh, 6), p = g.attributes.position, cl = new Float32Array(p.count * 3), lo = C('#ff6a1a'), hi = C('#ffe28a'), c = new T.Color();
       for (let i = 0; i < p.count; i++) { c.copy(lo).lerp(hi, clamp(p.getY(i) / hh + 0.5, 0, 1)); cl[i * 3] = c.r; cl[i * 3 + 1] = c.g; cl[i * 3 + 2] = c.b; } g.setAttribute('color', new T.BufferAttribute(cl, 3)); L.push({ geo: g, col: null, m: new T.Matrix4().makeTranslation(x, hh / 2, z) }); });
     const flame = noFlame ? null : new T.Mesh(mergeParts(L), keep(new T.MeshBasicMaterial({ vertexColors: true, fog: false }))); for (const p of L) p.geo.dispose();
-    const P = [], Cl = [], N = 20, R = 1.6; for (let i = 0; i < N; i++) { const a0 = i / N * TAU, a1 = (i + 1) / N * TAU; P.push(0, 0, 0, Math.cos(a0) * R, Math.sin(a0) * R, 0, Math.cos(a1) * R, Math.sin(a1) * R, 0); Cl.push(0.55, 0.26, 0.08, 0, 0, 0, 0, 0, 0); }
+    const P = [], Cl = [], N = 20, R = 1.6, RK = [0, 0.3, 0.6, 0.8, 1], FK = RK.map((r) => 1 - 3 * r * r + 2 * r * r * r); /* rings with a smooth falloff (flat at the rim): a straight fade to 0 left the 20-gon's rim as a visible edge */
+    for (let i = 0; i < N; i++) { const a0 = i / N * TAU, a1 = (i + 1) / N * TAU, c0 = Math.cos(a0) * R, s0 = Math.sin(a0) * R, c1 = Math.cos(a1) * R, s1 = Math.sin(a1) * R;
+      for (let k = 0; k < RK.length - 1; k++) { const r = RK[k], q = RK[k + 1], f = FK[k], g = FK[k + 1];
+        P.push(c0 * r, s0 * r, 0, c0 * q, s0 * q, 0, c1 * q, s1 * q, 0); Cl.push(0.55 * f, 0.26 * f, 0.08 * f, 0.55 * g, 0.26 * g, 0.08 * g, 0.55 * g, 0.26 * g, 0.08 * g);
+        if (k) { P.push(c0 * r, s0 * r, 0, c1 * q, s1 * q, 0, c1 * r, s1 * r, 0); Cl.push(0.55 * f, 0.26 * f, 0.08 * f, 0.55 * g, 0.26 * g, 0.08 * g, 0.55 * f, 0.26 * f, 0.08 * f); } } }
     const glow = new T.Mesh(triGeo(P, Cl), keep(new T.MeshBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false, blending: T.AdditiveBlending, fog: false, side: T.DoubleSide })));
     return { flame, glow }; }
   /* one flat-shaded triangle of a hand-built mesh, wound so its front faces along n (campMat culls back faces); col: a THREE.Color */
@@ -76210,7 +76287,7 @@ const CampMini = (() => {
     const patchK = (x, z) => { let k = 0; for (const q of patches) k = Math.max(k, 1 - Math.hypot(x - q[0], z - q[1]) / (q[2] * 1.3)); return clamp(k, 0, 1); };
     const VW = cairnView(), dk = VW ? VW.day : 0; /* the view's frame (camp order, theme, the camp's light) */
     sc.background = C('#24205a'); sc.fog = new T.Fog(C('#5c4f6c').lerp(C('#a3b2c2'), dk), 26, 95);
-    const cam = new T.PerspectiveCamera(36, 1, VW ? 0.25 : 0.05, VW ? 800 : 400); /* the view's sky wall stands 680 m out; the near plane is pushed out (nothing stands closer than ~2 m to the lens) so the far trees' overlapping faces keep their depth order */
+    const cam = new T.PerspectiveCamera(36, 1, VW ? 1 : 0.05, VW ? 800 : 400); /* the view's sky wall stands 680 m out; the near clip distance is pushed out (nothing drawn stands closer than ~1.9 m to the lens, the grass at the frame's foot) so the far trees and the far shore keep their depth order on a phone's coarser depth buffer too */
     const keep = (m) => { mats.push(m); return m; }; let bhull = null;
     const tris = (P, Cl) => { const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(P, 3)); g.setAttribute('color', new T.Float32BufferAttribute(Cl, 3)); return g; };
     const sdir = VW ? VW.sdir : new T.Vector3(-0.62, 0.06, -1).normalize();
