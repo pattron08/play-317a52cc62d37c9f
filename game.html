@@ -985,7 +985,7 @@
   <div class="favCard" id="tFavs" hidden><div class="fvh">Favorites</div><div class="fvl" id="tFavList"></div><button class="mb sm" id="tFavClose">Close</button></div>
   <div id="tapGo" role="status" hidden>Press to start</div>
   <button class="ico" id="mute" role="switch" aria-checked="true" aria-label="Sound"><svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg><svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M17 9l5 6M22 9l-5 6"/></svg></button>
-  <div class="foot"><span id="verTag">v0.69.0</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span><span id="medalTag"></span></div>
+  <div class="foot"><span id="verTag">v0.70.0</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span><span id="medalTag"></span></div>
   <button id="btnNew" hidden>New mountain</button>
 </div>
 
@@ -56059,14 +56059,14 @@ const XS_HOLD = 1.25, XS_ACC = 3, XS_PAST = 2.5, XS_STALL = 1.5, XS_ARM = 120, X
    analytic surface, the same launch assist). Placed last in buildCourse (placeSideRamps): stream seed + 7474 makes two draws per candidate run, used or
    not, and seed + 7475 three per ramp (tier, look, side); nothing else reads them, so every other placement and draw stays as it was. SR_TIER per size:
    [kicker height, kicker samples, gap m, landing height, landing samples, lead-in samples, run-out samples] (JSIZE's numbers); SR_MIX: the draw's
-   bounds for small / medium (the rest large); SR_TABLE: the chance a small / medium one is a table (its gap is a deck SR_DECK x the kicker's height,
-   rollable at any speed; a small one off a bridge is always a tabletop instead, the draw still made); SR_P: the chance a candidate run (at most SR_CHUNK samples of eligible trail) gets one; SR_MIN: samples between two side ramps; SR_SPACE: samples kept from bridges, jumps, drops,
+   bounds for small / medium (the rest large); a small one is a tabletop, a medium or large one a gap, one beside a bridge a gap over the
+   bridge's pit; SR_P: the chance a candidate run (at most SR_CHUNK samples of eligible trail) gets one; SR_MIN: samples between two side ramps; SR_SPACE: samples kept from bridges, jumps, drops,
    set pieces, forks and other built features; SR_CAMP: samples kept before a camp (its flag sight) and after it; SR_FACE: the landing's back face (m).
    BIG AIR: SR_BONUS trick points for a clean landing on the ramp's landing (pending until the next camp, like any trick points). The cue: three
    signs (SR_SIGN x the crossing sign's size, at the lane's mouth and SR_SIGN2 m further up) with a board in the tier's color (SR_COL) under a pale arrow (SR_INK), part of the
    ramp's one merged mesh and lane chevrons. */
 const SR_TIER = { small: [1.1, 4, 3, 1.0, 9, 14, 14], medium: [1.7, 5, 6, 2.0, 11, 18, 18], large: [2.5, 7, 10, 2.9, 19, 24, 18] };
-const SR_MIX = [0.45, 0.85], SR_TABLE = [0.6, 0.25], SR_P = 1, SR_MIN = 200, SR_SPACE = 12, SR_CAMP = 70, SR_FACE = 1.2, SR_LAT = 4.3, SR_W = 2.4, SR_MAX = 12, SR_CHUNK = 120, SR_DECK = 0.3, SR_DEV = 2.0, SR_CUT = 1.6, SR_FILL = 3.0; /* SR_DEV: m the trail may wander off the lane's line; SR_CUT / SR_FILL: m the ground beside it may stand over / under the tread (the bed is carved flat) */
+const SR_MIX = [0.45, 0.85], SR_P = 1, SR_MIN = 200, SR_SPACE = 12, SR_CAMP = 70, SR_FACE = 1.2, SR_LAT = 4.3, SR_W = 2.4, SR_MAX = 12, SR_CHUNK = 120, SR_DEV = 2.0, SR_CUT = 1.6, SR_FILL = 3.0; /* SR_DEV: m the trail may wander off the lane's line; SR_CUT / SR_FILL: m the ground beside it may stand over / under the tread (the bed is carved flat) */
 const SR_BERM = 8; /* samples kept between a side or bridge ramp's carve (its whole span plus the 3 m the carve blends over) and the nearest ribbon row of a berm wall on its side: the ribbon reads the ground up to 0.55 m along, and a carved cell moves every terrain triangle within one cell of it, so no berm vertex and no ground under a berm is touched by the carve */
 const SR_BP = 1, SR_BMAX = 4, SR_BMIN = 90, SR_BGAP = [4, 7, 11]; /* bridge ramps: on, the chance a bridge gets one, at most a map, samples apart, the largest pit (m) for small / medium / large (a wider pit gets the large gap and a landing built out over the rest, up to the landing's length) */
 const SR_SIDE = 0.8; /* m beside the lane's edges over which its surface rises to the lane's (a rider coming from the side climbs it instead of being lifted onto it in one step); 0 = upright sides */
@@ -58232,7 +58232,7 @@ function* placeCrossings(T, C) { /* T = course.trains (fills T.cross with trainE
 /* ---------- side ramps (see SR_TIER): site finder, profile, ground ----------
    A side ramp's frame: w = meters along the trail from its lip sample c (the trail is straight there, so w = samples), e = meters out on its side (sd).
    The kicker rises over w = -kl..0, the lip carries its angle one more meter, the gap runs to the landing's knuckle at wf = 1 + gap (a face rises to it
-   over the last SR_FACE m; a table's gap is a deck SR_DECK x the kicker's height) and the landing runs ll samples down to the bed. Beside a bridge
+   over the last SR_FACE m) and the landing runs ll samples down to the bed. Beside a bridge
    the gap is the bridge's own pit, left as it is. A small side ramp off a bridge is a tabletop (R.tt, srTop). */
 function srBed(pts, R, u) { /* a side ramp's bed under the lane at trail sample u: the trail's plain ground height (base: no micro bumps or shaped pieces), beside a bridge the tread's own */
   if (R.bridge >= 0) return trailYAt(pts, u); const j = Math.max(0, Math.min(pts.length - 2, Math.floor(u))), t = Math.max(0, Math.min(1, u - j)); return pts[j].base * (1 - t) + pts[j + 1].base * t; }
@@ -58242,7 +58242,7 @@ function srRise(R, w) { /* the lane's rise over the trail's height at w */
   if (w < -KL) return 0;
   if (w <= 0) { const s = w + KL, k = Math.min(KL - 1, Math.floor(s)); return kv[k] + (kv[k + 1] - kv[k]) * (s - k); }
   if (w < 1) return kv[KL] + (kv[KL] - kv[KL - 1]) * w;
-  if (w < wf) { if (R.table) return lv[0]; const f0 = wf - SR_FACE; return w < f0 ? 0 : lv[0] * (w - f0) / SR_FACE; }
+  if (w < wf) { const f0 = wf - SR_FACE; return w < f0 ? 0 : lv[0] * (w - f0) / SR_FACE; }
   const s = w - wf; if (s >= R.ll) return 0; const k = Math.floor(s); return lv[k] + (lv[k + 1] - lv[k]) * (s - k); }
 function srTop(R, u) { /* a tabletop's rise at u = m from the nearer crest's middle (w on the way up, wf - w on the way down, so the down-ramp is the up-ramp
    mirrored about the deck's middle): the kicker's samples up to u = -1, then its last slope s1 rounded off evenly over 2 m to level at u = 1 (a parabola:
@@ -58359,12 +58359,12 @@ function* placeSideRamps(C) { /* C: buildCourse's lists and grids; returns { lis
     for (let i = c + wf + t[4]; i <= c + a1; i++) if (!shoulderOK(i, sd)) return 'run-out';
     return rampAt(c, T, sd, ul, { wf, la, B, pf }); }
   function rampAt(c, T, sd, ul, br) {
-    const P = pts[c], [kh, kl, gp0, lo0, ll, lead0, out0] = SR_TIER[T], lead = br ? Math.min(lead0, SR_BLEAD[0]) : lead0, out = br ? Math.min(out0, SR_BLEAD[1]) : out0, gp = br ? br.wf - 1 : gp0, a0 = kl + lead + 2, a1 = 1 + gp + ll + out, tt = !br && T === 'small', table = tt || (!br && T !== 'large' && ul < SR_TABLE[T === 'small' ? 0 : 1]);
+    const P = pts[c], [kh, kl, gp0, lo0, ll, lead0, out0] = SR_TIER[T], lead = br ? Math.min(lead0, SR_BLEAD[0]) : lead0, out = br ? Math.min(out0, SR_BLEAD[1]) : out0, gp = br ? br.wf - 1 : gp0, a0 = kl + lead + 2, a1 = 1 + gp + ll + out, tt = !br && T === 'small';
     let hwM = 0; for (let i = c - a0; i <= c + a1; i++) hwM = Math.max(hwM, pts[i].hw + devOf(c, i) * sd); const la = br ? br.la : Math.max(SR_LAT, hwM + 0.5 + SR_W / 2); /* 0.5 m clear of the tread's edge all along */
     const kv = new Float32Array(kl + 1); for (let i = 0; i <= kl; i++) kv[i] = kh * Math.pow(i / kl, 1.4);
-    const lo = table ? kh * SR_DECK : lo0, lv = new Float32Array(ll + 1); for (let i = 0; i < ll; i++) lv[i] = lo * (i === 0 ? 0.985 : Math.pow(1 - i / ll, 1.3)); lv[ll] = 0;
+    const lv = new Float32Array(ll + 1); for (let i = 0; i < ll; i++) lv[i] = lo0 * (i === 0 ? 0.985 : Math.pow(1 - i / ll, 1.3)); lv[ll] = 0;
     const wf = 1 + gp, wL = tt ? wf + kl / 2 : wf + Math.round(ll * 0.3); /* a tabletop's fast rider is aimed halfway down its down-ramp */
-    const R = { side: true, bridge: br ? br.B.a : -1, pf: br ? br.pf : 0, size: T, table, tt, tf: false, look: ul < 0.5 ? 0 : 1, c, lip: c, land: c + wL, kl, kh, gap: gp, ll, wf, lead, out, a0, a1, sd, vs: sd, lat: la * sd, la, e0: la - SR_W / 2, e1: la + SR_W / 2, x: P.x, z: P.z, fx: P.fx, fz: P.fz, rx: P.rx, rz: P.rz, hw: P.hw, kv, lv, landPt: null };
+    const R = { side: true, bridge: br ? br.B.a : -1, pf: br ? br.pf : 0, size: T, table: tt, tt, tf: false, look: ul < 0.5 ? 0 : 1, c, lip: c, land: c + wL, kl, kh, gap: gp, ll, wf, lead, out, a0, a1, sd, vs: sd, lat: la * sd, la, e0: la - SR_W / 2, e1: la + SR_W / 2, x: P.x, z: P.z, fx: P.fx, fz: P.fz, rx: P.rx, rz: P.rz, hw: P.hw, kv, lv, landPt: null };
     if (tt) for (let i = c - kl; i <= c + wf + kl; i++) if (pts[i].y - pts[i].base > kh) R.tf = true; /* the trail stands over the deck somewhere beside it: fill its trail side (srFillAt) */
     if (tt) for (let i = 0; i <= ll; i++) lv[i] = srRise(R, wf + i); /* a tabletop: the up-ramp mirrored down from the deck's far crest, the landing's last samples flat on the bed */
     R.landPt = { x: P.x + P.fx * wL + P.rx * R.lat, z: P.z + P.fz * wL + P.rz * R.lat, y: srBed(pts, R, c + wL) + srRise(R, wL) };
@@ -58521,7 +58521,7 @@ function makeSurface(course) {
       if (R.bridge >= 0) { if (course.underR !== R && w >= -R.a0 && w <= R.a1 && e > R.e0 - EDGE_C - SR_SIDE && e < R.e1 + EDGE_C + SR_SIDE && !(w > 1 && w < R.wf)) { const top = srBed(pts, R, R.c + w) + srRise(R, w), inL = e >= R.e0 - EDGE_C && e <= R.e1 + EDGE_C, d = top - h, ad = Math.abs(d), k = inL ? 1 : !SR_SIDE || ad >= BR_STEP ? 0 : ad <= BR_FLUSH ? 1 : (BR_STEP - ad) / (BR_STEP - BR_FLUSH); /* the lane to a rider at its height; beside it the ground eases onto the lane's catch edge (EDGE_C past the drawn edge) over SR_SIDE only where the lane stands within BR_FLUSH m of it (fading out by BR_STEP m): a taller side is upright, and the pit under the arc is the natural ground */
         if (k > 0) { h = inL ? top : h + d * k * Math.max(0, Math.min(1, (e - (R.e0 - EDGE_C) + SR_SIDE) / SR_SIDE, (R.e1 + EDGE_C + SR_SIDE - e) / SR_SIDE)); shoulder = true; lip = inL && w >= -R.kl && w <= 1; idx = Math.max(0, Math.min(pts.length - 2, Math.floor(R.c + w))); o = e * R.sd; } } }
       else if (w >= -R.a0 && w <= R.a1 && e > 0 && e <= R.e1 + SR_SIDE && !(R.bridge >= 0 && w > 1 && w < R.wf) && (R.bridge < 0 || !SR_SIDE || e > R.e0 - SR_SIDE)) { const inL = e >= R.e0 && e <= R.e1, fS = SR_SIDE > 0 ? Math.max(0, Math.min(1, (e - R.e0 + SR_SIDE) / SR_SIDE, (R.e1 + SR_SIDE - e) / SR_SIDE)) : (inL ? 1 : 0); h = srBed(pts, R, R.c + w) + (fS > 0 ? srRise(R, w) * fS : 0); if (R.tf && e < R.e0) h = Math.max(h, srFill(pts, R, w, e)); /* beside a bridge the pit under the arc is the natural ground */
-        shoulder = R.tt || !(inL && w > 1 && w < (R.table ? R.wf : R.wf - SR_FACE)); lip = inL && w >= -R.kl && w <= 1; /* the gap's floor or a table's low deck is the jump's pit (slopeAlong ignores it from the kicker); a tabletop is one block, ridden end to end */ idx = Math.max(0, Math.min(pts.length - 2, Math.floor(R.c + w))); o = e * R.sd; } }
+        shoulder = R.tt || !(inL && w > 1 && w < R.wf - SR_FACE); lip = inL && w >= -R.kl && w <= 1; /* the gap's floor is the jump's pit (slopeAlong ignores it from the kicker); a tabletop is one block, ridden end to end */ idx = Math.max(0, Math.min(pts.length - 2, Math.floor(R.c + w))); o = e * R.sd; } }
     let rail = false;
     if (cuts && course.railOn && !road) { const ev = railHit(x, z); /* a trench's trestle deck: a narrow level strip from where the trestle starts to its far end (on from the moment the world is placed) */
       if (ev) { h = Math.max(h, railY(ev)); shoulder = true; lip = false; rail = true; idx = ev.c; o = 99; } }
@@ -59061,7 +59061,7 @@ function buildCrossing(course, ev, R, surf) {
   { const o = RAIL_RUN - XS_SHED - 0.2; ev.smkU = [-o, o]; } /* between the sheds' mouths: the stack smokes only there */
   return mesh;
 }
-/* ---------- a side ramp's mesh: ONE merged vertex-colored mesh a ramp (its kicker, its landing or table, the lane cue in its tier color: three
+/* ---------- a side ramp's mesh: ONE merged vertex-colored mesh a ramp (its kicker and landing or the tabletop, the lane cue in its tier color: three
    chevrons on the lane and a sign at its mouth, and on the earth look a few dirt mounds beside the run-out). Two looks (R.look): 0 = plank sides like the
    crossing's dressed wedges, 1 = packed earth sides. Stones and mounds from a fixed hash of the ramp's lip sample (no stream). ---------- */
 function buildSideRamp(course, R) {
@@ -59096,7 +59096,6 @@ function buildSideRamp(course, R) {
     for (const [w0, w1] of [[-KL - 0.3, -KL], [wf + KL + 0.3, wf + KL]]) quad('#6f5338', at(w0, e0, trY(w0) - 0.04), at(w1, e0, hT(w1)), at(w1, e1, hT(w1)), at(w0, e1, trY(w0) - 0.04), Up); /* toe plates: from each foot down to just over the carved bed */
     if (R.tf) { const sw = [-KL, -KL + 0.5].concat(ks.slice(1, -1), [wf + KL - 0.5, wf + KL]); for (let q = 0; q + 1 < sw.length; q++) { const a = srFillAt(pts, R, sw[q]), b = srFillAt(pts, R, sw[q + 1]); /* the boarded fill on the trail side */
       quad(BRD[q % 3], at(sw[q], e0, a[0] + 0.006), at(sw[q + 1], e0, b[0] + 0.006), at(sw[q + 1], b[2], b[1] + 0.006), at(sw[q], a[2], a[1] + 0.006), Up); } } }
-  else if (R.table) { for (let w = 1; w < wf; w++) ks.push(w); for (let w = wf; w <= wf + R.ll; w++) ks.push(w); wedge(ks, 0); } /* a table: one block, kicker, deck and landing */
   else { wedge(ks, 1); const ls = R.bridge >= 0 ? [] : [wf - SR_FACE]; for (let w = wf; w <= wf + R.ll; w++) ls.push(w); wedge(ls, -1); }
   if (R.look) { const mg = new THREE.IcosahedronGeometry(1, 0); /* earth look: low dirt mounds beside the landing's run-out, outside the lane */
     for (let k = 0; k < 3; k++) { const w = wf + R.ll * (0.35 + 0.3 * k) + hn(k + 50) * 1.5, e = e1 + 1.0 + hn(k + 60) * 1.4, s = 0.5 + 0.35 * hn(k + 70);
