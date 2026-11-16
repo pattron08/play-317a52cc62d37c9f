@@ -131,6 +131,7 @@
   body.hudz #hTime { font-size: calc(36px * var(--hz)); }
   body.hudz #hScore { font-size: calc(28px * var(--hz)); } body.hudz #hScore small { font-size: calc(10px * var(--hz)); }
   body.hudz #hBuffs { max-width: calc(100% - var(--sl) - var(--sr) - 46px - 150px * var(--hz)); } body.hudz #hBuffs .bc { zoom: var(--hz); }
+  body.plateTR #hBuffs { max-width: calc(100% - var(--sl) - var(--sr) - 46px - 236px); } body.plateTR.hudz:not(.tutOn) #hBuffs { max-width: calc(100% - var(--sl) - var(--sr) - 46px - 236px * var(--hz)); } /* the row ends left of the top-right arrival plate, so a long row wraps instead of running under it */
   body.hudz #hLimbs { font-size: calc(10px * var(--hz)); }
   body.hudz #banner { box-sizing: border-box; width: max-content; max-width: calc(100 * var(--vw) - 32px); } /* the centered banner (plate off) would otherwise wrap the bigger name at half the window; the top-right plate has its own rules below */
   body.hudz #banner b { font-size: calc(24px * var(--hz)); } body.hudz #banner span { font-size: calc(11px * var(--hz)); }
@@ -304,7 +305,8 @@
   .favCard { box-sizing: border-box; display: grid; gap: 6px; align-content: start; padding: 12px; border-radius: 18px; background: var(--glass-solid); border: 1px solid rgba(253,248,234,.16); box-shadow: 0 20px 50px rgba(0,0,0,.5);
     overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
   .favCard .fvh { font: 700 11px var(--f-ui); letter-spacing: .16em; text-transform: uppercase; color: var(--acc1); text-align: center; padding: 2px 0; }
-  #tFavs { position: absolute; right: calc(var(--sr) + 31px); top: 50%; transform: translateY(-50%); width: 300px; max-height: calc(100% - 24px); }
+  #tFavs { position: absolute; right: calc(var(--sr) + 31px); top: 50%; transform: translateY(-50%); width: clamp(300px, calc(100% - var(--sr) - 431px), 340px); max-height: calc(100% - 24px); }
+  #tFavs .fvp small { white-space: normal; } .fvp small .fd { white-space: nowrap; } /* wider where the logo leaves room; on a narrow phone the theme and date wrap instead of being cut */
   #titleScr.favOpen .menu { display: none; }
   #favRep { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(320px, calc(100% - 32px)); max-height: calc(100% - 24px); z-index: 1; }
   #endOv.repOn > :not(#favRep) { visibility: hidden; }
@@ -893,7 +895,7 @@
   /* small screens (body.uifs): the short phones, 667 x 375 and 740 x 360 */
   @media (max-width: 800px) { body.uifs #tutPill { white-space: normal; border-radius: 18px; font-size: 12px; } body.uifs #tutPill .tx { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; text-overflow: clip; }
     body.uifs #campPn .tgl { padding: 0 5px; gap: 4px; font-size: 10.5px; } body.uifs #campPn .lst .lr .seg button { padding-left: 2px; padding-right: 2px; letter-spacing: -.01em; } body.uifs #campPn .pet i { font-size: 9.5px; letter-spacing: 0; } } /* the tutorial prompt wraps instead of ending in dots; the camp's style chips and Pal names keep inside their pills */
-    body.uifs #ctlScr .sheet { padding-top: 6px; padding-bottom: 8px; gap: 5px; } }
+    body.uifs #ctlScr .sheet { padding-top: 6px; padding-bottom: 8px; gap: 5px; }
   #campPn.nochint[data-tab="skills"] .chint { display: none !important; } /* a phone with a pad: the skill rows fill the panel, so the hint strip gives way to the last row */
   /* touch targets (body.tap44): the drawn control keeps its size, an invisible margin takes the tap */
   body.tap44.touchy #setScr .seg button, body.tap44.touchy #setScr .ctlRow .mb { min-height: 44px; }
@@ -914,7 +916,7 @@
   @media (max-height: 380px) { body.usf.touchy #campPn .sk { height: 24px; } body.usf.touchy #campPn .sk .pm button { height: 23px; min-height: 23px; } } /* six skill rows clear Reset / Confirm on a 360 px tall phone */
   body.usf.fc2 #eXpL { text-wrap: balance; } /* a long XP line breaks into even lines */
   body.usf #eMedal.one { font-size: 12.5px; line-height: 1.3; } body.usf #eMedal.one b { display: inline; } body.usf #eMedal.one b + b::before { content: ' \00b7 '; opacity: .6; color: var(--cream-70); }
-  @media (max-width: 760px) { body.usf.touchy #toast { left: calc(var(--sl) + 10px); transform: none; max-width: calc(38 * var(--vw)); } body.usf.touchy.lefty #toast { left: auto; right: calc(var(--sr) + 10px); } } /* narrow phones: the toast sits in the steering thumb's corner, off the LEGS / ARMS buttons */
+  body.usf.touchy #toast { left: calc(var(--sl) + 10px); transform: none; max-width: calc(38 * var(--vw)); } body.usf.touchy.lefty #toast { left: auto; right: calc(var(--sr) + 10px); } /* touch screens: the toast sits in the steering thumb's corner, off the LEGS / ARMS buttons (a long one centered reaches them on wide phones too) */
   body.usf .about .lic pre + b { display: block; margin-top: 12px; } body.usf .about .lic pre { font-size: 10.5px; }
   @media (max-width: 760px) { body.usf #titleScr .tag2 { margin-top: 12px; } body.usf #campPn .lst .lr .seg.g4 button { font-size: 10.5px; letter-spacing: -.01em; } }
   body.usf.touchy #codeRow input { letter-spacing: .03em; padding: 0 9px; } /* a ten-character code fits the field */
@@ -985,7 +987,7 @@
   <div class="favCard" id="tFavs" hidden><div class="fvh">Favorites</div><div class="fvl" id="tFavList"></div><button class="mb sm" id="tFavClose">Close</button></div>
   <div id="tapGo" role="status" hidden>Press to start</div>
   <button class="ico" id="mute" role="switch" aria-checked="true" aria-label="Sound"><svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg><svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M17 9l5 6M22 9l-5 6"/></svg></button>
-  <div class="foot"><span id="verTag">v0.72.0</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span><span id="medalTag"></span></div>
+  <div class="foot"><span id="verTag">v0.73.0</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span><span id="medalTag"></span></div>
   <button id="btnNew" hidden>New mountain</button>
 </div>
 
@@ -58894,16 +58896,16 @@ function fogQ(snap, dt) { /* the haze distance: the theme's (dial.fogK) times th
   const k0 = (S.course && S.course.dial && S.course.dial.fogK) || 1, d = Q.fogK - Q.fogNow; Q.fogNow = snap ? Q.fogK : Q.fogNow + Math.sign(d) * Math.min(Math.abs(d), (dt || 0) * 0.2);
   scene.fog.near = 48 * k0 * Q.fogNow; scene.fog.far = 250 * k0 * Q.fogNow; }
 function setQualityMode(v) { Q.mode = v; try { localStorage.setItem('holdon.quality', v); } catch (e) { } Q.downs = 0; applyQuality(v === 'auto' ? 2 : +v); }
-let fpsAcc = 0, fpsN = 0, fpsT = 0; const fpsEl = document.getElementById('fps');
+let fpsAcc = 0, fpsN = 0, fpsT = 0, fpsMin = 1e9, fpsPace = 0; const fpsEl = document.getElementById('fps');
 function governor(rawDt, riding) { /* rawDt: the real frame interval in ms; riding: a frame whose cost is the ride's or the camp's (no menus, not paused, page visible) */
-  const el = fpsEl; fpsAcc += rawDt; fpsN++; fpsT += rawDt;
-  if (fpsT >= 250) { Q.fps = Math.round(1000 * fpsN / fpsAcc); Q.ft = fpsAcc / fpsN; fpsAcc = fpsN = fpsT = 0; if (Q.showFps && el) el.textContent = Q.fps + ' fps · ' + Q.ft.toFixed(1) + ' ms · ' + Q_LEVELS[Q.level].name + (Q.mode === 'auto' ? ' (auto)' : ''); }
+  const el = fpsEl; fpsAcc += rawDt; fpsN++; fpsT += rawDt; if (rawDt >= 5 && rawDt < fpsMin) fpsMin = rawDt;
+  if (fpsT >= 250) { Q.fps = Math.round(1000 * fpsN / fpsAcc); Q.ft = fpsAcc / fpsN; fpsPace = fpsMin < 1e9 ? fpsMin : 0; fpsAcc = fpsN = fpsT = 0; fpsMin = 1e9; if (Q.showFps && el) el.textContent = Q.fps + ' fps · ' + Q.ft.toFixed(1) + ' ms · ' + Q_LEVELS[Q.level].name + (Q.mode === 'auto' ? ' (auto)' : ''); }
   if (el && el.hidden === Q.showFps) el.hidden = !Q.showFps;
   const dt = rawDt / 1000;
-  Q.late = rawDt > Q_LATE_K * Math.max(QW.fr, Q.ema); /* this frame came well after the usual pace: a build or bake slice waits for the next one */
+  Q.late = rawDt > Q_LATE_K * Math.max(QW.fr, Q.ema, fpsPace); /* this frame came well after the usual pace: a build or bake slice waits for the next one (fpsPace, the shortest interval of the last quarter second, keeps a 30 Hz screen from reading as late before the ride is measured) */
   if (Q.skip > 0) { Q.skip--; return; }
   const ck = riding ? (S.camp ? 'c' : 'r') : ''; /* a new mountain, a camp entry or exit, the start of a ride or the end of a pause: the next seconds are not measured */
-  if (ck !== Q.ctxK || (riding && S.course !== Q.ctxC)) { Q.ctxK = ck; Q.ctxC = S.course; Q.hold = Q_START_S; QW.n = 0; Q.evalT = 0; Q.over = Q.under = 0; }
+  if (ck !== Q.ctxK || (riding && S.course !== Q.ctxC)) { Q.ctxK = ck; Q.ctxC = S.course; Q.hold = Q_START_S; QW.n = 0; Q.evalT = 0; Q.over = Q.under = 0; Q.check = null; } /* a pending no-gain check is dropped: its measure came from the other context */
   if (!riding || rawDt > 250) return; /* menus and pauses are not the ride's cost; a tab switch or a stall is not a frame */
   /* the display cadence: the smallest interval of the last Q_VS_BUCKETS one-second buckets (0 until the first bucket is full) */
     if (rawDt >= 5 && rawDt < QV.min) QV.min = rawDt; if (rawDt > QV.max) QV.max = rawDt; QV.t += dt;
@@ -67168,7 +67170,7 @@ const sfx = (() => {
   function schedule() { if (!ctx || ctx.state !== 'running' || hiddenNow) return; if (CLS) { try { CLS.schedule(); } catch (e) { lastErr = String(e); } } /* MusicClassic's own look-ahead */
     if (!musBus) return; if (M.nextT < ctx.currentTime) M.nextT = ctx.currentTime + 0.1; while (M.nextT < ctx.currentTime + 1.2) { try { stepMusic(M.nextT); } catch (e) { lastErr = String(e); } M.nextT += stepLen(M.nextT); }
     if (titleOn && titleBus) { if (TT.nextT < ctx.currentTime) TT.nextT = ctx.currentTime + (TT.step === 0 ? 0.03 : 0.1); while (TT.nextT < ctx.currentTime + 1.2) { try { titleStep(TT.nextT); } catch (e) { lastErr = String(e); } TT.nextT += T_SD; } } /* + the title theme while it is on */
-    if (performance.now() - wbF > 300) warmBake(); } /* + a little background baking of the next instruments' notes, while the frame loop is not baking (it does every frame the page draws) */
+    if (performance.now() - wbF > 300) warmBake(); } /* + a little background baking of the next instruments' notes, while the frame loop is not baking (it does every frame that is not late) */
   /* ---- ALT TRACK: MusicClassic = the earlier soundtrack in its own closure: a persistent voice-led pad bank (5 voices) + oscillator plucks
      (kalimba / felt piano / camp nylon) through a dotted-eighth echo, a bigger reverb send (0.55), its own tilt, its own title theme (the pad-chord
      version). No mutable state is shared with the organic engine: it reads the mixer (MIX, read-only), the context the update builds for it, and the
@@ -67911,7 +67913,7 @@ const sfx = (() => {
   }
   const QF = { on: false, sn: 0, air: false, airT: 0, grounded: true, crashed: false, finished: false, paused: false, running: false, near: 99, kind: -1, campK: 0, campAud: 0, alt: 0.5, water: false, st: 0, dusk: 0, mini: false, eng: 1 }; /* the music context update() hands musCtx / MusicClassic */
   function update(dt) {
-    if (!ctx) return; wbF = performance.now(); if (!Q.late) warmBake(S.running && !S.paused && !S.finished ? 3 : 6); /* the warm queue also drains a little every frame (the scheduler runs only every 250 ms); more where a frame's length does not show; nothing in a frame that came late */
+    if (!ctx) return; if (!Q.late) { wbF = performance.now(); warmBake(S.running && !S.paused && !S.finished ? 3 : 6); } /* the warm queue also drains a little every frame (the scheduler runs only every 250 ms); more where a frame's length does not show; nothing in a frame that came late, and then the scheduler's slice is not held back */
     const t = ctx.currentTime, sp = Math.abs(S.speed), on = S.running && !S.paused && !S.finished; pz = !!S.paused && !sceneOn; /* the camp scene / mini games keep their sounds even if the game pauses the ride under them */
     if (ctx.state !== 'running' && !hiddenNow && t >= 0 && (resumeT -= dt) <= 0) { resumeT = 1; resumeCtx(); }
     mdTick(dt); if (pourEnd && t > pourEnd) { pourEnd = 0; cueShot('pourEnd', t + 0.01, pourR, 0.3 * TEA_POUR_LVL, 0, 0.06); } tok = Math.min(10, tok + dt * 30); insT += dt; if (insT >= 1) { shotRate = shotsS / insT; shotsS = 0; insT = 0; }
@@ -69351,6 +69353,10 @@ function launchAssist(s0, inp, popped = false) {
   let k = 1;
   if (v < vReq && v > vReq * 0.5 && (!J.table || J.tt)) k = vReq / v; /* assisted = always clears; too slow = drop into the pit and roll out (no half-boost that cases the knuckle) */ /* gaps and tabletops only: a low table is safe to roll, so it never adds speed; a tabletop is rolled below its crest's throw speed, and a take-off from it is carried to the down-ramp instead of casing the deck; not braking = committed: you make the jump */
   else { const cap = popped ? 1.25 : 1.35, knee = cap - ASSIST_KNEE, x = v / vReq; if (x > knee) k = (knee + ASSIST_KNEE * Math.tanh((x - knee) / ASSIST_KNEE)) / x; } /* way too fast or a big pop: still lands you on the landing (the kicker scrubs the extra); soft knee, tends to the cap */
+  if (J.side && !J.tt && v * k > vReq) { /* a side ramp's gap: the fast cap never carries the flight past the landing's last 2 m (past its toe the run-out is level with the trail and the touchdown hard) */
+    const wt = J.wf + J.ll - 2, tx = J.x + J.fx * wt + J.rx * J.lat, tz = J.z + J.fz * wt + J.rz * J.lat, ty = srBed(S.course.pts, J, J.c + wt) + srRise(J, wt);
+    const D2 = ((tx - S.pos.x) * S.vel.x + (tz - S.pos.z) * S.vel.z) / hv, den2 = 2 * c2 * (D2 * tanT + S.pos.y - ty);
+    if (den2 > 0) { const vMax = Math.sqrt(G * D2 * D2 / den2); if (v * k > vMax) k = Math.max(vReq, vMax) / v; } }
   if (inp.brk && k > 1) k = 1; /* braking at the lip: never a boost, but the fast cap still lands you on the landing */
   if (!J.table && !J.drop) S.rampVr = vReq * (popped ? AIR_TGT_POP : AIR_TGT);
   if (JLOG && S.jl && S.jl.J === J) { S.jl.vReq = +vReq.toFixed(2); S.jl.k = +k.toFixed(3); }
@@ -70438,7 +70444,7 @@ function favDrop(code) { const L = favsLoad().filter(f => f.code !== code); favs
 function favBest(code, t) { if (!(t > 0)) return; const L = favsLoad(), k = L.findIndex(f => f.code === code); if (k < 0 || (L[k].time > 0 && L[k].time <= t)) return; L[k] = Object.assign({}, L[k], { time: t }); favsSave(L); } /* a better finish on a favorite lowers its time */
 function favRow(f, i, pre, x) { const r = document.createElement('div'), b = document.createElement('button'), c = document.createElement('b'), t = document.createElement('span'), s = document.createElement('small');
   r.className = 'fvr' + (x ? '' : ' nx'); b.type = 'button'; b.className = 'fvp' + (f.code === favCode() ? ' cur' : ''); b.id = pre + i; b.dataset.code = f.code; b.dataset.i = String(i);
-  c.textContent = f.code; t.className = 'ft'; t.textContent = f.time > 0 ? fmtTime(f.time) : '—'; s.textContent = [favThemeName(f), f.date].filter(Boolean).join(' · '); b.append(c, t, s); r.append(b);
+  c.textContent = f.code; t.className = 'ft'; t.textContent = f.time > 0 ? fmtTime(f.time) : '—'; const th = favThemeName(f); s.textContent = th && f.date ? th + ' · ' : th; if (f.date) { const d = document.createElement('span'); d.className = 'fd'; d.textContent = f.date; s.append(d); } b.append(c, t, s); /* the date in its own span: a wrapped line never breaks it at a hyphen */ r.append(b);
   if (x) { const q = document.createElement('button'); q.type = 'button'; q.className = 'fvs'; q.id = pre + 's' + i; q.dataset.code = f.code; q.title = 'Share'; q.setAttribute('aria-label', 'Share ' + f.code); q.innerHTML = SHARE_ICON; r.append(q); r.classList.add('sh'); } /* Share sits between the row and its x */
   if (x) { const d = document.createElement('button'); d.type = 'button'; d.className = 'fvx'; d.id = pre + 'x' + i; d.dataset.code = f.code; d.dataset.i = String(i); d.title = 'Remove'; d.setAttribute('aria-label', 'Remove ' + f.code); d.textContent = '×'; r.append(d); }
   return r; }
