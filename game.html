@@ -322,8 +322,7 @@
   #pauseMenu .fvh.shCnt { font: 700 11px var(--f-ui); letter-spacing: .12em; text-transform: uppercase; color: var(--acc1); text-align: center; padding: 2px 0; } #pmFavN { color: var(--cream); opacity: .75; letter-spacing: .04em; text-transform: none; }
   #pauseMenu .pmShRow { display: flex; align-items: center; justify-content: center; gap: 8px; margin: -2px 0 2px; } #pauseMenu .pmShRow .meta { margin: 0; } #pauseMenu .pmShRow .mb { min-height: 32px; padding: 0 10px; font-size: 12px; border-radius: 10px; gap: 5px; } #pauseMenu .pmShRow .mb svg { width: 14px; height: 14px; }
   #codeRow.shSave { grid-template-columns: minmax(0, 1fr) auto auto; } #codeRow.shSave #codeMsg { grid-column: 1 / -1; } #codeMsg.ok { color: var(--acc1); }
-  #eBeat { display: block; margin-top: 4px; font: 700 13px var(--f-ui); letter-spacing: .04em; opacity: .85; }
-  #endOv .share .mb#btnCopyCode { width: 120px; } #shCode { display: block; font: 700 26px ui-monospace, Menlo, monospace; letter-spacing: .05em; color: var(--acc1); -webkit-user-select: text; user-select: text; } #shTm { display: block; font: 700 11px var(--f-ui); color: var(--cream); opacity: .8; min-height: 13px; }
+  #shCode { display: block; font: 700 26px ui-monospace, Menlo, monospace; letter-spacing: .05em; color: var(--acc1); -webkit-user-select: text; user-select: text; } #shTm { display: block; font: 700 11px var(--f-ui); color: var(--cream); opacity: .8; min-height: 13px; }
   .shOpen > :not(.shPan) { visibility: hidden; }
   .shPan { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(560px, calc(100% - 32px)); max-height: calc(100% - 24px); z-index: 3; }
   .shPw { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; align-items: start; } .shPl, .shPr { display: grid; gap: 6px; }
@@ -434,52 +433,79 @@
   #ctlScr .gh::after { content: ""; flex: 1; height: 1px; background: rgba(253,248,234,.12); }
   #ctlScr .seg.small button { min-height: 28px; font-size: 11px; padding: 0 9px; min-width: 0; }
   /* results */
-  #endOv { background: linear-gradient(90deg, rgba(20,14,10,.9), rgba(20,14,10,.72)); }
-  #endOv .left { position: absolute; left: calc(var(--sl) + 31px); top: max(40px, calc(12 * var(--vh))); }
-  #endOv h1 { margin: 0; font: italic 900 clamp(44px, calc(16 * var(--vh)), 64px) / .9 var(--f-disp); text-transform: uppercase; animation: upIn .3s var(--ease-out) both; }
+  /* results: two columns over the dimmed frame. Left: title, time, medal, tags (best-time delta, Daily, time to beat), the code. Right: one panel
+     (score rows, TOTAL, the run's XP), the two main buttons, then Share / Copy code / Favorite. Laid out at 844 x 390; desktops zoom it (--uz) */
+  #endOv { background: radial-gradient(ellipse 52% 62% at 25% 50%, rgba(14,10,7,.55), rgba(14,10,7,0)), radial-gradient(ellipse 52% 62% at 76% 50%, rgba(14,10,7,.55), rgba(14,10,7,0)), linear-gradient(90deg, rgba(20,14,10,.9), rgba(20,14,10,.72)); }
+  #endOv .ecw { box-sizing: border-box; min-height: 100%; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.02fr); gap: 26px; align-items: center;
+    padding: max(14px, calc(var(--st) + 6px)) calc(var(--sr) + 16px) max(14px, var(--sb)) calc(var(--sl) + 16px); }
+  #endOv .left, #endOv .right { position: relative; min-width: 0; container-type: inline-size; }
+  #endOv .left { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+  #endOv h1 { margin: 0; font: italic 900 44px/.88 var(--f-disp); text-transform: uppercase; white-space: nowrap; animation: upIn .3s var(--ease-out) both; }
   #endOv h1 span { color: var(--acc1); }
   @keyframes upIn { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
-  #eTime { display: block; font: italic 800 clamp(44px, calc(16 * var(--vh)), 66px) / 1 var(--f-disp); margin-top: 10px; }
-  #eDelta { display: inline-block; margin-top: 4px; font: 700 12px var(--f-ui); letter-spacing: .08em; padding: 4px 12px; border-radius: 99px; opacity: 0; transition: opacity .2s; }
-  #eDelta.show { opacity: 1; }
-  #endOv .etw { display: flex; align-items: flex-end; gap: 16px; } /* the time and, beside it, the medal this run reached */
-  /* the medal: the name and the next target sit beside the time, bottom-aligned with it; the disc (.mdS) hangs above the name, beside the title's
-     second line, out of the flow so it never moves the time; no medal = a dim dashed bronze outline. A short stamp-in (off with reduced motion). */
-  #eMedal { position: relative; display: block; flex: none; min-width: 120px; padding-bottom: 6px; text-align: center; font: 700 10px/1 var(--f-ui); letter-spacing: .1em; text-transform: uppercase; color: var(--cream-70); white-space: nowrap; }
+  #eTime { display: block; margin-top: 2px; font: italic 800 min(92px, 30cqw) / .9 var(--f-disp); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  /* the medal: the disc, then its name over the next target (or the bronze time and how far off it was); no medal = a dim dashed bronze outline. A short stamp-in (off with reduced motion) */
+  #eMedal { display: grid; grid-template-columns: 60px auto; column-gap: 12px; align-items: center; font: 500 13px/1.2 var(--f-ui); color: var(--cream); }
   #eMedal:empty, body.tutEnd #eMedal { display: none; }
-  #eMedal .mdS { position: absolute; left: 50%; bottom: 100%; width: 80px; margin: 0 0 2px -40px; animation: mdIn .32s var(--ease-out) .2s both; }
-  #eMedal .mdS svg { display: block; width: 80px; height: 84px; transform: rotate(-7deg); filter: drop-shadow(0 6px 10px rgba(0,0,0,.45)); } #eMedal .mdS.no svg { transform: none; filter: none; }
+  #eMedal .mdS { grid-row: 1 / span 2; width: 60px; animation: mdIn .32s var(--ease-out) .2s both; }
+  #eMedal .mdS svg { display: block; width: 60px; height: 63px; transform: rotate(-6deg); filter: drop-shadow(0 5px 9px rgba(0,0,0,.45)); } #eMedal .mdS.no svg { transform: none; filter: none; }
   @keyframes mdIn { from { opacity: 0; transform: scale(1.5); } to { opacity: 1; transform: none; } }
-  #eMedal .mdN { display: block; font: italic 900 31px/.9 var(--f-disp); letter-spacing: .03em; } #eMedal .mdN.no { color: var(--cream-70); }
-  #eMedal .mdX { display: block; margin-top: 6px; } #eMedal .mdX b { font-weight: 700; color: var(--cream); } #eMedal i { display: block; margin-top: 5px; font-style: normal; }
+  #eMedal .mdN { align-self: end; font: italic 900 30px/.95 var(--f-disp); letter-spacing: .03em; text-transform: uppercase; } #eMedal .mdN.no { color: var(--cream-70); }
+  #eMedal .mdX { align-self: start; margin-top: 3px; opacity: .9; } #eMedal .mdX b { font-weight: 700; } #eMedal .mdX em { font-style: normal; font-weight: 700; color: var(--warn); }
   #eMedal .g { color: #ffc83d; } #eMedal .s { color: #dbe2eb; } #eMedal .z { color: #ec8c45; }
-  body.touchy #eMedal { zoom: 1.25; }
-  @media (max-height: 380px) and (orientation: landscape) { body #eMedal { zoom: 1; padding-bottom: 3px; } #eMedal .mdS { width: 62px; margin-left: -31px; } #eMedal .mdS svg { width: 62px; height: 65px; } #eMedal .mdN { font-size: 26px; } #eMedal .mdX { margin-top: 4px; } }
-  #eDelta.slow { background: transparent; color: var(--warn); border: 1.5px solid var(--warn); }
-  #eDelta.first { background: transparent; color: var(--cream); border: 1.5px solid var(--cream-40); }
-  #endOv .right { position: absolute; right: calc(var(--sr) + 31px); top: max(40px, calc(12 * var(--vh))); width: min(327px, calc(46 * var(--vw))); }
-  .rrow { display: flex; justify-content: space-between; font: 500 15px var(--f-ui); padding: 8px 0; border-bottom: 1px solid rgba(253,248,234,.16); opacity: 0; transform: translateY(6px); transition: opacity .25s var(--ease-out), transform .25s var(--ease-out); }
-  .rrow b { font-family: ui-monospace, Menlo, monospace; }
-  .rrow.show, .rtot.show { opacity: 1; transform: none; }
-  .rtot { display: flex; justify-content: space-between; align-items: baseline; padding-top: 6px; opacity: 0; transform: translateY(6px); transition: opacity .25s var(--ease-out), transform .25s var(--ease-out); }
-  .rtot span { font: italic 800 24px var(--f-disp); letter-spacing: .06em; }
-  .rtot b { font: italic 900 46px var(--f-disp); color: var(--acc1); display: inline-block; }
-  .rtot b.pop { animation: totPop .3s var(--ease-pop); }
+  /* the tag row: a new best (gold pill) or the gap to the best (plain), the Daily result, the shared time to beat; the first run shows no tag */
+  #endOv .etag { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  #endOv .etag > * { font: 700 12px/1 var(--f-ui); letter-spacing: .06em; text-transform: uppercase; border-radius: 20px; padding: 5px 10px; white-space: nowrap; background: rgba(253,248,234,.12); color: var(--cream); }
+  #eDelta { opacity: 0; transition: opacity .2s; } #eDelta.show { opacity: 1; } #endOv #eDelta.first, #eDelta:empty { display: none; }
+  #endOv #eDelta.best { background: rgba(255,200,61,.2); color: #ffc83d; }
+  #endOv #eDelta.slow { background: none; color: var(--warn); padding-left: 0; } #eDelta.slow span { color: var(--cream); opacity: .85; font-weight: 500; }
+  #endOv #eBeat { order: 1; }
+  #endOv .ecode { margin-top: 2px; padding-bottom: 6px; font: italic 800 22px/1 var(--f-disp); letter-spacing: .07em; color: var(--cream); text-decoration: underline 2px var(--acc1); text-underline-offset: 5px; white-space: nowrap; }
+  #endOv .ecode code { font: inherit; -webkit-user-select: text; user-select: text; }
+  body.demo #endOv .ecode { display: none; } /* the demo has no codes */
+  #endOv .right { display: flex; flex-direction: column; gap: 9px; }
+  #endOv .epan { background: rgba(20,14,10,.55); border: 1px solid rgba(253,248,234,.12); border-radius: 14px; padding: 6px 16px 9px; animation: pnIn .25s var(--ease-out) .15s both; }
+  @keyframes pnIn { from { opacity: 0; } to { opacity: 1; } }
+  #endOv .rrow { display: flex; justify-content: space-between; align-items: baseline; font: 500 14px var(--f-ui); padding: 3px 0; border-bottom: 1px solid rgba(253,248,234,.1); opacity: 0; transform: translateY(6px); transition: opacity .25s var(--ease-out), transform .25s var(--ease-out); }
+  #endOv .rrow b { font-family: ui-monospace, Menlo, monospace; font-variant-numeric: tabular-nums; }
+  #endOv .rrow.show, #endOv .rtot.show { opacity: 1; transform: none; }
+  #endOv .rtot { display: flex; justify-content: space-between; align-items: center; padding-top: 3px; opacity: 0; transform: translateY(6px); transition: opacity .25s var(--ease-out), transform .25s var(--ease-out); }
+  #endOv .rtot span { font: italic 800 22px var(--f-disp); letter-spacing: .06em; }
+  #endOv .rtot b { font: italic 900 40px/1 var(--f-disp); color: var(--acc1); display: inline-block; padding-right: 2px; font-variant-numeric: tabular-nums; }
+  #endOv .rtot b.pop { animation: totPop .3s var(--ease-pop); }
   @keyframes totPop { 50% { transform: scale(1.08); } }
-  #endOv .acts { display: grid; grid-template-columns: 1.4fr 1fr; gap: 8px; margin-top: 18px; }
-  #endOv .share { position: absolute; left: calc(var(--sl) + 31px); bottom: max(28px, var(--sb)); display: flex; gap: 10px; align-items: center; }
-  #endOv .share .mb { width: 170px; }
-  #endOv .share .mb#btnFav { width: 44px; padding: 0; font-size: 20px; line-height: 1; } #endOv .share .mb#btnFav.on { color: var(--acc1); }
-  #endOv .share small { font: 500 11px ui-monospace, Menlo, monospace; opacity: .7; }
-  #endOv .skip { position: absolute; right: calc(var(--sr) + 31px); bottom: max(10px, var(--sb)); font: 500 11px var(--f-ui); opacity: .5; }
-  /* the tutorial's end card (body.tutEnd): no time, score or XP rows, no favorite star; one hint line; 'Ride a real mountain' on top with the next code under it */
+  /* the run's XP: '+N XP' and the level (or the LEVEL n! chip), the reasons under it (3 lines at most), then the total and the bar (#eXpTot) */
+  .rxp { font: 500 12px/1.25 var(--f-ui); color: rgba(253,248,234,.88); opacity: 0; transition: opacity .25s; } .rxp.show { opacity: 1; }
+  #eXpRow { display: flex; flex-wrap: wrap; align-items: center; margin-top: 3px; min-height: 24px; }
+  #eXp, #eXpRow .xu, #eXpL .xlv { font: 800 14px var(--f-ui); color: var(--warn); }
+  #eXp { order: 1; font-variant-numeric: tabular-nums; } #eXpRow .xu { order: 2; margin-left: .3em; }
+  #eXpL { display: contents; } #eXpL .xlv { order: 3; margin-left: .35em; } #eXpL .xlv:empty { display: none; }
+  #eXpUp { order: 4; margin-left: auto; font: italic 900 16px/1 var(--f-disp); letter-spacing: .05em; text-transform: uppercase; background: #ffc83d; color: #3a2400; border-radius: 8px; padding: 4px 9px; } #eXpUp[hidden] { display: none; }
+  #eXpL .xwhy { order: 5; flex: 0 0 100%; margin-top: 2px; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden; text-wrap: balance; } #eXpL .xwhy:empty { display: none; }
+  #endOv #eXpTot { margin-top: 3px; }
+  #endOv .acts { display: grid; grid-template-columns: 1.4fr 1fr; gap: 10px; }
+  #endOv .acts .mb { min-height: 48px; min-width: 0; padding: 0 8px; }
+  #endOv .share { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  #endOv .share .mb { min-width: 0; min-height: 44px; padding: 0 6px; gap: 7px; border-radius: 12px; font: 700 12px/1 var(--f-ui); letter-spacing: .06em; }
+  #endOv .share .mb svg { width: 18px; height: 18px; flex: none; } #endOv .share .mb .fi { font-size: 18px; line-height: 18px; }
+  #endOv .share .mb#btnFav.on { color: var(--acc1); }
+  /* a narrow right column (small phones, notches): icon over label so no label is cut */
+  @container (max-width: 352px) { #endOv .share .mb { flex-direction: column; gap: 3px; min-height: 52px; padding: 4px 2px; letter-spacing: .02em; } }
+  @supports not (container-type: inline-size) { @media (max-width: 760px) { #endOv .share .mb { flex-direction: column; gap: 3px; min-height: 52px; padding: 4px 2px; letter-spacing: .02em; } } }
+  #endOv .skip { position: absolute; left: calc(var(--sl) + 16px); bottom: max(5px, calc(var(--sb) - 7px)); font: 500 12px var(--f-ui); opacity: .75; }
+  /* the demo: the full-game strip sits under a top-aligned left column, the skip label moves right (the demo has no Share row) */
+  body.demo #endOv .left { align-self: start; }
+  body.demo #endOv .skip { left: auto; right: calc(var(--sr) + 16px); }
+  body.demo #endOv #dEnd { left: calc(var(--sl) + 16px); width: min(400px, calc((100 * var(--vw) - var(--sl) - var(--sr) - 58px) / 2.02)); }
+  /* the tutorial's end card (body.tutEnd): no time, score, XP or Share row, no favorite star, no panel box; one hint line; 'Ride a real mountain' on top with the next code under it */
   #eTutHint, #eTutTrick { display: none; }
   /* the hint reads as the card's one tip (accent, a size up, a soft rise after the title), the device-worded let-go / flip line quieter under it */
-  body.tutEnd #eTutHint { display: block; font: italic 800 18px/1.25 var(--f-disp); letter-spacing: .02em; color: var(--acc1); padding: 8px 0 0; animation: upIn .35s var(--ease-out) .25s both; }
+  body.tutEnd #eTutHint { display: block; font: italic 800 18px/1.25 var(--f-disp); letter-spacing: .02em; color: var(--acc1); padding: 2px 0 0; animation: upIn .35s var(--ease-out) .25s both; }
   body.tutEnd #eTutTrick { display: block; font: 500 13px/1.45 var(--f-ui); opacity: .8; padding: 3px 0 0; animation: upIn .35s var(--ease-out) .4s both; }
-  body.tutEnd #eTime, body.tutEnd #endOv .rrow, body.tutEnd #endOv .rtot, body.tutEnd #eXpRow, body.tutEnd #btnFav { display: none; }
-  body.tutEnd #endOv .acts { grid-template-columns: 1fr; margin-top: 14px; } body.tutEnd #btnNew2 { order: -1; flex-direction: column; gap: 0; line-height: 1.05; padding: 6px 16px; }
-  #btnNew2 small { font: 500 11px ui-monospace, Menlo, monospace; letter-spacing: .04em; text-transform: none; opacity: .75; }
+  body.tutEnd #eTime, body.tutEnd #endOv .rrow, body.tutEnd #endOv .rtot, body.tutEnd #eXpRow, body.tutEnd #btnFav, body.tutEnd #endOv .share { display: none; }
+  body.tutEnd #endOv .epan { background: none; border: 0; padding: 0 2px; }
+  body.tutEnd #endOv .acts { grid-template-columns: 1fr; margin-top: 6px; } body.tutEnd #endOv .acts .mb.pri { min-height: 56px; } body.tutEnd #btnNew2 { order: -1; flex-direction: column; gap: 0; line-height: 1.05; padding: 6px 16px; }
+  #btnNew2 small { font: 500 12px ui-monospace, Menlo, monospace; letter-spacing: .04em; text-transform: none; opacity: .75; }
   #fps { position: fixed; z-index: 7; left: 50%; top: calc(var(--st) + 2px); transform: translateX(-50%); font: 500 11px ui-monospace, Menlo, monospace; color: var(--cream); background: rgba(20,14,10,.55); border-radius: 8px; padding: 2px 8px; pointer-events: none; letter-spacing: .04em; } /* Settings > FPS overlay */
   #toast { position: fixed; z-index: 8; left: 50%; bottom: calc(var(--sb) + 20px); transform: translateX(-50%); background: var(--glass-solid); border: 1px solid var(--acc1); border-radius: 99px; padding: 8px 16px; font: 700 13px var(--f-ui); opacity: 0; transition: opacity .2s; pointer-events: none; }
   #toast.on { opacity: 1; }
@@ -489,11 +515,12 @@
   @media (max-height: 340px) { #titleScr h1 { font-size: 56px; } .mb.pri { min-height: 48px; } #titleScr .menu { gap: 6px; } }
   /* the stacked layout is for PORTRAIT only: keyed on orientation, not width, so a 640 x 360 landscape phone keeps the landscape title and results */
   @media (max-width: 640px) and (orientation: portrait) { #titleScr .logo { max-width: 90%; top: 30%; } #titleScr .menu { top: auto; bottom: calc(var(--sb) + 24px); transform: none; right: 50%; margin-right: -140px; }
-    #endOv .right { position: static; margin: 16px auto 90px; width: auto; padding: 0 var(--sr) 0 var(--sl); } #endOv .left { position: static; padding: 30px var(--sr) 0 var(--sl); }
+    #endOv .ecw { grid-template-columns: minmax(0, 1fr); align-items: start; gap: 16px; padding-top: max(30px, var(--st)); padding-bottom: calc(var(--sb) + 40px); }
     #tFavs { right: 50%; transform: translate(50%, -50%); width: min(300px, calc(100% - 32px)); } }
   /* short landscape screens (<= 380 px high): tighter results so the share row clears the time block, smaller menu */
-  @media (max-height: 380px) and (orientation: landscape) { #endOv .left, #endOv .right { top: 22px; } #endOv h1 { font-size: 40px; } #eTime { font-size: 40px; margin-top: 6px; } .rrow { padding: 5px 0; } .rtot b { font-size: 38px; }
-    #endOv .acts { margin-top: 10px; } #endOv .share { bottom: max(12px, var(--sb)); } #endOv .share .mb { min-height: 38px; width: 150px; } #titleScr .menu { gap: 6px; } #titleScr .tag2 { font-size: 14px; margin-top: 8px; } #titleScr .logo { max-width: min(48%, calc(calc(100 * var(--vw)) - 400px)); } }
+  @media (max-height: 380px) and (orientation: landscape) { #endOv .ecw { padding-top: max(10px, calc(var(--st) + 2px)); padding-bottom: max(10px, var(--sb)); } #endOv .left { gap: 4px; } #endOv h1 { font-size: 40px; } #eTime { font-size: min(76px, 30cqw); }
+    #endOv .right { gap: 6px; } #endOv .epan { padding: 4px 14px 7px; } #endOv .rrow { padding: 2px 0; } #endOv .rtot b { font-size: 34px; } #endOv .rtot span { font-size: 20px; } #endOv .acts .mb { min-height: 44px; } body.tutEnd #endOv .acts .mb.pri { min-height: 48px; }
+    #titleScr .menu { gap: 6px; } #titleScr .tag2 { font-size: 14px; margin-top: 8px; } #titleScr .logo { max-width: min(48%, calc(calc(100 * var(--vw)) - 400px)); } }
   /* portrait phones get a 'turn your phone' card (the game is landscape only); riding pauses (see the orientation watch in the input section) */
   #rotate { position: fixed; inset: 0; z-index: 11; display: none; align-items: center; justify-content: center; text-align: center; background: var(--base-900); color: var(--cream); padding: 24px; }
   #rotate b { display: block; font: italic 900 44px/.9 var(--f-disp); text-transform: uppercase; margin-bottom: 14px; } #rotate b span { color: var(--acc1); }
@@ -525,28 +552,11 @@
   .zhint { position: absolute; inset: 0; cursor: pointer; } .zhint span { position: absolute; left: 50%; bottom: max(12px, env(safe-area-inset-bottom)); transform: translateX(-50%); padding: 6px 14px; border-radius: 99px; background: rgba(20,14,10,.62); color: var(--cream); font: 700 12px var(--f-ui); letter-spacing: .06em; white-space: nowrap; pointer-events: none; } /* the board close-up and the soak view: one full-screen tap target with a small hint pill */
   .zhint.soak span { animation: zhOut 1.2s ease 4s forwards; } @keyframes zhOut { to { opacity: 0; } } @media (prefers-reduced-motion: reduce) { .zhint.soak span { animation: none; opacity: .6; } }
   #campHost { position: absolute; inset: 0; } #campPn.game { padding: 0; overflow: hidden; box-shadow: none; height: auto; } #campPn.game > :not(#campHost) { display: none; }
-  .rxp { display: flex; justify-content: space-between; font: 500 15px var(--f-ui); padding: 8px 0; color: var(--warn); opacity: 0; transition: opacity .25s; } .rxp.show { opacity: 1; } .rxp b { font-family: ui-monospace, Menlo, monospace; }
-  /* finish card: compact results on the right, the primary row below them, three icon tiles under the code in the left column (never wider than the free left space) */
-  body.fc2 #endOv .acts { gap: 12px; margin-top: 16px; }
-  body.fc2 #endOv .rrow { padding: 6px 0; }
-  body.fc2 .rxp { padding: 6px 0; gap: 8px; font-size: 13px; line-height: 1.25; align-items: flex-start; }
-  body.fc2 .rxp b { flex: none; } body.fc2 #eXpL { min-width: 0; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
-  body.fc2 #endOv .share { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; align-items: stretch; bottom: max(24px, var(--sb));
-    width: min(330px, calc(100 * var(--vw) - var(--sl) - var(--sr) - 82px - min(327px, calc(46 * var(--vw))))); }
-  body.fc2 #endOv .share small { grid-row: 1; grid-column: 1 / -1; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  body.fc2 #endOv .share .mb, body.fc2 #endOv .share .mb#btnCopyCode, body.fc2 #endOv .share .mb#btnFav { grid-row: 2; width: auto; min-width: 0; min-height: 52px; flex-direction: column; gap: 3px; padding: 4px 2px; font: 700 10.5px/1.1 var(--f-ui); letter-spacing: .05em; }
-  body.fc2 #endOv .share .mb svg { width: 20px; height: 20px; } body.fc2 #endOv .share .mb .fi { font-size: 20px; line-height: 20px; }
-  body.fc2 #endOv .share .mb#btnFav.on { color: var(--acc1); }
-  body.finCode #eDelta { display: none; } /* the left side shows the time and the mountain code only */
-  body.finCode.finBest #eDelta.best, body.finCode.finBest #eDelta.slow { display: block; margin-top: 8px; padding: 0; border: 0; border-radius: 0; background: none; color: #f3c56b; font: italic 800 16px/1.2 var(--f-disp); letter-spacing: .06em; }
-  body.fc2.finCode.finBest:has(#eDelta.best, #eDelta.slow) #endOv .share { row-gap: 14px; } /* a later run's best-time line, plain gold text under the time (a first run shows none) */
-  body.fc2.finCode #endOv .share { row-gap: 26px; } body.fc2.finCode #endOv .share small { font: italic 800 24px/1.15 var(--f-disp); letter-spacing: .08em; color: var(--cream); opacity: 1; overflow: visible; padding-bottom: 2px;
-    text-decoration: underline 2px var(--acc1); text-underline-offset: 6px; } body.fc2.finCode #endOv .share small code { font: inherit; } /* the code to copy / share: large, cream, an orange underline */
-  body.fc2:not(.tutEnd) #btnAgain { background: rgba(20,14,10,.55); color: var(--cream); border: 1px solid rgba(253,248,234,.22); box-shadow: none; }
+  /* finish card buttons: NEW MOUNTAIN is the orange main button, RIDE AGAIN the dark wider one */
+  body.fc2:not(.tutEnd) #btnAgain { background: rgba(20,14,10,.55); color: var(--cream); border: 1px solid rgba(253,248,234,.22); box-shadow: none; font: italic 900 min(22px, 5.6cqw) var(--f-disp); letter-spacing: .06em; }
   body.fc2:not(.tutEnd) #btnAgain:hover { border-color: var(--accLine); }
-  body.fc2:not(.tutEnd) #btnNew2 { background: var(--accGrad); color: var(--accInk); border-color: transparent; text-shadow: none; box-shadow: 0 6px 18px rgba(240,112,42,.28), inset 0 1px 0 rgba(255,255,255,.35); }
+  body.fc2:not(.tutEnd) #btnNew2 { background: var(--accGrad); color: var(--accInk); border-color: transparent; text-shadow: none; box-shadow: 0 6px 18px rgba(240,112,42,.28), inset 0 1px 0 rgba(255,255,255,.35); font: italic 900 min(20px, 5cqw) var(--f-disp); letter-spacing: .06em; }
   body.fc2:not(.tutEnd) #btnNew2:hover { border-color: transparent; }
-  @media (max-height: 380px) and (orientation: landscape) { body.fc2 #endOv .acts { margin-top: 14px; } body.fc2 #endOv .share { bottom: max(14px, var(--sb)); } body.fc2 #endOv .share .mb { min-height: 52px; width: auto; } body.fc2 #endOv .rrow { padding: 5px 0; } }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
   /* ---- camp mini games: FULL-SCREEN games over the live camp scene. The host (#campHost inside #campPn) stretches over the whole screen while a game runs
      (#campScr.game), the camp header / points / panel / tabs / letterbox hide, and the game is one transparent 2D canvas above the WebGL canvas plus a minimal
@@ -644,7 +654,6 @@
   .lbtn.held { background: var(--accGrad); border-color: #ffe0b0; color: var(--accInk); box-shadow: none; }
   #touch button.on { background: var(--accGrad); color: var(--accInk); }
   #bCamp { border-color: var(--acc); box-shadow: 0 0 18px 2px rgba(245,138,52,.4); } #bCamp svg.rg circle { stroke: var(--acc1); } #bCamp.saved { background: var(--accGrad); color: var(--accInk); border-color: #ffe2a8; }
-  #eDelta.best { background: var(--accGrad); color: var(--accInk); }
   /* ---- the camp screen: header plate (camp + mountain), points chip, ONE panel (same size and place on every tab), tab bar with a sliding highlight; panel
      content slides in from the side of the new tab. Sizes are the 844 x 390 design; the panel is capped at 300 px tall on big screens. ---- */
   body:has(#campScr:not([hidden])) #banner { display: none; } /* the mountain's arrival banner never sits over the camp (its name is in the header plate now) */
@@ -916,7 +925,6 @@
   body.tap44.touchy #ctlScr .hd .ico::after, body.tap44.touchy #pauseMenu .ph .ico::after { content: ''; position: absolute; inset: -2px; }
   /* small fixes (body.pol) */
   body.pol.hudOl #hScore.calm { opacity: .6; } /* with the outline on, the idle score stays readable on a bright trail */
-  body.pol.fc2 #eXpL { -webkit-line-clamp: 3; line-clamp: 3; } /* the level note at the end of a long XP line stays on the card */
   body.pol #toast { width: max-content; max-width: calc(100 * var(--vw) - 48px); box-sizing: border-box; text-align: center; border-radius: 18px; } /* a long notice wraps inside the window */
   body.pol .cm-g-dinner .cm-instr:not(.wait) { display: none; } /* Dinner's course cards carry the instructions */
   /* body.usf */
@@ -925,7 +933,6 @@
   body.usf .cm-g-tune.cm-lh .cm-instr:not(.wait), body.usf .cm-g-skip.cm-lh .cm-instr:not(.wait) { left: auto; right: calc(var(--sr, 0px) + 16px); text-align: right; }
   body.usf .cm-g-skip .cm-instr:not(.wait) { bottom: auto; top: max(118px, 30%); }
   @media (max-height: 380px) { body.usf.touchy #campPn .sk { height: 24px; } body.usf.touchy #campPn .sk .pm button { height: 23px; min-height: 23px; } } /* six skill rows clear Reset / Confirm on a 360 px tall phone */
-  body.usf.fc2 #eXpL { text-wrap: balance; } /* a long XP line breaks into even lines */
   body.usf.touchy #toast { left: calc(var(--sl) + 10px); transform: none; max-width: calc(38 * var(--vw)); } body.usf.touchy.lefty #toast { left: auto; right: calc(var(--sr) + 10px); } /* touch screens: the toast sits in the steering thumb's corner, off the LEGS / ARMS buttons (a long one centered reaches them on wide phones too) */
   body.usf .about .lic pre + b { display: block; margin-top: 12px; } body.usf .about .lic pre { font-size: 10.5px; }
   @media (max-width: 760px) { body.usf #titleScr .tag2 { margin-top: 12px; } body.usf #campPn .lst .lr .seg.g4 button { font-size: 10.5px; letter-spacing: -.01em; } }
@@ -997,7 +1004,7 @@
   <div class="favCard" id="tFavs" hidden><div class="fvh">Favorites</div><div class="fvl" id="tFavList"></div><button class="mb sm" id="tFavClose">Close</button></div>
   <div id="tapGo" role="status" hidden>Press to start</div>
   <button class="ico" id="mute" role="switch" aria-checked="true" aria-label="Sound"><svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg><svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M17 9l5 6M22 9l-5 6"/></svg></button>
-  <div class="foot"><span id="verTag">v0.74.0</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span><span id="medalTag"></span></div>
+  <div class="foot"><span id="verTag">v0.75.0</span> &nbsp; <code id="seedCode">—</code> &nbsp; <span id="themeTag"></span><span id="medalTag"></span></div>
   <button id="btnNew" hidden>New mountain</button>
 </div>
 
@@ -1185,21 +1192,27 @@ OTHER DEALINGS IN THE FONT SOFTWARE.</pre></details></div>
 
 
 <div class="scr" id="endOv" hidden>
+  <div class="ecw">
   <div class="left">
-    <h1>Made it<br><span class="gtx">down</span></h1>
-    <div class="etw"><b id="eTime">—</b><span id="eMedal"></span></div>
-    <span id="eDelta"></span>
+    <h1>Made it <span class="gtx">down</span></h1>
+    <b id="eTime">—</b>
+    <span id="eMedal"></span>
+    <div class="etag"><span id="eDelta"></span><span id="eDay" hidden></span></div>
+    <div class="ecode"><code id="seedCode2">—</code></div>
   </div>
   <div class="right">
-    <div class="rrow"><span>Time bonus</span><b id="eBonus">—</b></div>
-    <div class="rrow"><span>Tricks <span id="eCombo" style="opacity:.7"></span></span><b id="eTricks">—</b></div>
-    <div class="rrow"><span>Bails</span><b id="eBails">—</b></div>
-    <div class="rtot"><span>TOTAL</span><b id="eTotal" class="gtx">—</b></div>
-    <div class="rxp" id="eXpRow"><span id="eXpL">XP</span><b id="eXp">—</b></div>
-    <div id="eTutHint">Psst. Try letting go in the air.</div><div id="eTutTrick"></div>
+    <div class="epan">
+      <div class="rrow"><span>Time bonus</span><b id="eBonus">—</b></div>
+      <div class="rrow"><span>Tricks <span id="eCombo" style="opacity:.7"></span></span><b id="eTricks">—</b></div>
+      <div class="rrow"><span>Bails</span><b id="eBails">—</b></div>
+      <div class="rtot"><span>TOTAL</span><b id="eTotal" class="gtx">—</b></div>
+      <div class="rxp" id="eXpRow"><b id="eXp">—</b><span class="xu">XP</span><span id="eXpL"></span><span id="eXpUp" hidden></span></div>
+      <div id="eTutHint">Psst. Try letting go in the air.</div><div id="eTutTrick"></div>
+    </div>
     <div class="acts"><button class="mb pri" id="btnAgain">&#9654; Ride again</button><button class="mb sm" id="btnNew2">New mountain</button></div>
+    <div class="share"><button class="mb sm" id="btnShare">Share code</button><button class="mb sm" id="btnFav" aria-pressed="false" aria-label="Favorite this mountain" title="Favorite this mountain">&#9734;</button></div>
   </div>
-  <div class="share"><button class="mb sm" id="btnShare">Share code</button><button class="mb sm" id="btnFav" aria-pressed="false" aria-label="Favorite this mountain" title="Favorite this mountain">&#9734;</button><small><code id="seedCode2">—</code></small></div>
+  </div>
   <div class="skip" id="eSkip">tap to skip</div>
   <div class="favCard" id="favRep" hidden><div class="fvh">Replace which favorite?</div><div class="fvl" id="favRepList"></div><button class="mb sm" id="favRepNo">Cancel</button></div>
 </div>
@@ -54679,7 +54692,7 @@ const levelOfXp = (xp) => { let L = 1; while (L < LVL_TOP && xp >= xpForLevel(L 
 /* a mountain pays less each time it is finished again: the finish XP (60 + time + tricks) counts in full on the first finish, half on the second
    and a quarter from the third on (xpTier); the +100 first-finish bonus stays once per mountain. PROF.mtn holds the finish count (1..99) per code.
    Camp XP is paid once per mountain, camp and finish count, and the record lives in the PROFILE (PROF.cx[code] = { k: finishes when it was
-   written, f: [camp idxs whose 'camp found' was paid], c: { '<camp idx>': { u: pool points used, d: [activity ids completed] } } }, dropped at the finish):
+   written, f: [camp idxs whose 'camp found' was paid], c: { '<camp idx>': { u: pool points used, d: [activity ids completed], w: the washers game's own payout once it was played } } }, dropped at the finish):
    Restart, Quit, Continue, a fresh Play and a reload never pay a camp again or refill its activity pool; only finishing the mountain opens the next, smaller
    round ('camp found' a flat XP_CAMP_FOUND on every round, pool XP_CAMP_POOL x xpTier).
    The +20 'first ride today' is paid at the first FINISH of a local day and only when the date is later than the last paid one (a clock
@@ -55184,7 +55197,7 @@ const PETW_GLOW_STEPS = [2, 3, 4], PETW_NEAR_TOP = 4; /* the glade lantern's glo
 const PETW_NEAR_G = [0.55, 0.7, 0.85, 1], PETW_CAMP_GLASS = 0.62; /* the near cue's gain at 1, 2, 3, 4+ misses; the camp stump's lantern glass color x this (unlit: no glow, no light) */
 function petwGlowK(B) { /* the glade lantern's glow step: 0 = the plain glow (0-1 misses) .. 1 = the strongest; -1 = the camp stump (unlit) */
   if (!B || B.camp) return -1; const n = B.tries | 0; let s = 0; for (const m of PETW_GLOW_STEPS) if (n >= m) s++; return s / PETW_GLOW_STEPS.length; }
-const PETW_STUMP_MISS = 5; /* the basket's stump moves to a camp's way in after this many misses (PETW_MISS_MAX = as before) */
+const PETW_STUMP_MISS = 5; /* the basket's stump moves to a camp's way in after this many misses */
 const PETW_BUSH_MISS = 3; /* an animal's bush: far off the trail for the first misses, closer after PETW_BUSH_NEAR, at the first camp's way in after this many (an older save's larger count reads the same) */
 const PETW_STUMP_TREAD = 2.2; /* the camp-side stump's center stays this far (m) off the edge of every leg's tread */
 const PETW_SP_BAD = ['ford', 'rockChunk', 'logBridge', 'stoneSteps', 'boardwalk', 'logHop', 'double', 'gorge', 'rockSteps', 'ridge', 'whoops']; /* set pieces no side path leaves from (rollers, berms, dips and chicanes are fine) */
@@ -55655,7 +55668,7 @@ function petwGlade(course, B, out) { /* standing stones, wildflowers and a falle
 function petwBuild(course, surf, W) { /* every piece into the terrain buffers (one group per thing that moves or goes), the ring trees into the forest meshes, the paint into the ground colors */
   const theme = course.theme, pal = PETW_COL[theme] || PETW_COL.pine, groups = [];
   const B = W.basket;
-  if (B) { const lit = petwGlowK(B) >= 1 ? '#ffe2a0' : '#ffd890', o ={ stump: [], basket: [], glass: [] }, lp = petwStumpParts(B.x, gridTriH(B.x, B.z), B.z, o, lit, theme), st = { name: 'stump', x: B.x, z: B.z, parts: o.stump }, bk = { name: 'basket', x: B.x, z: B.z, parts: o.basket }, gl = { name: 'glass', x: B.x, z: B.z, parts: o.glass, glow: 1 };
+  if (B) { const lit = petwGlowK(B) >= 1 ? '#ffe2a0' : '#ffd890', o = { stump: [], basket: [], glass: [] }, lp = petwStumpParts(B.x, gridTriH(B.x, B.z), B.z, o, lit, theme), st = { name: 'stump', x: B.x, z: B.z, parts: o.stump }, bk = { name: 'basket', x: B.x, z: B.z, parts: o.basket }, gl = { name: 'glass', x: B.x, z: B.z, parts: o.glass, glow: 1 };
     B.lp = lp; if (o.dim) { B.dim = o.dim; B.pickR = Math.max(o.dim.pick, STUMP_PICK_R); } if (o.lv && !B.camp) B.lv = o.lv; /* the camp stump's lantern stays unlit: no flicker, no pool on the cut, no glow points */ groups.push(st, bk, gl); B.G = { st, bk, gl }; if (!B.camp) { const so = { stump: 1 }; for (const p of o.stump) p.role = so; } /* the stump's footprint (petwTouchSetup) */
     if (o.dim && o.bkN) { B.bkN = o.bkN; B.bry = o.bry; bk.pad = PETW_FL_LIFT + PETW_FL_BOB + PETW_FL_POP + 0.2; } /* the tile's box takes in the hover */
     if (!B.camp) { const dress = { name: 'clearing', x: B.x, z: B.z, parts: [] }, P2 = dress.parts, Rd = mulberry32(B.dseed || ((B.x * 1000) | 0)), dry = theme === 'scrub';
@@ -56157,7 +56170,7 @@ const TRAIN_MID_VAR = 0.18, XN_U = 9, XN_UMAX = 16, XN_CREEP = 2, XN_UP = 4, XN_
 const XK_VMIN = 9.5, XK_VMAX = 13, XK_APEX = 0.08;
 /* a rider stopped short of the track (XS_STALL s under 0.8 m/s) once the lamps are on or the arms are down is waiting, wherever he stands: the arms
    come down and XN_ARMW s later the train leaves the shed and rolls through at its run speed (a lamp never runs without a train coming). A rider
-   who stops before any warning keeps the older rule (the train rolls through only if he is too far back to reach it) */
+   who stops before any warning gets the plain rule (the train rolls through only if he is too far back to reach it) */
 const XN_ARMW = 1.2;
 /* a crossing train is hit by the whole bike, not its center alone: the rear axle, the center and the front axle (each with TRAIN_HIT_R)
    inside the train's box with a tire under its top (less HOP_TOL) is 'Hit a train', on the ground or in the air; a bike in the air with both tires and
@@ -61909,7 +61922,7 @@ function clearRocks(course, surf) {
    each kept DEC_LANE m out from the lane's outer edge (rider reach included), so the lane, its landing and its run-out stay rideable without touching
    one; a circle with no room left is dropped. No circle on a jump corridor (jumpLanes), a rock-free line (rockHit), a camp lane or where a collider
    already stands. The circles go to course.obstD, not course.obst: hitObstacle and the bail solids read both maps, while the flag-sight, washers,
-   camp-lane, pet and ground-shade passes, which read course.obst, see the world as before. The look is unchanged; no draws. */
+   camp-lane, pet and ground-shade passes, which read course.obst, see the world unchanged. The look is unchanged; no draws. */
 const DEC_H = 0.25, DEC_R = 0.3, DEC_H2 = 0.45, DEC_K = 0.85, DEC_MOUND_K = 0.75, DEC_LANE = RAMP_CLEAR_M + 0.35 + 0.05, DEC_MIN = 0.2;
 function decSolids(course, surf) {
   const D = new Map(); course.obstD = D; course.bailRocks = null; obHitD.drop(); const O = course.obst; let n = 0;
@@ -67861,7 +67874,7 @@ const sfx = (() => {
   /* ---- companion cues (COMPANIONS_ON): built from the mini-game bank above, so they follow the cue trim, the limiter, the reverb send and mute. A find plays
      a little catch jingle, then the animal's own motif: a plink on the ladder (one step per animal) and a short happy run of tines in its own shape. No
      animal voices. rustle(d) is the pepper shake, lower and much quieter, fading out by 45 m; chime() a very quiet wind chime high on the star ladder;
-     near(on) a soft felt phrase that comes back every ~10 s while the rider is near; basket() three warm glass bells; peek(pan) a soft wood tick. ---- */
+     near(a) a soft felt phrase at a level that repeats every 9-15.6 s while the rider is near; basket() three warm glass bells; peek(pan) a soft wood tick. ---- */
   const PET_CUE = { cat: [4, [0, 2, 4]], dog: [2, [0, 1, 2, 4]], fox: [6, [0, 2, 1, 4]], raccoon: [1, [0, 2, 3, 2]], squirrel: [8, [0, 1, 2, 3, 4]], owl: [0, [0, 4, 2]], duck: [5, [0, 0, 2, 4]], frog: [3, [0, 3, 1, 5]], beaver: [7, [0, 1, 0, 3]], snake: [9, [0, -1, 1, 3]] }; /* plink step, run (pentatonic steps from the motif's base) */
   let petNear = false, petNearT = 0, petNearG = 1;
   const petNearGap = () => 9 + 8 * (1 - petNearG) + 3 * rnd(); /* the near phrase comes back sooner at a higher level: ~9-12 s at full, ~12.6-15.6 s at the first */
@@ -70954,17 +70967,18 @@ function medalSvg(i, dim) { const [c, hi, lo, ink] = MEDAL_SV[i], txt = '<text x
       + '<circle cx="50" cy="72" r="25.5" fill="none" stroke="' + ink + '" stroke-opacity=".38" stroke-width="2"/><path d="M30 60 A24 24 0 0 1 52 47" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="3" stroke-linecap="round"/>';
   return '<svg viewBox="-8 -4 116 122" aria-hidden="true">' + rib + disc + txt + '</svg>'; }
 /* the finish card beside the time: the medal this run reached (disc, name, the next medal's time) or a dim bronze outline with the bronze time; then the Daily ride's best */
-function medalCard(seed, t) { const el = $('eMedal'); if (!el) return; let h = ''; if (isTut()) { el.innerHTML = ''; return; }
+function medalCard(seed, t) { const el = $('eMedal'), dy = $('eDay'); if (!el) return; let h = ''; if (dy) dy.hidden = true; if (isTut()) { el.innerHTML = ''; return; }
   const D = dailyFinish(seed, t), M = medalTimes(S.course), got = medalOf(S.course, t), nx = got < 0 ? 2 : got - 1;
+  const toGo = (m) => { const g = Math.round((Math.round(t * 10) / 10 - m) * 10) / 10; return g > 0 ? ' · <em>' + (g < 60 ? g.toFixed(1) + ' s' : medalClock(Math.ceil(g))) + ' to go</em>' : ''; }; /* how far this run was off the next medal: s.s under a minute, m:ss past it */
   h += '<span class="mdS' + (got < 0 ? ' no' : '') + '">' + medalSvg(got < 0 ? 2 : got, got < 0) + '</span>';
-  if (got >= 0) h += '<b class="mdN ' + MEDAL_C[got] + '">' + MEDAL_N[got] + '</b><span class="mdX">' + (got === 0 ? 'Top medal' : 'Next: <b>' + MEDAL_N[nx] + '</b> ' + medalClock(M[nx])) + '</span>';
-  else h += '<b class="mdN no">No medal</b><span class="mdX">Bronze at <b>' + medalClock(M[2]) + '</b></span>';
-  if (D) h += '<i>DAILY · ' + (D.fresh ? (D.prev ? 'NEW BEST' : 'FIRST RUN') : 'BEST ' + fmtTime(D.prev)) + '</i>';
+  if (got >= 0) h += '<b class="mdN ' + MEDAL_C[got] + '">' + MEDAL_N[got] + '</b><span class="mdX">' + (got === 0 ? 'Top medal' : 'Next: <b>' + MEDAL_N[nx] + '</b> ' + medalClock(M[nx]) + toGo(M[nx])) + '</span>';
+  else h += '<b class="mdN no">No medal</b><span class="mdX">Bronze at <b>' + medalClock(M[2]) + '</b>' + toGo(M[2]) + '</span>';
+  if (D && dy) { dy.textContent = 'DAILY · ' + (D.fresh ? (D.prev ? 'NEW BEST' : 'FIRST RUN') : 'BEST ' + fmtTime(D.prev)); dy.hidden = false; } /* the Daily result goes to the tag row */
   el.innerHTML = h; }
 /* the title footer: the gold time of the mountain on screen and, once it has been ridden, the best time and its medal */
 function medalFoot() { const el = $('medalTag'); if (!el) return; let s = ''; try { if (S.course && !isTut()) { const b = shareOwn(seedToCode(S.course.seed)), m = medalOf(S.course, b); s = ' \u00b7 gold ' + medalClock(medalTimes(S.course)[0]) + (b ? ' \u00b7 best ' + fmtTime(b) + (m >= 0 ? ' ' + MEDAL_N[m].toLowerCase() : '') : ''); } } catch (e) { s = ''; } el.textContent = s; }
-const dayKey = () => { return localDayKey(); }; /* the UTC date, YYYY-MM-DD: the daily seed is FNV-1a of 'nohander:' + this, mod 60000000 */
-const dailySeed = () => { let h = 2166136261; for (const c of 'nohander:' + dayKey()) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619) >>> 0; } return h % 60000000; }; /* same mountain for everyone on the same UTC date */
+const dayKey = () => { return localDayKey(); }; /* the player's local date, YYYY-MM-DD: the daily seed is FNV-1a of 'nohander:' + this, mod 60000000 */
+const dailySeed = () => { let h = 2166136261; for (const c of 'nohander:' + dayKey()) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619) >>> 0; } return h % 60000000; }; /* same mountain for everyone on the same local date */
 /* the tagline (the static HTML + meta description carry the same text for first paint) */
 $('tagline').textContent = 'No hands. No worries.';
 $('verTag2').textContent = $('verTag').textContent;
@@ -71190,9 +71204,12 @@ function openResults() {
   const d = $('eDelta'); d.className = '';
   if (prev === null) { d.textContent = 'FIRST RUN ON THIS MOUNTAIN'; d.classList.add('first'); } /* the code shows once, under it */
   else if (t < prev) { d.textContent = '▼ NEW BEST −' + (prev - t).toFixed(1) + ' s'; d.classList.add('best'); }
-  else { d.textContent = '▲ +' + (t - prev).toFixed(1) + ' s · best ' + fmtTime(prev); d.classList.add('slow'); }
+  else { d.innerHTML = '▲ +' + (t - prev).toFixed(1) + ' s <span>· best ' + fmtTime(prev) + '</span>'; d.classList.add('slow'); }
   endAnim = { t0: performance.now(), time: t, bonus: endNum('bonus', 'eBonus'), tricks: endNum('tricks', 'eTricks'), bails: endNum('bails', 'eBails'), total: endNum('total', 'eTotal'), done: false };
-  { const X = runXp(); $('eXpL').textContent = 'XP' + (X.first ? ' · first finish here' : X.k > 0 ? ' · finish ' + (X.k + 1) + ' here: ' + (X.k === 1 ? '50' : '25') + '% XP' : '') + (X.day ? ' · first ride today +' + X.day : '') + (X.belly ? ' · well fed +' + X.belly + '%' : '') + (S.steadyKept > 0 ? ' · steady bail kept ' + S.steadyKept.toLocaleString() + ' pts' : '') + (S.tLost > 0 ? ' · ' + S.tLost.toLocaleString() + ' trick pts lost to bails' + ' (not counted)' : '') + (X.L1 > X.L0 ? ' · LEVEL ' + X.L1 + '!' : ' · LV ' + X.L1) + (DEMO_BUILD && X.L1 >= LVL_TOP ? ' · ' + demoCapNote() : ''); $('eXp').textContent = '+' + X.n; $('eXpRow').classList.remove('show'); if (X.L1 > X.L0) sfx.cue('win'); xpCardTotal(); try { campUI.header(); } catch (e) { /* no camp panel yet */ } } /* run XP (Full Belly is paid and cleared) */
+  { const X = runXp(), up = X.L1 > X.L0, lv = document.createElement('span'), why = document.createElement('span'); lv.className = 'xlv'; why.className = 'xwhy'; /* '· LV n' beside '+N XP' (a level-up shows the LEVEL n! chip instead), the reasons under it */
+    lv.textContent = up ? '' : '· LV ' + X.L1;
+    why.textContent = [X.first ? 'first finish here' : X.k > 0 ? 'finish ' + (X.k + 1) + ' here: ' + (X.k === 1 ? '50' : '25') + '% XP' : '', X.day ? 'first ride today +' + X.day : '', X.belly ? 'well fed +' + X.belly + '%' : '', S.steadyKept > 0 ? 'steady bail kept ' + S.steadyKept.toLocaleString() + ' pts' : '', S.tLost > 0 ? S.tLost.toLocaleString() + ' trick pts lost to bails' + ' (not counted)' : '', DEMO_BUILD && X.L1 >= LVL_TOP ? demoCapNote() : ''].filter(Boolean).join(' · ');
+    $('eXpL').replaceChildren(lv, why); $('eXpUp').textContent = up ? 'LEVEL ' + X.L1 + '!' : ''; $('eXpUp').hidden = !up; $('eXp').textContent = '+' + X.n; $('eXpRow').classList.remove('show'); if (X.L1 > X.L0) sfx.cue('win'); xpCardTotal(); try { campUI.header(); } catch (e) { /* no camp panel yet */ } } /* run XP (Full Belly is paid and cleared) */
   $('eCombo').textContent = '';
   for (const el of document.querySelectorAll('#endOv .rrow, #endOv .rtot')) el.classList.remove('show');
   if (isTut()) tutCard(true); else if (!DEMO_BUILD) prebuild.roll(); /* the next random mountain, rolled now and kept (its course is built ahead once the count-up is done) */
@@ -71207,7 +71224,7 @@ function tutCard(on) {
   const h = $('endOv').querySelector('h1'), a = $('btnAgain'), n = $('btnNew2'), d = $('eDelta');
   if (!tutH1) tutH1 = h.innerHTML;
   document.body.classList.toggle('tutEnd', on);
-  if (on) { tut.finish(); tutNext = prebuild.roll(); $('eTutTrick').innerHTML = tut.hint(); h.innerHTML = 'You’re<br><span class="gtx">ready</span>'; d.className = 'first'; d.textContent = 'TUTORIAL DONE';
+  if (on) { tut.finish(); tutNext = prebuild.roll(); $('eTutTrick').innerHTML = tut.hint(); h.innerHTML = 'You’re <span class="gtx">ready</span>'; d.className = 'first'; d.textContent = 'TUTORIAL DONE';
     a.className = 'mb sm'; a.textContent = 'Replay tutorial'; n.className = 'mb pri'; n.innerHTML = 'Ride a real mountain<small>' + seedToCode(tutNext) + '</small>'; if (DEMO_BUILD) n.textContent = 'Pick a mountain'; }
   else { tutNext = null; h.innerHTML = tutH1; a.className = 'mb pri'; a.innerHTML = '&#9654; Ride again'; n.className = 'mb sm'; n.textContent = DEMO_BUILD ? 'Pick a mountain' : 'New mountain'; }
 }
