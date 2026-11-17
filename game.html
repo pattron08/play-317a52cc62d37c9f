@@ -54319,7 +54319,7 @@ const gfxNote = (on) => {
   if (n) n.hidden = !on;
 };
 /* the public build (tools/build_single.py --public writes 1): no Classic feel and no test hooks. 0 = the source as it is worked on */
-const PUBLIC_BUILD = 1;
+const PUBLIC_BUILD = 0;
 /* ?debug in the URL exposes the debug hooks (window.__game and friends, the bot rider, the render switch, camera overrides) */
 const DEBUG = !PUBLIC_BUILD && /[?&]debug\b/.test(location.search);
 /* the desktop edition (tools/build_single.py --desktop writes 1): a Fullscreen row in Settings (and F11), Quit game in the pause card, and a copy of every
